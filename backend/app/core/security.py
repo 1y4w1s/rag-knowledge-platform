@@ -66,6 +66,8 @@ _PUBLIC_EXACT_PATHS = frozenset(
         "/api/v1/auth/register",
         "/api/v1/auth/login",
         "/api/v1/auth/invites/validate",
+        "/api/v1/auth/forgot-password",
+        "/api/v1/auth/reset-password",
         "/docs",
         "/openapi.json",
         "/redoc",

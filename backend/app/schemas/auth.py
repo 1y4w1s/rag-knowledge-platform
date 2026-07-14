@@ -64,3 +64,20 @@ class TokenResponse(BaseModel):
 
 class LoginResponse(TokenResponse):
     user: UserPublic
+
+
+class ForgotPasswordRequest(BaseModel):
+    identifier: str = Field(min_length=1, max_length=255, description="Email or username")
+
+
+class ForgotPasswordResponse(BaseModel):
+    message: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str = Field(min_length=1)
+    new_password: str = Field(min_length=8)
+
+
+class ResetPasswordResponse(BaseModel):
+    message: str = "密码已重置，请重新登录"

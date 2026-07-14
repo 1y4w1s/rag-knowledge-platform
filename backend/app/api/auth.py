@@ -9,15 +9,23 @@ from app.core.database import get_db
 from app.core.request_ip import get_client_ip
 from app.core.deps import CurrentUser, get_current_user
 from app.schemas.auth import (
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
     InviteValidateRequest,
     InviteValidateResponse,
     LoginRequest,
     LoginResponse,
     RegisterRequest,
     RegisterResponse,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
     UserPublic,
 )
 from app.services.auth.service import login_user, register_user
+from app.services.auth.password_reset import (
+    reset_password as execute_reset_password,
+    send_password_reset_email,
+)
 from app.services.organization.invites import resolve_valid_invite
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -68,3 +76,25 @@ async def me(
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> UserPublic:
     return current_user
+
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+async def forgot_password(
+    body: ForgotPasswordRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ForgotPasswordResponse:
+    msg = await send_password_reset_email(
+        db, identifier=body.identifier,
+    )
+    return ForgotPasswordResponse(message=msg)
+
+
+@router.post("/reset-password", response_model=ResetPasswordResponse)
+async def reset_password(
+    body: ResetPasswordRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ResetPasswordResponse:
+    await execute_reset_password(
+        db, token=body.token, new_password=body.new_password,
+    )
+    return ResetPasswordResponse()
