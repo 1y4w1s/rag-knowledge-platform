@@ -36,6 +36,8 @@ Thumbs.db
 
 # AI session metadata
 .reasonix/
+.workbuddy/
+reasonix.toml
 
 # Temp scripts
 _check_docs.py
