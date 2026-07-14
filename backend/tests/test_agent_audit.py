@@ -13,7 +13,7 @@
 红线校验：任意 approval 事件的 ``details`` 中**绝不**含草稿全文
 （payload_json.markdown / DRAFT_MARKER）。
 
-复用车规级隔离 fixture ``org_iso``（``tests/test_org_isolation.py`` · pytest 插件）；
+复用车规级隔离 fixture ``org_iso``（``tests/fixtures/org_isolation.py``）；
 ``register_and_login`` 来自 ``tests/conftest.py``。
 """
 

@@ -15,7 +15,7 @@
 cancel **绝不**写库 / 落 md / ``_v2`` / ingestion（G4-3.3 红线）；``adopt_draft_to_kb``
 用 ``monkeypatch`` 隔离（cancel 不调它，仅为路由 import 防御）。
 
-复用车规级隔离 fixture ``org_iso``（``tests/test_org_isolation.py`` · pytest 插件）：
+复用车规级隔离 fixture ``org_iso``（``tests/fixtures/org_isolation.py``）：
 - ``org_iso.owner``     : 公司 Admin + Owner，可写任意 org kb（含 public_kb）
 - ``org_iso.rd_member`` : 研发部 Member，仅可读，写动作 → 403（G4-E9）
 - ``org_iso.public_kb_id`` : 公司公共库（org_unit_id=None），admin 可写

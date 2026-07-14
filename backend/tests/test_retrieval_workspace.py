@@ -28,7 +28,7 @@ from app.services.rag.retrieval import (
 from app.services.rag.types import RetrievedChunk
 from app.services.workspace.scope import WorkspaceKind, WorkspaceScope
 from tests.conftest import create_test_kb as _create_kb
-from tests.test_org_isolation import OrgIsolationFixture
+from tests.fixtures.org_isolation import OrgIsolationFixture
 
 FIXTURES = Path(__file__).parent / "fixtures"
 GOLDEN_MD = FIXTURES / "golden_handbook.md"

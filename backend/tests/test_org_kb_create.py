@@ -8,7 +8,7 @@ import pytest
 from httpx import AsyncClient
 
 from tests.conftest import workspace_query
-from tests.test_org_isolation import OrgIsolationFixture, _login_user
+from tests.fixtures.org_isolation import OrgIsolationFixture, _login_user
 
 
 def _org_workspace_params(org_id: uuid.UUID, *, department_id: str | None = None) -> dict:
