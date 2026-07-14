@@ -20,7 +20,7 @@ from app.services.documents.content_hash import (
 )
 from app.services.ingestion.pipeline import process_document_ingestion
 
-ALLOWED_EXTENSIONS: frozenset[str] = frozenset({".pdf", ".txt", ".md", ".docx"})
+ALLOWED_EXTENSIONS: frozenset[str] = frozenset({".pdf", ".txt", ".md", ".docx", ".xlsx", ".pptx"})
 
 
 def _extension(filename: str | None) -> str:

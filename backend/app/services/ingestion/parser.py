@@ -213,6 +213,87 @@ def parse_docx(path: Path) -> list[ParsedBlock]:
     return blocks
 
 
+def _rows_to_markdown_table(rows: list[tuple]) -> list[str]:
+    """Convert a 2D array of values to pipe-markdown table lines."""
+    if not rows:
+        return []
+    lines: list[str] = []
+    # Header row
+    lines.append("| " + " | ".join(str(c or "") for c in rows[0]) + " |")
+    # Separator
+    lines.append("| " + " | ".join("---" for _ in rows[0]) + " |")
+    # Data rows
+    for row in rows[1:]:
+        lines.append("| " + " | ".join(str(c or "") for c in row) + " |")
+    return lines
+
+
+def parse_xlsx(path: Path) -> list[ParsedBlock]:
+    """Excel: each sheet as a markdown table block."""
+    import openpyxl
+
+    wb = openpyxl.load_workbook(path, data_only=True, read_only=True)
+    blocks: list[ParsedBlock] = []
+    for sheet_name in wb.sheetnames:
+        ws = wb[sheet_name]
+        rows = list(ws.iter_rows(values_only=True))
+        if not rows or all(cell is None for cell in rows[0]):
+            continue
+        md_lines = _rows_to_markdown_table(rows)
+        blocks.append(
+            ParsedBlock(
+                content="\n".join(md_lines),
+                section_title=sheet_name,
+                heading_path=sheet_name,
+                block_kind="table",
+            )
+        )
+    wb.close()
+    return blocks
+
+
+def parse_pptx(path: Path) -> list[ParsedBlock]:
+    """PPT: each slide as a prose block, notes appended to body."""
+    from pptx import Presentation
+
+    prs = Presentation(str(path))
+    blocks: list[ParsedBlock] = []
+    for i, slide in enumerate(prs.slides, start=1):
+        title = ""
+        body_parts: list[str] = []
+        title_shape = slide.shapes.title
+        for shape in slide.shapes:
+            if not shape.has_text_frame:
+                continue
+            text = shape.text_frame.text.strip()
+            if not text:
+                continue
+            if title_shape is not None and shape == title_shape:
+                title = text
+            else:
+                body_parts.append(text)
+        # Fallback: first textbox as title when blank layout (no title placeholder)
+        if not title and body_parts:
+            title = body_parts.pop(0)
+        # Notes
+        if slide.has_notes_slide:
+            notes = slide.notes_slide.notes_text_frame.text.strip()
+            if notes:
+                body_parts.append(f"【备注】{notes}")
+        content = "\n\n".join(body_parts) if body_parts else ""
+        heading_path = title or f"Slide {i}"
+        blocks.append(
+            ParsedBlock(
+                content=content or heading_path,
+                section_title=title or None,
+                heading_path=heading_path,
+                page_number=i,
+                block_kind="prose",
+            )
+        )
+    return blocks
+
+
 def parse_document(path: Path, file_type: str, *, pdf_batch_pages: int = 10) -> list[ParsedBlock]:
     ext = file_type.lower().lstrip(".")
     if ext == "pdf":
@@ -235,4 +316,8 @@ def parse_document(path: Path, file_type: str, *, pdf_batch_pages: int = 10) -> 
         return parse_md(path.read_text(encoding="utf-8"))
     if ext == "docx":
         return parse_docx(path)
+    if ext == "xlsx":
+        return parse_xlsx(path)
+    if ext == "pptx":
+        return parse_pptx(path)
     raise ValueError(f"不支持的文件类型: {file_type}")

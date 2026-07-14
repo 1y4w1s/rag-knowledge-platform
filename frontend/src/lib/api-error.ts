@@ -1,11 +1,11 @@
+import { localizeBackendError } from "./localize";
+
 export type ApiErrorResource =
   | "knowledge-base"
   | "document"
   | "dashboard"
   | "search"
   | "generic";
-
-import { localizeBackendError } from "./localize";
 
 const NOT_FOUND_LITERAL = "Not Found";
 

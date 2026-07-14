@@ -19,6 +19,12 @@ _CONTENT_TYPES: dict[str, str] = {
     "docx": (
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     ),
+    "xlsx": (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    ),
+    "pptx": (
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    ),
 }
 
 

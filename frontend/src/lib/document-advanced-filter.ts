@@ -1,4 +1,4 @@
-export type DocumentFormatFilter = "pdf" | "docx";
+export type DocumentFormatFilter = "pdf" | "docx" | "xlsx";
 
 export type DocumentStatusGroup = "processing" | "failed" | "completed";
 
@@ -9,7 +9,7 @@ export interface DocumentListFilters {
   uploadedTo: string | null;
 }
 
-const FORMAT_VALUES = new Set<DocumentFormatFilter>(["pdf", "docx"]);
+const FORMAT_VALUES = new Set<DocumentFormatFilter>(["pdf", "docx", "xlsx"]);
 const STATUS_VALUES = new Set<DocumentStatusGroup>([
   "processing",
   "failed",
@@ -22,6 +22,7 @@ export const DOCUMENT_FORMAT_OPTIONS: {
 }[] = [
   { value: "pdf", label: "PDF" },
   { value: "docx", label: "DOCX" },
+  { value: "xlsx", label: "XLSX" },
 ];
 
 export const DOCUMENT_STATUS_OPTIONS: {

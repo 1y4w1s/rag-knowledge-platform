@@ -3,6 +3,16 @@ import {
   appendScopeQuery,
   type ScopeFetchOptions,
 } from "@/lib/scope-fetch";
+import {
+  AgentBudgetPayloadSchema,
+  ApprovalRequiredPayloadSchema,
+  ChatDonePayloadSchema,
+  ChatMessagesResponseSchema,
+  CitationResolveResultSchema,
+  CitationSchema,
+  ToolResultPayloadSchema,
+  ToolStartPayloadSchema,
+} from "@/lib/chat-schemas";
 
 const API_BASE = "/api/v1";
 
@@ -113,34 +123,52 @@ export function dispatchChatSseBlock(
 
   const data = JSON.parse(dataStr) as Record<string, unknown>;
   if (eventName === "citation") {
-    handlers.onCitation(data as unknown as Citation);
+    const parsed = CitationSchema.safeParse(data);
+    if (parsed.success) {
+      handlers.onCitation(parsed.data);
+    } else {
+      console.warn("chat-api: invalid citation SSE data", parsed.error);
+    }
   } else if (eventName === "token") {
     handlers.onToken(String(data.text ?? ""));
   } else if (eventName === "done") {
-    handlers.onDone(data as unknown as ChatDonePayload);
+    const parsed = ChatDonePayloadSchema.safeParse(data);
+    if (parsed.success) {
+      handlers.onDone(parsed.data);
+    } else {
+      console.warn("chat-api: invalid done SSE data", parsed.error);
+    }
   } else if (eventName === "tool_start") {
-    handlers.onToolStart?.({
-      step: Number(data.step ?? 0),
-      tool: String(data.tool ?? ""),
-      args_summary: String(data.args_summary ?? ""),
-    });
+    const parsed = ToolStartPayloadSchema.safeParse(data);
+    if (parsed.success) {
+      handlers.onToolStart?.(parsed.data);
+    } else {
+      console.warn("chat-api: invalid tool_start SSE data", parsed.error);
+    }
   } else if (eventName === "tool_result") {
-    handlers.onToolResult?.({
-      step: Number(data.step ?? 0),
-      tool: String(data.tool ?? ""),
-      ok: Boolean(data.ok),
-      summary: String(data.summary ?? ""),
-      latency_ms: Number(data.latency_ms ?? 0),
-      capped: data.capped === true ? true : undefined,
-    });
+    const parsed = ToolResultPayloadSchema.safeParse(data);
+    if (parsed.success) {
+      handlers.onToolResult?.(parsed.data);
+    } else {
+      console.warn("chat-api: invalid tool_result SSE data", parsed.error);
+    }
   } else if (eventName === "agent_budget") {
-    handlers.onAgentBudget?.({
-      steps_used: Number(data.steps_used ?? 0),
-      max_steps: Number(data.max_steps ?? 5),
-      capped: data.capped === true,
-    });
+    const parsed = AgentBudgetPayloadSchema.safeParse(data);
+    if (parsed.success) {
+      handlers.onAgentBudget?.(parsed.data);
+    } else {
+      console.warn("chat-api: invalid agent_budget SSE data", parsed.error);
+    }
   } else if (eventName === "approval_required") {
-    handlers.onApprovalRequired?.(data as unknown as ApprovalRequiredPayload);
+    const parsed = ApprovalRequiredPayloadSchema.safeParse(data);
+    if (parsed.success) {
+      handlers.onApprovalRequired?.(parsed.data);
+    } else {
+      console.warn(
+        "chat-api: invalid approval_required SSE data",
+        parsed.error,
+      );
+    }
   }
 }
 
@@ -250,7 +278,7 @@ export async function resolveCitation(
   if (!res.ok) {
     throw new Error(await parseApiError(res));
   }
-  return (await res.json()) as CitationResolveResult;
+  return CitationResolveResultSchema.parse(await res.json());
 }
 
 export async function fetchChatMessages(
@@ -272,7 +300,7 @@ export async function fetchChatMessages(
   if (!res.ok) {
     throw new Error(await parseApiError(res));
   }
-  const data = (await res.json()) as ChatMessagesResponse;
+  const data = ChatMessagesResponseSchema.parse(await res.json());
   return data.messages;
 }
 

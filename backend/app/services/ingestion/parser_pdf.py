@@ -66,6 +66,53 @@ def detect_scanned_pdf(path: Path) -> bool:
         return total_chars < SCANNED_TEXT_THRESHOLD
 
 
+def _pdf_table_to_markdown(table_data: list[list[str | None]]) -> list[str]:
+    """Convert pdfplumber table data to pipe-markdown table lines."""
+    if not table_data or not table_data[0]:
+        return []
+    lines: list[str] = []
+    # Header row
+    lines.append("| " + " | ".join(str(c or "") for c in table_data[0]) + " |")
+    # Separator
+    lines.append("| " + " | ".join("---" for _ in table_data[0]) + " |")
+    # Data rows
+    for row in table_data[1:]:
+        lines.append("| " + " | ".join(str(c or "") for c in row) + " |")
+    return lines
+
+
+def _parse_pdf_tables_only(path: Path, *, batch_pages: int = 10) -> list[ParsedBlock]:
+    """Extract tables from PDF, each as a standalone table block."""
+    import pdfplumber
+
+    blocks: list[ParsedBlock] = []
+    with pdfplumber.open(path) as pdf:
+        if not pdf.pages:
+            return []
+
+        for batch_start in range(0, len(pdf.pages), batch_pages):
+            batch_end = min(batch_start + batch_pages, len(pdf.pages))
+
+            for page_idx in range(batch_start, batch_end):
+                page = pdf.pages[page_idx]
+                page_number = page_idx + 1
+                tables = page.extract_tables()
+                for table in tables:
+                    if not table or len(table) < 2:
+                        continue
+                    md_lines = _pdf_table_to_markdown(table)
+                    blocks.append(
+                        ParsedBlock(
+                            content="\n".join(md_lines),
+                            page_number=page_number,
+                            section_title=f"第{page_number}页表格",
+                            heading_path=f"第{page_number}页表格",
+                            block_kind="table",
+                        )
+                    )
+    return blocks
+
+
 def parse_pdf(path: Path, *, batch_pages: int = 10) -> list[ParsedBlock]:
     import pdfplumber
 
@@ -134,6 +181,10 @@ def parse_pdf(path: Path, *, batch_pages: int = 10) -> list[ParsedBlock]:
                 flush()
 
             blocks.extend(_merge_cross_page_blocks(batch_blocks))
+
+    # Append table blocks extracted from PDF
+    table_blocks = _parse_pdf_tables_only(path, batch_pages=batch_pages)
+    blocks.extend(table_blocks)
 
     return blocks
 
