@@ -20,8 +20,13 @@ WINDOW_SECONDS = 15 * 60
 MAX_IP_FAILURES = 20
 IP_WINDOW_SECONDS = 5 * 60
 
+# 渐进式锁定期（触顶次数递增）
+STRIKE_DURATIONS = (60, 300, 900, 3600)  # 1min, 5min, 15min, 1h
+
 _failures: dict[str, list[float]] = defaultdict(list)
 _ip_failures: dict[str, list[float]] = defaultdict(list)
+_strikes: dict[str, int] = defaultdict(int)  # key -> strike count
+_strike_times: dict[str, float] = {}  # key -> when the strike started
 
 
 def _rate_limit_key(ip: str | None, identifier: str) -> str:
@@ -90,12 +95,38 @@ def is_ip_login_rate_limited(
     return len(_ip_prune(ip_key, now=ts)) >= MAX_IP_FAILURES
 
 
+def _lockout_remaining(key: str, *, now: float) -> int:
+    """Seconds remaining until key can try again. 0 = not locked."""
+    strike_count = _strikes.get(key, 0)
+    if strike_count == 0:
+        return 0
+    started = _strike_times.get(key, 0)
+    duration = STRIKE_DURATIONS[min(strike_count - 1, len(STRIKE_DURATIONS) - 1)]
+    elapsed = now - started
+    remaining = duration - elapsed
+    if remaining <= 0:
+        _strikes.pop(key, None)
+        _strike_times.pop(key, None)
+        return 0
+    return int(remaining)
+
+
+def record_lockout_strike(key: str, *, now: float | None = None) -> None:
+    ts = now if now is not None else monotonic()
+    _strikes[key] += 1
+    _strike_times[key] = ts
+
+
 def clear_login_failures(ip: str | None, identifier: str) -> None:
-    """成功登录后清除该 key 的失败计数。"""
-    _failures.pop(_rate_limit_key(ip, identifier), None)
+    key = _rate_limit_key(ip, identifier)
+    _failures.pop(key, None)
+    _strikes.pop(key, None)
+    _strike_times.pop(key, None)
 
 
 def reset_all_login_rate_limits() -> None:
     """测试隔离：清空内存计数器。"""
     _failures.clear()
     _ip_failures.clear()
+    _strikes.clear()
+    _strike_times.clear()

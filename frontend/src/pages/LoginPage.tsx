@@ -1,16 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { LoginAuthForm } from "@/components/auth/LoginAuthForm";
 import { useAuth } from "@/lib/auth-context";
-
-const THEME_KEY = "ruige-theme";
-
-type ThemeMode = "light" | "dark";
-
-function getInitialTheme(): ThemeMode {
-  return localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
-}
+import { useTheme } from "@/lib/use-theme";
 
 function safeRedirect(path: string | null): string {
   if (!path || !path.startsWith("/") || path.startsWith("//")) {
@@ -24,7 +17,7 @@ export function LoginPage() {
   const [searchParams] = useSearchParams();
   const { isAuthenticated } = useAuth();
   const redirectTo = safeRedirect(searchParams.get("redirect"));
-  const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -32,11 +25,6 @@ export function LoginPage() {
     }
   }, [isAuthenticated, navigate, redirectTo]);
 
-  function toggleTheme() {
-    const next: ThemeMode = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    localStorage.setItem(THEME_KEY, next);
-  }
 
   return (
     <div

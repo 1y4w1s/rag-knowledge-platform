@@ -52,7 +52,7 @@ async def test_sixth_failed_login_returns_429(client: AsyncClient) -> None:
         json={"identifier": username, "password": "Wrong!@"},
     )
     assert blocked.status_code == 429
-    assert "15" in blocked.json()["detail"]
+    assert "秒" in blocked.json()["detail"] or "分" in blocked.json()["detail"]
 
     latest = await _latest_audit_log(action="auth.login_rate_limited")
     assert latest is not None

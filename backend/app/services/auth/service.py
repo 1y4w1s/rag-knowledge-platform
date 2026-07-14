@@ -1,6 +1,7 @@
 """注册 / 登录业务逻辑（Wave 1.1 + 4.2.2 username）。"""
 
 import re
+from time import monotonic
 import uuid
 
 from fastapi import status
@@ -202,6 +203,15 @@ async def login_user(
 ) -> LoginResponse:
     user = await _find_user_by_identifier(db, identifier)
     if user is None or not verify_password(password, user.password_hash):
+        # 渐进式锁定期检查
+        lockout_key = _rate_limit_key(ip, identifier)
+        remaining = _lockout_remaining(lockout_key, now=monotonic())
+        if remaining > 0:
+            mins = remaining // 60
+            secs = remaining % 60
+            msg = f"登录失败次数过多，请 {mins} 分 {secs} 秒后再试" if mins else f"登录失败次数过多，请 {secs} 秒后再试"
+            raise RateLimitError(msg)
+
         # IP 维度限流：同 IP 20 次/5min → 429
         if is_ip_login_rate_limited(ip):
             await write_audit_log(
@@ -215,14 +225,20 @@ async def login_user(
 
         # identifier 维度限流：5 次/15min → 429
         if is_login_rate_limited(ip, identifier):
+            lockout_key = _rate_limit_key(ip, identifier)
+            record_lockout_strike(lockout_key)
+            remaining = _lockout_remaining(lockout_key)
+            mins = remaining // 60
+            secs = remaining % 60
+            msg = f"登录失败次数过多，请 {mins} 分 {secs} 秒后再试" if mins else f"登录失败次数过多，请 {secs} 秒后再试"
             await write_audit_log(
                 db,
                 action="auth.login_rate_limited",
-                metadata={"identifier": identifier.strip()},
+                metadata={"identifier": identifier.strip(), "lockout_seconds": remaining},
                 ip=ip,
             )
             await db.commit()
-            raise RateLimitError("登录失败次数过多，请 15 分钟后再试")
+            raise RateLimitError(msg)
         record_login_failure(ip, identifier)
         await write_audit_log(
             db,
