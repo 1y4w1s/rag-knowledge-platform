@@ -8,8 +8,9 @@
   :root{
     --bg:#16120f; --surf:#1f1813; --surf2:#261e17; --line:rgba(203,107,61,.14);
     --line2:rgba(236,230,223,.10); --text:#ECE6DF; --mut:#9b8f86; --brand:#e07a45;
-    --brand-deep:#cb6b3d; --ok:#6fae8c; --warn:#d2a25a; --que:#8b97a6; --bad:#c06a5e;
+    --brand-deep:#cb6b3d; --ok:#83a58e; --warn:#d8c074; --que:#8b97a6; --bad:#c06a5e;
     --info:#6f97c4; --ink:rgba(236,230,223,.18); --ink-strong:rgba(236,230,223,.42);
+    --trend:rgba(224,122,69,.26); --trend-peak:rgba(224,122,69,.58);
     --serif:"Noto Serif SC","Songti SC",Georgia,serif;
     --sans:"Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
     --shell-glass:rgba(31,24,19,.72); --shell-border:rgba(236,230,223,.10);
@@ -17,8 +18,9 @@
   :root[data-theme="light"]{
     --bg:#f7f2ec; --surf:#fffdfb; --surf2:#f3ece4; --line:rgba(203,107,61,.18);
     --line2:rgba(40,30,24,.10); --text:#2a211b; --mut:#8a7c70; --brand:#cb6b3d;
-    --brand-deep:#b85c30; --ok:#3f8a64; --warn:#b07c2e; --que:#5b6b7c; --bad:#a8453a;
+    --brand-deep:#b85c30; --ok:#4c7c5e; --warn:#a5872b; --que:#5b6b7c; --bad:#a8453a;
     --info:#3f72b0; --ink:rgba(40,30,24,.13); --ink-strong:rgba(40,30,24,.30);
+    --trend:rgba(203,107,61,.28); --trend-peak:rgba(203,107,61,.6);
     --shell-glass:rgba(255,251,247,.72); --shell-border:rgba(40,30,24,.10);
   }
   *{box-sizing:border-box;margin:0;padding:0}
@@ -44,16 +46,24 @@
   .sun{width:18px;height:18px;cursor:pointer;color:var(--mut)}
 
   /* ---- vital ribbon ---- */
-  .vitals{display:flex;gap:10px;margin-bottom:26px;flex-wrap:wrap}
+  .vitals{display:flex;gap:12px;margin-bottom:26px;flex-wrap:wrap}
   .vital{flex:1;min-width:150px;background:var(--surf);border:1px solid var(--line2);
-    border-radius:14px;padding:16px 18px;position:relative;overflow:hidden}
-  .vital::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
-    background:linear-gradient(var(--accent,var(--brand)),var(--accent,var(--brand-deep)))}
+    border-radius:16px;padding:18px 20px 15px;position:relative;overflow:hidden;
+    box-shadow:0 1px 0 rgba(255,255,255,.05) inset, 0 12px 28px -20px rgba(0,0,0,.55);
+    transition:transform .18s ease, box-shadow .18s ease, border-color .2s}
+  .vital:hover{transform:translateY(-2px);border-color:var(--line);
+    box-shadow:0 1px 0 rgba(255,255,255,.07) inset, 0 18px 38px -20px rgba(0,0,0,.65)}
+  .vital::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:0 3px 3px 0;
+    background:linear-gradient(var(--accent,var(--brand)),var(--accent,var(--brand-deep)));z-index:1}
+  .vital::after{content:"";position:absolute;inset:0;background:var(--accent,var(--brand));
+    opacity:.05;pointer-events:none;z-index:0;transition:opacity .18s}
+  .vital:hover::after{opacity:.085}
+  .vital>*{position:relative;z-index:1}
   .vital.doc{--accent:var(--ok)}
   .vital.chat{--accent:var(--info)}
-  .vital .n{font-family:var(--serif);font-size:30px;font-weight:600;line-height:1}
-  .vital .l{font-size:12px;color:var(--mut);margin-top:7px;letter-spacing:.5px}
-  .vital .d{font-size:11px;color:var(--mut);margin-top:3px}
+  .vital .n{font-family:var(--serif);font-size:32px;font-weight:600;line-height:1;letter-spacing:.5px}
+  .vital .l{font-size:12px;color:var(--mut);margin-top:8px;letter-spacing:.5px}
+  .vital .d{font-size:11px;color:var(--mut);margin-top:4px}
 
   /* ---- section title ---- */
   .sec-h{display:flex;align-items:baseline;gap:10px;margin:30px 0 14px}
@@ -70,8 +80,17 @@
   .card{background:var(--surf);border:1px solid var(--line2);border-radius:16px;
     padding:20px;transition:border-color .2s}
   .card:hover{border-color:var(--line)}
-  .card .ttl{font-size:13px;color:var(--mut);letter-spacing:1px;margin-bottom:16px;
+  .ttl{font-size:13px;color:var(--mut);letter-spacing:1px;margin-bottom:16px;
     display:flex;justify-content:space-between;align-items:center}
+
+  /* merged panel（入库健康：管道 + 存储健康共享外框） */
+  .panel{background:var(--surf);border:1px solid var(--line2);border-radius:18px;
+    display:grid;grid-template-columns:1.7fr 1px 1fr;overflow:hidden;
+    box-shadow:0 12px 30px -22px rgba(0,0,0,.5)}
+  .panel-side{padding:22px 24px}
+  .panel-side.main{display:flex;flex-direction:column}
+  .panel-divider{background:var(--line2)}
+  @media(max-width:860px){.panel{grid-template-columns:1fr}.panel-divider{display:none}}
   .tag{font-size:10px;color:var(--mut);border:1px solid var(--line2);border-radius:6px;
     padding:2px 7px;letter-spacing:.5px}
 
@@ -107,9 +126,9 @@
 
   /* trend sparkline */
   .bars{display:flex;align-items:flex-end;gap:6px;height:90px;margin-top:6px}
-  .bars b{flex:1;background:var(--ink);
+  .bars b{flex:1;background:var(--trend);
     border-radius:4px 4px 2px 2px;opacity:.92;transition:height .4s}
-  .bars b.peak{background:var(--ink-strong)}
+  .bars b.peak{background:var(--trend-peak)}
   .bars b:hover{opacity:1}
   .axis{display:flex;justify-content:space-between;font-size:10px;color:var(--mut);margin-top:8px}
 
@@ -134,8 +153,14 @@
   .feed .it .body .m{color:var(--mut);font-size:11px;margin-top:2px}
   .feed .it .time{flex:0 0 auto;color:var(--mut);font-size:11px;padding-top:3px}
 
-  .foot{margin-top:34px;font-size:11px;color:var(--mut);line-height:1.7;
-    border-top:1px solid var(--line2);padding-top:16px}
+  .foot{margin-top:34px;border-top:1px solid var(--line2);padding-top:16px}
+  .foot-toggle{background:none;border:0;color:var(--mut);font-size:11px;font-family:var(--sans);
+    cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:0;letter-spacing:.5px}
+  .foot-toggle:hover{color:var(--text)}
+  .foot-toggle .chev{transition:transform .2s;font-size:9px}
+  .foot-toggle.open .chev{transform:rotate(180deg)}
+  .foot-detail{display:none;margin-top:12px;font-size:11px;color:var(--mut);line-height:1.8}
+  .foot-detail.open{display:block}
   .foot b{color:var(--text);font-weight:600}
   .hidden{display:none !important}
 
@@ -211,8 +236,8 @@
 
   <!-- SECTION: 入库态势 -->
   <div class="sec-h"><span class="k">入库态势</span><span class="en">Ingestion Pipeline</span><span class="line"></span></div>
-  <div class="grid g-8">
-    <div class="card">
+  <div class="panel">
+    <div class="panel-side main">
       <div class="ttl">文档流转 <span class="tag">实时四态</span></div>
       <div class="pipe">
         <i class="q" id="pq" style="flex:3">排队 3</i>
@@ -227,12 +252,13 @@
         <span><i class="dot" style="background:var(--bad)"></i>失败 failed</span>
       </div>
       <div class="mini-row">
-        <div class="mini"><div class="n" id="mRate">96.7%</div><div class="l">入库成功率</div></div>
+        <div class="mini"><div class="n ok" id="mRate">96.7%</div><div class="l">入库成功率</div></div>
         <div class="mini"><div class="n" id="mDur">42.6s</div><div class="l">平均入库耗时</div></div>
         <div class="mini"><div class="n" id="mChunk">18.4k</div><div class="l">切片总数</div></div>
       </div>
     </div>
-    <div class="card perf">
+    <div class="panel-divider"></div>
+    <div class="panel-side side perf">
       <div class="ttl">存储健康 <span class="tag">Plan-3E</span></div>
       <div class="row"><span>近 7 日重试</span><span class="v" id="rRetry">3</span></div>
       <div class="row"><span>清理失败累计</span><span class="v" id="rClean">0</span></div>
@@ -293,13 +319,15 @@
   </div>
 
   <div class="foot">
-    <b>数据来源说明</b>：本预览除标注「待聚合 / 待接入」的项外，均直接来自后端
-    <b>GET /dashboard/stats</b> 的真实字段（knowledge_base_count、documents_by_status、
-    ingestion_success_rate、total_chunk_count、chat_message_count、golden_hit_rate_percent、
-    avg_retrieval_latency_ms 等）。<br>
-    标注项需小幅后端支撑：① 近 7 日按日分桶（提问趋势）② Document.file_type/file_size 聚合（知识构成）
-    ③ recent_activities 从 audit_logs 聚合（操作动态）④ ChatMessage.citations 覆盖率（引用覆盖率）。
-    属 Tier-1 的主轴数据无需改后端即可上线。
+    <button class="foot-toggle" id="footToggle">数据口径 <span class="chev">▾</span></button>
+    <div class="foot-detail" id="footDetail">
+      主轴数据来自后端 <b>GET /dashboard/stats</b> 真实字段（knowledge_base_count、documents_by_status、
+      ingestion_success_rate、total_chunk_count、chat_message_count、golden_hit_rate_percent、
+      avg_retrieval_latency_ms 等）。<br>
+      标注「待聚合 / 待接入」的项需小幅后端支撑：① 近 7 日按日分桶（提问趋势）② Document.file_type/file_size 聚合（知识构成）
+      ③ recent_activities 从 audit_logs 聚合（操作动态）④ ChatMessage.citations 覆盖率（引用覆盖率）。
+      属 Tier-1 的主轴数据无需改后端即可上线。
+    </div>
   </div>
   </div>
   </main>
@@ -471,6 +499,11 @@ document.querySelectorAll('#scopeToggle button').forEach(b=>{
 document.getElementById('themeBtn').onclick=()=>{
   const r=document.documentElement;
   r.dataset.theme = r.dataset.theme==='dark'?'light':'dark';
+};
+// footer collapse
+document.getElementById('footToggle').onclick=function(){
+  this.classList.toggle('open');
+  document.getElementById('footDetail').classList.toggle('open');
 };
 render('personal'); renderRail('personal');
 </script>
