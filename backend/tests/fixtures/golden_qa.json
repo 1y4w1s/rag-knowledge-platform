@@ -1,0 +1,137 @@
+{
+  "version": "0.4",
+  "description": "知岸 golden_qa Hit@3 验收集 — SSOT，与 docs/golden_qa.md 同步",
+  "hit_k": 3,
+  "cases": [
+    {
+      "case_id": "GQ-1",
+      "tags": ["md", "section"],
+      "query": "年假有多少天？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.1 年假",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "年假10天"
+      }
+    },
+    {
+      "case_id": "GQ-2",
+      "tags": ["md", "section"],
+      "query": "迟到怎么处理？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.2 迟到",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "迟到 30 分钟"
+      }
+    },
+    {
+      "case_id": "GQ-3",
+      "tags": ["md", "section"],
+      "query": "年终奖什么时候发？",
+      "source": "md",
+      "expect": {
+        "section_title": "2.1 年终奖",
+        "heading_path_contains": "薪酬福利",
+        "content_contains": "12 月"
+      }
+    },
+    {
+      "case_id": "GQ-4",
+      "tags": ["pdf", "cross_page", "english"],
+      "query": "annual leave 10 days which page",
+      "source": "pdf",
+      "expect": {
+        "content_contains": "annual leave 10 days",
+        "page_number": 2
+      }
+    },
+    {
+      "case_id": "GQ-5",
+      "tags": ["md", "section"],
+      "query": "每月餐补多少钱？",
+      "source": "md",
+      "expect": {
+        "section_title": "2.2 餐补",
+        "heading_path_contains": "薪酬福利",
+        "content_contains": "300 元"
+      }
+    },
+    {
+      "case_id": "GQ-6",
+      "tags": ["md", "section"],
+      "query": "年假需要提前多久申请？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.1 年假",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "提前两周"
+      }
+    },
+    {
+      "case_id": "GQ-7",
+      "tags": ["md", "clause_number"],
+      "query": "员工手册 1.2 条款对迟到怎么规定？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.2 迟到",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "迟到 30 分钟"
+      }
+    },
+    {
+      "case_id": "GQ-8",
+      "tags": ["md", "negation"],
+      "query": "迟到超过 30 分钟不会按旷工算吧？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.2 迟到",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "旷工"
+      }
+    },
+    {
+      "case_id": "GQ-9",
+      "tags": ["docx", "section"],
+      "query": "年假有多少天？",
+      "source": "docx",
+      "expect": {
+        "section_title": "1.1 年假",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "年假10天"
+      }
+    },
+    {
+      "case_id": "GQ-10",
+      "tags": ["pdf", "cross_page", "english"],
+      "query": "annual leave apply two weeks in advance",
+      "source": "pdf",
+      "expect": {
+        "content_contains": "Apply annual leave two weeks",
+        "page_number": 2
+      }
+    },
+    {
+      "case_id": "GQ-11",
+      "tags": ["md", "table", "r2-2"],
+      "query": "餐补福利表里每月多少钱？",
+      "source": "md",
+      "expect": {
+        "section_title": "2.2 餐补",
+        "heading_path_contains": "薪酬福利",
+        "content_contains": "300 元/月"
+      }
+    },
+    {
+      "case_id": "GQ-12",
+      "tags": ["md", "paraphrase"],
+      "query": "带薪年休假可以休多少天？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.1 年假",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "年假10天"
+      }
+    }
+  ]
+}

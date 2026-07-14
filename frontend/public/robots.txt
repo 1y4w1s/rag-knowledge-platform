@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://1y4w1s.icu:8080/sitemap.xml

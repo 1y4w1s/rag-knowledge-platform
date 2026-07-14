@@ -1,0 +1,22 @@
+# Format-F4 optional OCR dependencies (scan PDF)
+#
+# Install from backend/:
+#   pip install -r requirements-ocr.txt
+#
+# Separate from requirements.txt so CI / no-OCR hosts skip Paddle.
+# Set OCR_ENABLED=0 to keep legacy "scan PDF unsupported" behavior.
+#
+# System dependency: poppler (pdf2image renders PDF pages; not installable via pip)
+#
+#   Debian / Ubuntu:  apt-get install -y poppler-utils
+#   macOS:            brew install poppler
+#   Windows:          add poppler bin/ to PATH
+#                     https://github.com/oschwartz10612/poppler-windows/releases
+#
+# Without poppler, ocr_pdf_pages() fails at convert_from_path().
+# Chinese deploy notes: docs/tasks/format-f4-ocr-plan.md F4-1
+
+paddleocr>=2.7.0,<3
+paddlepaddle>=2.6.0,<3
+pdf2image>=1.17.0,<2
+Pillow>=10.0.0,<12

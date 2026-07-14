@@ -1,0 +1,51 @@
+# 知岸 — 生产覆盖层（EW-B2 + EW-B4 web）
+#
+# 在 docker-compose.yml 基础上增加 uploads 持久化卷、nginx 前端与资源说明。
+# 用法：
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+#
+# 验收：http://SERVER_IP/ 打开九页；GET /health → database ok（8000 或经 web /health）
+
+services:
+  postgres:
+    # 宿主机重启或容器异常退出后自动拉起（基座 compose 已设，此处显式标注供运维扫读）
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          # 2G 机约 25%：pgvector + 索引；留余量给 api 与 OS page cache
+          memory: 512M
+
+  api:
+    restart: unless-stopped
+    environment:
+      # 与下方命名卷挂载路径一致；勿改为容器外路径
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads_data:/app/uploads
+    deploy:
+      resources:
+        limits:
+          # 2G 机约 38%：FastAPI + 嵌入批处理峰值；超限会被 OOM kill
+          memory: 768M
+
+  web:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      pull: false
+    image: zhiku-web:nginx
+    container_name: zhiku-web
+    restart: unless-stopped
+    ports:
+      # 内网 HTTP 入口；Windows 若 80 被占可改左侧为 "8080:80" 并同步 CORS_ORIGINS
+      - "80:80"
+    depends_on:
+      - api
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+
+volumes:
+  uploads_data:

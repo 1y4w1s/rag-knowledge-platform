@@ -1,0 +1,156 @@
+import { useState } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import type { ReactNode } from "react";
+
+import { PasswordStrengthBar } from "@/components/auth/PasswordStrengthBar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+
+interface AuthFieldProps {
+  id: string;
+  label: ReactNode;
+  type?: React.ComponentProps<"input">["type"];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  autoComplete?: string;
+  error?: string;
+  hint?: string;
+  maxLength?: number;
+  showPasswordToggle?: boolean;
+  showStrength?: boolean;
+}
+
+export function AuthField({
+  id,
+  label,
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  autoComplete,
+  error,
+  hint,
+  maxLength,
+  showPasswordToggle = false,
+  showStrength = false,
+}: AuthFieldProps) {
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const isPasswordField = type === "password";
+  const inputType =
+    isPasswordField && showPasswordToggle
+      ? passwordVisible
+        ? "text"
+        : "password"
+      : type;
+
+  return (
+    <div>
+      <Label htmlFor={id} className="text-[var(--auth-muted)]">
+        {label}
+      </Label>
+      <div className={cn(isPasswordField && showPasswordToggle && "relative")}>
+        <Input
+          id={id}
+          type={inputType}
+          autoComplete={autoComplete}
+          value={value}
+          maxLength={maxLength}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          aria-invalid={Boolean(error)}
+          aria-describedby={
+            error ? `${id}-error` : hint ? `${id}-hint` : undefined
+          }
+          className={cn(
+            "auth-input rounded-[10px] border-[var(--auth-line)] bg-[var(--auth-card)] text-[var(--auth-text)] placeholder:text-[color:#B5A8A2]",
+            error && "border-red-300 focus-visible:ring-red-200",
+            isPasswordField && showPasswordToggle && "pr-10",
+          )}
+        />
+        {isPasswordField && showPasswordToggle && (
+          <button
+            type="button"
+            className="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-md text-[var(--auth-muted)] transition-colors hover:bg-[color:rgb(203_107_61/0.08)] hover:text-[var(--auth-action)]"
+            onClick={() => setPasswordVisible((v) => !v)}
+            aria-label={passwordVisible ? "隐藏密码" : "显示密码"}
+          >
+            {passwordVisible ? (
+              <EyeOff className="h-[18px] w-[18px]" aria-hidden />
+            ) : (
+              <Eye className="h-[18px] w-[18px]" aria-hidden />
+            )}
+          </button>
+        )}
+      </div>
+      {showStrength && isPasswordField && (
+        <PasswordStrengthBar password={value} />
+      )}
+      {error ? (
+        <p
+          id={`${id}-error`}
+          className="mt-1.5 text-xs text-red-600"
+          role="alert"
+        >
+          {error}
+        </p>
+      ) : hint ? (
+        <p id={`${id}-hint`} className="mt-1.5 text-xs text-[var(--auth-muted)]">
+          {hint}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+interface AuthFormSectionProps {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}
+
+export function AuthFormSection({
+  title,
+  description,
+  children,
+}: AuthFormSectionProps) {
+  return (
+    <section className="space-y-3">
+      <div>
+        <h3 className="text-xs font-medium text-[var(--auth-text)]">{title}</h3>
+        {description && (
+          <p className="mt-0.5 text-xs text-[var(--auth-muted)]">
+            {description}
+          </p>
+        )}
+      </div>
+      <div className="space-y-3">{children}</div>
+    </section>
+  );
+}
+
+interface AuthFormAlertProps {
+  message: string;
+  action?: { label: string; onClick: () => void };
+}
+
+export function AuthFormAlert({ message, action }: AuthFormAlertProps) {
+  return (
+    <div
+      role="alert"
+      className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+    >
+      <p>{message}</p>
+      {action && (
+        <button
+          type="button"
+          className="mt-1 font-medium underline"
+          onClick={action.onClick}
+        >
+          {action.label}
+        </button>
+      )}
+    </div>
+  );
+}
