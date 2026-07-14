@@ -70,6 +70,10 @@ async def post_chat(
             user_id=current_user.id,
             message=body.message,
             visible_kb_ids=visible_kb_ids,
+            hide_admin_only=(
+                current_user.account_type.value == "enterprise"
+                and current_user.org_role == "member"
+            ),
         ),
         media_type="text/event-stream",
         headers=SSE_HEADERS,

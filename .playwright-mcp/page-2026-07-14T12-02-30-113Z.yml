@@ -1,0 +1,109 @@
+- generic [active] [ref=f4e1]:
+  - generic [ref=f4e2]:
+    - complementary [ref=f4e3]:
+      - generic [ref=f4e4]:
+        - generic [ref=f4e5]: 📚
+        - generic [ref=f4e6]:
+          - generic [ref=f4e7]: AI 学习助手
+          - generic [ref=f4e8]: 整理 · 练习 · 复习
+      - navigation [ref=f4e9]:
+        - link "🏠 总览" [ref=f4e10] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - generic [ref=f4e11]: 🏠
+          - text: 总览
+        - link "🗂️ 知识点浏览" [ref=f4e12] [cursor=pointer]:
+          - /url: "#/browse"
+          - generic [ref=f4e13]: 🗂️
+          - text: 知识点浏览
+        - link "⚡ 微学习" [ref=f4e14] [cursor=pointer]:
+          - /url: micro.html
+          - generic [ref=f4e15]: ⚡
+          - text: 微学习
+        - link "✍️ 互动练习" [ref=f4e16] [cursor=pointer]:
+          - /url: "#/practice"
+          - generic [ref=f4e17]: ✍️
+          - text: 互动练习
+        - link "📕 错题本" [ref=f4e18] [cursor=pointer]:
+          - /url: "#/wrong"
+          - generic [ref=f4e19]: 📕
+          - text: 错题本
+        - link "🔁 每日复习" [ref=f4e20] [cursor=pointer]:
+          - /url: "#/review"
+          - generic [ref=f4e21]: 🔁
+          - text: 每日复习
+        - link "📊 学习报告" [ref=f4e22] [cursor=pointer]:
+          - /url: "#/report"
+          - generic [ref=f4e23]: 📊
+          - text: 学习报告
+        - link "💻 代码沙箱" [ref=f4e24] [cursor=pointer]:
+          - /url: "#/sandbox"
+          - generic [ref=f4e25]: 💻
+          - text: 代码沙箱
+      - generic [ref=f4e26]:
+        - button "🌗 主题" [ref=f4e27] [cursor=pointer]
+        - button "🔔 提醒" [ref=f4e28] [cursor=pointer]
+    - main [ref=f4e29]:
+      - generic [ref=f4e30]:
+        - heading "总览" [level=1] [ref=f4e59]
+        - generic [ref=f4e32]:
+          - generic [ref=f4e60]: 0 已练/共362
+          - generic [ref=f4e61]: 正确率 0%
+          - generic [ref=f4e62]: 待复习 0
+          - generic [ref=f4e63]: 错题 0
+      - generic [ref=f4e37]:
+        - generic [ref=f4e64]:
+          - generic [ref=f4e65]: 🌟
+          - generic [ref=f4e66]:
+            - generic [ref=f4e67]: 欢迎
+            - heading "开始你的 AI 工程学习之旅" [level=2] [ref=f4e68]
+            - paragraph [ref=f4e69]: 共 37 章、362 道精选题，覆盖基础 → Web 后端 → AI 工程 → 面试实战。跟着推荐路径学，效果最好。
+            - generic [ref=f4e70]:
+              - button "▶ 从推荐第 1 章开始" [ref=f4e71] [cursor=pointer]
+              - button "先做个小测热身" [ref=f4e72] [cursor=pointer]
+        - generic [ref=f4e73]:
+          - generic [ref=f4e74]:
+            - generic [ref=f4e75]: 0/37
+            - generic [ref=f4e76]: 已学章节
+          - generic [ref=f4e77]:
+            - generic [ref=f4e78]: "0"
+            - generic [ref=f4e79]: 累计练习题
+          - generic [ref=f4e80]:
+            - generic [ref=f4e81]: 0%
+            - generic [ref=f4e82]: 平均正确率
+          - generic [ref=f4e83]:
+            - generic [ref=f4e84]: "0"
+            - generic [ref=f4e85]: 今日待复习
+        - generic [ref=f4e86]:
+          - generic [ref=f4e87]:
+            - img [ref=f4e88]:
+              - generic [ref=f4e91]: 0%
+              - generic [ref=f4e92]: 总正确率
+            - generic [ref=f4e93]:
+              - generic [ref=f4e94]: 学习概览
+              - generic [ref=f4e95]: 基于遗忘曲线自动排程复习，坚持每日打卡效果最佳。
+              - generic [ref=f4e96]: ✅ 今日复习已清空
+          - generic [ref=f4e97]:
+            - generic [ref=f4e98]: ⚠️ 薄弱知识点（预览）
+            - generic [ref=f4e99]: 暂无薄弱点 🎉 保持节奏！
+            - button "查看完整报告 →" [ref=f4e100] [cursor=pointer]
+        - generic [ref=f4e101]: 🚀 快速开始
+        - generic [ref=f4e102]:
+          - generic [ref=f4e103] [cursor=pointer]:
+            - generic [ref=f4e104]: 整理
+            - heading "🗂️ 浏览知识点" [level=3] [ref=f4e105]
+            - generic [ref=f4e106]: 按主题 / 难度分类查看全部概念卡片
+          - generic [ref=f4e107] [cursor=pointer]:
+            - generic [ref=f4e108]: 练习
+            - heading "✍️ 做一套题" [level=3] [ref=f4e109]
+            - generic [ref=f4e110]: 选择题 / 填空 / 简答，即时反馈解析
+          - generic [ref=f4e111] [cursor=pointer]:
+            - generic [ref=f4e112]: 实战
+            - heading "💻 代码沙箱" [level=3] [ref=f4e113]
+            - generic [ref=f4e114]: 浏览器里真写真跑 Python · 练习 / 调试训练 / 毕业项目
+          - generic [ref=f4e115] [cursor=pointer]:
+            - generic [ref=f4e116]: 追踪
+            - heading "📊 学习报告" [level=3] [ref=f4e117]
+            - generic [ref=f4e118]: 正确率、活跃度、薄弱点可视化
+  - generic [ref=f4e56]:
+    - button "去复习" [ref=f4e57] [cursor=pointer]
+    - button "稍后" [ref=f4e58] [cursor=pointer]

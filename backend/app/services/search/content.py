@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
+from app.models.enums import DocumentVisibility
 from app.models.knowledge_base import KnowledgeBase
 from app.schemas.search import SearchDocumentItem, SearchDocumentsResponse
 from app.services.org.scope import OrgScope
@@ -94,7 +95,10 @@ async def search_documents_by_content(
                 ilike_match,
             )
         )
-    ).subquery()
+    )
+    if hide_admin_only:
+        match_base = match_base.where(Document.visibility != DocumentVisibility.admin_only)
+    match_base = match_base.subquery()
 
     total = await db.scalar(
         select(func.count(func.distinct(match_base.c.doc_id))).select_from(

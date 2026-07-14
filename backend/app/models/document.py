@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
-from app.models.enums import DocumentStatus
+from app.models.enums import DocumentStatus, DocumentVisibility
 
 
 class Document(Base):
@@ -53,4 +53,9 @@ class Document(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
+    )
+    visibility: Mapped[DocumentVisibility] = mapped_column(
+        ENUM(DocumentVisibility, name="document_visibility", create_type=False),
+        nullable=False,
+        default=DocumentVisibility.everyone,
     )

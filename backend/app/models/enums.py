@@ -91,3 +91,10 @@ class ApprovalStatus(str, Enum):
     adopted = "adopted"
     cancelled = "cancelled"
     expired = "expired"
+
+
+class DocumentVisibility(str, Enum):
+    """文档可见性（文档级权限）。"""
+
+    everyone = "everyone"
+    admin_only = "admin_only"

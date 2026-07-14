@@ -51,6 +51,10 @@ async def search_documents(
         ) from exc
 
     effective_limit = normalize_limit(limit)
+    hide_admin_only = (
+        current_user.account_type.value == "enterprise"
+        and current_user.org_role == "member"
+    )
     if mode == "content":
         return await search_documents_by_content(
             db,
@@ -58,6 +62,7 @@ async def search_documents(
             query,
             effective_limit,
             org_scope=org_scope,
+            hide_admin_only=hide_admin_only,
         )
     return await search_documents_by_filename(
         db,
@@ -65,4 +70,5 @@ async def search_documents(
         query,
         effective_limit,
         org_scope=org_scope,
+        hide_admin_only=hide_admin_only,
     )

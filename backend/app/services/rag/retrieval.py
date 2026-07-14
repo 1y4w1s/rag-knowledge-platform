@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
+from app.models.enums import DocumentVisibility
 from app.models.knowledge_base import KnowledgeBase
 from app.services.ingestion.embedder import embed_texts
 from app.services.org.scope import OrgScope
@@ -68,6 +69,7 @@ async def _vector_recall(
     query_vec: list[float],
     limit: int,
     visible_kb_ids: frozenset[UUID] | None = None,
+    hide_admin_only: bool = False,
 ) -> list[_RecallRow]:
     distance = DocumentChunk.embedding.cosine_distance(query_vec).label("distance")
     stmt = (
@@ -77,6 +79,8 @@ async def _vector_recall(
         .where(DocumentChunk.embedding.is_not(None))
         .where(DocumentChunk.chunk_kind != "parent")
     )
+    if hide_admin_only:
+        stmt = stmt.where(Document.visibility != DocumentVisibility.admin_only)
     visible_clause = _visible_kb_clause(visible_kb_ids)
     if visible_clause is not None:
         stmt = stmt.where(visible_clause)
@@ -103,6 +107,7 @@ async def _fts_recall(
     query: str,
     limit: int,
     visible_kb_ids: frozenset[UUID] | None = None,
+    hide_admin_only: bool = False,
 ) -> list[_RecallRow]:
     ts_query = func.plainto_tsquery(TS_CONFIG, query)
     rank = func.ts_rank_cd(DocumentChunk.content_tsv, ts_query).label("fts_rank")
@@ -114,6 +119,8 @@ async def _fts_recall(
         .where(_exclude_parent_chunks())
         .where(DocumentChunk.content_tsv.op("@@")(ts_query))
     )
+    if hide_admin_only:
+        stmt = stmt.where(Document.visibility != DocumentVisibility.admin_only)
     visible_clause = _visible_kb_clause(visible_kb_ids)
     if visible_clause is not None:
         stmt = stmt.where(visible_clause)
@@ -200,6 +207,7 @@ async def retrieve_chunks(
     query: str,
     top_k: int = LLM_TOP_K,
     visible_kb_ids: frozenset[UUID] | None = None,
+    hide_admin_only: bool = False,
 ) -> list[RetrievedChunk]:
     """向量 Top-20 + 全文 Top-20（同 kb_id），RRF 融合后 rerank 取 Top-K。"""
     if visible_kb_ids is not None and kb_id not in visible_kb_ids:
@@ -213,6 +221,7 @@ async def retrieve_chunks(
         query_vec=query_vec,
         limit=VECTOR_RECALL,
         visible_kb_ids=visible_kb_ids,
+        hide_admin_only=hide_admin_only,
     )
     fts_rows = await _fts_recall(
         db,
@@ -220,6 +229,7 @@ async def retrieve_chunks(
         query=query,
         limit=FTS_RECALL,
         visible_kb_ids=visible_kb_ids,
+        hide_admin_only=hide_admin_only,
     )
 
     vector_ranked = [row.chunk.id for row in vector_rows]
@@ -294,6 +304,7 @@ async def _vector_recall_workspace(
     query_vec: list[float],
     limit: int,
     visible_kb_ids: frozenset[UUID] | None = None,
+    hide_admin_only: bool = False,
 ) -> list[_RecallRow]:
     scope_clause = kb_scope_clause(scope, org_scope)
     distance = DocumentChunk.embedding.cosine_distance(query_vec).label("distance")
@@ -310,6 +321,8 @@ async def _vector_recall_workspace(
         .where(DocumentChunk.embedding.is_not(None))
         .where(_exclude_parent_chunks())
     )
+    if hide_admin_only:
+        stmt = stmt.where(Document.visibility != DocumentVisibility.admin_only)
     visible_clause = _visible_kb_clause(visible_kb_ids)
     if visible_clause is not None:
         stmt = stmt.where(visible_clause)
@@ -338,6 +351,7 @@ async def _fts_recall_workspace(
     query: str,
     limit: int,
     visible_kb_ids: frozenset[UUID] | None = None,
+    hide_admin_only: bool = False,
 ) -> list[_RecallRow]:
     scope_clause = kb_scope_clause(scope, org_scope)
     ts_query = func.plainto_tsquery(TS_CONFIG, query)
@@ -356,6 +370,8 @@ async def _fts_recall_workspace(
         .where(_exclude_parent_chunks())
         .where(DocumentChunk.content_tsv.op("@@")(ts_query))
     )
+    if hide_admin_only:
+        stmt = stmt.where(Document.visibility != DocumentVisibility.admin_only)
     visible_clause = _visible_kb_clause(visible_kb_ids)
     if visible_clause is not None:
         stmt = stmt.where(visible_clause)
@@ -400,6 +416,7 @@ async def retrieve_workspace_chunks(
     scope: WorkspaceScope,
     org_scope: OrgScope | None = None,
     top_k: int = LLM_TOP_K,
+    hide_admin_only: bool = False,
 ) -> list[RetrievedChunk]:
     """在 workspace 可见库集合内向量+全文→RRF→rerank→多样性→Top-K。"""
     visible_kb_ids = org_scope.visible_kb_ids if org_scope is not None else None
@@ -415,6 +432,7 @@ async def retrieve_workspace_chunks(
         query_vec=query_vec,
         limit=VECTOR_RECALL,
         visible_kb_ids=visible_kb_ids,
+        hide_admin_only=hide_admin_only,
     )
     fts_rows = await _fts_recall_workspace(
         db,
@@ -423,6 +441,7 @@ async def retrieve_workspace_chunks(
         query=query,
         limit=FTS_RECALL,
         visible_kb_ids=visible_kb_ids,
+        hide_admin_only=hide_admin_only,
     )
 
     rrf_top_n = (

@@ -25,6 +25,7 @@ export interface Document {
   uploaded_by: string | null;
   created_at: string;
   updated_at: string;
+  visibility: "everyone" | "admin_only";
 }
 
 async function authFetch(
@@ -291,4 +292,23 @@ export function isTextPreview(fileType: string, contentType: string): boolean {
     fileType === "md" ||
     contentType.startsWith("text/")
   );
+}
+
+// ── 文档可见性 ─────────────────────────────────────
+
+export async function updateDocumentVisibility(
+  kbId: string,
+  docId: string,
+  visibility: "everyone" | "admin_only",
+): Promise<Document> {
+  const res = await authFetch(
+    `${API_BASE}/knowledge-bases/${kbId}/documents/${docId}/visibility`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visibility }),
+    },
+  );
+  if (!res.ok) throw new Error(await parseApiError(res));
+  return (await res.json()) as Document;
 }

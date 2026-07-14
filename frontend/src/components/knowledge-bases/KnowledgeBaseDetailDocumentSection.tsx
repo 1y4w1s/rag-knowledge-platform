@@ -14,8 +14,8 @@ import { EmptyStateV44, KBDETAIL_SCENE } from "@/components/ui/EmptyState";
 import { MemberReadOnlyHint } from "@/components/knowledge-bases/MemberReadOnlyHint";
 import { AlertBanner } from "@/components/ui/AlertBanner";
 import { Button } from "@/components/ui/button";
-import type { Document } from "@/lib/document-api";
-import { DOCUMENT_PAGE_SIZE } from "@/lib/document-api";
+import { useAuth } from "@/lib/auth-context";
+import { updateDocumentVisibility, type Document, DOCUMENT_PAGE_SIZE } from "@/lib/document-api";
 import type { DocumentListFilters } from "@/lib/document-advanced-filter";
 import type { DocumentSortMode } from "@/lib/document-list-utils";
 import type { DocumentStatusFilter } from "@/lib/document-status-filter";
@@ -80,6 +80,17 @@ export function KnowledgeBaseDetailDocumentSection({
   onRetry,
 }: KnowledgeBaseDetailDocumentSectionProps) {
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const { isOrgAdmin, user } = useAuth();
+  const canChangeVisibility = isOrgAdmin || user?.is_owner === true;
+
+  async function handleVisibilityChange(docId: string, visibility: "everyone" | "admin_only") {
+    try {
+      await updateDocumentVisibility(kbId, docId, visibility);
+      onRefresh();
+    } catch {
+      // error handled by parent
+    }
+  }
   function handleUploadInputChange(event: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(event.target.files ?? []);
     event.target.value = "";
@@ -163,9 +174,11 @@ export function KnowledgeBaseDetailDocumentSection({
                 kbId={kbId}
                 documents={displayDocuments}
                 canManage={uploadAllowed}
+                canChangeVisibility={canChangeVisibility}
                 deletingDocId={deletingDocId}
                 onRequestDelete={onRequestDelete}
                 onRetry={onRetry}
+                onVisibilityChange={handleVisibilityChange}
               />
               {!useFullList && (
                 <DocumentListPagination
