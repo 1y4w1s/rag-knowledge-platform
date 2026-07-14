@@ -11,7 +11,7 @@ export function TrendChart({ data, labels }: TrendChartProps) {
       <div className="mb-4 flex items-center justify-between gap-3">
         <span className="text-[13px] text-[var(--mut)] tracking-wide">近 7 日提问趋势</span>
         <span className="rounded-[6px] border border-[var(--line2)] px-[7px] py-[2px] text-[10px] text-[var(--mut)] tracking-wider">
-          按日分桶 · 待聚合
+          按日分桶
         </span>
       </div>
 

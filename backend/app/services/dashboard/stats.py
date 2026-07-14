@@ -20,6 +20,13 @@ from app.models.enums import DocumentStatus, MessageRole
 from app.models.knowledge_base import KnowledgeBase
 from app.models.organization_member import OrganizationMember
 from app.schemas.dashboard import DashboardStatsResponse, DocumentStatusCounts
+from app.services.dashboard.aggregates import (
+    _deleted_kb_audit_scope_clause,
+    build_format_distribution,
+    build_question_trend,
+    build_recent_activities,
+    build_recent_threads,
+)
 from app.services.org.scope import OrgScope
 from app.services.workspace.scope import WorkspaceKind, WorkspaceScope
 
@@ -32,23 +39,6 @@ def _kb_scope_clause(
     if org_scope is not None:
         clause = clause & org_scope.kb_visibility_clause()
     return clause
-
-
-def _deleted_kb_audit_scope_clause(scope: WorkspaceScope) -> ColumnElement[bool]:
-    """删库后 KB 行已不存在时，按操作者归属计数 audit（storage.cleanup_failed）。"""
-    kb_missing = KnowledgeBase.id.is_(None)
-    if scope.kind == WorkspaceKind.personal:
-        return kb_missing & (AuditLog.actor_user_id == scope.user_id)
-    assert scope.org_id is not None
-    actor_in_org = (
-        select(OrganizationMember.id)
-        .where(
-            OrganizationMember.user_id == AuditLog.actor_user_id,
-            OrganizationMember.org_id == scope.org_id,
-        )
-        .exists()
-    )
-    return kb_missing & actor_in_org
 
 
 async def _count_audits_in_scope(
@@ -172,6 +162,12 @@ async def get_dashboard_stats(
             .limit(1)
         )
 
+    recent_kb_name = None
+    if recent_kb_id is not None:
+        recent_kb_name = await db.scalar(
+            select(KnowledgeBase.name).where(KnowledgeBase.id == recent_kb_id)
+        )
+
     seven_days_ago = datetime.now(UTC) - timedelta(days=7)
     chat_count = await db.scalar(
         select(func.count(ChatMessage.id))
@@ -219,6 +215,11 @@ async def get_dashboard_stats(
         action="storage.cleanup_failed",
     )
 
+    question_trend = await build_question_trend(db, scope_clause)
+    format_distribution = await build_format_distribution(db, scope_clause)
+    recent_threads = await build_recent_threads(db, scope_clause)
+    recent_activities = await build_recent_activities(db, scope, scope_clause)
+
     return DashboardStatsResponse(
         scope=scope_label,
         knowledge_base_count=knowledge_base_count,
@@ -230,11 +231,15 @@ async def get_dashboard_stats(
         chat_message_count=chat_message_count,
         member_count=member_count,
         recent_kb_id=recent_kb_id,
-        recent_activities=[],
+        recent_kb_name=recent_kb_name,
+        recent_activities=recent_activities,
         golden_hit_rate_percent=golden_hit_rate_percent(),
         golden_baseline_evaluated_at=GOLDEN_BASELINE_EVALUATED_AT,
         avg_retrieval_latency_ms=avg_retrieval_latency_ms,
         retrieval_latency_sample_count=retrieval_latency_sample_count,
         document_retry_count_7d=document_retry_count_7d,
         storage_cleanup_failure_count=storage_cleanup_failure_count,
+        question_trend=question_trend,
+        format_distribution=format_distribution,
+        recent_threads=recent_threads,
     )

@@ -17,13 +17,37 @@ class DocumentStatusCounts(BaseModel):
 
 
 class DashboardActivity(BaseModel):
-    """Dashboard 最近动态条目（D-5 前 stub 结构预留）。"""
+    """Dashboard 最近动态条目（操作审计 feed）。"""
 
     type: str
     title: str
     kb_id: uuid.UUID
     doc_id: uuid.UUID | None = None
     created_at: datetime
+
+
+class DashboardTrendPoint(BaseModel):
+    """近 7 日每日提问数（UTC 日期，旧→新）。"""
+
+    date: str = Field(description="YYYY-MM-DD（UTC）")
+    count: int = Field(ge=0)
+
+
+class DashboardFormatShare(BaseModel):
+    """知识构成：按文档格式分组的文档数。"""
+
+    format: str
+    count: int = Field(ge=0)
+
+
+class DashboardRecentThread(BaseModel):
+    """最近对话线程（含该线程 assistant 消息的引用条数）。"""
+
+    id: uuid.UUID
+    title: str
+    kb_id: uuid.UUID | None = None
+    citation_count: int = Field(default=0, ge=0)
+    last_activity_at: datetime
 
 
 class DashboardStatsResponse(BaseModel):
@@ -56,9 +80,25 @@ class DashboardStatsResponse(BaseModel):
         default=None,
         description="可见范围内最近活跃资料库 id；无库时为 null",
     )
+    recent_kb_name: str | None = Field(
+        default=None,
+        description="recent_kb_id 对应的资料库名称；无库时为 null",
+    )
     recent_activities: list[DashboardActivity] = Field(
         default_factory=list,
-        description="最近动态（D-5 前恒为空数组）",
+        description="操作审计 feed（audit_logs 聚合，按时间倒序）",
+    )
+    question_trend: list[DashboardTrendPoint] = Field(
+        default_factory=list,
+        description="近 7 日每日提问数（UTC 日期，旧→新）",
+    )
+    format_distribution: list[DashboardFormatShare] = Field(
+        default_factory=list,
+        description="知识构成：按文档格式分组的文档数（降序）",
+    )
+    recent_threads: list[DashboardRecentThread] = Field(
+        default_factory=list,
+        description="最近对话线程（含引用条数，按活跃时间倒序）",
     )
     golden_hit_rate_percent: float | None = Field(
         default=None,
