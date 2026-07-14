@@ -14,7 +14,7 @@
 ``adopt_draft_to_kb`` 用 ``monkeypatch`` 替换以隔离本窗范围（G4-3.2 实现替换后
 本窗测试不受影响）。
 
-复用车规级隔离 fixture ``org_iso``（``tests/test_org_isolation.py`` · pytest 插件）：
+复用车规级隔离 fixture ``org_iso``（``tests/fixtures/org_isolation.py``）：
 - ``org_iso.owner``     : 公司 Admin + Owner，可写任意 org kb
 - ``org_iso.rd_member`` : 研发部 Member，仅可读，写动作 → 403（G4-E1）
 - ``org_iso.public_kb_id`` : 公司公共库（org_unit_id=None），admin 可写
