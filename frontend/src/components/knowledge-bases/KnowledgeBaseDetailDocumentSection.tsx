@@ -136,7 +136,7 @@ export function KnowledgeBaseDetailDocumentSection({
           <input
             ref={uploadInputRef}
             type="file"
-            accept=".pdf,.txt,.md,.docx"
+            accept=".pdf,.txt,.md,.docx,.png,.jpg,.jpeg"
             multiple
             className="hidden"
             onChange={handleUploadInputChange}
