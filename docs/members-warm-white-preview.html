@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>知岸 · 成员管理（暖白重设计预览 · Round 1）</title>
+<style>
+  :root{
+    --page:#FAFAF8;
+    --surface:#FFFFFF;
+    --surface-2:#FBFAF8;
+    --terracotta:#CB6B3D;
+    --terracotta-hover:#B85A2E;
+    --terracotta-soft:#FFF1EA;
+    --ink:#1A1A1C;
+    --ink-2:#54504B;
+    --ink-3:#7A716A;
+    --line:#ECE7DF;
+    --line-2:#E4DDD2;
+    --success:#5BA86E;
+    --ok-ink:#27693d;
+    --fail:#C24A3A;
+    --err-ink:#b23a2c;
+    --amber:#E8943A;
+    --amber-soft:rgba(232,148,58,.16);
+    --amber-ink:#9a5a12;
+    --role:#5B6B8C;
+    --role-soft:rgba(91,107,140,.14);
+    --role-ink:#3E4A63;
+    --err-bg:#fff5f0;
+    --err-border:#e8b4a0;
+    --c-shell:rgba(255,255,255,.72);
+    --sidebar-w:220px;
+    --glow-1:rgba(203,107,61,.08);
+    --glow-2:rgba(233,184,107,.07);
+    --glow-3:rgba(203,107,61,.05);
+    --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --r:12px;
+    --shadow:0 1px 2px rgba(40,30,20,.04), 0 8px 22px rgba(40,30,20,.05);
+    --serif:"Songti SC","STSong","SimSun",Georgia,serif;
+    font-family:"Inter","PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(1100px 640px at 6% -10%, var(--glow-1), transparent 58%),
+      radial-gradient(980px 760px at 104% 2%, var(--glow-2), transparent 55%),
+      radial-gradient(1100px 980px at 50% 118%, var(--glow-3), transparent 60%),
+      var(--page);
+    min-height:100vh;
+  }
+  body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+    background-image:var(--grain);background-size:150px 150px;opacity:.04;mix-blend-mode:multiply;}
+
+  /* ---------- App shell ---------- */
+  .shell{display:flex;height:100vh;overflow:hidden}
+  .sidebar{width:var(--sidebar-w);flex:0 0 var(--sidebar-w);background:var(--c-shell);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-right:1px solid var(--line);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;overflow:hidden;padding:16px 10px}
+  .brand-row{display:flex;align-items:center;gap:10px;padding:0 10px 14px;margin-bottom:10px;border-bottom:1px solid var(--line)}
+  .brand-mark{position:relative;width:14px;height:22px;flex:0 0 14px}
+  .brand-mark i{position:absolute;display:block;background:var(--terracotta);border-radius:2px}
+  .brand-mark i:first-child{left:0;top:0;width:3px;height:22px}
+  .brand-mark i:last-child{right:0;bottom:0;width:6px;height:6px;border-radius:999px}
+  .wordmark{font-family:Georgia,"Songti SC",serif;font-weight:600;font-size:15px;letter-spacing:.02em;color:var(--ink)}
+  .ws-switch{display:flex;align-items:center;gap:8px;margin:0 4px 8px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:13px}
+  .ws-dot{width:18px;height:18px;border-radius:6px;background:var(--terracotta-soft);color:var(--terracotta);display:grid;place-items:center;font-size:11px;font-weight:700}
+  .ws-name{flex:1;font-weight:600}
+  .ws-caret{color:var(--ink-3);width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center}
+  .dept-picker{display:flex;align-items:center;gap:8px;margin:0 4px 4px;padding:8px 10px;border:1px dashed var(--line-2);border-radius:10px;font-size:12px;color:var(--ink-2)}
+  .nav-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-3);padding:10px 12px 4px;margin-top:4px;border-top:1px solid var(--line)}
+  .nav{flex:1;display:flex;flex-direction:column;gap:2px;padding:0 4px;overflow-y:auto}
+  .nav-item{position:relative;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;color:var(--ink-3);font-size:13px;text-decoration:none;transition:.12s}
+  .nav-item:hover{background:var(--surface-2);color:var(--ink)}
+  .nav-item.active{background:var(--terracotta-soft);color:var(--terracotta);font-weight:600}
+  .nav-item.active::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--terracotta)}
+  .nav-ico{width:18px;height:18px;flex:0 0 18px;display:inline-flex;align-items:center;justify-content:center}
+  .nav-ico svg{width:18px;height:18px;display:block;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .ico{width:16px;height:16px;flex:0 0 16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .sidebar-foot{margin-top:8px;border-top:1px solid var(--line);padding-top:12px}
+  .user-block{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px}
+  .avatar{width:28px;height:28px;border-radius:999px;background:var(--terracotta);color:#fff;display:grid;place-items:center;font-size:12px;font-weight:600}
+  .user-meta b{display:block;font-size:13px}
+  .user-meta span{font-size:11px;color:var(--ink-3)}
+  .col{flex:1;min-width:0;display:flex;flex-direction:column}
+  .topbar{height:52px;flex:0 0 52px;display:flex;align-items:center;gap:12px;padding:0 24px;border-bottom:1px solid var(--line);background:var(--c-shell);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+  .topbar .avatar{width:30px;height:30px}
+  .nav-toggle{display:none;border:0;background:transparent;font-size:18px;color:var(--ink-2);cursor:pointer}
+  .breadcrumb{font-size:13px;color:var(--ink-3)}
+  .breadcrumb b{color:var(--ink);font-weight:600}
+  .spacer{flex:1}
+  .content{flex:1;min-width:0;overflow:auto;min-height:0}
+  .drawer-backdrop{display:none}
+  @media (max-width:860px){
+    .sidebar{position:fixed;left:0;top:0;bottom:0;z-index:130;transform:translateX(-100%);transition:transform .2s}
+    .sidebar.open{transform:none}
+    .drawer-backdrop{display:block;position:fixed;inset:0;background:rgba(0,0,0,.28);z-index:120}
+    .nav-toggle{display:block}
+    .topbar{padding-left:16px;padding-right:16px}
+  }
+
+  /* ---------- Page ---------- */
+  .page{max-width:960px;margin:0 auto;padding:28px 24px 40px}
+  .members-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px}
+  .page-title{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:.02em}
+  .count{margin-top:4px;font-size:13px;color:var(--ink-3)}
+  .head-actions{display:flex;flex-wrap:wrap;gap:8px}
+
+  .btn{display:inline-flex;align-items:center;gap:6px;border-radius:10px;border:1px solid transparent;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit}
+  .btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--terracotta-soft)}
+  .btn-primary{background:var(--terracotta);color:#fff;padding:8px 14px}
+  .btn-primary:hover{background:var(--terracotta-hover)}
+  .btn-outline{background:var(--surface);border-color:var(--line-2);color:var(--ink);padding:8px 14px}
+  .btn-outline:hover{background:var(--surface-2);border-color:var(--ink-3)}
+  .btn[disabled]{opacity:.5;cursor:not-allowed}
+  .btn-ghost{background:transparent;color:var(--terracotta-hover);padding:7px 10px;font-weight:600}
+  .btn-ghost:hover{background:var(--terracotta-soft)}
+  .btn-danger{background:var(--fail);color:#fff;padding:8px 14px}
+  .btn-danger:hover{background:#a83a2c}
+
+  /* alert banner */
+  .alert-banner{display:flex;align-items:flex-start;gap:10px;border:1px solid var(--err-border);background:var(--err-bg);color:var(--err-ink);border-radius:10px;padding:11px 13px;font-size:13px;margin-bottom:16px}
+  .alert-banner .a-ico{flex:0 0 16px;margin-top:1px}
+  .alert-banner .a-body{flex:1;min-width:0}
+  .alert-banner .a-title{font-weight:600}
+  .alert-banner .a-msg{opacity:.92}
+  .alert-banner .a-actions{display:flex;gap:8px;align-items:center;margin-top:6px}
+  .alert-banner .btn-outline{color:var(--err-ink);border-color:var(--err-border);padding:5px 11px}
+  .alert-banner .btn-outline:hover{background:rgba(194,74,58,.07)}
+  .alert-close{flex:0 0 auto;border:0;background:transparent;color:var(--err-ink);cursor:pointer;font-size:16px;line-height:1;opacity:.7}
+  .alert-close:hover{opacity:1}
+
+  /* invite card */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px;margin-bottom:18px}
+  .card-title{font-family:var(--serif);font-size:16px;font-weight:600;margin-bottom:6px}
+  .card-desc{font-size:13px;color:var(--ink-2);line-height:1.6;margin-bottom:14px}
+  .invite-code{display:flex;flex-wrap:wrap;align-items:center;gap:10px;border:1px solid var(--line-2);background:var(--surface-2);border-radius:10px;padding:11px 13px;margin-bottom:6px}
+  .invite-code code{flex:1;min-width:0;font-family:"SFMono-Regular",Consolas,monospace;font-size:14px;font-weight:600;letter-spacing:.06em;color:var(--ink);word-break:break-all}
+  .invite-expiry{font-size:12px;color:var(--ink-3);margin-bottom:12px}
+
+  /* table */
+  .table-wrap{border:1px solid var(--line);border-radius:var(--r);overflow:auto;background:var(--surface);box-shadow:var(--shadow)}
+  .members-table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px}
+  .members-table th{position:sticky;top:0;background:var(--surface-2);text-align:left;font-weight:600;font-size:12px;letter-spacing:.02em;color:var(--ink-3);padding:12px 16px;border-bottom:1px solid var(--line)}
+  .members-table td{padding:13px 16px;border-bottom:1px solid var(--line);vertical-align:middle}
+  .members-table tbody tr:last-child td{border-bottom:0}
+  .members-table tbody tr{transition:background .12s}
+  .members-table tbody tr:hover{background:var(--surface-2)}
+  .members-table .col-actions{text-align:right}
+  .members-table .col-actions .acts{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:4px}
+  .email-cell{font-weight:500;color:var(--ink)}
+  .muted{color:var(--ink-3)}
+  .role-badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;background:var(--role-soft);color:var(--role-ink)}
+  .owner-tag{display:inline-block;margin-left:6px;font-size:11px;color:var(--ink-3)}
+  .dash{color:var(--ink-3)}
+
+  /* form fields (dialog) */
+  .field-label{display:block;font-size:13px;font-weight:600;color:var(--ink);margin-bottom:6px}
+  .field-input{width:100%;height:40px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface);padding:0 12px;font-size:14px;color:var(--ink);font-family:inherit}
+  .field-input:focus{outline:none;border-color:var(--terracotta);box-shadow:0 0 0 3px var(--terracotta-soft)}
+
+  /* custom select (transfer) */
+  .select{position:relative;width:100%}
+  .select-trigger{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;height:40px;border:1px solid var(--line-2);border-radius:10px;background:var(--surface);padding:0 12px;font-size:14px;color:var(--ink);cursor:pointer;font-family:inherit}
+  .select-trigger[aria-expanded="true"]{border-color:var(--terracotta);box-shadow:0 0 0 3px var(--terracotta-soft)}
+  .select-caret{flex:0 0 auto;transition:transform .15s}
+  .select-trigger[aria-expanded="true"] .select-caret{transform:rotate(180deg)}
+  .select-menu{position:absolute;z-index:5;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--line-2);border-radius:10px;box-shadow:var(--shadow);padding:6px;max-height:220px;overflow:auto;display:none}
+  .select-menu.open{display:block}
+  .select-option{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:8px;font-size:13.5px;cursor:pointer}
+  .select-option:hover{background:var(--surface-2)}
+  .select-option[aria-selected="true"]{background:var(--terracotta-soft);color:var(--terracotta-hover);font-weight:600}
+  .select-hint{font-size:12px;color:var(--ink-3);margin-top:8px}
+
+  /* modal */
+  .modal-root{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:16px}
+  .modal-root.open{display:flex}
+  .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.3)}
+  .modal{position:relative;z-index:1;width:100%;max-width:440px;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);box-shadow:0 12px 40px rgba(40,30,20,.18);padding:24px}
+  .modal h2{font-family:var(--serif);font-size:18px;font-weight:600;letter-spacing:.02em;margin-bottom:8px}
+  .modal p{font-size:13.5px;color:var(--ink-2);line-height:1.6}
+  .modal .form-row{margin-top:16px}
+  .modal .modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:22px}
+
+  /* skeleton */
+  .sk{background:linear-gradient(90deg,var(--line) 25%,var(--surface-2) 37%,var(--line) 63%);background-size:400% 100%;animation:sk 1.3s ease infinite;border-radius:8px}
+  @keyframes sk{0%{background-position:100% 0}100%{background-position:-100% 0}}
+  .sk-title{height:30px;width:160px;margin-bottom:8px}
+  .sk-card{height:220px;width:100%;margin-top:18px}
+  @media (prefers-reduced-motion:reduce){.sk{animation:none}}
+
+  /* state switch (review helper) */
+  .state-switch{position:fixed;right:18px;bottom:18px;z-index:60;display:flex;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:6px;box-shadow:var(--shadow)}
+  .state-switch button{border:0;background:transparent;color:var(--ink-2);font-size:12px;font-weight:600;padding:6px 12px;border-radius:999px;cursor:pointer;font-family:inherit}
+  .state-switch button.on{background:var(--terracotta);color:#fff}
+
+  /* ===== v2.5-a11y + motion floor ===== */
+  :where(a,button,input,textarea,select,summary,[role=option],[role=tab],[role=button],[role=switch],[tabindex]):focus-visible{outline:2px solid var(--terracotta,#CB6B3D);outline-offset:2px;border-radius:6px}
+  .skip-link{position:absolute;left:12px;top:-52px;z-index:400;background:var(--terracotta,#CB6B3D);color:#fff;padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;text-decoration:none;box-shadow:0 6px 18px rgba(40,30,20,.14);transition:top .16s ease}
+  .skip-link:focus{top:12px;outline:none}
+  [id=main]:focus{outline:none}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+
+
+/* ===== v2.5-polish-css 共享受控：品牌空态 + 微交互（reduced-motion 安全） ===== */
+.brand-empty .empty-ic svg, .brand-empty > svg{stroke:var(--terracotta,#CB6B3D)}
+.brand-empty .empty-art{width:96px;height:96px;margin:0 auto 4px;display:block;color:var(--terracotta,#CB6B3D)}
+.brand-empty .empty-art .draw{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:220;stroke-dashoffset:220;animation:brandDraw .9s ease forwards .05s}
+.brand-empty .empty-art .draw.static{animation:none;stroke-dashoffset:0}
+@keyframes brandDraw{to{stroke-dashoffset:0}}
+.brand-note{display:flex;flex-direction:column;align-items:center;gap:10px;padding:34px 22px;border:1px dashed var(--line-2,#e7ddd1);background:var(--surface-2,#FBF7F1);border-radius:12px;color:var(--ink-3,#8a8276);text-align:center}
+.brand-note .bn-ic{width:40px;height:40px;color:var(--terracotta,#CB6B3D)}
+.brand-note .bn-ic svg{display:block;width:40px;height:40px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.brand-note .bn-ic [stroke]{stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.brand-note p{margin:0;font-size:13px;line-height:1.6;max-width:320px}
+.rag-empty{border-left:3px solid var(--terracotta,#CB6B3D)}
+@keyframes brandIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.brand-in{animation:brandIn .5s ease both}
+/* 微交互：卡片/行/分段/表行悬停（性能安全，仅 transform+box-shadow） */
+.card,.kb-card,.doc-card,.member-card,.dept-card{transition:transform .15s ease, box-shadow .15s ease}
+.card:hover,.kb-card:hover,.doc-card:hover,.member-card:hover,.dept-card:hover,.dept-card li:hover{transform:translateY(-2px);box-shadow:0 8px 22px -12px rgba(58,42,30,.28)}
+.nav-item{transition:background .15s ease, color .15s ease}
+[role=row],.table tr{transition:background .12s ease}
+[role=row]:hover,.table tr:hover{background:var(--surface-2,#FBF7F1)}
+.segmented button,.tab,button.tab{transition:background .15s ease, color .15s ease}
+@media (prefers-reduced-motion:reduce){
+  .brand-empty .empty-art .draw{animation:none;stroke-dashoffset:0}
+  .brand-in{animation:none}
+  .card:hover,.kb-card:hover,.doc-card:hover,.member-card:hover,.dept-card:hover,.dept-card li:hover{transform:none}
+}
+
+
+  /* ---- v0 侧栏升级：ws-seg 二段 + DepartmentPicker + admin 条件 ---- */
+  .ws-seg{display:flex;align-items:stretch;margin:0 4px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:3px;gap:2px;position:relative}
+  .ws-seg button{font:inherit;font-size:12.5px;border:none;background:transparent;color:var(--ink-2);padding:6px 8px;border-radius:7px;cursor:pointer;transition:.12s;min-width:0}
+  .ws-seg button:hover{color:var(--ink)}
+  .ws-seg button.on{background:var(--terracotta-soft);color:var(--terracotta);font-weight:600}
+  .ws-seg-solo button{flex:1;text-align:center}
+  .ws-seg-team{display:flex;align-items:stretch;flex:1;min-width:0;border-radius:7px;overflow:hidden}
+  .ws-seg-team.on{background:var(--terracotta-soft)}
+  .ws-seg-team button{font-weight:600}
+  .ws-seg-team .ws-fullname-btn{border-left:1px solid var(--line);padding:0 7px;min-width:24px;color:var(--ink-3);font-weight:600}
+  .ws-seg-team.on .ws-fullname-btn{color:var(--terracotta);border-left-color:rgba(194,113,75,.28)}
+  .ws-popover{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow);padding:8px 10px;z-index:50;font-size:12.5px;color:var(--ink-2)}
+  .dept-picker{display:flex;align-items:center;gap:8px;margin:0 4px 10px;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);font-size:12.5px;color:var(--ink-2);cursor:pointer;transition:.12s;position:relative}
+  .dept-picker:hover{border-color:var(--line-2);color:var(--ink)}
+  .dept-picker[aria-disabled="true"]{opacity:.55;cursor:not-allowed}
+  .dept-picker .dept-ico{width:18px;height:18px;flex:0 0 18px;display:grid;place-items:center;color:var(--ink-3)}
+  .dept-picker .dept-ico svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .dept-picker .dept-name{flex:1;font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dept-picker .dept-caret{color:var(--ink-3);display:inline-flex;align-items:center}
+  .dept-picker .dept-caret svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .dept-popover{position:absolute;left:4px;right:4px;top:calc(100% + 4px);background:var(--surface);border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow);padding:6px;z-index:50;max-height:280px;overflow:auto}
+  .dept-popover h4{font-size:11px;font-weight:600;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em;padding:6px 8px 4px;margin:0}
+  .dept-popover button{font:inherit;font-size:12.5px;width:100%;text-align:left;border:none;background:transparent;color:var(--ink-2);padding:6px 8px;border-radius:7px;cursor:pointer;display:flex;align-items:center;gap:6px}
+  .dept-popover button:hover{background:var(--surface-2);color:var(--ink)}
+  .dept-popover button.on{background:var(--terracotta-soft);color:var(--terracotta);font-weight:600}
+  .dept-popover .dept-empty{font-size:12px;color:var(--ink-3);padding:6px 8px}
+
+
+  /* === v4.4 empty state (generic) === */
+  .v44-empty{margin-top:18px;display:flex;flex-direction:column;gap:24px}
+  .empty-toolbar{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;align-self:flex-end;font-size:12px;color:var(--ink-2)}
+  .empty-toolbar-hint{color:var(--ink-3);font-size:11px}
+  .simple-toggle{appearance:none;width:36px;height:20px;background:var(--line-2);border-radius:10px;position:relative;cursor:pointer;transition:.15s;border:1px solid var(--line);padding:0}
+  .simple-toggle::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;background:#fff;border-radius:50%;transition:.15s;box-shadow:0 1px 2px rgba(0,0,0,.15)}
+  .simple-toggle[aria-pressed="true"]{background:var(--terracotta);border-color:var(--terracotta)}
+  .simple-toggle[aria-pressed="true"]::after{left:18px}
+  .empty-hero{display:grid;grid-template-columns:1fr 240px;gap:32px;align-items:center;padding:36px 32px;border-radius:18px;background:linear-gradient(135deg,#FFF8EE 0%,#FBE4D2 50%,#F3CFB4 100%);position:relative;overflow:hidden;border:1px solid rgba(194,113,75,.15)}
+  .empty-hero::before,.empty-hero::after{content:"";position:absolute;border-radius:50%;filter:blur(50px);opacity:.4;pointer-events:none}
+  .empty-hero::before{width:300px;height:300px;background:radial-gradient(circle,rgba(232,148,58,.5),transparent);top:-100px;left:-50px}
+  .empty-hero::after{width:260px;height:260px;background:radial-gradient(circle,rgba(194,113,75,.5),transparent);bottom:-80px;right:-30px}
+  .empty-hero-copy{position:relative;z-index:1}
+  .eyebrow{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(194,113,75,.12);color:var(--terracotta-ink);border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.5px}
+  .eyebrow .dot{width:6px;height:6px;background:var(--terracotta);border-radius:50%;animation:kbsPulse 2s infinite}
+  @keyframes kbsPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+  .empty-hero h3{font-family:var(--serif);font-size:30px;line-height:1.25;color:var(--ink);margin:14px 0 10px;letter-spacing:.5px}
+  .empty-hero h3 em{font-style:normal;color:var(--terracotta);position:relative}
+  .empty-hero h3 em::after{content:"";position:absolute;left:0;right:0;bottom:-2px;height:6px;background:linear-gradient(90deg,rgba(194,113,75,.25),rgba(232,148,58,.15));border-radius:3px;z-index:-1}
+  .empty-hero p{font-size:14px;color:var(--ink-2);line-height:1.65;margin-bottom:18px}
+  .empty-hero p b{color:var(--ink);font-weight:600}
+  .empty-hero .actions{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+  .dash-btn{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:10px;font-size:13.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:.15s;text-decoration:none;line-height:1.3}
+  .dash-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .dash-btn.brand{background:var(--terracotta);color:#fff;border:1px solid var(--terracotta)}
+  .dash-btn.brand:hover{background:var(--terracotta-ink);border-color:var(--terracotta-ink)}
+  .dash-btn.line{background:var(--surface);color:var(--ink);border:1px solid var(--line-2)}
+  .dash-btn.line:hover{border-color:var(--terracotta);color:var(--terracotta-ink)}
+  .dash-btn.ghost{background:transparent;color:var(--ink-2);border:1px solid transparent}
+  .dash-btn.ghost:hover{color:var(--terracotta-ink);background:rgba(194,113,75,.06)}
+  .stats-line{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:0;padding:10px 0 0;border-top:1px dashed rgba(194,113,75,.25)}
+  .stats-line div{display:flex;flex-direction:column;gap:1px}
+  .stats-line dt{font-size:13px;font-weight:700;color:var(--terracotta-ink);margin:0;letter-spacing:.3px}
+  .stats-line dd{font-size:11px;color:var(--ink-3);margin:0}
+  .empty-hero-art{position:relative;z-index:1;width:240px;height:170px;display:flex;margin:0 auto;justify-content:center;align-items:center}
+  .hero-art{width:200px;height:140px;color:var(--terracotta)}
+  .hero-art .blob{fill:rgba(194,113,75,.06);animation:kbsBreath 4s ease-in-out infinite}
+  .hero-art .folder-tab{stroke-width:1.5;fill:rgba(194,113,75,.12)}
+  .hero-art .folder{stroke-width:1.5;fill:rgba(255,255,255,.65)}
+  .hero-art .doc-line{stroke-width:1.4;stroke-linecap:round}
+  .hero-art .doc{stroke-width:1.5;fill:rgba(255,255,255,.5);animation:kbsFloat 6s ease-in-out infinite}
+  .hero-art .bubble{stroke-width:1.5;fill:rgba(232,148,58,.12)}
+  .hero-art .connector{stroke-width:1.2;stroke-dasharray:3 3;animation:kbsDash 3s linear infinite}
+  .hero-art .pulse-ring{fill:none;stroke:rgba(194,113,75,.3);stroke-width:1;animation:kbsRing 3s ease-out infinite}
+  .hero-art .pulse-ring:nth-child(2){animation-delay:1s}
+  .hero-art .pulse-ring:nth-child(3){animation-delay:2s}
+  .hero-art .sparkle{animation:kbsTwinkle 2.5s ease-in-out infinite}
+  .hero-art .sparkle:nth-of-type(2){animation-delay:.8s}
+  .hero-art .sparkle:nth-of-type(3){animation-delay:1.6s}
+  @keyframes kbsBreath{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  @keyframes kbsFloat{0%,100%{transform:rotate(-8deg) translateY(0)}50%{transform:rotate(-8deg) translateY(-4px)}}
+  @keyframes kbsDash{to{stroke-dashoffset:-18}}
+  @keyframes kbsRing{0%{r:30;opacity:.8}100%{r:80;opacity:0}}
+  @keyframes kbsTwinkle{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(1.4)}}
+  .empty-section{display:flex;flex-direction:column;gap:14px}
+  .empty-h3{font-family:var(--serif);font-size:18px;font-weight:600;color:var(--ink);margin:0;display:flex;align-items:baseline;gap:8px;letter-spacing:.5px}
+  .empty-h3 .tag{font-family:inherit;font-size:10.5px;font-weight:600;color:var(--terracotta-ink);background:var(--terracotta-soft);padding:2px 8px;border-radius:999px;letter-spacing:1px}
+  .empty-h3 .empty-h3-note{font-family:inherit;font-size:10px;color:var(--ink-4);letter-spacing:1.5px;font-weight:500}
+  .empty-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .empty-step{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:8px;transition:.15s;cursor:default}
+  .empty-step:hover{border-color:var(--terracotta);transform:translateY(-2px);box-shadow:0 6px 16px rgba(203,107,61,.10)}
+  .empty-step:focus{outline:2px solid var(--terracotta);outline-offset:2px}
+  .empty-step .num{width:24px;height:24px;background:var(--terracotta);color:#fff;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0}
+  .empty-step-h{font-size:14px;font-weight:600;color:var(--ink);margin:0;display:flex;align-items:center;gap:6px}
+  .empty-step-h .ico{width:16px;height:16px;stroke:var(--terracotta);fill:none;stroke-width:1.8;flex-shrink:0}
+  .empty-step p{font-size:12.5px;color:var(--ink-2);line-height:1.55;margin:0;flex:1}
+  .empty-step .meta{font-size:11px;color:var(--terracotta-ink);font-weight:600}
+  .empty-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .empty-card{background:var(--surface);border:1px dashed var(--line-2);border-radius:12px;padding:16px 16px 14px;display:flex;flex-direction:column;gap:8px;transition:.15s;position:relative;overflow:hidden}
+  .empty-card:hover{border-color:var(--terracotta);background:#fff;transform:translateY(-2px);box-shadow:inset 0 0 0 1px rgba(203,107,61,.15),0 6px 18px rgba(203,107,61,.10)}
+  .empty-card .top{display:flex;align-items:center;gap:8px}
+  .empty-card .top .ic{width:30px;height:30px;border-radius:8px;background:var(--terracotta-soft);display:grid;place-items:center;flex-shrink:0;transition:.15s}
+  .empty-card:hover .top .ic{background:var(--terracotta);color:#fff}
+  .empty-card .top .ic svg{width:16px;height:16px;stroke:var(--terracotta);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .empty-card:hover .top .ic svg{stroke:#fff}
+  .empty-card h5{margin:0;font-size:14px;font-weight:600;color:var(--ink)}
+  .empty-card .sub{font-size:12.5px;color:var(--ink-2);line-height:1.55;margin:0;flex:1}
+  .empty-card .cta{margin-top:auto;display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;color:var(--terracotta-ink);text-decoration:none;padding-top:6px;border-top:1px solid var(--line)}
+  .empty-card .cta::after{content:"→";font-weight:400;transition:transform .2s}
+  .empty-card:hover .cta::after{transform:translateX(3px)}
+  .rag-preview{display:flex;align-items:center;gap:18px;padding:18px 22px;background:linear-gradient(135deg,rgba(232,148,58,.08),rgba(194,113,75,.04));border:1px solid var(--line);border-radius:14px}
+  .rag-preview .visual{width:44px;height:44px;border-radius:12px;background:var(--surface);display:grid;place-items:center;flex-shrink:0}
+  .rag-preview .visual svg{width:22px;height:22px;stroke:var(--terracotta);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;animation:kbsSpin 8s linear infinite}
+  @keyframes kbsSpin{to{transform:rotate(360deg)}}
+  .rag-preview .rag-body{flex:1;min-width:0}
+  .rag-preview h5{font-size:14px;font-weight:600;color:var(--ink);margin:0 0 4px}
+  .rag-preview p{font-size:12.5px;color:var(--ink-2);line-height:1.55;margin:0}
+  .rag-preview .preview-cta{flex-shrink:0}
+  body.v44-simple .hero-art .blob,body.v44-simple .hero-art .pulse-ring,body.v44-simple .hero-art .connector,body.v44-simple .hero-art .sparkle{animation:none}
+  body.v44-simple .hero-art .pulse-ring{opacity:0}
+  body.v44-simple .hero-art .connector{stroke-dasharray:none}
+  body.v44-simple .empty-hero{background:#FBF6EF}
+  body.v44-simple .empty-hero::before,body.v44-simple .empty-hero::after{display:none}
+  .v44-view-empty{padding:60px 32px;text-align:center;background:var(--surface);border:1px dashed var(--line-2);border-radius:14px;margin-top:24px}
+  .v44-view-empty .state-title{font-family:var(--serif);font-size:18px;color:var(--ink);margin:0 0 8px;font-weight:600}
+  .v44-view-empty .state-desc{font-size:13px;color:var(--ink-2);margin:0 0 18px;line-height:1.6}
+  .v44-view-empty .state-action{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:var(--terracotta);color:#fff;border:none;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
+  .v44-view-empty .state-action:hover{background:var(--terracotta-ink)}
+  @media(max-width:1024px){
+    .empty-hero{grid-template-columns:1fr;gap:18px;padding:28px 22px}
+    .empty-hero-art{margin:0 auto;width:200px;height:140px}
+    .empty-steps{grid-template-columns:1fr}
+    .empty-grid{grid-template-columns:1fr}
+    .stats-line{grid-template-columns:repeat(2,1fr);row-gap:10px}
+  }
+  .invite-dialog{border:none;border-radius:16px;padding:0;box-shadow:0 30px 80px rgba(0,0,0,.25);max-width:480px;width:calc(100vw - 40px);background:var(--surface)}
+  .invite-dialog::backdrop{background:rgba(20,16,12,.55);backdrop-filter:blur(6px)}
+  .invite-form{padding:22px 24px 18px;display:flex;flex-direction:column;gap:14px}
+  .invite-head{display:flex;align-items:center;gap:8px}
+  .invite-head h4{margin:0;font-size:17px;font-weight:600;color:var(--ink);font-family:var(--serif);letter-spacing:.5px;flex:1}
+  .invite-x{width:28px;height:28px;border-radius:8px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);cursor:pointer;font-size:14px;display:grid;place-items:center;font-family:inherit;transition:.15s}
+  .invite-x:hover{background:rgba(194,74,58,.1);border-color:var(--err);color:var(--err)}
+  .invite-form .sub{font-size:12.5px;color:var(--ink-2);line-height:1.6;margin:0}
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field > label,.field > .field-label{font-size:12px;font-weight:600;color:var(--ink-2)}
+  .field input,.field select{padding:8px 10px;border:1px solid var(--line-2);border-radius:8px;font:inherit;font-size:13px;color:var(--ink);background:var(--surface);transition:.15s}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--terracotta);box-shadow:0 0 0 3px rgba(203,107,61,.12)}
+  .role-grid{display:flex;flex-wrap:wrap;gap:6px}
+  .role-chip{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border:1px solid var(--line-2);border-radius:999px;font-size:12px;color:var(--ink-2);cursor:pointer;background:var(--surface);transition:.15s}
+  .role-chip:hover{border-color:var(--terracotta);color:var(--terracotta-ink)}
+  .role-chip input{accent-color:var(--terracotta);margin:0}
+  .role-chip:has(input:checked){background:var(--terracotta-soft);color:var(--terracotta-ink);border-color:rgba(203,107,61,.3)}
+  .link-box{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--surface-2);border:1px dashed var(--line);border-radius:8px}
+  .link-lbl{font-size:11px;color:var(--ink-3);font-weight:600}
+  .link-box code{flex:1;font-family:var(--mono);font-size:12px;color:var(--ink-2);background:transparent;word-break:break-all}
+  .link-copy{padding:4px 10px;border:1px solid var(--line-2);border-radius:6px;background:var(--surface);font-size:11px;font-weight:600;color:var(--ink-2);cursor:pointer;font-family:inherit;transition:.15s}
+  .link-copy:hover{background:rgba(194,113,75,.12);border-color:rgba(194,113,75,.3);color:var(--terracotta-ink)}
+  .invite-list-section{padding:8px 0;border-top:1px dashed var(--line)}
+  .invite-list-lbl{font-size:12px;font-weight:600;color:var(--ink-2)}
+  .invite-list-lbl b{color:var(--terracotta-ink);font-variant-numeric:tabular-nums}
+  .invite-list-empty{font-size:12px;color:var(--ink-3);margin:4px 0 0;font-style:italic}
+  .invite-list{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto}
+  .invite-list li{display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;font-size:12px;animation:kbsSlideIn .2s ease}
+  @keyframes kbsSlideIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+  .invite-list .av{width:24px;height:24px;border-radius:50%;background:var(--terracotta);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:700;flex-shrink:0}
+  .invite-list .info{flex:1;min-width:0}
+  .invite-list .info b{color:var(--ink);font-weight:600}
+  .invite-list .info span{color:var(--ink-3);font-size:11px;margin-left:4px}
+  .invite-list .status{font-size:10.5px;color:var(--amber-ink);background:var(--amber-soft);padding:2px 6px;border-radius:999px;font-weight:600}
+  .invite-foot{display:flex;justify-content:flex-end;gap:8px;margin-top:4px}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主内容</a>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="brand-row">
+      <span class="brand-mark"><i></i><i></i></span>
+      <span class="wordmark">知岸</span>
+    </div>
+    <div class="ws-seg" role="group" aria-label="工作区切换" id="wsSeg">
+      <button type="button" data-ws="personal" aria-pressed="false">我的空间</button>
+      <div class="ws-seg-team on" id="wsTeam">
+        <button type="button" data-ws="team" class="ws-team-label" id="wsTeamLabel" aria-pressed="true" title="知岸科技有限公司">知岸科技</button>
+        <button type="button" class="ws-fullname-btn" id="wsFullnameBtn" aria-label="查看团队全称" aria-expanded="false" title="显示团队全称·不切换工作区">›</button>
+      </div>
+    </div>
+    <div class="dept-picker" id="deptPicker" role="button" tabindex="0" aria-haspopup="listbox" aria-expanded="false">
+      <span class="dept-ico"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/><path d="M10 21v-3h4v3"/></svg></span>
+      <span class="dept-name" id="deptName">研发中心</span>
+      <span class="dept-caret"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>
+    </div>
+    <nav class="nav" id="navWorkspace">
+      <a class="nav-item" href="/dashboard-warm-white-preview.html"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>概览</a>
+      <a class="nav-item" href="/knowledge-bases-warm-white-preview.html"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M12 3 3 7.5 12 12l9-4.5L12 3Z"/><path d="M3 12l9 4.5L21 12"/><path d="M3 16.5 12 21l9-4.5"/></svg></span>资料库</a>
+      <a class="nav-item" href="/ask-warm-white-preview.html"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.3 7.3L4 21l1.7-5.7A8 8 0 1 1 21 12Z"/></svg></span>对话</a>
+      <a class="nav-item" href="./account-settings-warm-white-preview.html"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg></span>账号设置</a>
+      <a class="nav-item admin-only" href="/org-departments-warm-white-preview.html"><span class="nav-ico"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/><path d="M10 21v-3h4v3"/></svg></span>组织与部门</a>
+      <a class="nav-item admin-only active" aria-current="page" href="/members-warm-white-preview.html"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.6a3 3 0 0 1 0 5.8"/><path d="M16.5 14.4a5 5 0 0 1 4 5.6"/></svg></span>成员管理</a>
+      <a class="nav-item admin-only" href="/organization-settings-warm-white-preview.html"><span class="nav-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H21a2 2 0 0 1 0-4h-.1a1.6 1.6 0 0 0-1.5-1 1.6 1.6 0 0 0-1.8.3H9a1.6 1.6 0 0 0-1-1.5V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/></svg></span>团队设置</a>
+      <a class="nav-item admin-only" href="/admin-audit-warm-white-preview.html"><span class="nav-ico"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 4 3 7 7 9 4-2 7-5 7-9V6l-7-3Z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg></span>操作审计</a>
+    </nav>
+    <div class="sidebar-foot">
+      <div class="user-block">
+        <span class="avatar">管</span>
+        <div class="user-meta"><b>管理员</b><span>admin@zhian.ai</span></div>
+      </div>
+    </div>
+  </aside>
+  <div class="col">
+    <header class="topbar">
+      <button type="button" class="nav-toggle" id="navToggle" aria-label="打开导航">☰</button>
+      <div class="breadcrumb">成员管理</div>
+      <div class="spacer"></div>
+      <span class="avatar">林</span>
+    </header>
+    <div class="content">
+<main class="page" id="main" tabindex="-1">
+
+  <!-- ============ State A: Admin view ============ -->
+  <section id="view-admin">
+    <div class="members-head">
+      <div>
+        <h1 class="page-title">成员管理</h1>
+        <p class="count">4 人</p>
+      </div>
+      <div class="head-actions">
+        <button type="button" class="btn btn-outline" id="refreshBtn">刷新</button>
+        <button type="button" class="btn btn-primary" id="openAdd">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+          添加成员
+        </button>
+      </div>
+    </div>
+
+    <div class="alert-banner" id="actionError" hidden>
+      <svg class="a-ico ico" viewBox="0 0 24 24" style="stroke:currentColor"><path d="M12 8v5M12 16.5h.01"/><circle cx="12" cy="12" r="9"/></svg>
+      <div class="a-body">
+        <div class="a-title">操作失败</div>
+        <div class="a-msg">该成员仍有进行中的任务，无法移除。</div>
+      </div>
+      <button type="button" class="alert-close" aria-label="关闭提示" id="actionErrorClose">×</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">邀请新成员</div>
+      <p class="card-desc">生成邀请码后，新同事在注册页选择「团队 · 成员」并填写此码即可加入。同一邀请码可供多人使用。</p>
+      <div id="inviteCodeBlock" hidden>
+        <div class="invite-code">
+          <code id="inviteCode">ZHIAN-7F3A-9C2E</code>
+          <button type="button" class="btn btn-outline" id="copyBtn">复制</button>
+        </div>
+        <p class="invite-expiry">有效期至 2026-08-12 23:59</p>
+      </div>
+      <button type="button" class="btn btn-primary" id="genBtn">生成邀请码</button>
+    </div>
+
+    <div class="table-wrap">
+      <table class="members-table">
+        <thead>
+          <tr>
+            <th scope="col">邮箱</th>
+            <th scope="col">角色</th>
+            <th scope="col">加入时间</th>
+            <th scope="col" aria-label="操作"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="email-cell">lin@zhi.an</td>
+            <td><span class="role-badge">所有者</span></td>
+            <td class="muted">2025-03-12</td>
+            <td class="col-actions"><div class="acts">
+              <button type="button" class="btn btn-ghost" id="openTransfer">转让所有权</button>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="email-cell">admin@zhi.an</td>
+            <td><span class="role-badge">管理员</span></td>
+            <td class="muted">2025-06-01</td>
+            <td class="col-actions"><div class="acts">
+              <button type="button" class="btn btn-ghost" data-demote="admin@zhi.an">降为成员</button>
+              <button type="button" class="btn btn-ghost" data-remove="admin@zhi.an">移除</button>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="email-cell">wang@zhi.an</td>
+            <td><span class="role-badge">成员</span></td>
+            <td class="muted">2025-09-15</td>
+            <td class="col-actions"><div class="acts">
+              <button type="button" class="btn btn-ghost" data-promote="wang@zhi.an">设为管理员</button>
+              <button type="button" class="btn btn-ghost" data-remove="wang@zhi.an">移除</button>
+            </div></td>
+          </tr>
+          <tr>
+            <td class="email-cell">zhao@zhi.an</td>
+            <td><span class="role-badge">成员</span></td>
+            <td class="muted">2026-01-20</td>
+            <td class="col-actions"><div class="acts">
+              <button type="button" class="btn btn-ghost" data-promote="zhao@zhi.an">设为管理员</button>
+              <button type="button" class="btn btn-ghost" data-remove="zhao@zhi.an">移除</button>
+            </div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ State B: Loading ============ -->
+  <section id="view-loading" hidden>
+    <div class="members-head">
+      <div>
+        <div class="sk sk-title"></div>
+        <div class="sk" style="height:14px;width:60px"></div>
+      </div>
+    </div>
+    <div class="sk sk-card"></div>
+  </section>
+
+  <!-- ============ State C: Error ============ -->
+  <section id="view-error" hidden>
+    <div class="members-head">
+      <div>
+        <h1 class="page-title">成员管理</h1>
+        <p class="count">—</p>
+      </div>
+    </div>
+    <div class="alert-banner">
+      <svg class="a-ico ico" viewBox="0 0 24 24" style="stroke:currentColor"><path d="M12 8v5M12 16.5h.01"/><circle cx="12" cy="12" r="9"/></svg>
+      <div class="a-body">
+        <div class="a-title">成员列表加载失败</div>
+        <div class="a-msg">网络异常，请稍后重试。</div>
+        <div class="a-actions"><button type="button" class="btn btn-outline" id="retryBtn">重试</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ State D: Read-only (non-admin) ============ -->
+
+      <div class="empty-empty v44-empty v44-mb">
+        <div class="empty-toolbar">
+          <span class="empty-toolbar-label" id="mbEmptyLbl">装饰动效</span>
+          <button type="button" class="simple-toggle" id="mbSimpleToggle" role="switch" aria-pressed="false" aria-labelledby="mbEmptyLbl" title="切换装饰动效（适合低视力/老花）"></button>
+          <span class="empty-toolbar-hint">低视力友好</span>
+        </div>
+
+        <section class="empty-hero" aria-labelledby="mbEmptyH">
+          <div class="empty-hero-copy">
+            <span class="eyebrow"><span class="dot"></span>1 成员 · 0 邀请中</span>
+            <h3 id="mbEmptyH">现在就你一个，<em>把同事拉进来</em></h3>
+            <p>团队刚建好，<b>只有你</b>。把同事加进来后，可以按角色分配权限、批量导入、<b>同步到飞书/钉钉/企微</b>。</p>
+            <div class="actions">
+              <button type="button" class="dash-btn brand">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 7a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 11h-6M19 8v6"/></svg>
+                邀请第一位成员
+              </button>
+              <button type="button" class="dash-btn line">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+                从飞书导入
+              </button>
+              <button type="button" class="dash-btn ghost" id="mbOpenInvite">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/></svg>
+                设置角色权限
+              </button>
+            </div>
+            <dl class="stats-line">
+              <div><dt>30 秒</dt><dd>发一个邀请</dd></div>
+              <div><dt>3 角色</dt><dd>管理员/成员/访客</dd></div>
+              <div><dt>SSO</dt><dd>飞书/钉钉/企微</dd></div>
+              <div><dt>审计</dt><dd>操作留痕</dd></div>
+            </dl>
+          </div>
+          <div class="empty-hero-art" aria-hidden="true">
+            <svg class="hero-art" viewBox="0 0 280 200" aria-hidden="true">
+              <ellipse class="blob" cx="140" cy="100" rx="120" ry="80"/>
+              <circle class="pulse-ring" cx="140" cy="100" r="30"/>
+              <circle class="pulse-ring" cx="140" cy="100" r="30"/>
+              <circle class="pulse-ring" cx="140" cy="100" r="30"/>
+              <path class="folder-tab" d="M82 70h44l8 8h38a6 6 0 0 1 6 6v60a6 6 0 0 1-6 6H82a6 6 0 0 1-6-6V76a6 6 0 0 1 6-6z" fill="none" stroke="currentColor"/>
+              <path class="folder" d="M82 84h116v56a4 4 0 0 1-4 4H86a4 4 0 0 1-4-4V84z" fill="none" stroke="currentColor"/>
+              <line class="doc-line" x1="92" y1="98" x2="120" y2="98" stroke="currentColor"/>
+              <line class="doc-line" x1="92" y1="106" x2="135" y2="106" stroke="currentColor"/>
+              <line class="doc-line" x1="92" y1="114" x2="118" y2="114" stroke="currentColor"/>
+              <rect class="doc" x="32" y="40" width="50" height="64" rx="4" transform="rotate(-8 57 72)" fill="none" stroke="currentColor"/>
+              <line class="doc-line" x1="42" y1="58" x2="72" y2="58" transform="rotate(-8 57 72)" stroke="currentColor"/>
+              <line class="doc-line" x1="42" y1="66" x2="76" y2="66" transform="rotate(-8 57 72)" stroke="currentColor"/>
+              <line class="doc-line" x1="42" y1="74" x2="68" y2="74" transform="rotate(-8 57 72)" stroke="currentColor"/>
+              <line class="doc-line" x1="42" y1="82" x2="72" y2="82" transform="rotate(-8 57 72)" stroke="currentColor"/>
+              <path class="bubble" d="M180 30h60a6 6 0 0 1 6 6v32a6 6 0 0 1-6 6h-44l-12 10v-10h-4a6 6 0 0 1-6-6V36a6 6 0 0 1 6-6z" fill="none" stroke="currentColor"/>
+              <circle class="bubble-dot" cx="200" cy="52" r="3" fill="currentColor"/>
+              <circle class="bubble-dot" cx="212" cy="52" r="3" fill="currentColor"/>
+              <circle class="bubble-dot" cx="224" cy="52" r="3" fill="currentColor"/>
+              <path class="connector" d="M82 100 Q40 90 50 80" fill="none" stroke="currentColor"/>
+              <path class="connector" d="M198 100 Q220 80 210 70" fill="none" stroke="currentColor"/>
+              <g class="sparkle" transform="translate(20,140)" aria-hidden="true"><path d="M0 -6 L1.5 -1.5 L6 0 L1.5 1.5 L0 6 L-1.5 1.5 L-6 0 L-1.5 -1.5 Z" fill="var(--amber)"/></g>
+              <g class="sparkle" transform="translate(255,160)" aria-hidden="true"><path d="M0 -5 L1.2 -1.2 L5 0 L1.2 1.2 L0 5 L-1.2 1.2 L-5 0 L-1.2 -1.2 Z" fill="var(--amber)"/></g>
+              <g class="sparkle" transform="translate(255,30)" aria-hidden="true"><path d="M0 -5 L1.2 -1.2 L5 0 L1.2 1.2 L0 5 L-1.2 1.2 L-5 0 L-1.2 -1.2 Z" fill="var(--amber)"/></g>
+            </svg>
+          </div>
+        </section>
+
+        <section class="empty-section" aria-labelledby="mbStepsH">
+          <h4 class="empty-h3" id="mbStepsH">从这里开始 <span class="tag">3 步</span><span class="empty-h3-note">3-STEP GUIDE</span></h4>
+          <div class="empty-steps">
+            <article class="empty-step" tabindex="0">
+              <span class="num">1</span>
+              <h5 class="empty-step-h"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>生成邀请码</h5>
+              <p>一键生成邀请码或链接，可设有效期 1/7/30 天，或永久有效。</p>
+              <span class="meta">支持批量导入</span>
+            </article>
+            <article class="empty-step" tabindex="0">
+              <span class="num">2</span>
+              <h5 class="empty-step-h"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3v5h5M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M9 13h6"/><path d="M9 17h6"/></svg>同事扫码加入</h5>
+              <p>同事在注册页选择「团队 · 成员」并填写邀请码即可加入。</p>
+              <span class="meta">可对接 SSO</span>
+            </article>
+            <article class="empty-step" tabindex="0">
+              <span class="num">3</span>
+              <h5 class="empty-step-h"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.5A8 8 0 1 1 21 12Z"/></svg>按角色分配权限</h5>
+              <p>支持管理员 / 成员 / 访客 3 角色；可按部门/资料库精细授权。</p>
+              <span class="meta">审计日志可导出</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="empty-section" aria-labelledby="mbDimH">
+          <h4 class="empty-h3" id="mbDimH">4 个会随你成长起来的位置 <span class="tag">未来指标预览</span><span class="empty-h3-note">FUTURE METRICS</span></h4>
+          <div class="empty-grid">
+            <article class="empty-card">
+              <div class="top">
+                <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 3 7.5 12 12l9-4.5L12 3Z"/><path d="M3 12l9 4.5L21 12"/><path d="M3 16.5 12 21l9-4.5"/></svg></span>
+                <h5>成员数</h5>
+              </div>
+              <p class="sub">你团队里所有成员都会出现在这里，支持按角色/部门/状态筛选。</p>
+              <a class="cta" href="#" aria-label="邀请第一位成员">邀请第一位成员</a>
+            </article>
+            <article class="empty-card">
+              <div class="top">
+                <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3v5h5M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M9 13h6"/><path d="M9 17h6"/></svg></span>
+                <h5>邀请中</h5>
+              </div>
+              <p class="sub">已发但还没被接受的邀请；可撤销、重新发送、或延长有效期。</p>
+              <a class="cta" href="#" aria-label="看邀请记录">看邀请记录</a>
+            </article>
+            <article class="empty-card">
+              <div class="top">
+                <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.5 1.5c0 2-2.7 2.5-2.7 2.5"/><path d="M12 17h.01"/></svg></span>
+                <h5>角色配置</h5>
+              </div>
+              <p class="sub">所有角色的权限矩阵在这里管理；可按资料库/部门/操作类型精细授权。</p>
+              <a class="cta" href="#" aria-label="配置角色">配置角色</a>
+            </article>
+            <article class="empty-card">
+              <div class="top">
+                <span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.5A8 8 0 1 1 21 12Z"/></svg></span>
+                <h5>SSO 接入</h5>
+              </div>
+              <p class="sub">一键接入飞书 / 钉钉 / 企微 / Azure AD，新员工自动同步。</p>
+              <a class="cta" href="#" aria-label="接 SSO">接 SSO</a>
+            </article>
+          </div>
+        </section>
+
+        <section class="empty-section" aria-labelledby="mbRagH">
+          <h4 class="empty-h3" id="mbRagH">能力概览 <span class="tag">准备好后会显示</span><span class="empty-h3-note">RAG METRICS</span></h4>
+          <div class="rag-preview">
+            <div class="visual" aria-hidden="true">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/><path d="M3 21l3.5-1.5"/><path d="M16 16l2 2"/></svg>
+            </div>
+            <div class="rag-body">
+              <h5>成员增长率 · SSO 覆盖率 · 操作审计完整度</h5>
+              <p>所有指标都可追溯到具体成员与时间点，准备好后 3 个数字会显示在这里。</p>
+            </div>
+            <a class="dash-btn line preview-cta" href="#" aria-label="看成员管理长什么样">
+              看成员管理长什么样
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section id="mb-view-empty" class="v44-view-empty" hidden>
+      <div class="v44-view-empty-stub">
+        <p class="state-title">演示区：本页面 v4.4 空态样板已就绪</p>
+        <p class="state-desc">真实生产环境中，状态切换由数据加载完成度决定。点击下方按钮可预览完整的 v4.4 空态。</p>
+        <button type="button" class="state-action" id="mbShowV44">打开 v4.4 空态演示</button>
+      </div>
+    </section>
+
+    <dialog class="invite-dialog" id="mbInviteDialog" aria-labelledby="mbInviteH">
+      <form method="dialog" class="invite-form">
+        <header class="invite-head">
+          <h4 id="mbInviteH">把同事拉进来</h4>
+          <button type="button" class="invite-x" id="mbInviteX" aria-label="关闭">✕</button>
+        </header>
+        <p class="sub">输入邮箱生成邀请链接；或一键从飞书/钉钉/企微导入通讯录。</p>
+
+        <div class="field">
+          <label for="mbInviteName">备注（仅自己可见）</label>
+          <input type="text" id="mbInviteName" placeholder="例如：产品组 · 七月" maxlength="40" />
+        </div>
+
+        <div class="field">
+          <label for="mbInviteTarget">发给</label>
+          <select id="mbInviteTarget">
+            <option>邮箱或手机</option>
+            <option>仅邮箱</option>
+            <option>仅手机</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <span class="field-label">角色（可多选）</span>
+          <div class="role-grid" role="group" aria-label="角色">
+            <label class="role-chip"><input type="checkbox" data-role="admin" checked />管理员</label>
+            <label class="role-chip"><input type="checkbox" data-role="editor" checked />编辑者</label>
+            <label class="role-chip"><input type="checkbox" data-role="viewer" />访客</label>
+            <label class="role-chip"><input type="checkbox" data-role="custom" />自定义</label>
+          </div>
+        </div>
+
+        <div class="link-box">
+          <span class="link-lbl">邀请链接</span>
+          <code id="mbInviteLink">zhi-an.cn/i/8K2F-3N9P-ZR99</code>
+          <button type="button" id="mbCopyInvite" class="link-copy">复制</button>
+        </div>
+
+        <div class="invite-list-section">
+          <span class="invite-list-lbl">已邀请 <b id="mbInviteCount">0</b> 位</span>
+          <p class="invite-list-empty" id="mbInviteEmpty">还没有邀请过 · 复制链接发给第一个伙伴</p>
+          <ul class="invite-list" id="mbInviteList" hidden></ul>
+        </div>
+
+        <footer class="invite-foot">
+          <button type="button" class="dash-btn line" id="mbInviteLater">稍后</button>
+          <button type="button" class="dash-btn brand" id="mbSendInvite">发送邀请</button>
+        </footer>
+      </form>
+    </dialog>
+  <section id="view-readonly" hidden>
+    <div class="members-head">
+      <div>
+        <h1 class="page-title">团队成员</h1>
+        <p class="count">4 人</p>
+      </div>
+      <div class="head-actions">
+        <button type="button" class="btn btn-outline">刷新</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="members-table">
+        <thead>
+          <tr>
+            <th scope="col">邮箱</th>
+            <th scope="col">角色</th>
+            <th scope="col">加入时间</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="email-cell">lin@zhi.an</td><td><span class="role-badge">所有者</span></td><td class="muted">2025-03-12</td></tr>
+          <tr><td class="email-cell">admin@zhi.an</td><td><span class="role-badge">管理员</span></td><td class="muted">2025-06-01</td></tr>
+          <tr><td class="email-cell">wang@zhi.an</td><td><span class="role-badge">成员</span></td><td class="muted">2025-09-15</td></tr>
+          <tr><td class="email-cell">zhao@zhi.an</td><td><span class="role-badge">成员</span></td><td class="muted">2026-01-20</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Add member modal ============ -->
+<div class="modal-root" id="addModal" role="presentation">
+  <div class="modal-backdrop" data-close="add"></div>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="addTitle">
+    <h2 id="addTitle">添加成员</h2>
+    <p>输入已注册用户的邮箱，将其加入团队并赋予成员权限。</p>
+    <form id="addForm" class="form-row">
+      <label class="field-label" for="addEmail">邮箱</label>
+      <input class="field-input" id="addEmail" name="email" type="email" required autocomplete="email" placeholder="member@example.com" />
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" data-close="add">取消</button>
+        <button type="submit" class="btn btn-primary">添加</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ Remove member modal ============ -->
+<div class="modal-root" id="removeModal" role="presentation">
+  <div class="modal-backdrop" data-close="remove"></div>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="removeTitle">
+    <h2 id="removeTitle">移除成员</h2>
+    <p>确定将「<b id="removeTarget">member@zhi.an</b>」移出团队？移除后将无法访问团队资料库。</p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" data-close="remove">取消</button>
+      <button type="button" class="btn btn-danger" id="removeConfirm">确认移除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ Transfer ownership modal ============ -->
+<div class="modal-root" id="transferModal" role="presentation">
+  <div class="modal-backdrop" data-close="transfer"></div>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="transferTitle">
+    <h2 id="transferTitle">转让所有权</h2>
+    <p>转让后你将变为管理员，对方成为新的团队所有者。此操作不可撤销，请谨慎选择。</p>
+    <div class="form-row">
+      <label class="field-label" id="transferLabel">转让给</label>
+      <div class="select">
+        <button type="button" class="select-trigger" id="transferTrigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="transferLabel transferValue">
+          <span class="select-value" id="transferValue">请选择成员</span>
+          <svg class="select-caret ico" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="select-menu" id="transferMenu" role="listbox" aria-label="转让给">
+          <div class="select-option" role="option" data-value="admin@zhi.an" aria-selected="false">admin@zhi.an（管理员）</div>
+          <div class="select-option" role="option" data-value="wang@zhi.an" aria-selected="false">wang@zhi.an（成员）</div>
+          <div class="select-option" role="option" data-value="zhao@zhi.an" aria-selected="false">zhao@zhi.an（成员）</div>
+        </div>
+      </div>
+      <p class="select-hint" id="transferHint">确认后对方将成为所有者，你保留管理员权限。</p>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-outline" data-close="transfer">取消</button>
+      <button type="button" class="btn btn-danger" id="transferConfirm" disabled>确认转让</button>
+    </div>
+  </div>
+</div>
+
+<div class="state-switch" aria-hidden="true">
+  <button type="button" id="st-admin" class="on">管理员</button>
+  <button type="button" id="st-loading">加载</button>
+  <button type="button" id="st-error">失败</button>
+  <button type="button" id="st-readonly">只读</button>
+</div>
+
+<script>
+  // ---- App shell drawer (mobile) ----
+  var navToggle=document.getElementById('navToggle');
+  var sidebar=document.getElementById('app-sidebar');
+  if(navToggle){navToggle.addEventListener('click',function(){sidebar.classList.toggle('open');});}
+
+  // ---- State switch ----
+  function switchState(s){
+    ['admin','loading','error','readonly'].forEach(function(x){
+      document.getElementById('view-'+x).hidden = (x!==s);
+      document.getElementById('st-'+x).classList.toggle('on', x===s);
+    });
+  }
+  document.getElementById('st-admin').addEventListener('click',function(){switchState('admin');});
+  document.getElementById('st-loading').addEventListener('click',function(){switchState('loading');});
+  document.getElementById('st-error').addEventListener('click',function(){switchState('error');});
+  document.getElementById('st-readonly').addEventListener('click',function(){switchState('readonly');});
+
+  // ---- Action error banner (dismissible) ----
+  var actionError=document.getElementById('actionError');
+  document.getElementById('actionErrorClose').addEventListener('click',function(){actionError.hidden=true;});
+
+  // ---- Invite code ----
+  var genBtn=document.getElementById('genBtn');
+  var inviteBlock=document.getElementById('inviteCodeBlock');
+  var copyBtn=document.getElementById('copyBtn');
+  genBtn.addEventListener('click',function(){
+    inviteBlock.hidden=false; genBtn.textContent='重新生成';
+  });
+  copyBtn.addEventListener('click',function(){copyBtn.textContent='已复制';setTimeout(function(){copyBtn.textContent='复制';},2500);});
+
+  // ---- Refresh ----
+  var refreshBtn=document.getElementById('refreshBtn');
+  refreshBtn.addEventListener('click',function(){
+    refreshBtn.textContent='刷新中…'; refreshBtn.disabled=true;
+    setTimeout(function(){refreshBtn.textContent='刷新';refreshBtn.disabled=false;},900);
+  });
+
+  // ---- Modals ----
+  function openModal(id){document.getElementById(id).classList.add('open');}
+  function closeModal(id){document.getElementById(id).classList.remove('open');}
+  document.querySelectorAll('[data-close]').forEach(function(el){
+    el.addEventListener('click',function(){closeModal(el.getAttribute('data-close')+'Modal');});
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){['add','remove','transfer'].forEach(function(k){closeModal(k+'Modal');});}
+  });
+
+  // Add
+  document.getElementById('openAdd').addEventListener('click',function(){openModal('addModal');});
+  document.getElementById('addForm').addEventListener('submit',function(e){
+    e.preventDefault();
+    var email=document.getElementById('addEmail').value.trim();
+    if(!email) return;
+    closeModal('addModal');
+    document.getElementById('addForm').reset();
+  });
+
+  // Remove (delegated from table action buttons)
+  document.querySelectorAll('[data-remove]').forEach(function(btn){
+    btn.addEventListener('click',function(){
+      document.getElementById('removeTarget').textContent=btn.getAttribute('data-remove');
+      openModal('removeModal');
+    });
+  });
+  document.getElementById('removeConfirm').addEventListener('click',function(){closeModal('removeModal');});
+
+  // Promote / Demote (event delegation so toggled buttons stay live — avoids dead controls)
+  document.getElementById('view-admin').addEventListener('click',function(e){
+    var promoteBtn=e.target.closest('[data-promote]');
+    var demoteBtn=e.target.closest('[data-demote]');
+    if(promoteBtn){
+      var row=promoteBtn.closest('tr');
+      row.querySelector('.role-badge').textContent='管理员';
+      promoteBtn.outerHTML='<button type="button" class="btn btn-ghost" data-demote="'+promoteBtn.getAttribute('data-promote')+'">降为成员</button>';
+    } else if(demoteBtn){
+      var row2=demoteBtn.closest('tr');
+      row2.querySelector('.role-badge').textContent='成员';
+      demoteBtn.outerHTML='<button type="button" class="btn btn-ghost" data-promote="'+demoteBtn.getAttribute('data-demote')+'">设为管理员</button>';
+    }
+  });
+
+  // Transfer (custom select)
+  var tTrigger=document.getElementById('transferTrigger');
+  var tMenu=document.getElementById('transferMenu');
+  var tValue=document.getElementById('transferValue');
+  var tConfirm=document.getElementById('transferConfirm');
+  document.getElementById('openTransfer').addEventListener('click',function(){openModal('transferModal');});
+  tTrigger.addEventListener('click',function(){
+    var open=tMenu.classList.toggle('open');
+    tTrigger.setAttribute('aria-expanded',String(open));
+  });
+  tMenu.querySelectorAll('.select-option').forEach(function(opt){
+    opt.addEventListener('click',function(){
+      tMenu.querySelectorAll('.select-option').forEach(function(o){o.setAttribute('aria-selected','false');});
+      opt.setAttribute('aria-selected','true');
+      tValue.textContent=opt.textContent;
+      tConfirm.disabled=false;
+      tMenu.classList.remove('open');
+      tTrigger.setAttribute('aria-expanded','false');
+    });
+  });
+  tConfirm.addEventListener('click',function(){closeModal('transferModal');});
+</script>
+
+
+<script>
+/* v2.5-polish-js 共享受控键盘导航：自定义 tablist / listbox 支持方向键 + Home/End（尊重 reduced-motion 无关，纯交互） */
+(function(){{
+  function wireTablist(tl){{
+    var tabs = Array.prototype.slice.call(tl.querySelectorAll('[role=tab]'));
+    if(!tabs.length) return;
+    tabs.forEach(function(t,i){{ t.tabIndex = (t.getAttribute('aria-selected')==='true')?0:-1; }});
+    tl.addEventListener('keydown', function(e){{
+      var f = tabs.filter(function(t){return t.tabIndex===0;})[0] || tabs[0];
+      var i = tabs.indexOf(f); var n=i;
+      if(e.key==='ArrowRight'||e.key==='ArrowDown') n=(i+1)%tabs.length;
+      else if(e.key==='ArrowLeft'||e.key==='ArrowUp') n=(i-1+tabs.length)%tabs.length;
+      else if(e.key==='Home') n=0; else if(e.key==='End') n=tabs.length-1; else return;
+      e.preventDefault();
+      tabs.forEach(function(t){{ t.tabIndex=-1; t.setAttribute('aria-selected','false'); }});
+      tabs[n].tabIndex=0; tabs[n].setAttribute('aria-selected','true'); tabs[n].focus();
+      if(tabs[n].click) tabs[n].click();
+    }});
+  }}
+  function wireListbox(lb){{
+    var opts = Array.prototype.slice.call(lb.querySelectorAll('[role=option]'));
+    if(!opts.length) return;
+    opts.forEach(function(o,i){{ o.tabIndex = (o.classList.contains('selected')||o.getAttribute('aria-selected')==='true')?0:-1; }});
+    lb.addEventListener('keydown', function(e){{
+      var f = opts.filter(function(o){return o.tabIndex===0;})[0] || opts[0];
+      var i = opts.indexOf(f); var n=i;
+      if(e.key==='ArrowDown') n=(i+1)%opts.length;
+      else if(e.key==='ArrowUp') n=(i-1+opts.length)%opts.length;
+      else if(e.key==='Home') n=0; else if(e.key==='End') n=opts.length-1; else return;
+      e.preventDefault();
+      opts.forEach(function(o){{ o.tabIndex=-1; o.removeAttribute('aria-activedescendant'); }});
+      opts[n].tabIndex=0; opts[n].focus();
+    }});
+  }}
+  document.querySelectorAll('[role=tablist]').forEach(wireTablist);
+  document.querySelectorAll('[role=listbox]').forEach(wireListbox);
+}})();
+</script>
+
+<script>
+/* v0-sb-js-marker：ws-seg 二段 + DepartmentPicker + admin 条件 */
+(function(){
+  var wsSeg = document.getElementById('wsSeg');
+  if (!wsSeg) return;
+  var wsTeam = document.getElementById('wsTeam');
+  var wsFullnameBtn = document.getElementById('wsFullnameBtn');
+  var btnPersonal = wsSeg.querySelector('[data-ws=personal]');
+  var btnTeam = wsSeg.querySelector('[data-ws=team]');
+  var deptPicker = document.getElementById('deptPicker');
+  var deptName = document.getElementById('deptName');
+  var adminNav = document.querySelectorAll('.admin-only');
+  var TEAM_FULL = '知岸科技有限公司';
+  function syncToTeam(){btnPersonal.setAttribute('aria-pressed','false');btnPersonal.classList.remove('on');btnTeam.setAttribute('aria-pressed','true');wsTeam.classList.add('on');if(deptPicker){deptPicker.removeAttribute('aria-disabled');}if(deptName){deptName.textContent='研发中心';}adminNav.forEach(function(a){a.style.display='';});}
+  function syncToPersonal(){btnPersonal.setAttribute('aria-pressed','true');btnPersonal.classList.add('on');btnTeam.setAttribute('aria-pressed','false');wsTeam.classList.remove('on');if(deptPicker){deptPicker.setAttribute('aria-disabled','true');deptPicker.setAttribute('aria-expanded','false');closeDeptPopover();}if(deptName){deptName.textContent='未选择部门';}adminNav.forEach(function(a){a.style.display='none';});}
+  btnPersonal.addEventListener('click',syncToPersonal);
+  btnTeam.addEventListener('click',syncToTeam);
+  function closeWsPopover(){if(!wsFullnameBtn)return;wsFullnameBtn.setAttribute('aria-expanded','false');var p=wsSeg.querySelector('.ws-popover');if(p)p.remove();}
+  function openWsPopover(){if(!wsFullnameBtn)return;closeDeptPopover();wsFullnameBtn.setAttribute('aria-expanded','true');var p=document.createElement('div');p.className='ws-popover';p.innerHTML='<b style="color:var(--ink);font-size:13px;display:block;margin-bottom:2px">'+TEAM_FULL+'</b>点击右侧 › 查看全称，不切换工作区';wsSeg.appendChild(p);}
+  wsFullnameBtn && wsFullnameBtn.addEventListener('click',function(e){e.stopPropagation();if(wsFullnameBtn.getAttribute('aria-expanded')==='true')closeWsPopover();else openWsPopover();});
+  function closeDeptPopover(){var old=deptPicker&&deptPicker.querySelector('.dept-popover');if(old)old.remove();if(deptPicker)deptPicker.setAttribute('aria-expanded','false');}
+  function openDeptPopover(){if(!deptPicker||deptPicker.getAttribute('aria-disabled')==='true')return;closeWsPopover();deptPicker.setAttribute('aria-expanded','true');var p=document.createElement('div');p.className='dept-popover';p.setAttribute('role','listbox');var deps=['研发部','设计部','产品部','法务部','市场部'];p.innerHTML='<h4>部门</h4>'+deps.map(function(d){return '<button type="button" role="option"'+(d==='研发部'?' class="on"':'')+' data-dept="'+d+'">'+d+'</button>';}).join('');deptPicker.appendChild(p);p.querySelectorAll('[data-dept]').forEach(function(b){b.addEventListener('click',function(){p.querySelectorAll('[data-dept]').forEach(function(x){x.classList.remove('on');});b.classList.add('on');deptName.textContent=b.getAttribute('data-dept');closeDeptPopover();});});}
+  if(deptPicker){deptPicker.addEventListener('click',function(){if(deptPicker.getAttribute('aria-disabled')==='true')return;if(deptPicker.getAttribute('aria-expanded')==='true')closeDeptPopover();else openDeptPopover();});deptPicker.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openDeptPopover();}});}
+  document.addEventListener('click',function(e){if(deptPicker&&!deptPicker.contains(e.target))closeDeptPopover();if(wsSeg&&!wsSeg.contains(e.target))closeWsPopover();});
+})();
+
+/* v4.4 generic: simple toggle + invite dialog for mb */
+(function(){
+  var body = document.body;
+  var toggle = document.getElementById('mbSimpleToggle');
+  if (toggle) {
+    var saved = localStorage.getItem('v44.emptySimple.v1') === '1';
+    if (saved) { body.classList.add('v44-simple'); toggle.setAttribute('aria-pressed', 'true'); }
+    toggle.addEventListener('click', function(){
+      var on = !body.classList.contains('v44-simple');
+      body.classList.toggle('v44-simple', on);
+      toggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+      try { localStorage.setItem('v44.emptySimple.v1', on ? '1' : '0'); } catch(e) {}
+    });
+  }
+  var openBtn = document.getElementById('mbOpenInvite');
+  var dlg = document.getElementById('mbInviteDialog');
+  var xBtn = document.getElementById('mbInviteX');
+  var laterBtn = document.getElementById('mbInviteLater');
+  var sendBtn = document.getElementById('mbSendInvite');
+  var copyBtn = document.getElementById('mbCopyInvite');
+  var inviteList = document.getElementById('mbInviteList');
+  var inviteEmpty = document.getElementById('mbInviteEmpty');
+  var inviteCount = document.getElementById('mbInviteCount');
+  var inviteName = document.getElementById('mbInviteName');
+  var inviteLink = document.getElementById('mbInviteLink');
+  var lastFocus = null;
+  function openDlg() { if (!dlg) return; lastFocus = document.activeElement; dlg.showModal(); }
+  function closeDlg() { if (!dlg || !dlg.open) return; dlg.close(); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+  if (openBtn) openBtn.addEventListener('click', openDlg);
+  if (xBtn) xBtn.addEventListener('click', closeDlg);
+  if (laterBtn) laterBtn.addEventListener('click', closeDlg);
+  if (dlg) dlg.addEventListener('click', function(e) {
+    var r = dlg.getBoundingClientRect();
+    if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) closeDlg();
+  });
+  if (dlg) dlg.addEventListener('cancel', function(e) { e.preventDefault(); closeDlg(); });
+  if (copyBtn) copyBtn.addEventListener('click', function() {
+    var text = inviteLink ? inviteLink.textContent : '';
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function() {
+        copyBtn.textContent = '已复制 ✓';
+        setTimeout(function() { copyBtn.textContent = '复制'; }, 1600);
+      });
+    } else {
+      copyBtn.textContent = '已复制 ✓';
+      setTimeout(function() { copyBtn.textContent = '复制'; }, 1600);
+    }
+  });
+  if (sendBtn) sendBtn.addEventListener('click', function() {
+    var name = (inviteName && inviteName.value) ? inviteName.value.trim() : '知岸团队';
+    var firstChar = name.charAt(0) || '知';
+    var li = document.createElement('li');
+    li.innerHTML = '<span class="av">' + firstChar + '</span>'
+      + '<div class="info"><b>' + name + '</b><span>管理员 · 编辑者 · 访客</span></div>'
+      + '<span class="status">待接受</span>';
+    if (inviteList) { inviteList.insertBefore(li, inviteList.firstChild); inviteList.hidden = false; }
+    if (inviteEmpty) inviteEmpty.remove();
+    var n = parseInt(inviteCount.textContent, 10) + 1;
+    inviteCount.textContent = n;
+    if (inviteName) inviteName.value = '';
+    sendBtn.textContent = '已发送 ✓';
+    sendBtn.disabled = true;
+    setTimeout(function() { sendBtn.textContent = '发送邀请'; sendBtn.disabled = false; }, 1600);
+  });
+  // demo trigger: hide view-empty stub and show real v44 content
+  var showBtn = document.getElementById('mbShowV44');
+  if (showBtn) showBtn.addEventListener('click', function() {
+    var stub = document.getElementById('mb-view-empty');
+    var real = document.querySelector('.v44-mb');
+    if (stub) stub.hidden = true;
+    if (real) real.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+})();
+</script>
+</body>
+</html>

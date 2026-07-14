@@ -1,0 +1,258 @@
+[
+  {
+    "kind": "I",
+    "name": "divider2",
+    "parent": "2:264",
+    "props": {
+      "name": "divider",
+      "type": "FRAME",
+      "sizing": {
+        "horizontal": "FILL",
+        "vertical": "FIXED"
+      },
+      "height": 1,
+      "fills": [
+        {
+          "r": 0.937,
+          "g": 0.918,
+          "b": 0.894,
+          "a": 1
+        }
+      ]
+    }
+  },
+  {
+    "kind": "I",
+    "name": "resultRow3",
+    "parent": "2:264",
+    "props": {
+      "name": "resultRow",
+      "type": "FRAME",
+      "autoLayout": {
+        "mode": "HORIZONTAL",
+        "primaryAxisAlignItems": "MIN",
+        "counterAxisAlignItems": "CENTER",
+        "padding": {
+          "l": 12,
+          "r": 12,
+          "t": 12,
+          "b": 12
+        },
+        "itemSpacing": 12,
+        "sizing": {
+          "horizontal": "FILL",
+          "vertical": "HUG"
+        }
+      }
+    }
+  },
+  {
+    "kind": "I",
+    "name": "resultRow3Icon",
+    "parent": "resultRow3",
+    "props": {
+      "name": "rowIcon",
+      "type": "FRAME",
+      "autoLayout": {
+        "mode": "HORIZONTAL",
+        "primaryAxisAlignItems": "CENTER",
+        "counterAxisAlignItems": "CENTER",
+        "padding": {
+          "l": 0,
+          "r": 0,
+          "t": 0,
+          "b": 0
+        },
+        "sizing": {
+          "horizontal": "FIXED",
+          "vertical": "FIXED"
+        }
+      },
+      "size": {
+        "width": 36,
+        "height": 36
+      },
+      "cornerRadius": 8,
+      "fills": [
+        {
+          "r": 0.961,
+          "g": 0.949,
+          "b": 0.929,
+          "a": 1
+        }
+      ]
+    }
+  },
+  {
+    "kind": "I",
+    "name": "resultRow3IconLabel",
+    "parent": "resultRow3Icon",
+    "props": {
+      "name": "rowIconLabel",
+      "type": "TEXT",
+      "characters": "MD",
+      "style": {
+        "fontSize": 11,
+        "fontName": {
+          "family": "Inter",
+          "style": "SemiBold"
+        },
+        "fills": [
+          {
+            "r": 0.796,
+            "g": 0.42,
+            "b": 0.239,
+            "a": 1
+          }
+        ],
+        "textAlignHorizontal": "CENTER"
+      }
+    }
+  },
+  {
+    "kind": "I",
+    "name": "resultRow3Main",
+    "parent": "resultRow3",
+    "props": {
+      "name": "rowMain",
+      "type": "FRAME",
+      "autoLayout": {
+        "mode": "VERTICAL",
+        "primaryAxisAlignItems": "MIN",
+        "counterAxisAlignItems": "MIN",
+        "padding": {
+          "l": 0,
+          "r": 0,
+          "t": 0,
+          "b": 0
+        },
+        "itemSpacing": 3,
+        "sizing": {
+          "horizontal": "FILL",
+          "vertical": "HUG"
+        }
+      }
+    }
+  },
+  {
+    "kind": "I",
+    "name": "resultRow3Title",
+    "parent": "resultRow3Main",
+    "props": {
+      "name": "rowTitle",
+      "type": "TEXT",
+      "characters": "用户访谈记录_08.md",
+      "style": {
+        "fontSize": 14,
+        "fontName": {
+          "family": "Inter",
+          "style": "Medium"
+        },
+        "fills": [
+          {
+            "r": 0.094,
+            "g": 0.094,
+            "b": 0.106,
+            "a": 1
+          }
+        ],
+        "lineHeight": {
+          "value": 20,
+          "unit": "PIXELS"
+        }
+      }
+    }
+  },
+  {
+    "kind": "I",
+    "name": "resultRow3Meta",
+    "parent": "resultRow3Main",
+    "props": {
+      "name": "rowMeta",
+      "type": "TEXT",
+      "characters": "用户研究 · 24 KB",
+      "style": {
+        "fontSize": 12,
+        "fontName": {
+          "family": "Inter",
+          "style": "Regular"
+        },
+        "fills": [
+          {
+            "r": 0.541,
+            "g": 0.502,
+            "b": 0.475,
+            "a": 1
+          }
+        ],
+        "lineHeight": {
+          "value": 18,
+          "unit": "PIXELS"
+        }
+      }
+    }
+  },
+  {
+    "kind": "I",
+    "name": "resultRow3Badge",
+    "parent": "resultRow3",
+    "props": {
+      "name": "rowBadge",
+      "type": "FRAME",
+      "autoLayout": {
+        "mode": "HORIZONTAL",
+        "primaryAxisAlignItems": "CENTER",
+        "counterAxisAlignItems": "CENTER",
+        "padding": {
+          "l": 10,
+          "r": 10,
+          "t": 5,
+          "b": 5
+        },
+        "itemSpacing": 0,
+        "sizing": {
+          "horizontal": "HUG",
+          "vertical": "HUG"
+        }
+      },
+      "cornerRadius": 999,
+      "fills": [
+        {
+          "r": 0.357,
+          "g": 0.659,
+          "b": 0.431,
+          "a": 0.14
+        }
+      ]
+    }
+  },
+  {
+    "kind": "I",
+    "name": "resultRow3BadgeText",
+    "parent": "resultRow3Badge",
+    "props": {
+      "name": "rowBadgeText",
+      "type": "TEXT",
+      "characters": "已可提问",
+      "style": {
+        "fontSize": 12,
+        "fontName": {
+          "family": "Inter",
+          "style": "Medium"
+        },
+        "fills": [
+          {
+            "r": 0.357,
+            "g": 0.659,
+            "b": 0.431,
+            "a": 1
+          }
+        ],
+        "lineHeight": {
+          "value": 16,
+          "unit": "PIXELS"
+        }
+      }
+    }
+  }
+]

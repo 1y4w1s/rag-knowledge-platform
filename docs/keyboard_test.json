@@ -1,0 +1,127 @@
+{
+  "tab_sequence": [
+    {
+      "tag": "BUTTON",
+      "text": "我的空间",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": null
+    },
+    {
+      "tag": "BUTTON",
+      "text": "知岸演示公司",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": null
+    },
+    {
+      "tag": "BUTTON",
+      "text": "›",
+      "outline": "rgb(203, 107, 61) solid 2px",
+      "testid": null
+    },
+    {
+      "tag": "A",
+      "text": "概览",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": null
+    },
+    {
+      "tag": "A",
+      "text": "资料库",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": null
+    },
+    {
+      "tag": "A",
+      "text": "对话",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": null
+    },
+    {
+      "tag": "A",
+      "text": "账号设置",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": null
+    },
+    {
+      "tag": "BUTTON",
+      "text": "演示",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": null
+    },
+    {
+      "tag": "BUTTON",
+      "text": "+ 新建对话",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": "thread-new-btn"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "ZZPROOF_ASK_17838749906641214\n00:49",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": "thread-item-c579334b-5391-4064-91a9-d96531939a03"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "删除会话 ZZPROOF_ASK_17838749906641214",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": "thread-delete-c579334b-5391-4064-91a9-d96531939a03"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "新对话\n00:41",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": "thread-item-19965f52-a42e-4daf-b330-7f6506df9a6a"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "删除会话 新对话",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": "thread-delete-19965f52-a42e-4daf-b330-7f6506df9a6a"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "新对话\n昨天",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": "thread-item-862ce580-2c84-4835-ba11-926a176dafba"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "删除会话 新对话",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": "thread-delete-862ce580-2c84-4835-ba11-926a176dafba"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "请分别详细说明年假天数与申请流程、餐补金额与发放方式、年终奖发放时间与条件、迟到",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": "thread-item-1b9ed8b3-11d5-48da-9a09-58a739eb4aba"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "删除会话 请分别详细说明年假天数与申请流程、餐补金额与发放方式、年终奖发放时间与",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": "thread-delete-1b9ed8b3-11d5-48da-9a09-58a739eb4aba"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "餐补是多少？\n7月10日",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": "thread-item-577ca5ed-355f-41dd-b649-d5fb57252c0f"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "删除会话 餐补是多少？",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": "thread-delete-577ca5ed-355f-41dd-b649-d5fb57252c0f"
+    },
+    {
+      "tag": "BUTTON",
+      "text": "年假有多少天？\n7月10日",
+      "outline": "rgb(16, 16, 16) auto 1px",
+      "testid": "thread-item-793a08fd-63e8-4539-9675-77eea58c0020"
+    }
+  ],
+  "drawer_keyboard": {
+    "found_toggle": false
+  }
+}

@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>知岸 · 登录 / 注册（暖白 · 三步注册向导）</title>
+<style>
+  :root{
+    --page:#FAFAF8;
+    --surface:#FFFFFF;
+    --surface-2:#FBF7F1;
+    --terracotta:#CB6B3D;
+    --terracotta-hover:#B85A2E;
+    --terracotta-soft:rgba(203,107,61,.10);
+    --ink:#1A1A1C;
+    --ink-2:#54504B;
+    --ink-3:#8A8079;
+    --line:#ECE7DF;
+    --line-2:#E4DDD2;
+    --warn:#E8943A;
+    --warn-soft:#FCEFD9;
+    --err:#C24A3A;
+    --err-soft:#FBE7E3;
+    --ok:#5BA86E;
+    --amber:#B45309;
+    --amber-2:#92400E;
+    --glow-1:rgba(203,107,61,.08);
+    --glow-2:rgba(233,184,107,.07);
+    --radius:12px;
+    --shadow:0 1px 2px rgba(40,30,20,.04), 0 10px 30px rgba(203,107,61,.10);
+    --serif:Georgia,"Songti SC","STSong",serif;
+    font-family:"Inter","PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+    min-height:100vh;display:flex;align-items:center;justify-content:center;padding:48px 24px;
+    background:
+      radial-gradient(1100px 640px at 6% -10%, var(--glow-1), transparent 58%),
+      radial-gradient(980px 760px at 104% 2%, var(--glow-2), transparent 55%),
+      var(--page);
+  }
+
+  /* 卡片（统一） */
+  .card{position:relative;width:560px;max-width:calc(100vw - 3rem);min-height:640px;
+    background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    padding:38px 38px 28px;box-shadow:var(--shadow);display:flex;flex-direction:column;}
+  .card::after{content:"";position:absolute;inset:0;border-radius:16px;pointer-events:none;
+    box-shadow:inset 0 0 0 1px rgba(203,107,61,.06);}
+
+  .brand{text-align:center;margin-bottom:18px;}
+  .brand h1{font-family:var(--serif);font-size:32px;font-weight:700;letter-spacing:.04em;color:var(--ink);}
+  .brand p{margin:10px auto 0;max-width:420px;font-size:13px;line-height:1.7;color:var(--ink-3);}
+
+  /* tab 切换（登录/注册） */
+  .tabs{display:flex;gap:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:4px;margin-bottom:24px;}
+  .tabs button{flex:1;border:none;background:transparent;font:inherit;font-size:13.5px;color:var(--ink-3);padding:9px 0;border-radius:7px;cursor:pointer;transition:.15s;}
+  .tabs button.active{background:var(--surface);color:var(--terracotta);font-weight:600;box-shadow:0 1px 2px rgba(40,30,20,.04), 0 6px 18px rgba(40,30,20,.05);}
+
+  .form-view{display:flex;flex-direction:column;flex:1;min-height:0;}
+
+  /* ====== 登录 tab ====== */
+  .login-view .welcome h2{font-size:20px;font-weight:700;}
+  .login-view .welcome p{color:var(--ink-3);font-size:13px;margin:5px 0 18px;}
+
+  .field{margin-bottom:13px;}
+  .field label{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin-bottom:6px;}
+  .field-hint{font-size:11.5px;color:var(--ink-3);margin-top:5px;}
+  .field-error{font-size:11.5px;color:var(--err);margin-top:5px;}
+  .field-wrap{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line-2);border-radius:11px;padding:0 13px;transition:border-color .15s, box-shadow .15s;}
+  .field-wrap:focus-within{border-color:var(--terracotta);box-shadow:0 0 0 3px rgba(203,107,61,.12);}
+  .field-wrap svg{width:17px;height:17px;stroke:var(--ink-3);fill:none;stroke-width:1.8;flex-shrink:0;}
+  .field-wrap input{flex:1;border:none;outline:none;font:inherit;font-size:14px;background:transparent;color:var(--ink);padding:12px 0;}
+  .field-wrap input::placeholder{color:var(--ink-3);}
+  .pw-toggle{border:none;background:transparent;color:var(--ink-3);cursor:pointer;padding:4px;display:flex;align-items:center;}
+  .pw-toggle svg{width:17px;height:17px;stroke:var(--ink-3);fill:none;stroke-width:1.8;}
+
+  .forgot{display:flex;justify-content:flex-end;margin-top:6px;}
+  .forgot button{border:none;background:transparent;font:inherit;font-size:12.5px;color:var(--ink-3);cursor:pointer;}
+  .forgot button:hover{color:var(--terracotta);text-decoration:underline;text-underline-offset:2px;}
+
+  .btn-primary{width:100%;border:none;background:var(--terracotta);color:#fff;font:inherit;font-size:14.5px;font-weight:600;
+    border-radius:11px;padding:13px 0;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.15s;margin-top:8px;}
+  .btn-primary:hover{background:var(--terracotta-hover);}
+  .btn-primary:disabled{background:var(--line-2);color:var(--ink-3);cursor:not-allowed;}
+  .btn-primary svg{width:17px;height:17px;stroke:#fff;fill:none;stroke-width:2;}
+
+  .demo{text-align:center;margin-top:14px;font-size:12.5px;color:var(--ink-3);}
+  .demo button{border:none;background:transparent;font:inherit;font-size:12.5px;color:var(--terracotta);cursor:pointer;font-weight:600;}
+  .demo button:hover{text-decoration:underline;text-underline-offset:2px;}
+
+  .card-foot{margin-top:auto;padding-top:18px;text-align:center;font-size:12px;color:var(--ink-3);line-height:1.6;}
+
+  /* ====== 注册 tab 三步向导 ====== */
+  .reg-view{display:flex;flex-direction:column;flex:1;min-height:0;}
+
+  /* 步骤指示器 */
+  .reg-steps{position:relative;padding:8px 4px 18px;}
+  .reg-steps-line{position:absolute;left:14px;right:14px;top:14px;height:2px;background:var(--line);border-radius:1px;}
+  .reg-steps-fill{position:absolute;left:14px;top:14px;height:2px;background:var(--terracotta);border-radius:1px;transition:width .25s ease;width:0%;}
+  .reg-steps-row{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:1;}
+  .reg-step-item{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;flex:1;}
+  .reg-step-dot{width:14px;height:14px;border-radius:50%;background:var(--surface);border:2px solid var(--line-2);transition:.2s;}
+  .reg-step-dot.on{background:var(--terracotta);border-color:var(--terracotta);box-shadow:0 0 0 4px var(--terracotta-soft);}
+  .reg-step-dot.done{background:var(--terracotta);border-color:var(--terracotta);}
+  .reg-step-label{font-size:11.5px;color:var(--ink-3);font-weight:500;white-space:nowrap;}
+  .reg-step-label.on{color:var(--terracotta);font-weight:600;}
+
+  /* 步骤标题 */
+  .reg-step-title{margin-bottom:14px;}
+  .reg-step-title h2{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:.02em;color:var(--ink);}
+  .reg-step-title p{margin-top:4px;font-size:13px;line-height:1.65;color:var(--ink-3);}
+
+  /* 选择卡（RegisterChoiceCard） */
+  .reg-choice{display:flex;align-items:flex-start;gap:12px;width:100%;text-align:left;
+    background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:14px 16px;
+    cursor:pointer;transition:all .2s;}
+  .reg-choice:hover{border-color:rgba(203,107,61,.35);transform:translateY(-1px);box-shadow:0 6px 18px -10px rgba(58,42,30,.18);}
+  .reg-choice.on{border-color:var(--terracotta);background:var(--terracotta-soft);box-shadow:0 0 0 1px rgba(203,107,61,.12);transform:translateY(-1px);}
+  .reg-choice .radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--line-2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;transition:.2s;}
+  .reg-choice.on .radio{border-color:var(--terracotta);}
+  .reg-choice .radio span{width:8px;height:8px;border-radius:50%;background:transparent;transition:.2s;}
+  .reg-choice.on .radio span{background:var(--terracotta);}
+  .reg-choice .choice-body{min-width:0;}
+  .reg-choice .choice-title{display:block;font-size:14px;font-weight:600;color:var(--ink);}
+  .reg-choice .choice-hint{display:block;margin-top:2px;font-size:12px;line-height:1.55;color:var(--ink-3);}
+
+  /* 摘要 chip（Step 3 顶部） */
+  .reg-summary-chip{display:inline-block;max-width:100%;font-size:12px;font-weight:600;color:var(--terracotta);
+    background:var(--terracotta-soft);border:1px solid rgba(203,107,61,.28);border-radius:999px;padding:4px 12px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;}
+
+  /* 团队名长度提示 */
+  .reg-info-box{display:flex;align-items:flex-start;gap:8px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:12px;line-height:1.6;color:var(--ink-2);}
+  .reg-info-box strong{color:var(--ink);}
+  .reg-soft-warn{display:flex;align-items:flex-start;gap:8px;background:var(--warn-soft);border:1px solid rgba(232,148,58,.28);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--amber);}
+
+  /* 可选字段折叠链接 */
+  .link-add{border:none;background:transparent;font:inherit;font-size:12.5px;color:var(--terracotta);cursor:pointer;padding:4px 0;}
+  .link-add:hover{text-decoration:underline;text-underline-offset:2px;}
+
+  /* 错误 alert */
+  .reg-alert{display:flex;align-items:flex-start;gap:10px;background:var(--err-soft);border:1px solid rgba(194,74,58,.28);border-radius:10px;padding:10px 12px;font-size:12.5px;color:var(--err);margin-bottom:12px;}
+  .reg-alert .alert-body{flex:1;line-height:1.55;}
+  .reg-alert button{border:1px solid rgba(194,74,58,.32);background:var(--surface);color:var(--err);font:inherit;font-size:12px;border-radius:8px;padding:5px 10px;cursor:pointer;}
+  .reg-alert button:hover{background:var(--err-soft);}
+
+  /* 步骤底部按钮行 */
+  .reg-actions{display:flex;gap:10px;margin-top:auto;padding-top:16px;}
+  .reg-actions .btn-back{flex:0 0 88px;border:1px solid var(--line-2);background:var(--surface);color:var(--ink-2);
+    font:inherit;font-size:14px;font-weight:600;border-radius:11px;padding:13px 0;cursor:pointer;transition:.15s;}
+  .reg-actions .btn-back:hover{border-color:var(--terracotta);color:var(--terracotta);}
+  .reg-actions .btn-primary{margin-top:0;flex:1;}
+
+  /* 注册步骤内容滚动 */
+  .reg-step-scroll{flex:1;min-height:0;overflow-y:auto;padding-right:2px;}
+
+  /* 视图切换 */
+  .view{display:none;flex-direction:column;flex:1;min-height:0;}
+  .view.active{display:flex;}
+
+  /* a11y + motion */
+  :where(a,button,input,textarea,select,summary,[role=option],[role=tab],[role=button],[role=switch],[tabindex]):focus-visible{outline:2px solid var(--terracotta);outline-offset:2px;border-radius:6px}
+  .skip-link{position:absolute;left:12px;top:-52px;z-index:400;background:var(--terracotta);color:#fff;padding:9px 16px;border-radius:9px;font-size:13px;font-weight:600;text-decoration:none;box-shadow:0 6px 18px rgba(40,30,20,.14);transition:top .16s ease}
+  .skip-link:focus{top:12px;outline:none}
+  [id=main]:focus{outline:none}
+  @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主内容</a>
+
+<section class="card" id="main" tabindex="-1">
+  <header class="brand">
+    <h1>知岸</h1>
+    <p>团队资料库智能问答。上传文档、按库对话，每条回答附带可展开的引用来源与页码定位。</p>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="登录 / 注册">
+    <button type="button" id="tab-login"  class="active" role="tab" aria-selected="true" aria-controls="view-login">登录</button>
+    <button type="button" id="tab-register" role="tab" aria-selected="false" aria-controls="view-register">注册</button>
+  </div>
+
+  <!-- ====== 登录视图 ====== -->
+  <div class="view login-view active" id="view-login" role="tabpanel" aria-labelledby="tab-login">
+    <div class="welcome">
+      <h2>欢迎回来</h2>
+      <p>使用邮箱或用户名登录。</p>
+    </div>
+    <form onsubmit="return false">
+      <div class="field">
+        <label for="identifier">邮箱或用户名</label>
+        <div class="field-wrap">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+          <input id="identifier" type="text" placeholder="name@company.com 或 zhangsan" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="password">密码</label>
+        <div class="field-wrap">
+          <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <input id="password" type="password" placeholder="至少 8 位" value="········" />
+          <button class="pw-toggle" type="button" aria-label="显示密码">
+            <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="forgot"><button type="button">忘记密码？</button></div>
+      </div>
+
+      <button class="btn-primary" type="submit">
+        登录
+        <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+    <div class="demo">
+      开发者 · <button type="button">一键 demo 登录</button>
+    </div>
+    <div class="card-foot">
+      登录即表示你同意《服务协议》与《隐私政策》<br/>
+      © 2026 知岸 · 团队知识库智能问答
+    </div>
+  </div>
+
+  <!-- ====== 注册视图：Step 1 个人/团队 ====== -->
+  <div class="view reg-view" id="reg-step-1" role="tabpanel" aria-labelledby="tab-register" data-step="1">
+    <div class="reg-steps" aria-label="注册进度">
+      <div class="reg-steps-line" aria-hidden></div>
+      <div class="reg-steps-fill" data-fill aria-hidden></div>
+      <div class="reg-steps-row">
+        <div class="reg-step-item">
+          <div class="reg-step-dot on" data-step-dot="1" aria-hidden></div>
+          <span class="reg-step-label on" data-step-label="1">选择用法</span>
+        </div>
+        <div class="reg-step-item">
+          <div class="reg-step-dot" data-step-dot="2" aria-hidden></div>
+          <span class="reg-step-label" data-step-label="2">团队角色</span>
+        </div>
+        <div class="reg-step-item">
+          <div class="reg-step-dot" data-step-dot="3" aria-hidden></div>
+          <span class="reg-step-label" data-step-label="3">登录信息</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="reg-step-title">
+      <h2>你打算怎么用？</h2>
+      <p>个人仅使用我的空间；团队将创建或加入团队空间（与我的空间并存）。</p>
+    </div>
+
+    <div class="reg-step-scroll" role="radiogroup" aria-label="注册用法">
+      <button type="button" class="reg-choice" data-usage="personal" role="radio" aria-checked="false">
+        <span class="radio" aria-hidden><span></span></span>
+        <span class="choice-body">
+          <span class="choice-title">个人</span>
+          <span class="choice-hint">单人使用，资料库在「我的空间」</span>
+        </span>
+      </button>
+      <button type="button" class="reg-choice" data-usage="team" role="radio" aria-checked="false">
+        <span class="radio" aria-hidden><span></span></span>
+        <span class="choice-body">
+          <span class="choice-title">团队</span>
+          <span class="choice-hint">创建团队或凭邀请码加入；仍可切换回我的空间</span>
+        </span>
+      </button>
+      <p id="reg-step1-hint" class="field-hint" style="text-align:center;margin-top:10px;">请选择个人或团队以继续</p>
+    </div>
+
+    <div class="reg-actions">
+      <button type="button" class="btn-primary" data-usage-continue>继续</button>
+    </div>
+  </div>
+
+  <!-- ====== 注册视图：Step 2 团队角色（仅 team） ====== -->
+  <div class="view reg-view" id="reg-step-2" role="tabpanel" aria-labelledby="tab-register" data-step="2" style="display:none">
+    <div class="reg-steps" aria-label="注册进度">
+      <div class="reg-steps-line" aria-hidden></div>
+      <div class="reg-steps-fill" data-fill aria-hidden></div>
+      <div class="reg-steps-row">
+        <div class="reg-step-item">
+          <div class="reg-step-dot done" data-step-dot="1" aria-hidden></div>
+          <span class="reg-step-label" data-step-label="1">选择用法</span>
+        </div>
+        <div class="reg-step-item">
+          <div class="reg-step-dot on" data-step-dot="2" aria-hidden></div>
+          <span class="reg-step-label on" data-step-label="2">团队角色</span>
+        </div>
+        <div class="reg-step-item">
+          <div class="reg-step-dot" data-step-dot="3" aria-hidden></div>
+          <span class="reg-step-label" data-step-label="3">登录信息</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="reg-step-title">
+      <h2>团队里你的角色</h2>
+      <p data-step2-subtitle>选择创建新团队，或凭邀请码加入已有团队。</p>
+    </div>
+
+    <div class="reg-step-scroll" role="radiogroup" aria-label="团队角色">
+      <button type="button" class="reg-choice" data-role="creator" role="radio" aria-checked="false">
+        <span class="radio" aria-hidden><span></span></span>
+        <span class="choice-body">
+          <span class="choice-title">创建者</span>
+          <span class="choice-hint">创建新团队并成为管理员</span>
+        </span>
+      </button>
+      <button type="button" class="reg-choice" data-role="member" role="radio" aria-checked="false">
+        <span class="radio" aria-hidden><span></span></span>
+        <span class="choice-body">
+          <span class="choice-title">成员</span>
+          <span class="choice-hint">凭邀请码加入已有团队</span>
+        </span>
+      </button>
+      <p id="reg-step2-hint" class="field-hint" style="text-align:center;margin-top:10px;">请选择上方角色以继续</p>
+
+      <!-- creator 时显示团队名 -->
+      <div data-role-pane="creator" style="display:none;margin-top:14px;">
+        <div class="field">
+          <label for="orgDisplayName">团队显示名称 *</label>
+          <div class="field-wrap">
+            <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/><path d="M10 21v-3h4v3"/></svg>
+            <input id="orgDisplayName" type="text" maxlength="255" placeholder="例如：知岸科技" />
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:4px;">
+            <span class="field-hint" data-org-counter style="font-variant-numeric:tabular-nums;">0 / 255</span>
+          </div>
+          <p class="reg-soft-warn" data-org-warn style="display:none;margin-top:8px;">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;flex-shrink:0;margin-top:1px;"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.7 3.86a2 2 0 0 0-3.4 0Z"/></svg>
+            <span><strong>名称较长</strong> · 侧栏可能显示不全，继续前会请你确认。</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- member 时显示邀请码 -->
+      <div data-role-pane="member" style="display:none;margin-top:14px;">
+        <div class="field">
+          <label for="inviteCode">邀请码 *</label>
+          <div class="field-wrap">
+            <svg viewBox="0 0 24 24"><path d="M2 9V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v3"/><path d="M2 11h20v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-8Z"/><path d="M9 14h6"/></svg>
+            <input id="inviteCode" type="text" placeholder="例如：ZHIAN-8K2F" />
+          </div>
+          <p class="field-hint">向团队管理员索取；无效或过期将无法注册</p>
+          <div class="reg-info-box" style="margin-top:10px;">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:var(--ink-2);fill:none;stroke-width:1.8;flex-shrink:0;margin-top:1px;"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+            <span>没有邀请码？返回上一步选 <strong>个人</strong>，登录后在账号设置填码，或由管理员添加你的邮箱。</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reg-actions">
+      <button type="button" class="btn-back" data-step-back="2">上一步</button>
+      <button type="button" class="btn-primary" data-step-continue="2">继续</button>
+    </div>
+  </div>
+
+  <!-- ====== 注册视图：Step 3 登录信息 ====== -->
+  <div class="view reg-view" id="reg-step-3" role="tabpanel" aria-labelledby="tab-register" data-step="3" style="display:none">
+    <div class="reg-steps" aria-label="注册进度">
+      <div class="reg-steps-line" aria-hidden></div>
+      <div class="reg-steps-fill" data-fill aria-hidden></div>
+      <div class="reg-steps-row">
+        <div class="reg-step-item">
+          <div class="reg-step-dot done" data-step-dot="1" aria-hidden></div>
+          <span class="reg-step-label" data-step-label="1">选择用法</span>
+        </div>
+        <div class="reg-step-item">
+          <div class="reg-step-dot done" data-step-dot="2" aria-hidden></div>
+          <span class="reg-step-label" data-step-label="2">团队角色</span>
+        </div>
+        <div class="reg-step-item">
+          <div class="reg-step-dot on" data-step-dot="3" aria-hidden></div>
+          <span class="reg-step-label on" data-step-label="3">登录信息</span>
+        </div>
+      </div>
+    </div>
+
+    <span class="reg-summary-chip" data-summary-chip>个人 · 我的空间</span>
+
+    <div class="reg-step-title" style="margin-top:10px;">
+      <h2>设置登录信息</h2>
+      <p data-step3-subtitle>完成以下信息即可创建个人账号，默认使用「我的空间」。</p>
+    </div>
+
+    <div class="reg-step-scroll">
+      <div class="field">
+        <label for="reg-username">用户名</label>
+        <div class="field-wrap">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+          <input id="reg-username" type="text" maxlength="32" placeholder="3～32 位字母、数字或下划线" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="reg-email">邮箱</label>
+        <div class="field-wrap">
+          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+          <input id="reg-email" type="email" placeholder="name@company.com" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="reg-password">密码</label>
+        <div class="field-wrap">
+          <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <input id="reg-password" type="password" placeholder="至少 8 位" />
+          <button class="pw-toggle" type="button" aria-label="显示密码" data-pw-toggle="reg-password">
+            <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div data-strength="reg-password" style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+          <div style="flex:1;height:4px;background:var(--line);border-radius:2px;overflow:hidden;display:flex;gap:2px;">
+            <div data-seg="1" style="flex:1;background:var(--line);border-radius:2px;height:100%;"></div>
+            <div data-seg="2" style="flex:1;background:var(--line);border-radius:2px;height:100%;"></div>
+            <div data-seg="3" style="flex:1;background:var(--line);border-radius:2px;height:100%;"></div>
+            <div data-seg="4" style="flex:1;background:var(--line);border-radius:2px;height:100%;"></div>
+          </div>
+          <span data-strength-label style="font-size:11.5px;color:var(--ink-3);min-width:48px;">未输入</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="reg-confirm">确认密码</label>
+        <div class="field-wrap">
+          <svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <input id="reg-confirm" type="password" placeholder="再次输入密码" />
+          <button class="pw-toggle" type="button" aria-label="显示密码" data-pw-toggle="reg-confirm">
+            <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <button type="button" class="link-add" data-nickname-toggle>+ 添加昵称（可选，显示在侧栏）</button>
+      <div class="field" data-nickname-field style="display:none;margin-top:8px;">
+        <label for="reg-nickname">昵称 <span style="font-weight:400;color:var(--ink-3);">（可选）</span></label>
+        <div class="field-wrap">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="9"/></svg>
+          <input id="reg-nickname" type="text" maxlength="64" placeholder="例如：小张" />
+        </div>
+      </div>
+    </div>
+
+    <div class="reg-actions">
+      <button type="button" class="btn-back" data-step-back="3">上一步</button>
+      <button type="button" class="btn-primary" data-step-submit>创建账号</button>
+    </div>
+  </div>
+
+  <!-- 注册 tab 的 footer（仅注册时显示） -->
+  <div class="card-foot reg-foot" style="display:none;">
+    注册即表示你同意《服务协议》与《隐私政策》<br/>
+    © 2026 知岸 · 团队知识库智能问答
+  </div>
+</section>
+
+<script>
+(function(){
+  // ---------- tab 切换 ----------
+  var tabLogin = document.getElementById('tab-login');
+  var tabReg   = document.getElementById('tab-register');
+  var viewLogin = document.getElementById('view-login');
+  var regStep1 = document.getElementById('reg-step-1');
+  var regStep2 = document.getElementById('reg-step-2');
+  var regStep3 = document.getElementById('reg-step-3');
+  var regFoot  = document.querySelector('.reg-foot');
+  var loginFoot = document.querySelector('#view-login .card-foot');
+
+  function switchTab(tab){
+    var isLogin = (tab === 'login');
+    tabLogin.classList.toggle('active', isLogin);
+    tabReg.classList.toggle('active', !isLogin);
+    tabLogin.setAttribute('aria-selected', isLogin ? 'true' : 'false');
+    tabReg.setAttribute('aria-selected', isLogin ? 'false' : 'true');
+    viewLogin.style.display = isLogin ? 'flex' : 'none';
+    regStep1.style.display = (!isLogin && regState.step===1) ? 'flex' : 'none';
+    regStep2.style.display = (!isLogin && regState.step===2) ? 'flex' : 'none';
+    regStep3.style.display = (!isLogin && regState.step===3) ? 'flex' : 'none';
+    loginFoot.style.display = isLogin ? 'block' : 'none';
+    regFoot.style.display = isLogin ? 'none' : 'block';
+  }
+  tabLogin.addEventListener('click', function(){ switchTab('login'); });
+  tabReg.addEventListener('click', function(){ switchTab('register'); });
+
+  // ---------- 注册向导状态 ----------
+  var regState = {
+    step: 1, usage: null, teamRole: null,
+    orgName: '', inviteCode: '',
+    resolvedOrgName: '',
+    username: '', email: '', nickname: '', showNickname: false,
+    password: '', confirmPassword: ''
+  };
+
+  function setStepFill(){
+    var usage = regState.usage;
+    document.querySelectorAll('[data-fill]').forEach(function(el){
+      var w = '0%';
+      if (regState.step === 2 && usage === 'team') w = '50%';
+      else if (regState.step === 3 && usage === 'personal') w = '100%';
+      else if (regState.step === 3 && usage === 'team') w = '100%';
+      el.style.width = w;
+    });
+  }
+
+  function goStep(n){
+    regState.step = n;
+    regStep1.style.display = (n===1 ? 'flex' : 'none');
+    regStep2.style.display = (n===2 ? 'flex' : 'none');
+    regStep3.style.display = (n===3 ? 'flex' : 'none');
+    setStepFill();
+  }
+
+  // ---------- Step 1 ----------
+  document.querySelectorAll('[data-usage]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var v = btn.getAttribute('data-usage');
+      regState.usage = v;
+      regState.teamRole = null;
+      regState.orgName = ''; regState.inviteCode = ''; regState.resolvedOrgName = '';
+      document.querySelectorAll('[data-usage]').forEach(function(b){
+        var sel = (b === btn);
+        b.classList.toggle('on', sel);
+        b.setAttribute('aria-checked', sel ? 'true' : 'false');
+      });
+      var btn1 = document.querySelector('[data-usage-continue]');
+      if (btn1) btn1.disabled = false;
+      var hint = document.getElementById('reg-step1-hint');
+      if (hint) hint.textContent = v === 'personal' ? '已选个人，点击继续' : '已选团队，点击继续';
+    });
+  });
+  document.querySelector('[data-usage-continue]').addEventListener('click', function(){
+    if (!regState.usage) return;
+    goStep(regState.usage === 'personal' ? 3 : 2);
+  });
+
+  // ---------- Step 2 ----------
+  document.querySelectorAll('[data-role]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var v = btn.getAttribute('data-role');
+      regState.teamRole = v;
+      regState.orgName = ''; regState.inviteCode = ''; regState.resolvedOrgName = '';
+      document.querySelectorAll('[data-role]').forEach(function(b){
+        var sel = (b === btn);
+        b.classList.toggle('on', sel);
+        b.setAttribute('aria-checked', sel ? 'true' : 'false');
+      });
+      var paneCreator = document.querySelector('[data-role-pane=creator]');
+      var paneMember  = document.querySelector('[data-role-pane=member]');
+      if (paneCreator) paneCreator.style.display = (v === 'creator') ? 'block' : 'none';
+      if (paneMember)  paneMember.style.display  = (v === 'member')  ? 'block' : 'none';
+      var sub = document.querySelector('[data-step2-subtitle]');
+      if (sub){
+        sub.textContent = v === 'creator'
+          ? '填写团队显示名称；创建后你将成为管理员。'
+          : '向团队管理员索取邀请码；无效或过期将无法完成注册。';
+      }
+      var hint = document.getElementById('reg-step2-hint');
+      if (hint) hint.textContent = v === 'creator' ? '已选创建者，请填写团队名称' : '已选成员，请填写邀请码';
+    });
+  });
+
+  // 团队名长度提示
+  var orgInput = document.getElementById('orgDisplayName');
+  var orgCounter = document.querySelector('[data-org-counter]');
+  var orgWarn = document.querySelector('[data-org-warn]');
+  function updateOrgWarn(){
+    var v = orgInput.value;
+    var len = v.trim().length;
+    if (orgCounter) orgCounter.textContent = len + ' / 255';
+    if (orgWarn) orgWarn.style.display = (len > 80) ? 'flex' : 'none';
+    if (orgCounter){
+      orgCounter.style.color = len > 80 ? 'var(--amber)' : (len > 40 ? 'var(--amber-2)' : 'var(--ink-3)');
+      orgCounter.style.fontWeight = len > 40 ? '600' : '400';
+    }
+    regState.orgName = v;
+  }
+  if (orgInput) orgInput.addEventListener('input', updateOrgWarn);
+
+  var invInput = document.getElementById('inviteCode');
+  if (invInput) invInput.addEventListener('input', function(){ regState.inviteCode = invInput.value; });
+
+  document.querySelector('[data-step-back="2"]').addEventListener('click', function(){ goStep(1); });
+  document.querySelector('[data-step-continue="2"]').addEventListener('click', function(){
+    if (!regState.teamRole) return;
+    if (regState.teamRole === 'creator'){
+      var len = regState.orgName.trim().length;
+      if (len < 1 || len > 255) return;
+      regState.resolvedOrgName = '';
+      goStep(3);
+    } else {
+      if (regState.inviteCode.trim().length < 4) return;
+      // 模拟服务端校验：邀请码前 4 位有效则解析为"知岸科技"
+      regState.resolvedOrgName = '知岸科技';
+      goStep(3);
+    }
+  });
+
+  // ---------- Step 3 ----------
+  function updateSummary(){
+    var chip = document.querySelector('[data-summary-chip]');
+    var sub = document.querySelector('[data-step3-subtitle]');
+    var usage = regState.usage, role = regState.teamRole;
+    if (usage === 'personal'){
+      chip.textContent = '个人 · 我的空间';
+      sub.textContent = '完成以下信息即可创建个人账号，默认使用「我的空间」。';
+      return;
+    }
+    if (role === 'creator'){
+      var n = (regState.orgName || '').trim() || '新团队';
+      chip.textContent = '团队 · 创建者 · ' + n;
+      sub.textContent = '注册成功后默认进入团队空间，可随时切回「我的空间」。';
+      return;
+    }
+    if (role === 'member'){
+      var rn = (regState.resolvedOrgName || '').trim();
+      if (rn){ chip.textContent = '成员 · ' + rn; return; }
+      var code = regState.inviteCode.trim().toUpperCase();
+      if (!code) chip.textContent = '成员 · 凭邀请码加入';
+      else if (code.length <= 14) chip.textContent = '成员 · 邀请码 ' + code;
+      else chip.textContent = '成员 · 邀请码 ' + code.slice(0,10) + '…';
+      sub.textContent = '填写登录信息；提交时会再次校验邀请码并加入团队。';
+    }
+  }
+
+  // 字段监听
+  ['reg-username','reg-email','reg-password','reg-confirm','reg-nickname'].forEach(function(id){
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', function(){
+      var v = el.value;
+      if (id === 'reg-username') regState.username = v;
+      else if (id === 'reg-email') regState.email = v;
+      else if (id === 'reg-password') regState.password = v;
+      else if (id === 'reg-confirm') regState.confirmPassword = v;
+      else if (id === 'reg-nickname') regState.nickname = v;
+      if (id === 'reg-password') updateStrength(v);
+    });
+  });
+
+  // 密码强度
+  function updateStrength(pw){
+    var score = 0;
+    if (pw.length >= 8) score++;
+    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+    if (/\d/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    var label = ['未输入','弱','中','强','很强'][score];
+    var colors = ['var(--ink-3)','var(--err)','var(--warn)','var(--ok)','var(--ok)'];
+    document.querySelectorAll('[data-seg]').forEach(function(s, i){
+      s.style.background = (i < score) ? colors[score] : 'var(--line)';
+    });
+    var lbl = document.querySelector('[data-strength-label]');
+    if (lbl){ lbl.textContent = label; lbl.style.color = colors[score]; }
+  }
+
+  // 密码显示切换
+  document.querySelectorAll('[data-pw-toggle]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var id = b.getAttribute('data-pw-toggle');
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.type = (el.type === 'password') ? 'text' : 'password';
+      b.setAttribute('aria-label', el.type === 'password' ? '显示密码' : '隐藏密码');
+    });
+  });
+
+  // 可选昵称
+  document.querySelector('[data-nickname-toggle]').addEventListener('click', function(){
+    regState.showNickname = true;
+    var f = document.querySelector('[data-nickname-field]');
+    if (f) f.style.display = 'block';
+    var t = document.querySelector('[data-nickname-toggle]');
+    if (t) t.style.display = 'none';
+  });
+
+  // 上一步
+  document.querySelector('[data-step-back="3"]').addEventListener('click', function(){
+    if (regState.usage === 'personal') goStep(1);
+    else goStep(2);
+  });
+
+  // 提交
+  document.querySelector('[data-step-submit]').addEventListener('click', function(){
+    // 前端预校验
+    if (!/^[A-Za-z0-9_]{3,32}$/.test(regState.username)){
+      window.alert('用户名需为 3-32 位字母、数字或下划线');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regState.email)){
+      window.alert('邮箱格式不正确');
+      return;
+    }
+    if (regState.password.length < 8){
+      window.alert('密码至少 8 位');
+      return;
+    }
+    if (regState.password !== regState.confirmPassword){
+      window.alert('两次输入的密码不一致');
+      return;
+    }
+    // 模拟提交：成功提示
+    window.alert('注册成功！将跳转到概览页。');
+  });
+
+  // 同步 step 切换时 summary
+  var origGo = goStep;
+  goStep = function(n){
+    origGo(n);
+    if (n === 3) updateSummary();
+  };
+})();
+</script>
+</body>
+</html>

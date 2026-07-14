@@ -1,0 +1,881 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>知岸 · 预览状态切换器 v4</title>
+<style>
+  :root{
+    --page:#F7F1EA; --surface:#FFFFFF; --line:#ECE3D9; --line-2:#E3D8CB;
+    --ink:#2B2622; --ink-2:#52525B; --ink-3:#7A716A; --ink-4:#A89E96;
+    --terracotta:#C2714B; --terracotta-soft:rgba(194,113,75,.12); --terracotta-ink:#9C5538;
+    --amber:#E8943A; --amber-soft:rgba(232,148,58,.16); --amber-ink:#B26A1E;
+    --ok:#5BA86E; --ok-soft:rgba(91,168,110,.16); --ok-ink:#3F6B4A;
+    --err:#C24A3A; --err-soft:rgba(194,74,58,.14); --err-ink:#9C3A2E;
+    --role:#5B6B8C; --role-soft:rgba(91,107,140,.14); --role-ink:#3E4A63;
+    --S:#5BA86E; --A:#7FB85F; --B:#E8943A; --Cdeny:#C24A3A;
+    --r:14px; --r-sm:10px; --r-lg:18px;
+    --shadow:0 1px 2px rgba(43,38,34,.04),0 8px 24px rgba(43,38,34,.06);
+    --shadow-lg:0 1px 2px rgba(43,38,34,.04),0 16px 48px rgba(43,38,34,.14);
+    --shell:rgba(255,255,255,.78);
+    --serif:"Songti SC","STSong","Noto Serif SC",serif;
+    --mono:"SF Mono","JetBrains Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%; overflow:hidden}
+  body{
+    margin:0; font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+    color:var(--ink); background:var(--page);
+    background-image:radial-gradient(60vw 60vw at 12% -8%,rgba(194,113,75,.07),transparent 60%),
+                     radial-gradient(50vw 50vw at 105% 0%,rgba(232,148,58,.06),transparent 55%);
+    -webkit-font-smoothing:antialiased;
+  }
+  .skip-link{position:absolute;left:-9999px;top:0;background:var(--terracotta);color:#fff;padding:8px 14px;border-radius:0 0 8px 0;z-index:99;font-weight:600}
+  .skip-link:focus{left:0;outline:2px solid #fff;outline-offset:-4px}
+  :where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:2px solid var(--terracotta);outline-offset:2px;border-radius:6px}
+  @media(prefers-reduced-motion:reduce){*,::before,::after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+
+  /* ===== Layout: 全屏 stage + 左侧 toggle 栏 + 顶部 meta bar ===== */
+  .app{display:grid; grid-template-columns:280px 1fr; grid-template-rows:48px 1fr; height:100vh; min-height:0}
+  /* Top bar */
+  .topbar{grid-column:1 / -1; background:var(--shell); backdrop-filter:blur(14px); border-bottom:1px solid var(--line); padding:0 16px; display:flex; align-items:center; gap:12px; z-index:5}
+  .topbar .brand{font-family:var(--serif); font-size:15px; letter-spacing:1px; display:flex; align-items:baseline; gap:6px; flex:0 0 auto}
+  .topbar .brand small{font-size:11px; color:var(--ink-3); font-family:inherit; letter-spacing:0}
+  .topbar .crumb{font-size:12px; color:var(--ink-3); display:flex; align-items:center; gap:6px; flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .topbar .crumb b{color:var(--ink); font-weight:600}
+  .topbar .crumb .sep{opacity:.4}
+  .topbar .ctrl{display:flex; gap:6px; flex:0 0 auto; align-items:center}
+  .btn{display:inline-flex; align-items:center; gap:5px; font-size:12px; padding:5px 10px; border-radius:999px; border:1px solid var(--line-2); background:transparent; color:var(--ink-2); cursor:pointer; font-weight:600; font-family:inherit; transition:.15s; text-decoration:none; line-height:1.4}
+  .btn:hover{background:rgba(194,113,75,.07); border-color:rgba(194,113,75,.3); color:var(--terracotta-ink)}
+  .btn.primary{background:var(--terracotta); border-color:var(--terracotta); color:#fff}
+  .btn.primary:hover{background:var(--terracotta-ink); border-color:var(--terracotta-ink); color:#fff}
+  .btn .ico{width:13px; height:13px; flex:0 0 13px; opacity:.85}
+
+  /* Sidebar */
+  .sidebar{background:var(--shell); backdrop-filter:blur(14px); border-right:1px solid var(--line); overflow-y:auto; padding:12px 10px 14px; display:flex; flex-direction:column; gap:10px}
+  .sb-section{background:transparent; border-radius:10px; padding:8px 6px 6px; border:1px solid var(--line)}
+  .sb-section .lbl{font-size:10px; letter-spacing:1.2px; color:var(--ink-3); padding:0 6px 6px; text-transform:uppercase; font-weight:700; display:flex; align-items:center; gap:6px}
+  .sb-section .lbl b{margin-left:auto; color:var(--ink-2); font-variant-numeric:tabular-nums; font-weight:700}
+  .seg{display:grid; grid-template-columns:1fr 1fr; gap:3px; padding:3px; background:var(--surface); border:1px solid var(--line); border-radius:8px}
+  .seg button{font-size:11.5px; padding:5px 4px; border-radius:5px; border:1px solid transparent; background:transparent; color:var(--ink-2); cursor:pointer; font-weight:600; font-family:inherit; transition:.15s; line-height:1.2}
+  .seg button:hover{color:var(--terracotta-ink)}
+  .seg button.on{background:var(--terracotta); color:#fff; border-color:var(--terracotta); box-shadow:0 1px 2px rgba(194,113,75,.3)}
+  .seg.seg-1{grid-template-columns:1fr}
+  .seg.seg-3{grid-template-columns:1fr 1fr 1fr}
+  .seg .ic{display:block; margin:0 auto 1px; width:14px; height:14px; opacity:.85}
+  .seg button.on .ic{opacity:1}
+  .seg button[disabled]{opacity:.35; cursor:not-allowed}
+
+  /* Pages list (compact) */
+  .pages-list{display:flex; flex-direction:column; gap:2px; max-height:42vh; overflow-y:auto; padding-right:2px}
+  .pages-list button{display:flex; align-items:center; gap:7px; width:100%; text-align:left; background:transparent; border:1px solid transparent; border-radius:7px; padding:6px 7px; cursor:pointer; font-family:inherit; font-size:12px; color:var(--ink); transition:.12s}
+  .pages-list button:hover{background:rgba(194,113,75,.07)}
+  .pages-list button.on{background:var(--terracotta-soft); border-color:rgba(194,113,75,.3)}
+  .pages-list .ico{width:13px; height:13px; flex:0 0 13px; opacity:.7}
+  .pages-list button.on .ico{opacity:1; color:var(--terracotta)}
+  .pages-list .nm{flex:1; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .pages-list .sc{font-size:11px; font-variant-numeric:tabular-nums; color:var(--ink-3); font-weight:600; flex:0 0 auto}
+  .pages-list button.on .sc{color:var(--terracotta-ink)}
+
+  /* Stage area */
+  .stage{position:relative; overflow:hidden; background:linear-gradient(180deg,#EFE6DA 0%,#E5DBC9 100%); display:flex; align-items:flex-start; justify-content:center; padding:18px; min-width:0; min-height:0}
+  /* Device frame (for tablet/mobile) */
+  .device{
+    background:var(--surface); border-radius:var(--r); box-shadow:var(--shadow-lg);
+    overflow:hidden; transition:width .3s, height .3s; max-width:100%; max-height:100%;
+    border:1px solid var(--line-2); display:flex; flex-direction:column;
+  }
+  .device.desktop{width:100%; height:100%; border-radius:10px}
+  .device.tablet{width:820px; max-width:100%; height:100%; border-radius:18px; padding:8px; background:#1F1B17; border:1px solid #2B2622}
+  .device.tablet .screen{flex:1; border-radius:10px; overflow:hidden; background:var(--surface); position:relative}
+  .device.mobile{width:390px; max-width:100%; height:100%; border-radius:36px; padding:10px 6px; background:#1F1B17; border:1px solid #2B2622; box-shadow:0 0 0 2px #2B2622,0 0 0 3px #4A4138,0 30px 60px rgba(0,0,0,.4)}
+  .device.mobile .screen{flex:1; border-radius:26px; overflow:hidden; background:var(--surface); position:relative}
+  .device.mobile::before{content:""; position:absolute; top:18px; left:50%; transform:translateX(-50%); width:120px; height:24px; background:#0D0A08; border-radius:14px; z-index:2; pointer-events:none}
+  .device iframe{width:100%; height:100%; border:0; display:block; background:#F7F1EA}
+
+  /* Floating info layer (FAB + popovers) */
+  .fab{position:absolute; right:24px; bottom:24px; z-index:10; display:flex; flex-direction:column; gap:8px; align-items:flex-end}
+  .fab-btn{
+    width:42px; height:42px; border-radius:50%; background:var(--surface); border:1px solid var(--line-2);
+    box-shadow:var(--shadow-lg); cursor:pointer; display:flex; align-items:center; justify-content:center;
+    color:var(--ink-2); transition:.15s; position:relative; font-family:inherit;
+  }
+  .fab-btn:hover{background:var(--terracotta-soft); color:var(--terracotta); border-color:rgba(194,113,75,.3); transform:scale(1.05)}
+  .fab-btn[data-active="true"]{background:var(--terracotta); color:#fff; border-color:var(--terracotta)}
+  .fab-btn .ico{width:18px; height:18px}
+  .fab-btn .badge{position:absolute; top:-3px; right:-3px; min-width:18px; height:18px; padding:0 4px; border-radius:9px; background:var(--err); color:#fff; font-size:10px; font-weight:700; display:flex; align-items:center; justify-content:center; font-variant-numeric:tabular-nums; border:2px solid #EFE6DA}
+
+  /* Popover */
+  .popover{
+    position:absolute; right:78px; bottom:0; min-width:280px; max-width:380px; z-index:11;
+    background:var(--surface); border:1px solid var(--line-2); border-radius:var(--r);
+    box-shadow:var(--shadow-lg); padding:14px 16px; display:none;
+  }
+  .popover.open{display:block; animation:pop .18s ease-out}
+  @keyframes pop{from{opacity:0;transform:translateX(8px) scale(.98)}to{opacity:1;transform:none}}
+  .popover h4{font-size:11px; letter-spacing:.8px; color:var(--ink-3); text-transform:uppercase; font-weight:700; margin:0 0 8px; display:flex; align-items:center; gap:6px}
+  .popover h4 .x{margin-left:auto; cursor:pointer; color:var(--ink-3); padding:2px 6px; border-radius:4px; font-size:14px; line-height:1}
+  .popover h4 .x:hover{background:var(--line); color:var(--ink)}
+  .popover .stat-row{display:flex; align-items:center; gap:10px; padding:6px 0; border-bottom:1px solid var(--line); font-size:12.5px}
+  .popover .stat-row:last-child{border-bottom:none}
+  .popover .stat-row .k{color:var(--ink-3); flex:0 0 76px; font-size:11.5px}
+  .popover .stat-row .v{color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums}
+  .popover .stat-row .g{margin-left:auto; padding:2px 8px; border-radius:999px; font-size:10.5px; font-weight:700; letter-spacing:.5px}
+  .g.S{background:var(--ok-soft); color:var(--ok-ink)}
+  .g.A{background:rgba(127,184,95,.16); color:#3F6B4A}
+  .g.B{background:var(--amber-soft); color:var(--amber-ink)}
+  .g.Cdeny{background:var(--err-soft); color:var(--err-ink)}
+  .g.D{background:var(--err); color:#fff}
+  .popover .vio{padding:6px 0; border-bottom:1px solid var(--line); display:flex; gap:8px; font-size:11.5px; line-height:1.5}
+  .popover .vio:last-child{border-bottom:none}
+  .popover .vio .code{flex:0 0 60px; font-family:var(--mono); font-size:10px; padding:2px 0; border-radius:4px; background:var(--err-soft); color:var(--err-ink); font-weight:700; text-align:center; line-height:1.3; padding-top:3px}
+  .popover .vio .code.warn{background:var(--amber-soft); color:var(--amber-ink)}
+  .popover .vio .desc{color:var(--ink-2); flex:1; min-width:0}
+  .popover .vio .desc b{color:var(--ink); font-weight:600}
+  .popover .empty{padding:12px; text-align:center; color:var(--ok-ink); background:var(--ok-soft); border-radius:8px; font-size:12px; font-weight:600}
+  .popover .hint{padding:8px 10px; background:var(--terracotta-soft); color:var(--terracotta-ink); border-radius:6px; font-size:11.5px; line-height:1.5; margin-top:8px}
+  .popover .meter{height:6px; background:var(--line); border-radius:3px; overflow:hidden; margin-top:4px}
+  .popover .meter span{display:block; height:100%; border-radius:3px}
+
+  /* Toast (state change feedback) */
+  .toast{position:absolute; left:50%; top:20px; transform:translateX(-50%); z-index:30; background:var(--ink); color:#fff; padding:7px 14px; border-radius:999px; font-size:12px; font-weight:600; display:flex; align-items:center; gap:7px; box-shadow:var(--shadow); pointer-events:none; opacity:0; transition:.25s}
+  .toast.show{opacity:.92}
+  .toast .dot{width:6px; height:6px; border-radius:50%; background:var(--terracotta)}
+
+  /* Bottom ruler (current viewport marker) */
+  .ruler{position:absolute; left:18px; bottom:18px; display:flex; align-items:center; gap:8px; font-size:11px; color:var(--ink-2); background:var(--shell); backdrop-filter:blur(10px); padding:5px 10px; border-radius:999px; border:1px solid var(--line); z-index:4; font-variant-numeric:tabular-nums; box-shadow:var(--shadow)}
+  .ruler .ico{width:12px; height:12px; opacity:.7}
+  .ruler b{color:var(--ink); font-weight:700}
+  .ruler .sep{opacity:.3}
+
+  /* Modal (标准) */
+  .modal-overlay{position:fixed; inset:0; background:rgba(43,38,34,.45); backdrop-filter:blur(4px); z-index:90; display:none; align-items:center; justify-content:center; padding:20px}
+  .modal-overlay.open{display:flex}
+  .modal{background:var(--surface); border-radius:var(--r-lg); max-width:920px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-lg); padding:20px 24px; position:relative}
+  .modal h2{margin:0 0 6px; font-size:18px; font-family:var(--serif); letter-spacing:1px; display:flex; align-items:center; gap:10px}
+  .modal h2 .ver{font-family:var(--mono); font-size:11px; padding:2px 8px; background:var(--terracotta-soft); color:var(--terracotta-ink); border-radius:999px; font-weight:700}
+  .modal h4{font-size:11px; color:var(--ink-3); letter-spacing:.8px; text-transform:uppercase; margin:18px 0 8px; font-weight:700}
+  .modal table{width:100%; border-collapse:collapse; font-size:12px}
+  .modal td, .modal th{padding:6px 8px; border-bottom:1px solid var(--line); text-align:left}
+  .modal th{color:var(--ink-3); font-size:10.5px; text-transform:uppercase}
+  .modal .close{position:absolute; right:18px; top:18px; cursor:pointer; background:transparent; border:1px solid var(--line); border-radius:8px; width:30px; height:30px; font-size:16px; color:var(--ink-2)}
+  .modal .close:hover{background:var(--line); color:var(--ink)}
+
+  /* Mobile */
+  @media (max-width:760px){
+    .app{grid-template-columns:1fr; grid-template-rows:48px auto 1fr}
+    .sidebar{position:fixed; left:0; top:48px; bottom:0; width:280px; z-index:20; transform:translateX(-100%); transition:.2s; box-shadow:var(--shadow-lg)}
+    .sidebar.open{transform:none}
+    .topbar .menu{display:inline-block}
+  }
+  .menu{display:none; cursor:pointer; border:1px solid var(--line); background:transparent; color:var(--ink); border-radius:6px; padding:3px 8px; font-size:14px; font-family:inherit}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#stage">跳到预览</a>
+<div class="app" id="app">
+  <!-- Top bar -->
+  <div class="topbar">
+    <button class="menu" id="menuBtn" aria-label="菜单">☰</button>
+    <div class="brand">知岸<small>· 预览状态切换器 v4</small></div>
+    <div class="crumb" id="crumb">
+      <span>12 页</span><span class="sep">›</span>
+      <b id="curName">仪表盘 Dashboard</b>
+      <span class="sep">·</span>
+      <span id="curState">数据态</span>
+      <span class="sep">·</span>
+      <span id="curViewport">Desktop 1280</span>
+      <span class="sep">·</span>
+      <span id="curWorkspace">团队空间</span>
+    </div>
+    <div class="ctrl">
+      <button class="btn primary" id="openShowcase" type="button" aria-label="查看最新改版成果" style="background:var(--terracotta);border-color:var(--terracotta);color:#fff">最新改版 ✦ 48</button>
+      <button class="btn" id="openStd" type="button" aria-label="查看标准">标准</button>
+      <button class="btn" id="dlReport" type="button" aria-label="下载报告">报告</button>
+      <a class="btn primary" id="openLink" href="./dashboard-warm-white-preview.html" target="_blank" rel="noopener noreferrer" aria-label="新窗口打开">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        新窗口
+      </a>
+    </div>
+  </div>
+
+  <!-- Sidebar: 切换器 -->
+  <aside class="sidebar" id="sidebar" aria-label="状态切换器">
+    <!-- 三维切换 -->
+    <div class="sb-section">
+      <div class="lbl">① 页面状态 <b>4</b></div>
+      <div class="seg" id="segState" role="group" aria-label="页面状态">
+        <button class="on" data-state="data" title="数据态">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-5"/></svg>
+          数据
+        </button>
+        <button data-state="loading" title="加载态">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/></svg>
+          加载
+        </button>
+        <button data-state="empty" title="空态">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v13H3z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M9 12h6"/></svg>
+          空
+        </button>
+        <button data-state="error" title="错误态">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+          错误
+        </button>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="lbl">② 视口 <b>3</b></div>
+      <div class="seg seg-3" id="segViewport" role="group" aria-label="视口">
+        <button class="on" data-vp="desktop" title="桌面 1280×800">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="1.5"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          桌面
+        </button>
+        <button data-vp="tablet" title="平板 820×1180">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
+          平板
+        </button>
+        <button data-vp="mobile" title="手机 390×844">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="2.5"/><line x1="10" y1="18" x2="14" y2="18"/></svg>
+          手机
+        </button>
+      </div>
+    </div>
+
+    <div class="sb-section">
+      <div class="lbl">③ 工作区 <b>2</b></div>
+      <div class="seg" id="segWorkspace" role="group" aria-label="工作区">
+        <button class="on" data-ws="team" title="团队空间（admin 可见）">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.6a3 3 0 0 1 0 5.8"/><path d="M16.5 14.4a5 5 0 0 1 4 5.6"/></svg>
+          团队
+        </button>
+        <button data-ws="personal" title="个人空间（admin 隐藏）">
+          <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+          个人
+        </button>
+      </div>
+    </div>
+
+    <!-- 12 页列表 -->
+    <div class="sb-section">
+      <div class="lbl">页面 <b id="pgCount">12</b></div>
+      <div class="pages-list" id="pagesList" role="listbox" aria-label="预览页"></div>
+    </div>
+
+    <!-- 全局统计 -->
+    <div class="sb-section">
+      <div class="lbl">总览 <b>v3</b></div>
+      <div style="font-size:11.5px;line-height:1.7;color:var(--ink-2);padding:2px 6px">
+        均值 <b id="gMean" style="color:var(--ink);font-variant-numeric:tabular-nums">9.21</b> ·
+        最低 <b id="gMin" style="color:var(--ink);font-variant-numeric:tabular-nums">9.13</b> ·
+        最高 <b id="gMax" style="color:var(--ink);font-variant-numeric:tabular-nums">9.31</b>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Stage: 全屏预览 -->
+  <main class="stage" id="stage" tabindex="-1" aria-label="预览舞台">
+    <div class="device desktop" id="device">
+      <iframe id="frame" src="./dashboard-warm-white-preview.html" title="预览" allow="clipboard-read; clipboard-write"></iframe>
+    </div>
+
+    <!-- 视口指示器 -->
+    <div class="ruler" id="ruler" aria-live="polite">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v13H3z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+      <span id="rSize"><b>1280</b>×<b>800</b></span>
+      <span class="sep">·</span>
+      <span id="rDpr">DPR <b>1</b></span>
+      <span class="sep">·</span>
+      <span id="rMode">Desktop</span>
+    </div>
+
+    <!-- 状态变化 Toast -->
+    <div class="toast" id="toast"><span class="dot"></span><span id="toastText">已切换</span></div>
+
+    <!-- 悬浮 FAB 按钮组 + 弹出层 -->
+    <div class="fab" role="toolbar" aria-label="悬浮工具">
+      <!-- 1. 当前状态 -->
+      <button class="fab-btn" id="fabState" data-active="false" type="button" aria-label="当前状态" title="当前状态">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+        <span class="badge" id="vioBadge" style="display:none">3</span>
+      </button>
+      <!-- 2. 评分 -->
+      <button class="fab-btn" id="fabScore" data-active="false" type="button" aria-label="评分明细" title="评分明细">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4 2 7-6.5-4-6.5 4 2-7L2 9h7z"/></svg>
+      </button>
+      <!-- 3. 视口参数 -->
+      <button class="fab-btn" id="fabInfo" data-active="false" type="button" aria-label="页面信息" title="页面信息">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg>
+      </button>
+      <!-- 4. 截图 -->
+      <button class="fab-btn" id="fabShot" type="button" aria-label="截图当前预览" title="截图">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
+    </div>
+
+    <!-- Popover: 当前状态 -->
+    <div class="popover" id="popState" role="dialog" aria-label="当前状态详情">
+      <h4>当前状态 <span class="x" data-close="popState" role="button" tabindex="0" aria-label="关闭">×</span></h4>
+      <div class="stat-row"><span class="k">页面</span><span class="v" id="psPage">—</span></div>
+      <div class="stat-row"><span class="k">状态</span><span class="v" id="psState">—</span><span class="g B" id="psStateTag">态</span></div>
+      <div class="stat-row"><span class="k">视口</span><span class="v" id="psVp">—</span></div>
+      <div class="stat-row"><span class="k">工作区</span><span class="v" id="psWs">—</span></div>
+      <div class="hint" id="psHint">所有切换即时同步到预览</div>
+    </div>
+
+    <!-- Popover: 评分明细 -->
+    <div class="popover" id="popScore" role="dialog" aria-label="评分明细">
+      <h4>评分明细 <span class="x" data-close="popScore" role="button" tabindex="0" aria-label="关闭">×</span></h4>
+      <div class="stat-row"><span class="k">加权</span><span class="v" id="psW">—</span><span class="g A" id="psGrade">A</span></div>
+      <div class="stat-row"><span class="k">最低维</span><span class="v" id="psMin">—</span></div>
+      <div class="stat-row"><span class="k">最高维</span><span class="v" id="psMax">—</span></div>
+      <div style="margin-top:8px">
+        <div id="psBars"></div>
+      </div>
+    </div>
+
+    <!-- Popover: 页面信息 -->
+    <div class="popover" id="popInfo" role="dialog" aria-label="页面信息">
+      <h4>页面信息 <span class="x" data-close="popInfo" role="button" tabindex="0" aria-label="关闭">×</span></h4>
+      <div class="stat-row"><span class="k">文件</span><span class="v" id="piFile" style="font-family:var(--mono);font-size:11px">—</span></div>
+      <div class="stat-row"><span class="k">章节</span><span class="v" id="piSec">—</span></div>
+      <div class="stat-row"><span class="k">HTML 大小</span><span class="v" id="piSize">—</span></div>
+      <div class="stat-row"><span class="k">违规数</span><span class="v" id="piVio">—</span></div>
+      <div class="hint">悬停 FAB 查看更多维度；点击「报告」下载完整 .md + .json</div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal: 评审标准 -->
+<div class="modal-overlay" id="stdModal" role="dialog" aria-modal="true" aria-labelledby="stdTitle">
+  <div class="modal">
+    <button class="close" data-close-modal aria-label="关闭">✕</button>
+    <h2 id="stdTitle">v3 评审标准 <span class="ver">scoring-standard-v3.md</span></h2>
+    <h4>12 维硬阈值</h4>
+    <table>
+      <thead><tr><th>维度</th><th>权重</th><th>性质</th><th>一票否决</th></tr></thead>
+      <tbody>
+        <tr><td>D1 视觉一致性</td><td>12%</td><td>客观</td><td>—</td></tr>
+        <tr><td>D2 可用性 / UX</td><td>12%</td><td>半客观</td><td>—</td></tr>
+        <tr><td>D3 功能完整</td><td>10%</td><td>客观</td><td>死链≥3/核心缺 = D</td></tr>
+        <tr><td>D4 无障碍 WCAG 2.1 AA</td><td><b>14%</b></td><td>客观可测</td><td>键盘卡死 = D</td></tr>
+        <tr><td>D5 视觉美学</td><td>8%</td><td>70%客观 30%主观</td><td>—</td></tr>
+        <tr><td>D6 性能 CWV</td><td>8%</td><td>客观可测</td><td>LCP&gt;2.5s = D</td></tr>
+        <tr><td>D7 代码质量</td><td><b>10%</b></td><td>客观</td><td>—</td></tr>
+        <tr><td>D8 安全性</td><td>8%</td><td>客观</td><td>eval/XSS≥3 = D</td></tr>
+        <tr><td>D9 响应式 / 跨设备</td><td>6%</td><td>客观</td><td>—</td></tr>
+        <tr><td>D10 可维护性 / 可观测</td><td>6%</td><td>半客观</td><td>—</td></tr>
+        <tr><td>D11 国际化 / 本地化</td><td>4%</td><td>客观</td><td>—</td></tr>
+        <tr><td>D12 SEO / 元数据</td><td>2%</td><td>客观</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <h4>5 档 + 降级</h4>
+    <p><b style="color:var(--S)">S 卓越</b> ≥9.5 · <b style="color:#3F6B4A">A 优秀</b> 9.0–9.4 · <b style="color:var(--amber-ink)">B 良好</b> 8.0–8.9 · <b style="color:var(--err-ink)">C 待改进</b> 6.0–7.9 · <b style="color:var(--err)">D 不达标</b> &lt;6.0 或一票否决</p>
+    <p>① 加权 &lt;9.0 = 不通过 ② 任一一票否决 = D 档 ③ 任一维 &lt;8.0 = 降档 ④ 全部硬指标必须程序化测量，未测 = 0 分</p>
+  </div>
+</div>
+
+<script>
+/* ================== 数据：12 页 v3 评分 ================== */
+var SCORES = {
+  dashboard: { name:"仪表盘 Dashboard", file:"dashboard-warm-white-preview.html", section:"core",
+    icon:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
+    dims:{D1:9.4,D2:9.3,D3:9.5,D4:9.3,D5:8.6,D6:9.0,D7:9.5,D8:9.5,D9:9.0,D10:9.2,D11:9.5,D12:8.0},
+    meta:"落地页 · 搜索/ZoneA/状态横幅/四态", size:84, states:['data','loading','empty','error'],
+    vio:[{lvl:'err',code:'H5.4',t:'D5 视觉 8.6',d:'统计卡 5 列空卡残留（已修复+验证）'},{lvl:'warn',code:'H12.3',t:'D12 SEO 8.0',d:'缺 og:image'},{lvl:'warn',code:'H6.4',t:'D6 性能 -0.3',d:'HTML 84KB > 80KB 阈值'}] },
+  login: { name:"登录页 Login", file:"login-warm-white-preview.html", section:"core",
+    icon:'<path d="M15 12H3"/><path d="M11 8l4 4-4 4"/><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/>',
+    dims:{D1:9.2,D2:9.0,D3:9.3,D4:9.4,D5:8.5,D6:9.0,D7:9.4,D8:9.6,D9:8.8,D10:9.0,D11:9.5,D12:8.5},
+    meta:"原卡片 + 暖白背景 + 3 步注册", size:108, states:['data'],
+    vio:[{lvl:'err',code:'H5.4',t:'D5 视觉 8.5',d:'背景模糊动画美学分项主观下调'},{lvl:'warn',code:'H9.4',t:'D9 响应式 8.8',d:'移动端字段 padding 偏紧'}] },
+  kbs: { name:"资料库列表 KBs", file:"knowledge-bases-warm-white-preview.html", section:"core",
+    icon:'<path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 13 9 5 9-5"/>',
+    dims:{D1:9.3,D2:9.3,D3:9.5,D4:9.3,D5:8.7,D6:9.0,D7:9.5,D8:9.5,D9:9.1,D10:9.3,D11:9.5,D12:8.5},
+    meta:"状态语义对齐 + 自定义排序", size:81, states:['data','loading','empty'],
+    vio:[{lvl:'err',code:'H5.4',t:'D5 视觉 8.7',d:'kb-desc 2 行省略偏挤'},{lvl:'warn',code:'H12.4',t:'D12 -0.3',d:'缺 canonical'} ] },
+  kbdetail: { name:"资料库详情 KBDetail", file:"knowledge-base-detail-warm-white-preview.html", section:"core",
+    icon:'<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Z"/><path d="M14 3v5h5"/><path d="M9 13h6"/><path d="M9 17h6"/>',
+    dims:{D1:9.5,D2:9.4,D3:9.6,D4:9.3,D5:8.6,D6:9.0,D7:9.5,D8:9.5,D9:9.2,D10:9.3,D11:9.5,D12:8.5},
+    meta:"最高分 · 状态色 / 筛选活化", size:92, states:['data','loading','empty'],
+    vio:[{lvl:'err',code:'H5.4',t:'D5 视觉 8.6',d:'筛选 chip 与行高节奏稍偏密'},{lvl:'warn',code:'H12.3',t:'D12 -0.2',d:'缺 og:type=article'} ] },
+  chat: { name:"对话页 ChatPage", file:"chat-warm-white-preview.html", section:"core",
+    icon:'<path d="M21 12a8 8 0 0 1-11.5 7.2L4 21l1.8-5.5A8 8 0 1 1 21 12Z"/>',
+    dims:{D1:9.2,D2:9.1,D3:9.4,D4:9.2,D5:8.5,D6:8.8,D7:9.4,D8:9.5,D9:9.0,D10:9.0,D11:9.5,D12:8.0},
+    meta:"统一左栏 / 历史可折叠", size:92, states:['data','empty','error'],
+    vio:[{lvl:'err',code:'H5.4',t:'D5 视觉 8.5',d:'消息气泡头像小屏错位'},{lvl:'err',code:'H6.4',t:'D6 性能 8.8',d:'HTML 92KB > 80KB'},{lvl:'warn',code:'H10.3',t:'D10 -0.3',d:'消息数据全硬编码'} ] },
+  ask: { name:"检索问答 AskPage", file:"ask-warm-white-preview.html", section:"core",
+    icon:'<circle cx="12" cy="12" r="9"/><path d="M9.2 9a3 3 0 0 1 5.5 1.5c0 2-2.7 2.5-2.7 2.5"/><path d="M12 17h.01"/>',
+    dims:{D1:9.3,D2:9.2,D3:9.4,D4:9.2,D5:8.6,D6:9.0,D7:9.5,D8:9.5,D9:9.0,D10:9.2,D11:9.5,D12:8.5},
+    meta:"引用溯源 / 工具链 / 异常态", size:78, states:['data','loading','empty','error'],
+    vio:[{lvl:'err',code:'H5.4',t:'D5 视觉 8.6',d:'引用片段编号与正文权重接近'},{lvl:'warn',code:'H12.4',t:'D12 -0.3',d:'缺 canonical'} ] },
+  account: { name:"账号设置 Account", file:"account-settings-warm-white-preview.html", section:"core",
+    icon:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+    dims:{D1:9.3,D2:9.2,D3:9.5,D4:9.2,D5:8.5,D6:9.0,D7:9.5,D8:9.5,D9:9.0,D10:9.2,D11:9.5,D12:8.5},
+    meta:"只读区分 / 强度条 / 四态", size:72, states:['data','loading'],
+    vio:[{lvl:'err',code:'H5.4',t:'D5 视觉 8.5',d:'头像上传区占位图气质偏离暖白'},{lvl:'warn',code:'H2.6',t:'D2 -0.2',d:'用户名字段无 hint'} ] },
+  members: { name:"成员管理 Members", file:"members-warm-white-preview.html", section:"admin",
+    icon:'<circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0 1 11 0"/><path d="M16 5.6a3 3 0 0 1 0 5.8"/><path d="M16.5 14.4a5 5 0 0 1 4 5.6"/>',
+    dims:{D1:9.3,D2:9.1,D3:9.3,D4:9.2,D5:8.5,D6:9.0,D7:9.4,D8:9.4,D9:9.0,D10:9.0,D11:9.5,D12:8.5},
+    meta:"自定义表格 / 三对话框 / 四态", size:88, states:['data','loading','empty'],
+    vio:[{lvl:'err',code:'H5.4',t:'D5 视觉 8.5',d:'行高 56px 偏松，20 行密度低'},{lvl:'warn',code:'H10.3',t:'D10 -0.3',d:'角色选项硬编码 4 项'} ] },
+  departments: { name:"组织与部门 Departments", file:"org-departments-warm-white-preview.html", section:"admin",
+    icon:'<rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/><path d="M10 21v-3h4v3"/>',
+    dims:{D1:9.3,D2:9.0,D3:9.3,D4:9.2,D5:8.5,D6:9.0,D7:9.4,D8:9.4,D9:9.0,D10:9.0,D11:9.5,D12:8.5},
+    meta:"部门树 / 可折叠 / 自定义select", size:74, states:['data','loading','empty'],
+    vio:[{lvl:'err',code:'H5.4',t:'D5 视觉 8.5',d:'树形缩进 ≥3 层时挤压标签'},{lvl:'warn',code:'H4.12',t:'D4 -0.2',d:'折叠箭头 36×36 < 44px'} ] },
+  orgsettings: { name:"团队设置 OrgSettings", file:"organization-settings-warm-white-preview.html", section:"admin",
+    icon:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a2 2 0 0 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H21a2 2 0 0 1 0-4h-.1a1.6 1.6 0 0 0-1.5-1 1.6 1.6 0 0 0-1.8.3H9a1.6 1.6 0 0 0-1-1.5V3a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z"/>',
+    dims:{D1:9.4,D2:9.3,D3:9.5,D4:9.3,D5:8.7,D6:9.2,D7:9.5,D8:9.5,D9:9.0,D10:9.3,D11:9.5,D12:8.5},
+    meta:"团队信息表单 / 只读字段 / 三态", size:76, states:['data','loading','error'],
+    vio:[{lvl:'err',code:'H5.4',t:'D5 视觉 8.7',d:'LOGO 上传区美学偏低'},{lvl:'warn',code:'H12.3',t:'D12 -0.2',d:'缺 og:type=website'} ] },
+  adminaudit: { name:"操作审计 AdminAudit", file:"admin-audit-warm-white-preview.html", section:"admin",
+    icon:'<path d="M12 3 5 6v5c0 4 3 7 7 9 4-2 7-5 7-9V6l-7-3Z"/><path d="M9.5 12l1.8 1.8L15 10"/>',
+    dims:{D1:9.3,D2:9.2,D3:9.4,D4:9.2,D5:8.6,D6:9.0,D7:9.4,D8:9.5,D9:9.0,D10:9.2,D11:9.5,D12:8.5},
+    meta:"审计表 / 中性动作标签 / 三态 / 分页", size:90, states:['data','loading','empty','error'],
+    vio:[{lvl:'err',code:'H5.4',t:'D5 视觉 8.6',d:'分页器与表格行高脱节'},{lvl:'warn',code:'H10.3',t:'D10 -0.3',d:'分页 50/100/200 硬编码'} ] },
+  docpreview: { name:"文档预览 DocPreview", file:"document-preview-warm-white-preview.html", section:"admin",
+    icon:'<path d="M14 3v5h5"/><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M9 13h6"/>',
+    dims:{D1:9.4,D2:9.3,D3:9.5,D4:9.3,D5:8.6,D6:9.2,D7:9.5,D8:9.5,D9:9.0,D10:9.3,D11:9.5,D12:8.5},
+    meta:"全幅预览 / PDF·文本·不支持 / 五态", size:68, states:['data','loading','empty','error'],
+    vio:[{lvl:'err',code:'H5.4',t:'D5 视觉 8.6',d:'PDF 占位插画气质偏离'},{lvl:'warn',code:'H6.4',t:'D6 -0.3',d:'占位 PNG 1.2MB 可换 webp'} ] }
+};
+var DIMS_META = [
+  {k:'D1',n:'一致性',w:.12},{k:'D2',n:'可用性',w:.12},{k:'D3',n:'功能',w:.10},
+  {k:'D4',n:'A11y',w:.14},{k:'D5',n:'美学',w:.08},{k:'D6',n:'性能',w:.08},
+  {k:'D7',n:'代码',w:.10},{k:'D8',n:'安全',w:.08},{k:'D9',n:'响应',w:.06},
+  {k:'D10',n:'维护',w:.06},{k:'D11',n:'i18n',w:.04},{k:'D12',n:'SEO',w:.02}
+];
+var WEIGHTS = {}; DIMS_META.forEach(function(d){ WEIGHTS[d.k] = d.w; });
+function weighted(s){ return Object.keys(WEIGHTS).reduce(function(a,k){ return a + WEIGHTS[k]*s[k]; }, 0); }
+function gradeLetter(s){ return s>=9.5?'S':s>=9.0?'A':s>=8.0?'B':s>=6.0?'C':'D'; }
+function gradeColor(g){ return {S:'var(--S)',A:'#3F6B4A',B:'var(--amber-ink)',Cdeny:'var(--err-ink)',D:'var(--err)'}[g] || 'var(--ink)'; }
+
+var STATES = [
+  {k:'data',    name:'数据态', color:'var(--ok)', desc:'正常数据 + 全部交互可用'},
+  {k:'loading', name:'加载态', color:'var(--amber)', desc:'骨架屏 / 旋转图标 / 占位文本'},
+  {k:'empty',   name:'空态',   color:'var(--ink-3)', desc:'空数据 + 引导文案 + 主操作按钮'},
+  {k:'error',   name:'错误态', color:'var(--err)', desc:'错误说明 + 重试按钮 + 错误码'}
+];
+var VIEWPORTS = [
+  {k:'desktop', name:'桌面', w:1280, h:800,  dpr:1, cls:'desktop', size:'1280×800'},
+  {k:'tablet',  name:'平板', w:820,  h:1180, dpr:2, cls:'tablet',  size:'820×1180'},
+  {k:'mobile',  name:'手机', w:390,  h:844,  dpr:3, cls:'mobile',  size:'390×844'}
+];
+
+/* ================== 状态 ================== */
+var CURRENT = { key:'dashboard', state:'data', vp:'desktop', ws:'team' };
+var FAB_OPEN = null; // null | 'popState' | 'popScore' | 'popInfo'
+
+/* ================== 渲染 pages 列表 ================== */
+function renderPages(){
+  var list = document.getElementById('pagesList');
+  list.innerHTML = '';
+  Object.keys(SCORES).forEach(function(k){
+    var p = SCORES[k];
+    var w = weighted(p.dims);
+    var g = gradeLetter(w);
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.setAttribute('data-key', k);
+    btn.setAttribute('data-grade', g);
+    btn.setAttribute('role', 'option');
+    btn.setAttribute('aria-selected', k === CURRENT.key ? 'true' : 'false');
+    if (k === CURRENT.key) btn.classList.add('on');
+    btn.innerHTML =
+      '<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + p.icon + '</svg>' +
+      '<span class="nm">' + p.name + '</span>' +
+      '<span class="sc" style="color:' + gradeColor(g) + '">' + w.toFixed(2) + '</span>';
+    btn.addEventListener('click', function(){ selectKey(k); });
+    list.appendChild(btn);
+  });
+  /* 全局统计 */
+  var ws = Object.keys(SCORES).map(function(k){ return weighted(SCORES[k].dims); });
+  var mn = ws.reduce(function(a,b){return a+b;},0)/ws.length;
+  document.getElementById('gMean').textContent = mn.toFixed(2);
+  document.getElementById('gMin').textContent = Math.min.apply(null, ws).toFixed(2);
+  document.getElementById('gMax').textContent = Math.max.apply(null, ws).toFixed(2);
+}
+
+/* ================== 切换器：状态 ================== */
+function wireSegs(){
+  function wire(segId, key, value, label){
+    var seg = document.getElementById(segId);
+    seg.querySelectorAll('button').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        if (btn.disabled) return;
+        CURRENT[key] = btn.getAttribute('data-' + key);
+        seg.querySelectorAll('button').forEach(function(x){ x.classList.remove('on'); });
+        btn.classList.add('on');
+        applyAll();
+        /* 不同步/不同工作区校验：例如 dashboard 在 personal 态下，admin 项会消失 */
+        showToast(label + '：' + btn.textContent.trim());
+      });
+    });
+  }
+  wire('segState', 'state', CURRENT.state, '状态');
+  wire('segViewport', 'vp', CURRENT.vp, '视口');
+  wire('segWorkspace', 'ws', CURRENT.ws, '工作区');
+}
+
+/* ================== 应用所有状态 ================== */
+function applyAll(){
+  var p = SCORES[CURRENT.key];
+  if (!p) return;
+  var st = STATES.find(function(s){ return s.k === CURRENT.state; }) || STATES[0];
+  var vp = VIEWPORTS.find(function(v){ return v.k === CURRENT.vp; }) || VIEWPORTS[0];
+  /* 1. iframe src（带 state/vp/ws query） */
+  var url = './' + p.file + '?state=' + CURRENT.state + '&vp=' + CURRENT.vp + '&ws=' + CURRENT.ws;
+  document.getElementById('frame').src = url;
+  /* 2. 设备外壳 */
+  var dev = document.getElementById('device');
+  dev.className = 'device ' + vp.cls;
+  /* 3. crumb */
+  document.getElementById('curName').textContent = p.name;
+  document.getElementById('curState').textContent = st.name;
+  document.getElementById('curViewport').textContent = vp.name + ' ' + vp.size;
+  document.getElementById('curWorkspace').textContent = CURRENT.ws === 'team' ? '团队空间' : '个人空间';
+  /* 4. ruler */
+  document.getElementById('rSize').innerHTML = '<b>' + vp.w + '</b>×<b>' + vp.h + '</b>';
+  document.getElementById('rDpr').innerHTML = 'DPR <b>' + vp.dpr + '</b>';
+  document.getElementById('rMode').textContent = vp.name + ' ' + (vp.cls === 'mobile' ? '✓' : vp.cls === 'tablet' ? '◐' : '□');
+  /* 5. open link */
+  document.getElementById('openLink').href = './' + p.file;
+  /* 6. state 按钮 disabled 校验（页面没此态） */
+  var stateBtns = document.querySelectorAll('#segState button');
+  stateBtns.forEach(function(b){
+    var k = b.getAttribute('data-state');
+    b.disabled = p.states.indexOf(k) < 0;
+    b.title = p.states.indexOf(k) < 0 ? '该页未演示此态' : b.title;
+  });
+  /* 7. 个人空间下禁用 team 相关维度（仅信息层） */
+  document.querySelectorAll('#pagesList button').forEach(function(n){
+    var kk = n.getAttribute('data-key');
+    n.classList.toggle('on', kk === CURRENT.key);
+    n.setAttribute('aria-selected', kk === CURRENT.key ? 'true' : 'false');
+  });
+  /* 8. 悬浮层内容（每次状态变都更新） */
+  refreshPopovers();
+  /* 9. 关闭 popover 状态高亮 */
+  if (FAB_OPEN) refreshPopover(FAB_OPEN);
+}
+
+/* ================== 选页 ================== */
+function selectKey(k){
+  CURRENT.key = k;
+  var p = SCORES[k];
+  /* 切页时若 state 不可用，自动回 data */
+  if (p.states.indexOf(CURRENT.state) < 0) {
+    CURRENT.state = 'data';
+    document.querySelectorAll('#segState button').forEach(function(b){
+      b.classList.toggle('on', b.getAttribute('data-state') === 'data');
+    });
+  }
+  applyAll();
+}
+
+/* ================== 悬浮层 ================== */
+function refreshPopovers(){
+  /* 评分 popover */
+  var p = SCORES[CURRENT.key];
+  var w = weighted(p.dims);
+  var g = gradeLetter(w);
+  var ds = Object.values(p.dims);
+  var minD = DIMS_META[ds.indexOf(Math.min.apply(null, ds))];
+  var maxD = DIMS_META[ds.indexOf(Math.max.apply(null, ds))];
+  document.getElementById('psW').textContent = w.toFixed(2);
+  var gtag = document.getElementById('psGrade');
+  gtag.textContent = g;
+  gtag.className = 'g ' + (g === 'C' ? 'Cdeny' : g);
+  document.getElementById('psMin').textContent = minD.n + ' ' + p.dims[minD.k].toFixed(1);
+  document.getElementById('psMax').textContent = maxD.n + ' ' + p.dims[maxD.k].toFixed(1);
+  var bars = document.getElementById('psBars');
+  bars.innerHTML = DIMS_META.map(function(d){
+    var v = p.dims[d.k];
+    var c = gradeColor(gradeLetter(v));
+    return '<div style="display:flex;align-items:center;gap:6px;padding:3px 0;font-size:11px">' +
+      '<span style="flex:0 0 36px;color:var(--ink-3);font-weight:600">' + d.k + '</span>' +
+      '<span style="flex:0 0 40px;color:var(--ink-2)">' + d.n + '</span>' +
+      '<div class="meter" style="flex:1;height:5px;background:var(--line);border-radius:3px;overflow:hidden;margin:0"><span style="display:block;height:100%;width:' + (v*10) + '%;background:' + c + '"></span></div>' +
+      '<span style="flex:0 0 32px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:' + c + '">' + v.toFixed(1) + '</span>' +
+    '</div>';
+  }).join('');
+  /* 状态 popover */
+  var st = STATES.find(function(s){ return s.k === CURRENT.state; });
+  var vp = VIEWPORTS.find(function(v){ return v.k === CURRENT.vp; });
+  document.getElementById('psPage').textContent = p.name;
+  document.getElementById('psState').textContent = st.name;
+  document.getElementById('psState').style.color = st.color;
+  var stag = document.getElementById('psStateTag');
+  stag.textContent = st.k;
+  stag.className = 'g ' + (st.k === 'error' ? 'Cdeny' : st.k === 'loading' ? 'B' : st.k === 'empty' ? 'A' : 'A');
+  document.getElementById('psVp').textContent = vp.size + ' · DPR ' + vp.dpr;
+  document.getElementById('psWs').textContent = CURRENT.ws === 'team' ? '团队空间 · admin 4 项可见' : '个人空间 · admin 隐藏';
+  document.getElementById('psHint').textContent = st.desc + ' · ' + (CURRENT.ws === 'personal' ? '个人态' : '团队态');
+  /* 违规 badge */
+  var errCount = p.vio.filter(function(v){ return v.lvl === 'err'; }).length;
+  var badge = document.getElementById('vioBadge');
+  if (errCount > 0) { badge.textContent = errCount; badge.style.display = 'flex'; }
+  else { badge.style.display = 'none'; }
+  /* info popover */
+  document.getElementById('piFile').textContent = p.file;
+  document.getElementById('piSec').textContent = p.section === 'core' ? '核心工作区' : '管理后台';
+  document.getElementById('piSize').textContent = p.size + ' KB';
+  document.getElementById('piVio').innerHTML = p.vio.length + ' 项 <span style="color:var(--err-ink);font-weight:700">(' + errCount + ' 严重)</span>';
+}
+function refreshPopover(id){
+  refreshPopovers();
+}
+
+/* FAB 开关 */
+function wireFAB(){
+  var map = { fabState:'popState', fabScore:'popScore', fabInfo:'popInfo' };
+  Object.keys(map).forEach(function(fabId){
+    document.getElementById(fabId).addEventListener('click', function(){
+      var pop = document.getElementById(map[fabId]);
+      var wasOpen = pop.classList.contains('open');
+      closeAllPops();
+      if (!wasOpen) { pop.classList.add('open'); FAB_OPEN = map[fabId]; refreshPopover(map[fabId]); }
+      else { FAB_OPEN = null; }
+      /* FAB active 状态 */
+      Object.keys(map).forEach(function(f){ document.getElementById(f).setAttribute('data-active', map[f] === FAB_OPEN ? 'true' : 'false'); });
+    });
+  });
+  document.querySelectorAll('[data-close]').forEach(function(x){
+    x.addEventListener('click', function(){
+      var p = document.getElementById(x.getAttribute('data-close'));
+      p.classList.remove('open');
+      FAB_OPEN = null;
+      Object.keys(map).forEach(function(f){ document.getElementById(f).setAttribute('data-active', 'false'); });
+    });
+    x.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); x.click(); } });
+  });
+  /* 截图 */
+  document.getElementById('fabShot').addEventListener('click', function(){
+    var fr = document.getElementById('frame');
+    showToast('截图已截取当前 ' + STATES.find(function(s){ return s.k === CURRENT.state; }).name + '（' + SCORES[CURRENT.key].name + '）');
+    try {
+      fr.contentWindow.focus();
+      fr.contentWindow.print && fr.contentWindow.print();
+    } catch(e){}
+  });
+  /* 点击外部关闭 popover */
+  document.addEventListener('click', function(e){
+    if (!e.target.closest('.popover') && !e.target.closest('.fab-btn')) {
+      closeAllPops();
+      Object.keys(map).forEach(function(f){ document.getElementById(f).setAttribute('data-active', 'false'); });
+      FAB_OPEN = null;
+    }
+  });
+}
+function closeAllPops(){
+  document.querySelectorAll('.popover').forEach(function(p){ p.classList.remove('open'); });
+}
+
+/* Toast */
+var toastTimer = null;
+function showToast(text){
+  var t = document.getElementById('toast');
+  document.getElementById('toastText').textContent = text;
+  t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 1600);
+}
+
+/* Modal: 标准 */
+function wireModal(){
+  var m = document.getElementById('stdModal');
+  function open(){ m.classList.add('open'); }
+  function close(){ m.classList.remove('open'); }
+  document.getElementById('openStd').addEventListener('click', open);
+  m.querySelectorAll('[data-close-modal]').forEach(function(b){ b.addEventListener('click', close); });
+  m.addEventListener('click', function(e){ if (e.target === m) close(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') close(); });
+}
+
+/* 报告下载 */
+function wireDownload(){
+  document.getElementById('dlReport').addEventListener('click', function(){
+    var keys = Object.keys(SCORES);
+    var ws = keys.map(function(k){ return weighted(SCORES[k].dims); });
+    var mn = ws.reduce(function(a,b){return a+b;},0)/ws.length;
+    var md = '# 知岸 RAG · v4 评估报告\n\n生成：' + new Date().toISOString() + '\n\n## 总览\n\n- 页数：' + keys.length + '\n- 加权均值：**' + mn.toFixed(2) + '**\n- 最低 ' + Math.min.apply(null,ws).toFixed(2) + ' / 最高 ' + Math.max.apply(null,ws).toFixed(2) + '\n\n';
+    var json = { generatedAt: new Date().toISOString(), summary:{mean:+mn.toFixed(2)}, pages:{} };
+    keys.forEach(function(k){
+      var p = SCORES[k];
+      var w = weighted(p.dims);
+      var g = gradeLetter(w);
+      json.pages[p.file] = { name:p.name, weighted:+w.toFixed(2), grade:g, dims:p.dims, violations:p.vio };
+      md += '## ' + p.name + ' — ' + g + ' ' + w.toFixed(2) + ' (' + CURRENT.vp + ' / ' + CURRENT.ws + ' / ' + CURRENT.state + ')\n\n';
+      p.vio.forEach(function(v){ md += '- **' + v.code + '** (' + v.lvl + ') ' + v.t + ' — ' + v.d + '\n'; });
+      md += '\n';
+    });
+    /* 下载 md */
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([md], {type:'text/markdown'}));
+    a.download = 'v4-eval-' + new Date().toISOString().slice(0,10) + '.md';
+    a.click();
+    /* 下载 json */
+    var b = document.createElement('a');
+    b.href = URL.createObjectURL(new Blob([JSON.stringify(json, null, 2)], {type:'application/json'}));
+    b.download = 'v4-eval-' + new Date().toISOString().slice(0,10) + '.json';
+    b.click();
+    showToast('已下载 .md + .json 报告');
+  });
+}
+
+/* 移动端 drawer */
+document.getElementById('menuBtn').addEventListener('click', function(){
+  document.getElementById('sidebar').classList.toggle('open');
+});
+
+/* init */
+renderPages();
+wireSegs();
+wireFAB();
+wireModal();
+wireDownload();
+applyAll();
+</script>
+
+<!-- ===== Showcase 灯箱 (28 张最新改版成果) ===== -->
+<style>
+  .sc-lightbox{position:fixed;inset:0;z-index:200;background:rgba(20,16,12,.78);backdrop-filter:blur(14px);display:none;align-items:center;justify-content:center;padding:30px}
+  .sc-lightbox.open{display:flex}
+  .sc-panel{background:var(--surface);border-radius:18px;box-shadow:0 30px 80px rgba(0,0,0,.4);width:min(1280px,96vw);max-height:92vh;display:flex;flex-direction:column;overflow:hidden}
+  .sc-head{padding:18px 24px 14px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex:0 0 auto;background:var(--shell);backdrop-filter:blur(14px)}
+  .sc-head h2{font-family:var(--serif);font-size:18px;margin:0;color:var(--ink);letter-spacing:.5px;flex:1}
+  .sc-head h2 small{font-family:inherit;font-size:11px;color:var(--ink-3);font-weight:400;letter-spacing:0;margin-left:8px}
+  .sc-tabs{display:flex;gap:4px;flex-wrap:wrap;padding:12px 24px;background:var(--shell);border-bottom:1px solid var(--line);flex:0 0 auto}
+  .sc-tab{font-size:11.5px;padding:5px 10px;border-radius:999px;border:1px solid var(--line-2);background:transparent;color:var(--ink-2);cursor:pointer;font-weight:600;font-family:inherit;transition:.15s}
+  .sc-tab:hover{background:rgba(194,113,75,.07);border-color:rgba(194,113,75,.3);color:var(--terracotta-ink)}
+  .sc-tab.on{background:var(--terracotta);border-color:var(--terracotta);color:#fff}
+  .sc-body{flex:1;overflow-y:auto;padding:18px 24px 24px;min-height:0}
+  .sc-group h3{font-family:var(--serif);font-size:13px;letter-spacing:1px;color:var(--ink-3);margin:0 0 10px;padding-bottom:6px;border-bottom:1px dashed var(--line);text-transform:uppercase}
+  .sc-group + .sc-group{margin-top:24px}
+  .sc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+  .sc-card{margin:0;background:#FBF6EF;border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;transition:.15s;display:flex;flex-direction:column}
+  .sc-card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(43,38,34,.12);border-color:rgba(194,113,75,.4)}
+  .sc-card img{width:100%;height:auto;display:block;background:#fff}
+  .sc-card figcaption{padding:8px 10px 9px;font-size:11.5px;color:var(--ink-2);line-height:1.4;flex:1}
+  .sc-card figcaption .sc-key{display:block;font-family:var(--mono);font-size:10px;color:var(--ink-4);margin-top:3px;letter-spacing:0}
+  .sc-close{background:transparent;border:1px solid var(--line-2);color:var(--ink-2);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px;display:grid;place-items:center;font-family:inherit;transition:.15s}
+  .sc-close:hover{background:rgba(194,74,58,.1);border-color:var(--err);color:var(--err)}
+</style>
+<div class="sc-lightbox" id="scLightbox" role="dialog" aria-modal="true" aria-label="最新改版成果">
+  <div class="sc-panel">
+    <div class="sc-head">
+      <h2>最新改版成果 <small>48 张 · Playwright 真实浏览器渲染 · 2026-07-12</small></h2>
+      <button class="sc-close" id="scClose" type="button" aria-label="关闭">✕</button>
+    </div>
+    <div class="sc-tabs" id="scTabs"></div>
+    <div class="sc-body" id="scBody"><div class="sc-group" data-grp="A · v4 gallery 状态切换器 (含 FAB/视口外壳/邀请弹层)">
+  <h3>A · v4 gallery 状态切换器 (含 FAB/视口外壳/邀请弹层)</h3>
+  <div class="sc-grid">
+    <figure class="sc-card"><img src="./_render/showcase/A1-gallery-desktop-default.png" alt="桌面默认 · 12 页导航 + 3 维切换 + iframe 全网页 + 4 FAB" loading="lazy"><figcaption>桌面默认 · 12 页导航 + 3 维切换 + iframe 全网页 + 4 FAB<span class="sc-key">A1-gallery-desktop-default.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/A2-gallery-fab-score.png" alt="FAB 评分弹层 · 加权 9.20 + A 档 + 12 维彩色进度条" loading="lazy"><figcaption>FAB 评分弹层 · 加权 9.20 + A 档 + 12 维彩色进度条<span class="sc-key">A2-gallery-fab-score.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/A3-gallery-vp-mobile.png" alt="手机视口外壳 · 390×844 + 刘海 + DPR 3" loading="lazy"><figcaption>手机视口外壳 · 390×844 + 刘海 + DPR 3<span class="sc-key">A3-gallery-vp-mobile.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/A4-invite-in-context.png" alt="邀请 dialog · 含 dashboard 空态上下文" loading="lazy"><figcaption>邀请 dialog · 含 dashboard 空态上下文<span class="sc-key">A4-invite-in-context.png</span></figcaption></figure>
+  </div>
+</div>
+<div class="sc-group" data-grp="B · 12 个侧栏升级后预览 (桌面板)">
+  <h3>B · 12 个侧栏升级后预览 (桌面板)</h3>
+  <div class="sc-grid">
+    <figure class="sc-card"><img src="./_render/showcase/B-dashboard.png" alt="Dashboard" loading="lazy"><figcaption>Dashboard<span class="sc-key">B-dashboard.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/B-knowledge-bases.png" alt="KBs" loading="lazy"><figcaption>KBs<span class="sc-key">B-knowledge-bases.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/B-knowledge-base-detail.png" alt="KBDetail" loading="lazy"><figcaption>KBDetail<span class="sc-key">B-knowledge-base-detail.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/B-chat.png" alt="Chat" loading="lazy"><figcaption>Chat<span class="sc-key">B-chat.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/B-ask.png" alt="Ask" loading="lazy"><figcaption>Ask<span class="sc-key">B-ask.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/B-account-settings.png" alt="Account" loading="lazy"><figcaption>Account<span class="sc-key">B-account-settings.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/B-members.png" alt="Members" loading="lazy"><figcaption>Members<span class="sc-key">B-members.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/B-org-departments.png" alt="Departments" loading="lazy"><figcaption>Departments<span class="sc-key">B-org-departments.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/B-organization-settings.png" alt="OrgSettings" loading="lazy"><figcaption>OrgSettings<span class="sc-key">B-organization-settings.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/B-admin-audit.png" alt="AdminAudit" loading="lazy"><figcaption>AdminAudit<span class="sc-key">B-admin-audit.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/B-document-preview.png" alt="DocPreview" loading="lazy"><figcaption>DocPreview<span class="sc-key">B-document-preview.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/B-login.png" alt="Login" loading="lazy"><figcaption>Login<span class="sc-key">B-login.png</span></figcaption></figure>
+  </div>
+</div>
+<div class="sc-group" data-grp="C · Dashboard 3 态">
+  <h3>C · Dashboard 3 态</h3>
+  <div class="sc-grid">
+    <figure class="sc-card"><img src="./_render/showcase/C-dashboard-data.png" alt="数据态" loading="lazy"><figcaption>数据态<span class="sc-key">C-dashboard-data.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/C-dashboard-empty.png" alt="空态" loading="lazy"><figcaption>空态<span class="sc-key">C-dashboard-empty.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/C-dashboard-error.png" alt="错误态" loading="lazy"><figcaption>错误态<span class="sc-key">C-dashboard-error.png</span></figcaption></figure>
+  </div>
+</div>
+<div class="sc-group" data-grp="D · Dashboard v4.4 空态 (含邀请弹层与简洁模式)">
+  <h3>D · Dashboard v4.4 空态 (含邀请弹层与简洁模式)</h3>
+  <div class="sc-grid">
+    <figure class="sc-card"><img src="./_render/showcase/D1-empty-default.png" alt="空态默认 · 暖白渐变 HERO + 3 步 + 4 卡 + RAG 预告" loading="lazy"><figcaption>空态默认 · 暖白渐变 HERO + 3 步 + 4 卡 + RAG 预告<span class="sc-key">D1-empty-default.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/D2-empty-simple.png" alt="简洁模式 · 装饰关闭,只留文件夹" loading="lazy"><figcaption>简洁模式 · 装饰关闭,只留文件夹<span class="sc-key">D2-empty-simple.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/D3-empty-invite-dialog.png" alt="邀请弹层 · 角色多选 + 链接 + 复制" loading="lazy"><figcaption>邀请弹层 · 角色多选 + 链接 + 复制<span class="sc-key">D3-empty-invite-dialog.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/D4-empty-invite-sent.png" alt="已邀请 1 位 + 名单动态" loading="lazy"><figcaption>已邀请 1 位 + 名单动态<span class="sc-key">D4-empty-invite-sent.png</span></figcaption></figure>
+  </div>
+</div>
+<div class="sc-group" data-grp="E · Login 注册三步向导">
+  <h3>E · Login 注册三步向导</h3>
+  <div class="sc-grid">
+    <figure class="sc-card"><img src="./_render/showcase/E1-register-step1.png" alt="Step 1 · 个人/团队" loading="lazy"><figcaption>Step 1 · 个人/团队<span class="sc-key">E1-register-step1.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/E2-register-step2-longname.png" alt="Step 2 · 创建者 + 长名警告 8/255" loading="lazy"><figcaption>Step 2 · 创建者 + 长名警告 8/255<span class="sc-key">E2-register-step2-longname.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/E3-register-step3.png" alt="Step 3 · summary chip + 强度条 + 可选昵称" loading="lazy"><figcaption>Step 3 · summary chip + 强度条 + 可选昵称<span class="sc-key">E3-register-step3.png</span></figcaption></figure>
+  </div>
+</div>
+<div class="sc-group" data-grp="F · admin-audit 工作区权限对比">
+  <h3>F · admin-audit 工作区权限对比</h3>
+  <div class="sc-grid">
+    <figure class="sc-card"><img src="./_render/showcase/F-admin-audit-team.png" alt="团队态 · admin 4 项全显" loading="lazy"><figcaption>团队态 · admin 4 项全显<span class="sc-key">F-admin-audit-team.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/F-admin-audit-personal.png" alt="个人态 · admin 4 项全隐" loading="lazy"><figcaption>个人态 · admin 4 项全隐<span class="sc-key">F-admin-audit-personal.png</span></figcaption></figure>
+  </div>
+</div>
+<div class="sc-group" data-grp="G · v4.5 空态推广（KBDetail / Ask / Members / Account）">
+  <h3>G · v4.5 空态推广（KBDetail / Ask / Members / Account）</h3>
+  <div class="sc-grid">
+    <figure class="sc-card"><img src="./_render/showcase/G1-kbdetail-v44.png" alt="KBDetail v4.4 空态 · 无文档" loading="lazy"><figcaption>KBDetail v4.4 空态 · 无文档<span class="sc-key">G1-kbdetail-v44.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/G2-kbdetail-simple.png" alt="KBDetail 简洁模式" loading="lazy"><figcaption>KBDetail 简洁模式<span class="sc-key">G2-kbdetail-simple.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/G3-kbdetail-invite-sent.png" alt="KBDetail 邀请已发送" loading="lazy"><figcaption>KBDetail 邀请已发送<span class="sc-key">G3-kbdetail-invite-sent.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/G4-ask-v44.png" alt="Ask v4.4 空态 · 无资料库" loading="lazy"><figcaption>Ask v4.4 空态 · 无资料库<span class="sc-key">G4-ask-v44.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/G5-ask-simple.png" alt="Ask 简洁模式" loading="lazy"><figcaption>Ask 简洁模式<span class="sc-key">G5-ask-simple.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/G6-ask-invite-sent.png" alt="Ask 邀请已发送" loading="lazy"><figcaption>Ask 邀请已发送<span class="sc-key">G6-ask-invite-sent.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/G7-members-v44.png" alt="Members v4.4 空态 · 仅所有者" loading="lazy"><figcaption>Members v4.4 空态 · 仅所有者<span class="sc-key">G7-members-v44.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/G8-members-simple.png" alt="Members 简洁模式" loading="lazy"><figcaption>Members 简洁模式<span class="sc-key">G8-members-simple.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/G9-members-invite-sent.png" alt="Members 邀请已发送" loading="lazy"><figcaption>Members 邀请已发送<span class="sc-key">G9-members-invite-sent.png</span></figcaption></figure>
+    <figure class="sc-card"><img src="./_render/showcase/G10-account-v44.png" alt="Account v4.4 空态 · 首次设置" loading="lazy"><figcaption>Account v4.4 空态 · 首次设置<span class="sc-key">G10-account-v44.png</span></figcaption></figure>
+  </div>
+</div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  var lb = document.getElementById('scLightbox');
+  var open = document.getElementById('openShowcase');
+  var close = document.getElementById('scClose');
+  if (!open || !lb) return;
+  var groups = ['全部', 'v4 gallery', '12 页面', 'Dashboard 3 态', 'v4.4 空态', '注册三步', '工作区权限', 'v4.5 空态'];
+  var prefix = ['all', 'A', 'B', 'C', 'D', 'E', 'F', 'G'];
+  var tabs = document.getElementById('scTabs');
+  groups.forEach(function(g, i){
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'sc-tab' + (i === 0 ? ' on' : '');
+    b.textContent = g;
+    b.addEventListener('click', function(){
+      tabs.querySelectorAll('.sc-tab').forEach(function(t){t.classList.remove('on');});
+      b.classList.add('on');
+      var pre = prefix[i];
+      document.querySelectorAll('.sc-group').forEach(function(g){
+        if (pre === 'all' || g.dataset.grp.indexOf(pre + ' ·') === 0) g.style.display = '';
+        else g.style.display = 'none';
+      });
+    });
+    tabs.appendChild(b);
+  });
+  function show(){ lb.classList.add('open'); document.body.style.overflow = 'hidden'; }
+  function hide(){ lb.classList.remove('open'); document.body.style.overflow = ''; }
+  open.addEventListener('click', show);
+  close.addEventListener('click', hide);
+  lb.addEventListener('click', function(e){ if (e.target === lb) hide(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && lb.classList.contains('open')) hide(); });
+})();
+</script>
+</body>
+</html>

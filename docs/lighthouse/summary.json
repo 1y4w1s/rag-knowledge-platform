@@ -1,0 +1,200 @@
+[
+  {
+    "name": "login",
+    "label": "登录页（公开基线）",
+    "url": "http://localhost:5180/login",
+    "performance": 0.58,
+    "accessibility": 0.93,
+    "bestPractices": 1,
+    "seo": 0.91,
+    "metrics": {
+      "FCP": "4.7 s",
+      "LCP": "4.9 s",
+      "TBT": "30 ms",
+      "CLS": "0",
+      "SI": "4.7 s",
+      "TTI": "4.9 s"
+    },
+    "htmlPath": "d:/MyPrograms/rag-knowledge-platform/docs/lighthouse/login.html"
+  },
+  {
+    "name": "dashboard",
+    "label": "工作台 Dashboard",
+    "url": "http://localhost:5180/dashboard",
+    "performance": 0.58,
+    "accessibility": 0.93,
+    "bestPractices": 1,
+    "seo": 0.91,
+    "metrics": {
+      "FCP": "4.7 s",
+      "LCP": "4.9 s",
+      "TBT": "10 ms",
+      "CLS": "0",
+      "SI": "4.7 s",
+      "TTI": "4.9 s"
+    },
+    "htmlPath": "d:/MyPrograms/rag-knowledge-platform/docs/lighthouse/dashboard.html"
+  },
+  {
+    "name": "knowledge_bases",
+    "label": "资料库列表 KBs",
+    "url": "http://localhost:5180/knowledge-bases",
+    "performance": 0.57,
+    "accessibility": 0.96,
+    "bestPractices": 1,
+    "seo": 0.91,
+    "metrics": {
+      "FCP": "4.7 s",
+      "LCP": "5.2 s",
+      "TBT": "0 ms",
+      "CLS": "0",
+      "SI": "4.7 s",
+      "TTI": "5.9 s"
+    },
+    "htmlPath": "d:/MyPrograms/rag-knowledge-platform/docs/lighthouse/knowledge_bases.html"
+  },
+  {
+    "name": "kb_detail",
+    "label": "资料库详情 KBDetail",
+    "url": "http://localhost:5180/knowledge-bases/da7e251b-d986-469c-8834-55529c2233e4",
+    "performance": 0.57,
+    "accessibility": 0.96,
+    "bestPractices": 1,
+    "seo": 0.91,
+    "metrics": {
+      "FCP": "4.9 s",
+      "LCP": "5.4 s",
+      "TBT": "0 ms",
+      "CLS": "0",
+      "SI": "4.9 s",
+      "TTI": "5.4 s"
+    },
+    "htmlPath": "d:/MyPrograms/rag-knowledge-platform/docs/lighthouse/kb_detail.html"
+  },
+  {
+    "name": "members",
+    "label": "成员管理 Members",
+    "url": "http://localhost:5180/organization/members",
+    "performance": 0.57,
+    "accessibility": 0.95,
+    "bestPractices": 1,
+    "seo": 0.91,
+    "metrics": {
+      "FCP": "4.7 s",
+      "LCP": "5.0 s",
+      "TBT": "0 ms",
+      "CLS": "0",
+      "SI": "4.7 s",
+      "TTI": "5.0 s"
+    },
+    "htmlPath": "d:/MyPrograms/rag-knowledge-platform/docs/lighthouse/members.html"
+  },
+  {
+    "name": "departments",
+    "label": "部门管理 Departments",
+    "url": "http://localhost:5180/organization/departments",
+    "performance": 0.57,
+    "accessibility": 0.96,
+    "bestPractices": 1,
+    "seo": 0.91,
+    "metrics": {
+      "FCP": "4.7 s",
+      "LCP": "5.1 s",
+      "TBT": "0 ms",
+      "CLS": "0.006",
+      "SI": "4.7 s",
+      "TTI": "5.1 s"
+    },
+    "htmlPath": "d:/MyPrograms/rag-knowledge-platform/docs/lighthouse/departments.html"
+  },
+  {
+    "name": "account",
+    "label": "账号设置 Account",
+    "url": "http://localhost:5180/settings/account",
+    "performance": 0.57,
+    "accessibility": 0.95,
+    "bestPractices": 1,
+    "seo": 0.91,
+    "metrics": {
+      "FCP": "4.7 s",
+      "LCP": "5.0 s",
+      "TBT": "0 ms",
+      "CLS": "0",
+      "SI": "4.7 s",
+      "TTI": "5.0 s"
+    },
+    "htmlPath": "d:/MyPrograms/rag-knowledge-platform/docs/lighthouse/account.html"
+  },
+  {
+    "name": "org_settings",
+    "label": "团队设置 OrgSettings",
+    "url": "http://localhost:5180/organization/settings",
+    "performance": 0.57,
+    "accessibility": 0.95,
+    "bestPractices": 1,
+    "seo": 0.91,
+    "metrics": {
+      "FCP": "4.7 s",
+      "LCP": "5.0 s",
+      "TBT": "0 ms",
+      "CLS": "0",
+      "SI": "4.7 s",
+      "TTI": "5.0 s"
+    },
+    "htmlPath": "d:/MyPrograms/rag-knowledge-platform/docs/lighthouse/org_settings.html"
+  },
+  {
+    "name": "admin_audit",
+    "label": "操作审计 AdminAudit",
+    "url": "http://localhost:5180/admin/audit",
+    "performance": 0.57,
+    "accessibility": 0.95,
+    "bestPractices": 1,
+    "seo": 0.91,
+    "metrics": {
+      "FCP": "4.7 s",
+      "LCP": "5.3 s",
+      "TBT": "0 ms",
+      "CLS": "0",
+      "SI": "4.7 s",
+      "TTI": "5.3 s"
+    },
+    "htmlPath": "d:/MyPrograms/rag-knowledge-platform/docs/lighthouse/admin_audit.html"
+  },
+  {
+    "name": "doc_preview_md",
+    "label": "文档预览（Markdown 文本）",
+    "url": "http://localhost:5180/knowledge-bases/f58aa8b5-be0b-446b-b431-10d66e85450b/documents/0bf54c48-1782-461c-adcf-6aecded3cecb",
+    "performance": 0.57,
+    "accessibility": 0.95,
+    "bestPractices": 0.96,
+    "seo": 0.91,
+    "metrics": {
+      "FCP": "4.9 s",
+      "LCP": "5.5 s",
+      "TBT": "10 ms",
+      "CLS": "0",
+      "SI": "4.9 s",
+      "TTI": "5.5 s"
+    },
+    "htmlPath": "d:/MyPrograms/rag-knowledge-platform/docs/lighthouse/doc_preview_md.html"
+  },
+  {
+    "name": "doc_preview_pdf",
+    "label": "文档预览（PDF）",
+    "url": "http://localhost:5180/knowledge-bases/da7e251b-d986-469c-8834-55529c2233e4/documents/d99ae3dd-a30e-4e86-a460-942255b17174",
+    "performance": 0.48,
+    "accessibility": 0.96,
+    "bestPractices": 1,
+    "seo": 0.91,
+    "metrics": {
+      "FCP": "4.9 s",
+      "LCP": "5.5 s",
+      "TBT": "0 ms",
+      "CLS": "0.196",
+      "SI": "4.9 s",
+      "TTI": "5.6 s"
+    },
+    "htmlPath": "d:/MyPrograms/rag-knowledge-platform/docs/lighthouse/doc_preview_pdf.html"
+  }
+]

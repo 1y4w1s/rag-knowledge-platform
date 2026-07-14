@@ -1,0 +1,652 @@
+{
+  "pages": {
+    "dashboard": {
+      "desktop": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "overflowX": false,
+          "docHeight": 1259,
+          "offenders": [
+            {
+              "cls": "SPAN",
+              "right": 1288,
+              "w": 406
+            }
+          ]
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "zeroCards": [],
+        "statCards": {
+          "count": 8,
+          "cards": [
+            {
+              "h": 134,
+              "w": 241,
+              "bg": "rgb(255, 255, 255)",
+              "vis": true,
+              "footerGapToBottom": null,
+              "footerH": null
+            },
+            {
+              "h": 134,
+              "w": 241,
+              "bg": "rgb(255, 255, 255)",
+              "vis": true,
+              "footerGapToBottom": 17,
+              "footerH": 30
+            },
+            {
+              "h": 134,
+              "w": 241,
+              "bg": "rgb(255, 255, 255)",
+              "vis": true,
+              "footerGapToBottom": null,
+              "footerH": null
+            },
+            {
+              "h": 134,
+              "w": 241,
+              "bg": "rgb(255, 255, 255)",
+              "vis": true,
+              "footerGapToBottom": null,
+              "footerH": null
+            },
+            {
+              "h": 0,
+              "w": 0,
+              "bg": "rgb(255, 255, 255)",
+              "vis": false,
+              "footerGapToBottom": null,
+              "footerH": null
+            },
+            {
+              "h": 0,
+              "w": 0,
+              "bg": "rgb(255, 255, 255)",
+              "vis": false,
+              "footerGapToBottom": null,
+              "footerH": null
+            },
+            {
+              "h": 0,
+              "w": 0,
+              "bg": "rgb(255, 255, 255)",
+              "vis": false,
+              "footerGapToBottom": null,
+              "footerH": null
+            },
+            {
+              "h": 0,
+              "w": 0,
+              "bg": "rgb(255, 255, 255)",
+              "vis": false,
+              "footerGapToBottom": null,
+              "footerH": null
+            }
+          ],
+          "rows": [
+            {
+              "count": 4,
+              "min": 0,
+              "max": 0,
+              "uneven": 0
+            },
+            {
+              "count": 4,
+              "min": 134,
+              "max": 134,
+              "uneven": 0
+            }
+          ]
+        },
+        "jsErrors": []
+      },
+      "mobile": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "overflowX": false,
+          "docHeight": 1938,
+          "offenders": [
+            {
+              "cls": "SPAN",
+              "right": 407,
+              "w": 124
+            }
+          ]
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "jsErrors": []
+      },
+      "states": {
+        "加载态": {
+          "svgBlacks": [],
+          "overflow": {
+            "scrollWidth": 1280,
+            "innerWidth": 1280,
+            "overflowX": false,
+            "docHeight": 900,
+            "offenders": []
+          }
+        },
+        "空态": {
+          "svgBlacks": [],
+          "overflow": {
+            "scrollWidth": 1280,
+            "innerWidth": 1280,
+            "overflowX": false,
+            "docHeight": 1952,
+            "offenders": []
+          }
+        },
+        "错误态": {
+          "svgBlacks": [],
+          "overflow": {
+            "scrollWidth": 1280,
+            "innerWidth": 1280,
+            "overflowX": false,
+            "docHeight": 900,
+            "offenders": []
+          }
+        }
+      }
+    },
+    "login": {
+      "desktop": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "overflowX": false,
+          "docHeight": 900,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "zeroCards": [],
+        "statCards": {
+          "count": 0
+        },
+        "jsErrors": []
+      },
+      "mobile": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "overflowX": false,
+          "docHeight": 844,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "jsErrors": []
+      }
+    },
+    "knowledge-bases": {
+      "desktop": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "overflowX": false,
+          "docHeight": 900,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "zeroCards": [],
+        "statCards": {
+          "count": 0
+        },
+        "jsErrors": []
+      },
+      "mobile": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "overflowX": false,
+          "docHeight": 844,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "jsErrors": []
+      }
+    },
+    "knowledge-base-detail": {
+      "desktop": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "overflowX": false,
+          "docHeight": 900,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "zeroCards": [],
+        "statCards": {
+          "count": 0
+        },
+        "jsErrors": []
+      },
+      "mobile": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "overflowX": false,
+          "docHeight": 844,
+          "offenders": [
+            {
+              "cls": "data-table",
+              "right": 487,
+              "w": 455
+            },
+            {
+              "cls": "THEAD",
+              "right": 486,
+              "w": 453
+            },
+            {
+              "cls": "TR",
+              "right": 486,
+              "w": 453
+            },
+            {
+              "cls": "TH",
+              "right": 486,
+              "w": 68
+            },
+            {
+              "cls": "TBODY",
+              "right": 486,
+              "w": 453
+            },
+            {
+              "cls": "TR",
+              "right": 486,
+              "w": 453
+            }
+          ]
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "jsErrors": []
+      }
+    },
+    "chat": {
+      "desktop": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "overflowX": false,
+          "docHeight": 900,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "zeroCards": [],
+        "statCards": {
+          "count": 0
+        },
+        "jsErrors": []
+      },
+      "mobile": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "overflowX": false,
+          "docHeight": 844,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "jsErrors": []
+      }
+    },
+    "ask": {
+      "desktop": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "overflowX": false,
+          "docHeight": 900,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "zeroCards": [],
+        "statCards": {
+          "count": 0
+        },
+        "jsErrors": []
+      },
+      "mobile": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "overflowX": false,
+          "docHeight": 844,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "jsErrors": []
+      }
+    },
+    "account-settings": {
+      "desktop": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "overflowX": false,
+          "docHeight": 900,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "zeroCards": [],
+        "statCards": {
+          "count": 0
+        },
+        "jsErrors": []
+      },
+      "mobile": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "overflowX": false,
+          "docHeight": 844,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "jsErrors": []
+      }
+    },
+    "members": {
+      "desktop": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "overflowX": false,
+          "docHeight": 900,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "zeroCards": [],
+        "statCards": {
+          "count": 0
+        },
+        "jsErrors": []
+      },
+      "mobile": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "overflowX": false,
+          "docHeight": 844,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "jsErrors": []
+      }
+    },
+    "org-departments": {
+      "desktop": {
+        "svgBlacks": [
+          {
+            "tag": "rect",
+            "svgClass": "bn-ic empty-note brand-note brand-in",
+            "fill": "rgb(0, 0, 0)",
+            "stroke": "none",
+            "box": {
+              "w": 0,
+              "h": 0
+            },
+            "likelyBug": false
+          },
+          {
+            "tag": "path",
+            "svgClass": "bn-ic empty-note brand-note brand-in",
+            "fill": "rgb(0, 0, 0)",
+            "stroke": "none",
+            "box": {
+              "w": 0,
+              "h": 0
+            },
+            "likelyBug": false
+          }
+        ],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "overflowX": false,
+          "docHeight": 958,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "zeroCards": [],
+        "statCards": {
+          "count": 0
+        },
+        "jsErrors": []
+      },
+      "mobile": {
+        "svgBlacks": [
+          {
+            "tag": "rect",
+            "svgClass": "bn-ic empty-note brand-note brand-in",
+            "fill": "rgb(0, 0, 0)",
+            "stroke": "none",
+            "box": {
+              "w": 0,
+              "h": 0
+            },
+            "likelyBug": false
+          },
+          {
+            "tag": "path",
+            "svgClass": "bn-ic empty-note brand-note brand-in",
+            "fill": "rgb(0, 0, 0)",
+            "stroke": "none",
+            "box": {
+              "w": 0,
+              "h": 0
+            },
+            "likelyBug": false
+          }
+        ],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "overflowX": false,
+          "docHeight": 1527,
+          "offenders": [
+            {
+              "cls": "panel",
+              "right": 508,
+              "w": 476
+            },
+            {
+              "cls": "panel",
+              "right": 508,
+              "w": 476
+            },
+            {
+              "cls": "panel-h",
+              "right": 491,
+              "w": 442
+            },
+            {
+              "cls": "tree",
+              "right": 491,
+              "w": 442
+            },
+            {
+              "cls": "LI",
+              "right": 491,
+              "w": 442
+            },
+            {
+              "cls": "tree-row",
+              "right": 491,
+              "w": 442
+            }
+          ]
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "jsErrors": []
+      }
+    },
+    "organization-settings": {
+      "desktop": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "overflowX": false,
+          "docHeight": 900,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "zeroCards": [],
+        "statCards": {
+          "count": 0
+        },
+        "jsErrors": []
+      },
+      "mobile": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "overflowX": false,
+          "docHeight": 844,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "jsErrors": []
+      }
+    },
+    "admin-audit": {
+      "desktop": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "overflowX": false,
+          "docHeight": 1436,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "zeroCards": [],
+        "statCards": {
+          "count": 0
+        },
+        "jsErrors": []
+      },
+      "mobile": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "overflowX": false,
+          "docHeight": 1738,
+          "offenders": [
+            {
+              "cls": "data-table",
+              "right": 623,
+              "w": 591
+            },
+            {
+              "cls": "THEAD",
+              "right": 622,
+              "w": 589
+            },
+            {
+              "cls": "TR",
+              "right": 622,
+              "w": 589
+            },
+            {
+              "cls": "TH",
+              "right": 622,
+              "w": 138
+            },
+            {
+              "cls": "TBODY",
+              "right": 622,
+              "w": 589
+            },
+            {
+              "cls": "TR",
+              "right": 622,
+              "w": 589
+            }
+          ]
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "jsErrors": []
+      }
+    },
+    "document-preview": {
+      "desktop": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 1280,
+          "innerWidth": 1280,
+          "overflowX": false,
+          "docHeight": 900,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "zeroCards": [],
+        "statCards": {
+          "count": 0
+        },
+        "jsErrors": []
+      },
+      "mobile": {
+        "svgBlacks": [],
+        "overflow": {
+          "scrollWidth": 390,
+          "innerWidth": 390,
+          "overflowX": false,
+          "docHeight": 1502,
+          "offenders": []
+        },
+        "clipped": [],
+        "blackBlocks": [],
+        "jsErrors": []
+      }
+    }
+  },
+  "errors": []
+}

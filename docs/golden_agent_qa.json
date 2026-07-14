@@ -1,0 +1,283 @@
+{
+  "version": "0.1",
+  "description": "G3 Agent golden 验收集 — SSOT · discovery-agent-g3-read-plan §9 G3-4.2 · 含 multi_step / refusal / forbidden_kb 三类",
+  "categories": ["multi_step", "refusal", "forbidden_kb"],
+  "cases": [
+    {
+      "case_id": "GAQ-1",
+      "category": "multi_step",
+      "tags": ["kb", "semantic_search"],
+      "query": "年假有多少天？",
+      "scope": "kb",
+      "fixture": "md",
+      "planner_steps": [
+        {"tool": "semantic_search", "args": {"query": "年假有多少天？"}}
+      ],
+      "expect": {
+        "min_steps": 1,
+        "has_citations": true,
+        "citation_section_contains": "1.1 年假",
+        "refusal": false
+      }
+    },
+    {
+      "case_id": "GAQ-2",
+      "category": "multi_step",
+      "tags": ["kb", "list_knowledge_bases", "semantic_search"],
+      "query": "迟到怎么处理？",
+      "scope": "kb",
+      "fixture": "md",
+      "planner_steps": [
+        {"tool": "list_knowledge_bases", "args": {"limit": 24}},
+        {"tool": "semantic_search", "args": {"query": "迟到怎么处理？"}}
+      ],
+      "expect": {
+        "min_steps": 2,
+        "tools_used": ["list_knowledge_bases", "semantic_search"],
+        "has_citations": true,
+        "citation_section_contains": "1.2 迟到",
+        "refusal": false
+      }
+    },
+    {
+      "case_id": "GAQ-3",
+      "category": "multi_step",
+      "tags": ["kb", "search_documents", "semantic_search"],
+      "query": "年终奖什么时候发？",
+      "scope": "kb",
+      "fixture": "md",
+      "planner_steps": [
+        {"tool": "search_documents", "args": {"query": "员工手册", "mode": "filename"}},
+        {"tool": "semantic_search", "args": {"query": "年终奖什么时候发？"}}
+      ],
+      "expect": {
+        "min_steps": 2,
+        "tools_used": ["search_documents", "semantic_search"],
+        "has_citations": true,
+        "citation_section_contains": "2.1 年终奖",
+        "refusal": false
+      }
+    },
+    {
+      "case_id": "GAQ-4",
+      "category": "multi_step",
+      "tags": ["kb", "semantic_search", "get_chunk_excerpt"],
+      "query": "餐补标准是多少？",
+      "scope": "kb",
+      "fixture": "md",
+      "planner_steps": [
+        {"tool": "semantic_search", "args": {"query": "餐补标准是多少？"}},
+        {"tool": "get_chunk_excerpt", "args": {"chunk_id": "$visible_chunk_id"}}
+      ],
+      "expect": {
+        "min_steps": 2,
+        "tools_used": ["semantic_search", "get_chunk_excerpt"],
+        "has_citations": true,
+        "citation_section_contains": "2.2 餐补",
+        "refusal": false
+      }
+    },
+    {
+      "case_id": "GAQ-5",
+      "category": "multi_step",
+      "tags": ["workspace", "list_knowledge_bases", "semantic_search"],
+      "query": "年假有多少天？",
+      "scope": "workspace",
+      "fixture": "md",
+      "planner_steps": [
+        {"tool": "list_knowledge_bases", "args": {}},
+        {"tool": "semantic_search", "args": {"query": "年假有多少天？"}}
+      ],
+      "expect": {
+        "min_steps": 2,
+        "tools_used": ["list_knowledge_bases", "semantic_search"],
+        "has_citations": true,
+        "citation_section_contains": "1.1 年假",
+        "refusal": false
+      }
+    },
+    {
+      "case_id": "GAQ-6",
+      "category": "multi_step",
+      "tags": ["workspace", "search_documents", "semantic_search"],
+      "query": "每月餐补多少钱？",
+      "scope": "workspace",
+      "fixture": "md",
+      "planner_steps": [
+        {"tool": "list_knowledge_bases", "args": {}},
+        {"tool": "search_documents", "args": {"query": "300 元", "mode": "content"}},
+        {"tool": "semantic_search", "args": {"query": "每月餐补多少钱？"}}
+      ],
+      "expect": {
+        "min_steps": 3,
+        "tools_used": ["list_knowledge_bases", "search_documents", "semantic_search"],
+        "has_citations": true,
+        "citation_section_contains": "2.2 餐补",
+        "refusal": false
+      }
+    },
+    {
+      "case_id": "GAQ-7",
+      "category": "multi_step",
+      "tags": ["kb", "semantic_search", "search_documents"],
+      "query": "带薪年休假可以休多少天？",
+      "scope": "kb",
+      "fixture": "md",
+      "planner_steps": [
+        {"tool": "semantic_search", "args": {"query": "带薪年休假可以休多少天？"}},
+        {"tool": "search_documents", "args": {"query": "员工手册", "mode": "filename"}}
+      ],
+      "expect": {
+        "min_steps": 2,
+        "tools_used": ["semantic_search", "search_documents"],
+        "has_citations": true,
+        "citation_section_contains": "1.1 年假",
+        "refusal": false
+      }
+    },
+    {
+      "case_id": "GAQ-8",
+      "category": "refusal",
+      "tags": ["kb", "empty_kb", "g3-e6"],
+      "query": "年假有多少天？",
+      "scope": "kb",
+      "fixture": "none",
+      "planner_steps": [
+        {"tool": "semantic_search", "args": {"query": "年假有多少天？"}}
+      ],
+      "expect": {
+        "min_steps": 1,
+        "has_citations": false,
+        "refusal": true
+      }
+    },
+    {
+      "case_id": "GAQ-9",
+      "category": "refusal",
+      "tags": ["kb", "irrelevant", "g3-e6"],
+      "query": "火星殖民计划进展如何？",
+      "scope": "kb",
+      "fixture": "md",
+      "planner_steps": [
+        {"tool": "semantic_search", "args": {"query": "火星殖民计划进展如何？"}}
+      ],
+      "expect": {
+        "min_steps": 1,
+        "has_citations": false,
+        "refusal": true
+      }
+    },
+    {
+      "case_id": "GAQ-10",
+      "category": "refusal",
+      "tags": ["workspace", "empty", "g3-e6"],
+      "query": "年假有多少天？",
+      "scope": "workspace",
+      "fixture": "none",
+      "planner_steps": [
+        {"tool": "list_knowledge_bases", "args": {}},
+        {"tool": "semantic_search", "args": {"query": "年假有多少天？"}}
+      ],
+      "expect": {
+        "min_steps": 2,
+        "has_citations": false,
+        "refusal": true
+      }
+    },
+    {
+      "case_id": "GAQ-11",
+      "category": "refusal",
+      "tags": ["kb", "irrelevant", "english"],
+      "query": "quantum teleportation protocol details",
+      "scope": "kb",
+      "fixture": "md",
+      "planner_steps": [
+        {"tool": "semantic_search", "args": {"query": "quantum teleportation protocol details"}}
+      ],
+      "expect": {
+        "min_steps": 1,
+        "has_citations": false,
+        "refusal": true
+      }
+    },
+    {
+      "case_id": "GAQ-12",
+      "category": "forbidden_kb",
+      "tags": ["kb", "g3-e2"],
+      "query": "查不可见库里的年假",
+      "scope": "kb",
+      "fixture": "md",
+      "planner_steps": [
+        {
+          "tool": "semantic_search",
+          "args": {"query": "年假", "kb_ids": ["$forbidden_kb_id"]}
+        }
+      ],
+      "expect": {
+        "min_steps": 1,
+        "tool_denied": true,
+        "has_citations": false,
+        "refusal": true
+      }
+    },
+    {
+      "case_id": "GAQ-13",
+      "category": "forbidden_kb",
+      "tags": ["kb", "get_chunk_excerpt", "g3-e2"],
+      "query": "读不可见库片段",
+      "scope": "kb",
+      "fixture": "md",
+      "planner_steps": [
+        {"tool": "get_chunk_excerpt", "args": {"chunk_id": "$forbidden_chunk_id"}}
+      ],
+      "expect": {
+        "min_steps": 1,
+        "tool_denied": true,
+        "has_citations": false,
+        "refusal": true
+      }
+    },
+    {
+      "case_id": "GAQ-14",
+      "category": "forbidden_kb",
+      "tags": ["workspace", "g3-e2"],
+      "query": "跨库查不可见库",
+      "scope": "workspace",
+      "fixture": "md",
+      "planner_steps": [
+        {
+          "tool": "semantic_search",
+          "args": {"query": "年假", "kb_ids": ["$forbidden_kb_id"]}
+        }
+      ],
+      "expect": {
+        "min_steps": 1,
+        "tool_denied": true,
+        "has_citations": false,
+        "refusal": true
+      }
+    },
+    {
+      "case_id": "GAQ-15",
+      "category": "forbidden_kb",
+      "tags": ["kb", "multi_denied", "g3-e2"],
+      "query": "年假有多少天？",
+      "scope": "kb",
+      "fixture": "md",
+      "planner_steps": [
+        {
+          "tool": "semantic_search",
+          "args": {"query": "年假", "kb_ids": ["$forbidden_kb_id"]}
+        },
+        {"tool": "semantic_search", "args": {"query": "年假有多少天？"}}
+      ],
+      "expect": {
+        "min_steps": 2,
+        "tool_denied": true,
+        "has_citations": true,
+        "citation_section_contains": "1.1 年假",
+        "refusal": false
+      }
+    }
+  ]
+}

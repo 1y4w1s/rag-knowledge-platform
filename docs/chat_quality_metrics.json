@@ -1,0 +1,108 @@
+[
+  {
+    "path": "/ask",
+    "perf": {
+      "lcp": null,
+      "fcp": 152,
+      "domComplete": 86.20000000298023,
+      "loadEventEnd": 86.20000000298023,
+      "ttfb": 3.899999998509884
+    },
+    "seo": {
+      "title": "知岸 · 对话",
+      "description": null,
+      "canonical": null,
+      "lang": "zh-CN"
+    },
+    "english_phrases": [
+      "No relevant content was found in the knowledge base to answer your question.\n"
+    ],
+    "contrast": [
+      {
+        "name": "user-msg-text",
+        "ratio": 16.05,
+        "note": "AA"
+      },
+      {
+        "name": "assistant-msg-text",
+        "ratio": 17.72,
+        "note": "AA"
+      },
+      {
+        "name": "mode-active-text",
+        "ratio": 3.68,
+        "note": "AA-large"
+      },
+      {
+        "name": "muted-text",
+        "ratio": 4.62,
+        "note": "AA"
+      },
+      {
+        "name": "input-placeholder",
+        "ratio": 17.72,
+        "note": "AA"
+      }
+    ],
+    "focusable": {
+      "total": 45,
+      "visible": 40
+    },
+    "failed_requests": [],
+    "console_errors": [],
+    "page_errors": []
+  },
+  {
+    "path": "/knowledge-bases/7b4fab89-b9b7-486b-b1c8-d16fd2e35e8d/chat",
+    "perf": {
+      "lcp": null,
+      "fcp": 148,
+      "domComplete": 85.39999999850988,
+      "loadEventEnd": 85.39999999850988,
+      "ttfb": 2.2000000029802322
+    },
+    "seo": {
+      "title": "知岸 · 浏览器测试库",
+      "description": null,
+      "canonical": null,
+      "lang": "zh-CN"
+    },
+    "english_phrases": [
+      "No relevant content was found in the knowledge base to answer your question.\n"
+    ],
+    "contrast": [
+      {
+        "name": "user-msg-text",
+        "ratio": 16.05,
+        "note": "AA"
+      },
+      {
+        "name": "assistant-msg-text",
+        "ratio": 17.72,
+        "note": "AA"
+      },
+      {
+        "name": "mode-active-text",
+        "ratio": 3.68,
+        "note": "AA-large"
+      },
+      {
+        "name": "muted-text",
+        "ratio": 4.62,
+        "note": "AA"
+      },
+      {
+        "name": "input-placeholder",
+        "ratio": 17.72,
+        "note": "AA"
+      }
+    ],
+    "focusable": {
+      "total": 30,
+      "visible": 25
+    },
+    "failed_requests": [],
+    "console_errors": [],
+    "page_errors": []
+  }
+]

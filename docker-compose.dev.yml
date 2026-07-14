@@ -1,0 +1,26 @@
+# 知岸 — 本机开发：仅 Postgres（API 用 venv + uvicorn --reload）
+# 用法：docker compose -f docker-compose.dev.yml up -d --build
+
+services:
+  postgres:
+    build:
+      context: ./docker/postgres
+    image: zhiku-postgres:16-pgvector
+    container_name: zhiku-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: zhiku
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: zhiku
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zhiku -d zhiku"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_dev_data:

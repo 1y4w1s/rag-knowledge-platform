@@ -1,0 +1,56 @@
+# 知岸 — 2G 云精简栈（Postgres + API）
+# 国内首次启动（推荐）：
+#   1. 配置 scripts/docker-engine.example.json → Docker Desktop → Engine → Apply
+#   2. .\scripts\docker-pull.ps1
+#   3. docker compose up -d --build
+# 或一键：.\scripts\docker-up.ps1
+# 验收：curl http://localhost:8000/health  →  {"status":"ok","database":"ok"}
+
+services:
+  postgres:
+    build:
+      context: ./docker/postgres
+      pull: false
+    image: zhiku-postgres:16-pgvector
+    container_name: zhiku-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: zhiku
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: zhiku
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U zhiku -d zhiku"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  api:
+    build:
+      context: ./backend
+      pull: false
+    container_name: zhiku-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://zhiku:${POSTGRES_PASSWORD:-changeme}@postgres:5432/zhiku
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+
+volumes:
+  postgres_data:
