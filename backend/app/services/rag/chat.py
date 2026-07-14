@@ -14,6 +14,7 @@ from app.services.rag.generation import (
     build_messages,
     compress_history,
     contextualize_query,
+    expand_queries,
     rewrite_query,
     stream_deepseek_tokens,
     stream_no_context_reply,

@@ -11,10 +11,12 @@ from app.services.rag.generation import (
     CONTEXTUALIZE_PROMPT,
     KEEP_RECENT_ROUNDS,
     MAX_ROUNDS_BEFORE_COMPRESS,
+    MULTI_QUERY_PROMPT,
     SYSTEM_PROMPT,
     build_messages,
     compress_history,
     contextualize_query,
+    expand_queries,
     no_context_reply_for,
     rewrite_query,
 )
@@ -238,3 +240,26 @@ def test_contextualize_prompt_format() -> None:
     """验证 CONTEXTUALIZE_PROMPT 格式正确。"""
     assert "{query}" in CONTEXTUALIZE_PROMPT
     assert "{history_text}" in CONTEXTUALIZE_PROMPT
+
+
+def test_expand_queries_returns_list() -> None:
+    """expand_queries 返回列表，包含原问题。"""
+    import asyncio
+
+    result = asyncio.run(expand_queries("年假有多少天"))
+    assert isinstance(result, list)
+    assert len(result) >= 1
+    assert any("年假" in q for q in result)
+
+
+def test_expand_queries_empty_returns_single() -> None:
+    """空查询返回 [query]。"""
+    import asyncio
+
+    result = asyncio.run(expand_queries(""))
+    assert result == [""]
+
+
+def test_expand_multi_prompt_format() -> None:
+    """验证 MULTI_QUERY_PROMPT 格式正确。"""
+    assert "{query}" in MULTI_QUERY_PROMPT
