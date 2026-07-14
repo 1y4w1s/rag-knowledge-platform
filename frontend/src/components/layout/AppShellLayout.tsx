@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Outlet, useLocation, useMatches } from "react-router-dom";
 
 import { AppSidebar } from "@/components/layout/AppSidebar";
@@ -13,6 +13,7 @@ import { shouldShowUnassignedBanner } from "@/lib/org-permissions";
 import { ShellBreadcrumbProvider, useShellBreadcrumb } from "@/lib/shell-breadcrumb";
 import { useDepartment } from "@/lib/department-context";
 import { useWorkspace } from "@/lib/workspace-context";
+import { useTheme } from "@/lib/use-theme";
 import { cn } from "@/lib/utils";
 
 export interface ShellRouteHandle {
@@ -33,14 +34,7 @@ function AppShellContent() {
     | ShellRouteHandle
     | undefined;
 
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    const saved =
-      typeof window !== "undefined" ? localStorage.getItem("ruige-theme") : null;
-    return saved === "dark" ? "dark" : "light";
-  });
-  useEffect(() => {
-    localStorage.setItem("ruige-theme", theme);
-  }, [theme]);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     close();
@@ -62,7 +56,7 @@ function AppShellContent() {
       <div className="relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <AppTopbar
           theme={theme}
-          onToggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
+          onToggleTheme={toggleTheme}
           breadcrumb={override ?? handle?.breadcrumb ?? <>睿阁</>}
           trailing={handle?.trailing}
         />

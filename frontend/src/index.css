@@ -72,6 +72,62 @@
     --sidebar-drawer-z: 120;
   }
 
+  /* ============================================================
+     GLOBAL DARK THEME · 全站暗色（外壳 + 内部页面）
+     仅覆盖语义 token；组件用 bg-background / text-muted / border-border /
+     bg-surface / text-foreground 等类即自动跟随。品牌橙在暗底仍可读，保留。
+     ============================================================ */
+  :root[data-theme="dark"] {
+    --bg: #16120f;
+    --surf: #1f1813;
+    --text: #f1ece6;
+    --mut: #b3a89e;
+    --mut-warm: #cabfb4;
+    --line: rgba(255, 255, 255, 0.08);
+    --line2: rgba(255, 255, 255, 0.10);
+    --pri: #f1ece6;
+    --acc: #d8cfc7;
+    --acc-text: #efe7df;
+    --acc-bg: rgba(255, 255, 255, 0.06);
+    --nav-on: #2a211b;
+    --action: #e07a45;
+    --action-hover: #f08a55;
+    --action-bg: rgba(203, 107, 61, 0.16);
+    --nav-active-bg: rgba(203, 107, 61, 0.18);
+    --nav-active-text: #f0a877;
+    --nav-active-grad: linear-gradient(135deg, rgba(232, 130, 78, 0.34), rgba(177, 78, 38, 0.22));
+    --wash: radial-gradient(ellipse 100% 55% at 50% 0%, rgba(70, 46, 30, 0.55) 0%, transparent 68%);
+    --surface-2: #271f18;
+    --ring-action: rgba(224, 122, 69, 0.4);
+    --ubg: #241c16;
+    --content-bg: #16120f;
+    --auth-tab-bg: #251d16;
+    --auth-selected: #2e231a;
+    --auth-action: #e07a45;
+    --mut-zinc: #b3a89e;
+    --fullname-color: #f0a877;
+    --fullname-color-on: #e07a45;
+    --surf-shell: rgba(30, 23, 18, 0.78);
+    --brand-grad: linear-gradient(135deg, #e8824e 0%, #cf6a3a 52%, #b14e26 100%);
+    --brand-grad-soft: linear-gradient(135deg, rgba(232, 130, 78, 0.22), rgba(177, 78, 38, 0.14));
+    --glow-a: radial-gradient(60% 50% at 16% 6%, rgba(232, 130, 78, 0.16) 0%, rgba(232, 130, 78, 0) 70%);
+    --glow-b: radial-gradient(55% 45% at 90% 10%, rgba(196, 140, 96, 0.12) 0%, rgba(196, 140, 96, 0) 72%);
+    --glow-c: radial-gradient(50% 40% at 72% 96%, rgba(203, 107, 61, 0.1) 0%, rgba(203, 107, 61, 0) 70%);
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 36px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 0, 0, 0.45), 0 28px 64px rgba(0, 0, 0, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-hi: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --grain-opacity: 0.05;
+    --status-ok-text: #8fd6a3;
+    --status-amber-text: #f0b066;
+    --status-err-text: #ef9a8a;
+    --status-ok-bg: rgba(91, 168, 110, 0.18);
+    --status-amber-bg: rgba(232, 148, 58, 0.18);
+    --status-err-bg: rgba(194, 74, 58, 0.2);
+  }
+
   * {
     @apply border-border;
   }
@@ -93,7 +149,7 @@
     --shell-topbar-border: rgba(232, 196, 176, 0.5);
     --shell-shadow: 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 14px rgba(120, 70, 45, 0.07);
     --shell-bg: #fafaf8;
-    --content-bg: #fafaf8;
+    --content-bg: #16120f;
   }
 
   /* v7 · 外壳暗色（Phase-1：仅侧栏/顶栏，内容区保持浅色，应用内暗色单独排期） */
@@ -111,8 +167,6 @@
     background: var(--shell-bg);
     background-image: var(--wash);
   }
-  /* 内容区保持浅色：内部页面尚未 token 化暗色，避免暗底上看不清 */
-  .app-shell[data-theme="dark"] #main { background: var(--content-bg); }
   /* 侧栏 / 顶栏文字在暗玻璃上提亮（不覆盖全局 --mut/--text，避免影响内部内容） */
   .app-shell[data-theme="dark"] .app-sidebar,
   .app-shell[data-theme="dark"] .app-topbar { color: #e8e2db; }
@@ -131,6 +185,42 @@
   .app-shell[data-theme="dark"] .ws-seg > button[data-ws] { color: #cabfb4; }
   .app-shell[data-theme="dark"] .ws-seg > button.on { color: #f0a877; }
   .app-shell[data-theme="dark"] .dept { color: #b3a89e; }
+  /* ---------- 硬编码工具类暗色归一化（仅暗色；高特异性，无需 !important） ----------
+     仅翻转"表面 / 灰阶文字 / 半透明白玻璃 / 暖色浅表面"；保留品牌橙与 text-white（按钮白字）。 */
+  :root[data-theme="dark"] .bg-white { background-color: var(--surf); }
+  :root[data-theme="dark"] .bg-\[\#FDF4EF\],
+  :root[data-theme="dark"] .bg-\[\#FFF1EA\],
+  :root[data-theme="dark"] .bg-\[\#FBF8F5\],
+  :root[data-theme="dark"] .bg-\[\#F2EDE7\],
+  :root[data-theme="dark"] .bg-\[\#EFEBE6\],
+  :root[data-theme="dark"] .bg-\[\#e8e4df\],
+  :root[data-theme="dark"] .bg-\[\#f0ebe4\],
+  :root[data-theme="dark"] .bg-\[\#F4F4F5\],
+  :root[data-theme="dark"] .bg-\[\#F5F5F4\] { background-color: var(--surface-2); }
+  :root[data-theme="dark"] .bg-white\/60,
+  :root[data-theme="dark"] .bg-white\/80,
+  :root[data-theme="dark"] .bg-white\/85,
+  :root[data-theme="dark"] .bg-white\/70,
+  :root[data-theme="dark"] .bg-white\/50,
+  :root[data-theme="dark"] .bg-white\/55,
+  :root[data-theme="dark"] .bg-white\/15,
+  :root[data-theme="dark"] .bg-white\/25,
+  :root[data-theme="dark"] .bg-white\/45,
+  :root[data-theme="dark"] .bg-white\/90,
+  :root[data-theme="dark"] .bg-white\/95,
+  :root[data-theme="dark"] .bg-white\/75 { background-color: rgba(31, 24, 19, 0.72); }
+  :root[data-theme="dark"] .text-\[\#52525B\],
+  :root[data-theme="dark"] .text-\[\#524A44\],
+  :root[data-theme="dark"] .text-\[\#7A6E6A\],
+  :root[data-theme="dark"] .text-\[\#71717A\],
+  :root[data-theme="dark"] .text-\[\#3f3f46\],
+  :root[data-theme="dark"] .text-\[\#a1a1aa\] { color: var(--mut); }
+  :root[data-theme="dark"] .text-\[\#18181B\] { color: var(--text); }
+  :root[data-theme="dark"] .border-\[\#E8C4B0\],
+  :root[data-theme="dark"] .border-\[\#D4CCC4\] { border-color: var(--line2); }
+  /* 文档预览正文（<pre>）保持白底黑字：文档阅读体验不随主题翻转 */
+  :root[data-theme="dark"] .preview-text-body pre { background-color: #ffffff; color: #3f3f46; border-color: var(--line2); }
+
 
   /* v6 · Warm Premium 环境光晕（mesh 深度，不挡交互） */
   .app-aurora {
