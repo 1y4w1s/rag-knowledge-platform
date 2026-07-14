@@ -86,3 +86,11 @@ async def embed_texts(texts: Sequence[str]) -> list[list[float]]:
         return await _embed_tongyi(texts)
 
     raise ValueError(f"不支持的嵌入提供商: {settings.embedding_provider}")
+
+
+async def try_embed_texts(texts: Sequence[str]) -> list[list[float]] | None:
+    """嵌入降级：嵌入失败时返回 None，调用方降级为纯 FTS。"""
+    try:
+        return await embed_texts(texts)
+    except Exception:
+        return None

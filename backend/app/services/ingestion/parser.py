@@ -296,6 +296,20 @@ def parse_pptx(path: Path) -> list[ParsedBlock]:
 
 def parse_document(path: Path, file_type: str, *, pdf_batch_pages: int = 10) -> list[ParsedBlock]:
     ext = file_type.lower().lstrip(".")
+
+    # 魔数检测：文件扩展名与实际内容是否匹配
+    _MAGIC_SIGNATURES = {
+        "pdf": b"%PDF",
+        "docx": b"PK",
+        "xlsx": b"PK",
+        "pptx": b"PK",
+    }
+    expected_magic = _MAGIC_SIGNATURES.get(ext)
+    if expected_magic is not None:
+        header = path.read_bytes()[:4]
+        if not header.startswith(expected_magic):
+            raise ValueError(f"文件格式不匹配：扩展名为 .{ext} 但内容格式不符")
+
     if ext == "pdf":
         if detect_scanned_pdf(path):
             from app.services.ingestion.ocr import is_ocr_enabled, is_ocr_runtime_available
@@ -308,7 +322,12 @@ def parse_document(path: Path, file_type: str, *, pdf_batch_pages: int = 10) -> 
 
         blocks = parse_pdf(path, batch_pages=pdf_batch_pages)
         if not blocks:
-            raise ValueError("不支持扫描件")
+            # 文字层为空时尝试 OCR fallback
+            from app.services.ingestion.ocr import is_ocr_enabled, is_ocr_runtime_available
+            if is_ocr_enabled() and is_ocr_runtime_available():
+                blocks = parse_pdf_ocr(path)
+            if not blocks:
+                raise ValueError("不支持扫描件")
         return blocks
     if ext == "txt":
         return parse_txt(path.read_text(encoding="utf-8"))
