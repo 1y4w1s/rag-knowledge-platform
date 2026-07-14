@@ -168,3 +168,36 @@ async def leave_team(
         ),
     )
     return LeaveTeamResponse(message=f"已离开团队 {org_name}", account=account)
+
+
+async def update_profile(
+    db: AsyncSession,
+    current_user: CurrentUser,
+    *,
+    nickname: str | None = None,
+    username: str | None = None,
+) -> AccountSettingsResponse:
+    user = await db.get(User, current_user.id)
+    if user is None:
+        raise UnauthorizedError("用户不存在")
+
+    if username is not None and username != user.username:
+        existing = await db.scalar(
+            select(User).where(User.username == username, User.id != user.id)
+        )
+        if existing is not None:
+            raise ConflictError("用户名已被使用")
+        user.username = username
+
+    if nickname is not None:
+        user.nickname = nickname
+
+    await db.commit()
+    await db.refresh(user)
+    updated = CurrentUser(
+        id=user.id, email=user.email, username=user.username,
+        nickname=user.nickname, account_type=user.account_type,
+        org_id=current_user.org_id, org_role=current_user.org_role,
+        is_owner=current_user.is_owner,
+    )
+    return await get_account_settings(db, updated)

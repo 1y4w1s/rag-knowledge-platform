@@ -39,3 +39,8 @@ class JoinTeamResponse(BaseModel):
 class LeaveTeamResponse(BaseModel):
     message: str
     account: AccountSettingsResponse
+
+
+class UpdateProfileRequest(BaseModel):
+    nickname: str | None = Field(None, max_length=64)
+    username: str | None = Field(None, min_length=3, max_length=32, pattern=r"^[a-zA-Z0-9_]+$")
