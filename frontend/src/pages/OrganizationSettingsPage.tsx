@@ -42,7 +42,7 @@ export function OrganizationSettingsPage() {
   }, [loadSettings]);
 
   useEffect(() => {
-    document.title = "知岸 · 团队设置";
+    document.title = "睿阁 · 团队设置";
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) {
       meta = document.createElement("meta");
@@ -51,10 +51,10 @@ export function OrganizationSettingsPage() {
     }
     meta.setAttribute(
       "content",
-      "管理知岸团队：编辑团队名称、查看创建时间与成员规模。",
+      "管理睿阁团队：编辑团队名称、查看创建时间与成员规模。",
     );
     return () => {
-      document.title = "知岸";
+      document.title = "睿阁";
     };
   }, []);
 

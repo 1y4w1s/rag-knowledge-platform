@@ -48,7 +48,7 @@ export function AppSidebar() {
     >
       <div className="brand-row flex items-center gap-2.5 px-2.5 pb-3.5 mb-2 border-b border-border">
         <BrandMark />
-        <span className="wordmark brand-text">知岸</span>
+        <span className="wordmark brand-text">睿阁</span>
       </div>
 
       <WorkspaceSwitcher />

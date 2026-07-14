@@ -19,7 +19,7 @@ from app.models.organization_member import OrganizationMember
 from app.models.user import User
 from app.services.auth.password import hash_password
 
-ORG_NAME = "知岸演示公司"
+ORG_NAME = "睿阁演示公司"
 ADMIN_EMAIL = "demo-admin@example.com"
 ADMIN_USERNAME = "demo_admin"
 MEMBER_EMAIL = "demo-member@example.com"

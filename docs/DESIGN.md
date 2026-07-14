@@ -368,3 +368,20 @@ fontFamily: {
 ```
 
 **不做**：深海军侧栏主题 · shadcn 默认 zinc 冷灰全站 · 暗色 mode MVP · 全站 serif 正文。
+
+---
+
+## DESIGN-8 动效与高级感增强（v8 · 2026-07-14）✅
+
+> **目标**：在不改变 DESIGN-1/2 锁定的品牌（暖白 · 暖褐 · 赤陶 · 衬线）前提下，吸收 godly / shader gradient / motion 类站点手法，把视觉质感拉到一线产品水准。全部动效尊重 `prefers-reduced-motion`（全局守卫已覆盖）。
+
+| 手法 | 实现 | 用在哪 |
+|------|------|--------|
+| **Living aurora（呼吸光晕）** | `.hero-aurora`（`index.css` v8）`aurora-drift` 20s 缓动，复用 `--glow-a/b/c` | 概览 Hero 卡背景 |
+| **滚动入场** | `Reveal` 组件（IntersectionObserver）+ `.reveal/.reveal-up/.reveal-scale/.reveal-left/.in-view` | 概览各区块（文档搜索/ZoneA/Banner/运维·RAG 指标） |
+| **KPI 数字递增** | `CountUp` 组件（easeOutCubic rAF） | StatCard 数值、Hero 资料库/提问数 |
+| **主按钮高光扫过** | `.btn-shine`（::after 白色斜向渐变扫光） | `Button` `brandGrad` 变体全局生效；Hero CTA |
+| 缓动令牌 | `--ease-out` / `--ease-spring` / `--rv-dur` | 统一过渡曲线 |
+
+**硬约束不变**：品牌色板、字体、220px 侧栏、赤陶仅 auth 页、引用 chip 暖褐 — 均不改。新增仅为**叠加动效层**，不引入新依赖（纯 CSS + 原生 IntersectionObserver / rAF）。
+

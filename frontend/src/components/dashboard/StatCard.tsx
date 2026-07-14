@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
 
 import { cn } from "@/lib/utils";
+import { CountUp } from "@/components/common/CountUp";
 
 export type IconTone = "clay" | "blue" | "green" | "rose" | "slate";
 
@@ -86,7 +87,7 @@ function StatCardMain({
               tone.icon,
             )}
           >
-            {typeof value === "number" ? value.toLocaleString("zh-CN") : value}
+            {typeof value === "number" ? <CountUp value={value} /> : value}
           </p>
         )}
         <p className="mt-1 text-[0.8125rem] font-medium text-foreground">

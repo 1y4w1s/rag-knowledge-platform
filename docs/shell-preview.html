@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>睿阁 · 外壳预览（侧栏 / 顶栏）</title>
+<style>
+  /* ============================== TOKENS ============================== */
+  :root{
+    --serif: "Noto Serif SC","Songti SC","STSong",Georgia,"Times New Roman",serif;
+    --sans: -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Roboto,Helvetica,Arial,sans-serif;
+
+    /* light · 暖白 (L5) */
+    --bg:#fafaf8;
+    --surf:#ffffff;
+    --text:#2a2521;
+    --mut:#8c827a;
+    --mut-2:#a89e95;
+    --line:rgba(120,70,45,0.12);
+    --line-2:rgba(120,70,45,0.07);
+    --nav-on:#f5f2ed;
+    --action:#cb6b3d;
+    --action-hover:#b85a2e;
+    --action-soft:#fbeede;
+    --nav-active-bg:#fff1ea;
+    --nav-active-text:#c05f31;
+    --brand-grad:linear-gradient(135deg,#e8824e 0%,#cf6a3a 52%,#b14e26 100%);
+    --glass:rgba(255,251,247,0.72);
+    --glass-strong:rgba(255,253,250,0.86);
+    --glass-line:rgba(232,196,176,0.5);
+    --glass-hi:inset 0 1px 0 rgba(255,255,255,0.7);
+    --shadow:0 1px 2px rgba(203,107,61,0.05),0 14px 36px rgba(140,80,50,0.10);
+    --shadow-sm:0 1px 2px rgba(0,0,0,0.04);
+    --glow-a:radial-gradient(60% 50% at 16% 6%,rgba(232,130,78,0.20) 0%,rgba(232,130,78,0) 70%);
+    --glow-b:radial-gradient(55% 45% at 90% 10%,rgba(196,140,96,0.14) 0%,rgba(196,140,96,0) 72%);
+    --glow-c:radial-gradient(50% 40% at 72% 96%,rgba(203,107,61,0.10) 0%,rgba(203,107,61,0) 70%);
+    --sidebar-w:244px;
+    --topbar-h:56px;
+  }
+  [data-theme="dark"]{
+    /* dark · 暖黑 (warm near-black) */
+    --bg:#16120f;
+    --surf:#211b17;
+    --text:#f3ece4;
+    --mut:#a99e93;
+    --mut-2:#877c72;
+    --line:rgba(255,235,220,0.10);
+    --line-2:rgba(255,235,220,0.06);
+    --nav-on:rgba(255,235,220,0.06);
+    --action:#e0814f;
+    --action-hover:#ec8f5f;
+    --action-soft:rgba(224,129,79,0.14);
+    --nav-active-bg:rgba(224,129,79,0.15);
+    --nav-active-text:#f4ab82;
+    --brand-grad:linear-gradient(135deg,#f0915c 0%,#d9772f 52%,#b85a26 100%);
+    --glass:rgba(30,24,20,0.78);
+    --glass-strong:rgba(33,27,23,0.92);
+    --glass-line:rgba(255,235,220,0.10);
+    --glass-hi:inset 0 1px 0 rgba(255,235,220,0.06);
+    --shadow:0 1px 2px rgba(0,0,0,0.45),0 14px 36px rgba(0,0,0,0.5);
+    --glow-a:radial-gradient(60% 50% at 16% 6%,rgba(224,129,79,0.18) 0%,rgba(224,129,79,0) 70%);
+    --glow-b:radial-gradient(55% 45% at 90% 10%,rgba(196,140,96,0.12) 0%,rgba(196,140,96,0) 72%);
+    --glow-c:radial-gradient(50% 40% at 72% 96%,rgba(203,107,61,0.10) 0%,rgba(203,107,61,0) 70%);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:var(--sans);
+    color:var(--text);
+    background:var(--bg);
+    -webkit-font-smoothing:antialiased;
+    transition:color .4s ease;
+  }
+  html{transition:background .5s ease}
+  .app-bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:var(--glow-a),var(--glow-b),var(--glow-c);transition:background .5s ease}
+  .app-grain{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.06;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size:180px 180px;}
+
+  /* ============================== SHELL ============================== */
+  .shell{display:grid;grid-template-columns:var(--sidebar-w) 1fr;height:100vh;position:relative;z-index:1}
+  .maincol{display:flex;flex-direction:column;min-width:0;min-height:0}
+
+  /* ---------- SIDEBAR ---------- */
+  .sidebar{
+    position:relative;display:flex;flex-direction:column;
+    background:var(--glass);
+    -webkit-backdrop-filter:blur(18px) saturate(120%);
+    backdrop-filter:blur(18px) saturate(120%);
+    border-right:1px solid var(--glass-line);
+    box-shadow:var(--glass-hi);
+    padding:18px 12px 14px;
+    overflow-y:auto;
+    transition:background .5s ease,border-color .5s ease,transform .3s ease;
+    /* 防止 GPU 合成层溢出导致暗影伪影 */
+    will-change:auto;transform:translateZ(0);
+  }
+  .brand-row{display:flex;align-items:center;gap:10px;padding:4px 8px 14px;margin-bottom:6px;border-bottom:1px solid var(--line)}
+  .mark{width:30px;height:30px;color:var(--action);flex:none;filter:drop-shadow(0 2px 6px rgba(203,107,61,.18))}
+  .wm{font-family:var(--serif);font-size:22px;font-weight:600;letter-spacing:.06em;
+    background-image:var(--brand-grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  /* workspace switcher */
+  .ws{display:flex;gap:4px;margin:6px 4px 12px;padding:4px;border-radius:12px;background:var(--nav-on);border:1px solid var(--line-2)}
+  .ws button{flex:1;border:0;background:transparent;color:var(--mut);font-family:var(--sans);font-size:13px;font-weight:600;
+    padding:7px 6px;border-radius:9px;cursor:pointer;transition:all .18s ease;white-space:nowrap}
+  .ws button:hover{color:var(--text)}
+  .ws button.on{background:var(--surf);color:var(--action);box-shadow:var(--shadow-sm)}
+  .ws .team{flex:1.5;display:flex;align-items:center;justify-content:center;gap:2px;min-width:0}
+  .ws .team span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+  /* department picker */
+  .dept{display:flex;align-items:center;gap:8px;margin:0 4px 14px;padding:9px 11px;border-radius:11px;
+    background:var(--surf);border:1px solid var(--line);color:var(--text);cursor:pointer;transition:all .18s ease;font-size:13px}
+  .dept:hover{border-color:var(--action)}
+  .dept .lab{color:var(--mut);font-size:12px;font-weight:600}
+  .dept .val{font-weight:600;margin-left:auto;display:flex;align-items:center;gap:4px}
+  .dept svg{width:14px;height:14px;color:var(--mut-2)}
+
+  .nav-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--mut-2);padding:2px 12px 8px}
+  .nav{flex:1;display:flex;flex-direction:column;gap:2px}
+  .nav a{position:relative;display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;
+    color:var(--mut);font-size:13.5px;font-weight:500;text-decoration:none;transition:all .16s ease;cursor:pointer}
+  .nav a .ico{width:18px;height:18px;flex:none;opacity:.85}
+  .nav a:hover{background:var(--nav-on);color:var(--text)}
+  .nav a.active{background:var(--nav-active-bg);color:var(--nav-active-text);font-weight:600}
+  .nav a.active .ico{opacity:1}
+  .nav a.active::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;border-radius:3px;background-image:var(--brand-grad)}
+  .nav a:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--action)}
+
+  .nav-foot{margin-top:10px;padding-top:12px;border-top:1px solid var(--line)}
+  .userblock{display:flex;align-items:center;gap:10px;padding:8px;margin-top:10px;border-radius:12px;background:var(--nav-on);border:1px solid var(--line-2)}
+  .avatar{width:34px;height:34px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    background:var(--brand-grad);color:#fff;font-size:13px;font-weight:700;box-shadow:var(--shadow-sm)}
+  .userblock .nm{font-size:13px;font-weight:600;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .userblock .role{font-size:11px;color:var(--mut);margin-top:2px}
+  .role .badge{display:inline-block;padding:1px 7px;border-radius:99px;background:var(--action-soft);color:var(--action);font-size:10.5px;font-weight:600}
+
+  /* ---------- TOPBAR ---------- */
+  .topbar{height:var(--topbar-h);flex:none;display:flex;align-items:center;gap:14px;padding:0 22px;
+    background:var(--glass);-webkit-backdrop-filter:blur(18px) saturate(120%);backdrop-filter:blur(18px) saturate(120%);
+    border-bottom:1px solid var(--glass-line);box-shadow:var(--glass-hi);
+    position:relative;transition:background .5s ease,border-color .5s ease}
+  .topbar::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(203,107,61,.35),transparent)}
+  .nav-toggle{display:none;width:36px;height:36px;border:1px solid var(--line);border-radius:10px;background:var(--surf);cursor:pointer;align-items:center;justify-content:center}
+  .nav-toggle span,.nav-toggle span::before,.nav-toggle span::after{content:"";display:block;width:16px;height:2px;background:var(--text);border-radius:2px;position:relative}
+  .nav-toggle span::before{position:absolute;top:-5px}
+  .nav-toggle span::after{position:absolute;top:5px}
+  .crumbs{display:flex;align-items:center;gap:8px;font-size:14px;min-width:0}
+  .crumbs .seg{color:var(--mut);font-weight:500;white-space:nowrap}
+  .crumbs .sep{color:var(--mut-2);opacity:.6}
+  .crumbs .cur{font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .spacer{flex:1}
+
+  .icon-btn{width:38px;height:38px;border-radius:11px;border:1px solid transparent;background:transparent;color:var(--mut);
+    display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .16s ease;position:relative}
+  .icon-btn:hover{background:var(--nav-on);color:var(--text);border-color:var(--line-2)}
+  .icon-btn:focus-visible{outline:none;box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--action)}
+  .icon-btn svg{width:19px;height:19px}
+  .icon-btn .dot{position:absolute;top:8px;right:9px;width:7px;height:7px;border-radius:50%;background:var(--action);border:2px solid var(--glass-strong)}
+
+  .me{position:relative}
+  .me .avatar{cursor:pointer}
+  .menu{position:absolute;right:0;top:calc(100% + 10px);min-width:180px;background:var(--glass-strong);
+    -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);border:1px solid var(--glass-line);border-radius:14px;
+    box-shadow:var(--shadow);padding:6px;z-index:50;opacity:0;transform:translateY(-6px) scale(.98);pointer-events:none;transition:all .18s ease}
+  .menu.open{opacity:1;transform:none;pointer-events:auto}
+  .menu a,.menu button{display:block;width:100%;text-align:left;border:0;background:transparent;font-family:var(--sans);
+    padding:9px 12px;border-radius:9px;font-size:13px;color:var(--text);cursor:pointer;text-decoration:none;transition:background .14s ease}
+  .menu a:hover,.menu button:hover{background:var(--nav-on)}
+  .menu .hr{height:1px;background:var(--line);margin:5px 4px}
+  .menu .danger{color:#c24a3a}
+  .menu .who{padding:9px 12px}
+  .menu .who b{font-size:13px}
+  .menu .who span{display:block;font-size:11px;color:var(--mut);margin-top:2px}
+
+  /* ---------- CONTENT ---------- */
+  .content{flex:1;overflow:auto;padding:30px 32px 40px}
+  .page-head{display:flex;align-items:flex-end;gap:16px;margin-bottom:24px}
+  .page-head h1{font-family:var(--serif);font-size:27px;font-weight:600;margin:0;letter-spacing:.02em}
+  .page-head .sub{color:var(--mut);font-size:13px;margin-top:6px}
+  .page-head .spacer{flex:1}
+  .btn-primary{display:inline-flex;align-items:center;gap:7px;border:0;cursor:pointer;font-family:var(--sans);font-weight:600;font-size:13.5px;
+    padding:10px 16px;border-radius:11px;color:#fff;background-image:var(--brand-grad);box-shadow:var(--shadow);transition:transform .15s ease,filter .15s ease}
+  .btn-primary:hover{filter:brightness(1.05)}
+  .btn-primary:active{transform:translateY(1px)}
+  .btn-primary svg{width:16px;height:16px}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+  .stat{background:var(--glass);border:1px solid var(--glass-line);border-radius:16px;padding:18px;box-shadow:var(--shadow-sm);transition:background .5s ease}
+  .stat .k{font-size:12.5px;color:var(--mut);font-weight:500}
+  .stat .v{font-family:var(--serif);font-size:30px;font-weight:600;margin-top:8px;letter-spacing:.01em}
+  .stat .d{font-size:12px;margin-top:6px;font-weight:600}
+  .stat .d.up{color:var(--action)}
+  .stat .d.flat{color:var(--mut)}
+
+  .panel{background:var(--glass);border:1px solid var(--glass-line);border-radius:18px;box-shadow:var(--shadow-sm);overflow:hidden;transition:background .5s ease}
+  .panel .ph{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line)}
+  .panel .ph h3{margin:0;font-size:15px;font-weight:600}
+  .panel .ph .tag{margin-left:auto;font-size:12px;color:var(--mut)}
+  .row{display:flex;align-items:center;gap:14px;padding:14px 20px;border-bottom:1px solid var(--line-2)}
+  .row:last-child{border-bottom:0}
+  .row .ric{width:38px;height:38px;border-radius:10px;background:var(--action-soft);color:var(--action);display:flex;align-items:center;justify-content:center;flex:none}
+  .row .ric svg{width:18px;height:18px}
+  .row .rt{font-size:13.5px;font-weight:600}
+  .row .rs{font-size:12px;color:var(--mut);margin-top:3px}
+  .row .rside{margin-left:auto;font-size:12px;color:var(--mut-2);display:flex;align-items:center;gap:8px}
+  .pill{font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--nav-on);color:var(--mut)}
+  .pill.ok{background:rgba(91,168,110,.16);color:#27693d}
+  .pill.warn{background:rgba(232,148,58,.16);color:#9a5a12}
+
+  .two{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-top:16px}
+
+  .placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:70px 20px;color:var(--mut);text-align:center}
+  .placeholder .ring{width:54px;height:54px;border-radius:16px;background:var(--action-soft);color:var(--action);display:flex;align-items:center;justify-content:center}
+  .placeholder .ring svg{width:24px;height:24px}
+
+  /* mobile drawer — 强守卫：仅在窄屏 + sidebar.open 时显示 */
+  .backdrop{display:none;position:fixed;inset:0;z-index:30;background:rgba(20,12,8,.35);backdrop-filter:blur(3px)}
+  @media (max-width:880px){
+    .backdrop.show{display:block}
+  }
+
+  /* ---------- 模拟登录身份（预览控制，仅用于演示个人版/团队版差异） ---------- */
+  .sim{position:fixed;left:16px;bottom:16px;z-index:60;display:flex;align-items:center;gap:3px;padding:5px 6px;border-radius:13px;
+    background:var(--glass-strong);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+    border:1px solid var(--glass-line);box-shadow:var(--shadow);font-size:12px}
+  .sim-lab{font-size:11px;font-weight:600;color:var(--mut-2);padding:0 6px 0 2px;letter-spacing:.04em;white-space:nowrap}
+  .sim button{border:0;background:transparent;color:var(--mut);font-family:var(--sans);font-size:12px;font-weight:600;
+    padding:5px 9px;border-radius:8px;cursor:pointer;transition:all .15s ease;white-space:nowrap}
+  .sim button:hover{color:var(--text)}
+  .sim button.on{background:var(--action-soft);color:var(--action)}
+  .ws.solo{margin-bottom:14px}
+
+  /* ============================== RESPONSIVE ============================== */
+  @media (max-width:880px){
+    .shell{grid-template-columns:1fr}
+    .sidebar{position:fixed;top:0;left:0;bottom:0;width:264px;z-index:40;transform:translateX(-100%)}
+    .sidebar.open{transform:none}
+    .nav-toggle{display:flex}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .two{grid-template-columns:1fr}
+  }
+  @media (max-width:520px){
+    .stats{grid-template-columns:1fr}
+    .crumbs .seg{display:none}
+    .crumbs .sep{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="app-bg"></div>
+<div class="app-grain"></div>
+
+<!-- brand symbol -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="pagoda" viewBox="0 0 48 48">
+  <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+  <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+  <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+</symbol></svg>
+
+<div class="shell">
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand-row">
+      <svg class="mark" viewBox="0 0 48 48"><use href="#pagoda"/></svg>
+      <span class="wm">睿阁</span>
+    </div>
+
+    <div class="ws" id="ws"></div>
+
+    <div class="dept" id="dept" title="选择部门">
+      <span class="lab">部门</span>
+      <span class="val">全部
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </span>
+    </div>
+
+    <div class="nav-label">导航</div>
+    <nav class="nav" id="nav"><!-- 由 JS 按个人版/团队版可见性分支渲染 --></nav>
+
+    <div class="nav-foot">
+      <a data-page="account" style="display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:11px;color:var(--mut);font-size:13.5px;font-weight:500;text-decoration:none;cursor:pointer;transition:all .16s ease">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px"><circle cx="12" cy="8" r="3.6"/><path d="M5 20a7 7 0 0114 0"/></svg>
+        账号设置
+      </a>
+      <div class="userblock">
+        <div class="avatar">林</div>
+        <div style="min-width:0">
+          <div class="nm" id="userName">林知岸</div>
+          <div class="role"><span class="badge" id="roleBadge">团队管理员</span></div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <div class="maincol">
+    <header class="topbar">
+      <button class="nav-toggle" id="navToggle" aria-label="打开导航"><span></span></button>
+      <div class="crumbs">
+        <span class="seg" id="crumbWs">睿阁科技</span>
+        <span class="sep">/</span>
+        <span class="cur" id="crumbPage">概览</span>
+      </div>
+      <div class="spacer"></div>
+
+      <button class="icon-btn" id="themeBtn" title="切换明暗主题" aria-label="切换明暗主题">
+        <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M19.4 4.6l-1.8 1.8M6.4 17.6l-1.8 1.8"/></svg>
+      </button>
+
+      <button class="icon-btn" title="通知" aria-label="通知">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+        <span class="dot"></span>
+      </button>
+
+      <div class="me">
+        <div class="avatar" id="meBtn" title="林知岸" style="cursor:pointer">林</div>
+        <div class="menu" id="meMenu" role="menu">
+          <div class="who"><b>林知岸</b><span id="menuWho">team@ruige.com · 团队管理员</span></div>
+          <div class="hr"></div>
+          <a href="#" data-page="account">账号设置</a>
+          <a href="#">偏好与外观</a>
+          <div class="hr"></div>
+          <button class="danger">退出登录</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="content" id="content"><!-- rendered by JS --></main>
+  </div>
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+
+<div class="sim" id="sim" role="group" aria-label="预览 · 模拟登录身份">
+  <span class="sim-lab">预览身份</span>
+  <button data-mode="personal" class="on">个人版</button>
+  <button data-mode="admin">团队·管理员</button>
+  <button data-mode="member">团队·成员</button>
+</div>
+
+<script>
+  /* ---------- theme ---------- */
+  const root = document.documentElement;
+  const saved = localStorage.getItem("ruige-theme");
+  if (saved) root.setAttribute("data-theme", saved);
+  const sunPath = "M12 3v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M19.4 4.6l-1.8 1.8M6.4 17.6l-1.8 1.8";
+  const moonPath = "M21 12.8A9 9 0 1111.2 3 7 7 0 0021 12.8z";
+  function paintTheme(){
+    const dark = root.getAttribute("data-theme") === "dark";
+    document.getElementById("themeIcon").innerHTML =
+      dark ? '<path d="'+moonPath+'"/>' : '<circle cx="12" cy="12" r="4.2"/><path d="'+sunPath+'"/>';
+  }
+  paintTheme();
+  document.getElementById("themeBtn").addEventListener("click",()=>{
+    const next = root.getAttribute("data-theme")==="dark" ? "light" : "dark";
+    root.setAttribute("data-theme", next);
+    localStorage.setItem("ruige-theme", next);
+    paintTheme();
+  });
+
+  /* ---------- 账号 / 工作区状态（模拟个人版·团队版可见性） ---------- */
+  // 对齐真实前端 gating（AppSidebar / workspace-context / DepartmentPicker）：
+  //   isTeamWorkspace = workspace !== 'personal'
+  //   组织与部门 / 成员管理 / 团队设置 / 操作审计 仅 team workspace + 管理员
+  //   团队成员 仅 team workspace + 非管理员成员
+  //   部门选择器 仅 team workspace（且用户有 org_id）
+  const state = { mode: "personal", ws: "personal" }; // mode: personal|admin|member；ws: personal|team
+
+  const NAV = {
+    dash:    {label:"概览",      icon:`<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>`},
+    kb:      {label:"资料库",    icon:`<path d="M4 5a2 2 0 012-2h7v18H6a2 2 0 01-2-2V5z"/><path d="M13 3h5a2 2 0 012 2v14a2 2 0 01-2 2h-5"/>`},
+    ask:     {label:"对话",      icon:`<path d="M21 12a9 9 0 01-9 9 9 9 0 01-4-1L3 21l1-4a9 9 0 1117-5z"/>`},
+    org:     {label:"组织与部门", icon:`<path d="M3 21h18M5 21V8l7-4 7 4v13"/><path d="M9 21v-6h6v6"/>`},
+    members: {label:"成员管理",  icon:`<circle cx="9" cy="8" r="3.2"/><path d="M3.5 20a5.5 5.5 0 0111 0"/><path d="M16 6a3 3 0 010 6M21 20a5 5 0 00-4-5"/>`},
+    settings:{label:"团队设置",  icon:`<path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 12V3"/><path d="M20 21v-5"/><path d="M20 16V3"/><path d="M1 14h6"/><path d="M7 8h6"/><path d="M13 18h6"/>`},
+    audit:   {label:"操作审计",  icon:`<path d="M12 3l8 4v5c0 4.5-3.2 7.5-8 9-4.8-1.5-8-4.5-8-9V7l8-4z"/>`},
+  };
+
+  const ROLE = {
+    personal:{badge:"个人版",      who:"user@ruige.com · 个人版"},
+    admin:   {badge:"团队管理员",  who:"team@ruige.com · 团队管理员"},
+    member:  {badge:"成员",        who:"member@ruige.com · 成员"},
+  };
+
+  const ws = document.getElementById("ws");
+  const dept = document.getElementById("dept");
+  const crumbWs = document.getElementById("crumbWs");
+  const roleBadge = document.getElementById("roleBadge");
+  const userName = document.getElementById("userName");
+  const menuWho = document.getElementById("menuWho");
+
+  function computeView(){
+    const hasOrg = state.mode !== "personal";
+    const isTeamWs = state.ws === "team";
+    const isTeamWorkspace = hasOrg && isTeamWs;
+    return {
+      hasOrg, isTeamWs, isTeamWorkspace,
+      showAdmin:  isTeamWorkspace && state.mode === "admin",
+      showMember: isTeamWorkspace && state.mode === "member",
+    };
+  }
+  function wsLabel(){
+    const v = computeView();
+    return (!v.hasOrg || !v.isTeamWs) ? "我的空间" : "睿阁科技";
+  }
+  function renderWs(){
+    const v = computeView();
+    if(!v.hasOrg){
+      ws.classList.add("solo");
+      ws.innerHTML = '<button class="on" data-ws="personal">我的空间</button>';
+    } else {
+      ws.classList.remove("solo");
+      ws.innerHTML = '<button data-ws="personal" class="' + (state.ws==="personal"?"on":"") + '">我的空间</button>'
+        + '<button data-ws="team" class="team ' + (state.ws==="team"?"on":"") + '"><span>睿阁科技</span></button>';
+    }
+  }
+  function baseNav(){
+    const v = computeView();
+    const items = [["dash"],["kb"],["ask"]];
+    if(v.showAdmin) items.push(["org"],["members"],["settings"],["audit"]);
+    else if(v.showMember) items.push(["members"]);
+    return items;
+  }
+  function navLabel(k){
+    if(k==="members") return state.mode==="member" ? "团队成员" : "成员管理";
+    return NAV[k].label;
+  }
+  const nav = document.getElementById("nav");
+  function renderNav(activePage){
+    const items = baseNav();
+    nav.innerHTML = items.map(([k])=>{
+      const on = k===activePage ? " active" : "";
+      return '<a data-page="' + k + '" class="' + on.trim() + '"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' + NAV[k].icon + '</svg>' + navLabel(k) + '</a>';
+    }).join("");
+  }
+
+  /* ---------- user menu ---------- */
+  const meBtn = document.getElementById("meBtn");
+  const meMenu = document.getElementById("meMenu");
+  meBtn.addEventListener("click", e=>{ e.stopPropagation(); meMenu.classList.toggle("open"); });
+  document.addEventListener("click", ()=> meMenu.classList.remove("open"));
+
+  /* ---------- mobile drawer ---------- */
+  const sidebar = document.getElementById("sidebar");
+  const backdrop = document.getElementById("backdrop");
+  function openDrawer(){ sidebar.classList.add("open"); backdrop.classList.add("show"); }
+  function closeDrawer(){ sidebar.classList.remove("open"); backdrop.classList.remove("show"); }
+  document.getElementById("navToggle").addEventListener("click", openDrawer);
+  backdrop.addEventListener("click", closeDrawer);
+
+  /* ---------- page content (示意) ---------- */
+  const PAGES = {
+    dash: ()=>`<div class="page-head">
+        <div><h1>概览</h1><div class="sub">${wsLabel()} · 最后同步 2 分钟前</div></div>
+        <div class="spacer"></div>
+        <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>新建资料库</button>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">资料库</div><div class="v">8</div><div class="d up">文档集合</div></div>
+        <div class="stat"><div class="k">已上传文件</div><div class="v">1,284</div><div class="d flat">PDF、Word 等</div></div>
+        <div class="stat"><div class="k">已可提问文件</div><div class="v">1,198</div><div class="d ok">整理完成</div></div>
+        <div class="stat"><div class="k">近 7 日提问</div><div class="v">342</div><div class="d up">向 AI 发出的问题</div></div>
+      </div>
+      <div class="panel">
+        <div class="ph"><h3>最近资料库</h3><span class="tag">4 个</span></div>
+        <div class="row"><div class="ric"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 012-2h7v18H6a2 2 0 01-2-2V5z"/><path d="M13 3h5a2 2 0 012 2v14a2 2 0 01-2 2h-5"/></svg></div><div><div class="rt">财务制度库</div><div class="rs">312 篇文档 · 更新于今天</div></div><div class="rside"><span class="pill ok">已索引</span></div></div>
+        <div class="row"><div class="ric"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 012-2h7v18H6a2 2 0 01-2-2V5z"/><path d="M13 3h5a2 2 0 012 2v14a2 2 0 01-2 2h-5"/></svg></div><div><div class="rt">客服话术手册</div><div class="rs">158 篇文档 · 更新于昨天</div></div><div class="rside"><span class="pill ok">已索引</span></div></div>
+        <div class="row"><div class="ric"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 012-2h7v18H6a2 2 0 01-2-2V5z"/><path d="M13 3h5a2 2 0 012 2v14a2 2 0 01-2 2h-5"/></svg></div><div><div class="rt">产品白皮书</div><div class="rs">24 篇文档 · 索引中</div></div><div class="rside"><span class="pill warn">处理中</span></div></div>
+      </div>`,
+    kb: placeholder("资料库","上传文档、查看索引状态与引用溯源。搜索与筛选位于内容区。"),
+    ask: placeholder("对话","带引用的企业问答。每一句回答都标注来源文档与位置。"),
+    org: placeholder("组织与部门","管理组织架构、部门与权限范围。"),
+    members: placeholder(state.mode==="member"?"团队成员":"成员管理","邀请成员、分配角色（管理员 / 成员）。"),
+    settings: placeholder("团队设置","团队信息、品牌与数据安全策略。"),
+    audit: placeholder("操作审计","可追溯的操作日志，满足企业合规要求。"),
+    account: placeholder("账号设置","个人信息、安全与外观偏好。"),
+  };
+  function placeholder(title, desc){
+    return `<div class="page-head"><div><h1>${title}</h1></div></div>
+      <div class="panel"><div class="placeholder">
+        <div class="ring"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 21V9"/></svg></div>
+        <div style="font-size:14px;font-weight:600;color:var(--text)">${title}</div>
+        <div style="font-size:13px;max-width:360px">${desc}</div>
+      </div></div>`;
+  }
+
+  const crumbPage = document.getElementById("crumbPage");
+  const content = document.getElementById("content");
+  const labels = {dash:"概览",kb:"资料库",ask:"对话",org:"组织与部门",members:"成员管理",settings:"团队设置",audit:"操作审计",account:"账号设置"};
+  let currentPage = "dash";
+
+  function go(page){
+    if(!baseNav().some(([k])=>k===page)) page = "dash";
+    currentPage = page;
+    renderNav(page);
+    crumbPage.textContent = navLabel(page);
+    content.innerHTML = (PAGES[page]||placeholder(page,""))();
+    if(window.innerWidth <= 880) closeDrawer();
+  }
+
+  nav.addEventListener("click", e=>{
+    const a = e.target.closest("a[data-page]"); if(!a) return;
+    e.preventDefault(); go(a.dataset.page);
+  });
+  document.querySelectorAll(".nav-foot a[data-page]").forEach(a=>{
+    a.addEventListener("click", e=>{ e.preventDefault(); go(a.dataset.page); });
+  });
+  document.querySelectorAll("#meMenu a[data-page]").forEach(a=>{
+    a.addEventListener("click", e=>{ e.preventDefault(); meMenu.classList.remove("open"); go(a.dataset.page); });
+  });
+
+  /* ---------- workspace switcher (事件委托) ---------- */
+  ws.addEventListener("click", e=>{
+    const b = e.target.closest("button"); if(!b) return;
+    state.ws = b.dataset.ws;
+    applyView();
+  });
+
+  /* ---------- 模拟登录身份（预览控制：个人版 / 团队·管理员 / 团队·成员） ---------- */
+  const sim = document.getElementById("sim");
+  sim.addEventListener("click", e=>{
+    const b = e.target.closest("button"); if(!b) return;
+    state.mode = b.dataset.mode;
+    state.ws = state.mode === "personal" ? "personal" : "team";
+    applyView();
+  });
+
+  function applyView(){
+    const v = computeView();
+    renderWs();
+    dept.style.display = v.isTeamWorkspace ? "flex" : "none";
+    crumbWs.textContent = wsLabel();
+    roleBadge.textContent = ROLE[state.mode].badge;
+    userName.textContent = "林知岸";
+    menuWho.textContent = ROLE[state.mode].who;
+    document.querySelectorAll("#sim button").forEach(b=>b.classList.toggle("on", b.dataset.mode===state.mode));
+    if(!baseNav().some(([k])=>k===currentPage)) currentPage = "dash";
+    go(currentPage);
+  }
+
+  /* init */
+  applyView();
+</script>
+</body>
+</html>

@@ -113,7 +113,7 @@ async def list_api_keys(
     )
 
 
-@router.delete("/{key_id}", status_code=204)
+@router.delete("/{key_id}", status_code=204, response_model=None)
 async def delete_api_key(
     key_id: UUID,
     current_user: Annotated[CurrentUser, Depends(get_current_user)],

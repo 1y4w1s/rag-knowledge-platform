@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>知岸 / 屿知 · LOGO 终稿候选</title>
+<style>
+  :root{
+    --terra:#CB6B3D; --terra-deep:#A9552E; --terra-soft:#E3A982;
+    --ink:#1C1815; --warm-white:#FBF7F2; --warm-paper:#F3ECE3;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:radial-gradient(120% 120% at 50% -10%, #241e19 0%, #15110d 60%);
+    color:#EDE6DC; padding:48px 20px 80px; -webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px;margin:0 auto}
+  header{text-align:center;margin-bottom:10px}
+  .kicker{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--terra-soft)}
+  h1{font-family:"Songti SC","STSong",serif;font-size:30px;font-weight:700;margin:10px 0 6px;color:#fff}
+  .sub{font-size:14px;color:#b7ab9d;max-width:720px;margin:0 auto;line-height:1.7}
+  .decide{margin:24px auto 34px;max-width:780px;background:rgba(203,107,61,.08);
+    border:1px solid rgba(203,107,61,.28);border-radius:14px;padding:16px 22px;font-size:13.5px;line-height:1.8;color:#ddd2c4}
+  .decide b{color:var(--terra-soft)}
+  .section-h{font-family:"Songti SC","STSong",serif;font-size:18px;color:#fff;margin:38px 0 16px;
+    padding-left:12px;border-left:3px solid var(--terra)}
+  .row{display:grid;gap:18px}
+  .row.c3{grid-template-columns:repeat(3,1fr)}
+  .row.c2{grid-template-columns:1fr 1fr}
+  @media(max-width:760px){.row.c3,.row.c2{grid-template-columns:1fr}}
+  .tile{background:linear-gradient(180deg,#221c16,#1a150f);border:1px solid rgba(255,255,255,.06);
+    border-radius:16px;padding:22px;display:flex;flex-direction:column;align-items:center;gap:12px}
+  .tile .cap{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#9d917f}
+  .tile .note{font-size:12px;color:#9d917f;text-align:center;line-height:1.6}
+  .lb-light{background:var(--warm-white)}
+  .lb-dark{background:#100c08}
+  .lockup{display:flex;align-items:center;gap:11px}
+  .lockup svg{flex:0 0 auto}
+  .wm{font-family:"Songti SC","STSong",serif;font-weight:700;font-size:24px}
+  .lb-light .wm{color:var(--ink)} .lb-dark .wm{color:#fff}
+  .fav-grid{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;align-items:flex-end}
+  .fav{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:10px;color:#9d917f}
+  .fav .box{border-radius:10px;display:grid;place-items:center}
+  .code{background:#100c08;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:18px;
+    overflow:auto;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12px;color:#cdb7a4;line-height:1.6}
+  .guide{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:6px}
+  @media(max-width:760px){.guide{grid-template-columns:1fr}}
+  .g-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:12px;padding:16px 18px}
+  .g-item h4{font-size:13px;color:var(--terra-soft);margin-bottom:8px;letter-spacing:.05em}
+  .g-item p{font-size:12.5px;color:#b7ab9d;line-height:1.7}
+  .swatch{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:6px}
+  footer{max-width:780px;margin:40px auto 0;font-size:12.5px;color:#9d917f;line-height:1.8;text-align:center}
+  footer b{color:var(--terra-soft)}
+</style>
+</head>
+<body>
+<!-- symbol defs (DRY) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="anchor" viewBox="0 0 48 48">
+    <circle cx="24" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="3.4"/>
+    <line x1="24" y1="11" x2="24" y2="37" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/>
+    <line x1="13" y1="19" x2="35" y2="19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M10 30 Q24 46 38 30" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/>
+    <path d="M10 30 l-3 -5 M38 30 l3 -5" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/>
+  </symbol>
+</svg>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">Logo · Final Candidate</div>
+    <h1>锚 · Anchor — 终稿候选</h1>
+    <p class="sub">全约束放开，唯一锚点：赤陶橙 <b style="color:var(--terra-soft)">#CB6B3D</b>。下方为我的决定稿，可直接交付。</p>
+  </header>
+
+  <div class="decide">
+    <b>设计师决定：</b>在 v4 四方向中选定 <b>锚</b>。理由——它是唯一同时满足「有视觉重量（NORINCO 法则）/ 缩放不翻车 / 产品语义绑定（答案可锚定原文=引用溯源）/ 赤陶文化适配」的标记；灯塔太轻、聚太泛、溯小尺寸糊、棱镜偏西式。名字我定为 <b>「睿阁」</b>（睿=睿智·AI，阁=藏书阁·知识之阁，直指"知识库"），与 RAG 形成语义呼应；并附现有「知岸」lockup 供对比。<b>改名会动到 AGENTS.md / PRD / 代码目录，已留可逆口子。</b>
+  </div>
+
+  <!-- 标记三态 -->
+  <div class="section-h">标记 · 三态</div>
+  <div class="row c3">
+    <div class="tile">
+      <div class="cap">主色 · 浅底</div>
+      <svg width="96" height="96" style="color:var(--terra)"><use href="#anchor"/></svg>
+      <div class="note">#CB6B3D · 默认用法</div>
+    </div>
+    <div class="tile">
+      <div class="cap">反白 · 深底</div>
+      <svg width="96" height="96" style="color:var(--terra-soft)"><use href="#anchor"/></svg>
+      <div class="note">#E3A982 · 深色背景</div>
+    </div>
+    <div class="tile">
+      <div class="cap">单色深 · 极简</div>
+      <svg width="96" height="96" style="color:var(--terra-deep)"><use href="#anchor"/></svg>
+      <div class="note">#A9552E · 单色印刷</div>
+    </div>
+  </div>
+
+  <!-- 命名对比 -->
+  <div class="section-h">命名 · 横向 Lockup 对比</div>
+  <div class="row c2">
+    <div class="tile">
+      <div class="cap">推荐新名 · 睿阁</div>
+      <div class="lb-light" style="width:100%;border-radius:12px;padding:22px 18px;display:flex;justify-content:center">
+        <div class="lockup"><svg width="34" height="34" style="color:var(--terra)"><use href="#anchor"/></svg><span class="wm">睿阁</span></div>
+      </div>
+      <div class="note">ruì gé · 睿智之阁，藏书阁意象</div>
+    </div>
+    <div class="tile">
+      <div class="cap">现有名 · 知岸（保留可选）</div>
+      <div class="lb-light" style="width:100%;border-radius:12px;padding:22px 18px;display:flex;justify-content:center">
+        <div class="lockup"><svg width="34" height="34" style="color:var(--terra)"><use href="#anchor"/></svg><span class="wm">知岸</span></div>
+      </div>
+      <div class="note">zhī àn · 不改名时的落点</div>
+    </div>
+  </div>
+
+  <!-- 深色 lockup + 竖版 -->
+  <div class="section-h">深色 Lockup · 竖版</div>
+  <div class="row c2">
+    <div class="tile">
+      <div class="cap">深底 · 横向</div>
+      <div class="lb-dark" style="width:100%;border-radius:12px;padding:22px 18px;display:flex;justify-content:center">
+        <div class="lockup"><svg width="34" height="34" style="color:var(--terra-soft)"><use href="#anchor"/></svg><span class="wm">睿阁</span></div>
+      </div>
+    </div>
+    <div class="tile">
+      <div class="cap">竖版 Stack</div>
+      <div class="lb-light" style="width:100%;border-radius:12px;padding:24px 18px;display:flex;flex-direction:column;align-items:center;gap:10px">
+        <svg width="56" height="56" style="color:var(--terra)"><use href="#anchor"/></svg>
+        <span class="wm" style="font-size:26px">睿阁</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- favicon 全家福 -->
+  <div class="section-h">Favicon 全家福（真实缩放）</div>
+  <div class="tile">
+    <div class="fav-grid">
+      <div class="fav"><div class="box" style="width:512px;height:512px;background:var(--warm-white)"><svg width="512" height="512" style="color:var(--terra)"><use href="#anchor" width="512" height="512"/></svg></div>512</div>
+      <div class="fav"><div class="box" style="width:180px;height:180px;background:var(--warm-white)"><svg width="180" height="180" style="color:var(--terra)"><use href="#anchor" width="180" height="180"/></svg></div>180</div>
+      <div class="fav"><div class="box" style="width:64px;height:64px;background:var(--warm-white)"><svg width="64" height="64" style="color:var(--terra)"><use href="#anchor" width="64" height="64"/></svg></div>64</div>
+      <div class="fav"><div class="box" style="width:32px;height:32px;background:var(--warm-white)"><svg width="32" height="32" style="color:var(--terra)"><use href="#anchor" width="32" height="32"/></svg></div>32</div>
+      <div class="fav"><div class="box" style="width:16px;height:16px;background:var(--warm-white)"><svg width="16" height="16" style="color:var(--terra)"><use href="#anchor" width="16" height="16"/></svg></div>16</div>
+    </div>
+    <div class="note" style="margin-top:14px">16 / 32px 仍清晰可辨，锚形结构足够简单。</div>
+  </div>
+
+  <!-- SVG 源码 -->
+  <div class="section-h">可交付 SVG 源码（复制即用）</div>
+  <div class="code">&lt;svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" fill="none"&gt;
+  &lt;circle cx="24" cy="7" r="4" stroke="currentColor" stroke-width="3.4"/&gt;
+  &lt;line x1="24" y1="11" x2="24" y2="37" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/&gt;
+  &lt;line x1="13" y1="19" x2="35" y2="19" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/&gt;
+  &lt;path d="M10 30 Q24 46 38 30" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/&gt;
+  &lt;path d="M10 30 l-3 -5 M38 30 l3 -5" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/&gt;
+&lt;/svg&gt;
+<span style="color:#7d8a5a">// 用 currentColor，颜色由父元素 color 控制：#CB6B3D / #E3A982 / #A9552E</span></div>
+
+  <!-- 品牌规范 -->
+  <div class="section-h">品牌规范片段（落地用）</div>
+  <div class="guide">
+    <div class="g-item">
+      <h4>色彩</h4>
+      <p><span class="swatch" style="background:#CB6B3D"></span>主色 Primary&nbsp; #CB6B3D<br/>
+         <span class="swatch" style="background:#A9552E"></span>深调 Deep&nbsp;&nbsp;&nbsp;&nbsp; #A9552E<br/>
+         <span class="swatch" style="background:#E3A982"></span>浅调 Soft&nbsp;&nbsp;&nbsp; #E3A982<br/>
+         标记一律用 <b>currentColor</b>，禁止硬编码第二色。</p>
+    </div>
+    <div class="g-item">
+      <h4>安全边距 / 最小尺寸</h4>
+      <p>标记四周留白 ≥ 标记的 1/2 高度。<br/>独立使用最小：<b>16px</b>（favicon） / <b>24px</b>（界面图标）。<br/>Lockup 最小：宽度 ≥ 80px。</p>
+    </div>
+    <div class="g-item">
+      <h4>可用场景</h4>
+      <p>✓ 浅底用主色 #CB6B3D<br/>✓ 深底用浅调 #E3A982<br/>✓ 单色印刷用深调 #A9552E<br/>✗ 禁止加投影/渐变/描边外框</p>
+    </div>
+    <div class="g-item">
+      <h4>禁用</h4>
+      <p>✗ 拉伸变形 / 旋转标记<br/>✗ 在赤陶底上放赤陶标记（需反白）<br/>✗ 与产品名之间加分隔线或边框</p>
+    </div>
+  </div>
+
+  <footer>
+    这是<b>决定稿</b>而非又一版探索：标记、命名、三态、favicon、SVG 源码、规范都已齐备，可直接进入前端落地。<br/>
+    你只需回我：<b>① 用睿阁还是留知岸</b>；<b>② 锚 OK 还是想换成「阁」意象标记（与睿阁更咬合）</b>。其余我直接开工。
+  </footer>
+</div>
+</body>
+</html>

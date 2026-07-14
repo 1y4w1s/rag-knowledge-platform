@@ -12,7 +12,7 @@ export function OrgDepartmentsPage() {
   const state = useOrgDepartments();
 
   useEffect(() => {
-    document.title = "知岸 · 组织与部门";
+    document.title = "睿阁 · 组织与部门";
     let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     if (!meta) {
       meta = document.createElement("meta");

@@ -413,7 +413,7 @@ export const ACCOUNT_SCENE: EmptyStateScene = createScene({
   ),
   desc: (
     <>
-      欢迎来到知岸。<b>个人资料、安全选项、通知偏好</b>都还没填。跟着下面 3 步走，未来所有功能都会按你的选择跑。
+      欢迎来到睿阁。<b>个人资料、安全选项、通知偏好</b>都还没填。跟着下面 3 步走，未来所有功能都会按你的选择跑。
     </>
   ),
   ctaPrimary: { label: "完善个人资料", iconPath: PATHS.userPlus },

@@ -151,12 +151,12 @@ export function KnowledgeBasesPage() {
   }, [loadList]);
 
   useEffect(() => {
-    document.title = "知岸 · 资料库";
+    document.title = "睿阁 · 资料库";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) {
       meta.setAttribute(
         "content",
-        "在知岸整理文档集合，供 AI 带引用回答。创建、搜索、管理你的知识库。",
+        "在睿阁整理文档集合，供 AI 带引用回答。创建、搜索、管理你的知识库。",
       );
     }
   }, []);

@@ -91,7 +91,7 @@ export function DocumentPreviewPage() {
       setKb(kbData);
       setDocument(docData);
       persistRecentKbId(id, workspace);
-      globalThis.document.title = `知岸 · ${docData.filename}`;
+      globalThis.document.title = `睿阁 · ${docData.filename}`;
       const metaDescription = globalThis.document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
       if (metaDescription) {
         metaDescription.content = `在线预览 ${docData.filename} 的内容与元数据。`;
@@ -133,7 +133,7 @@ export function DocumentPreviewPage() {
     return () => {
       loadIdRef.current += 1;
       setOverride(null);
-      globalThis.document.title = "知岸";
+      globalThis.document.title = "睿阁";
       revokeBlobUrl();
     };
   }, [loadPage, revokeBlobUrl, setOverride]);

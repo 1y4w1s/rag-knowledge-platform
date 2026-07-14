@@ -10,6 +10,8 @@ class ReadOnlyToolName(str, Enum):
     semantic_search = "semantic_search"
     search_documents = "search_documents"
     get_chunk_excerpt = "get_chunk_excerpt"
+    grep_in_document = "grep_in_document"
+    compare_chunks = "compare_chunks"
 
 
 READ_ONLY_TOOL_NAMES: frozenset[str] = frozenset(
@@ -27,6 +29,8 @@ class AgentToolName(str, Enum):
     semantic_search = "semantic_search"
     search_documents = "search_documents"
     get_chunk_excerpt = "get_chunk_excerpt"
+    grep_in_document = "grep_in_document"
+    compare_chunks = "compare_chunks"
     generate_faq_draft = "generate_faq_draft"
 
 

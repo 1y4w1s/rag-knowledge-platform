@@ -302,6 +302,83 @@
     color: var(--auth-text);
   }
 
+  /* 暗色主题 · 仅作用于认证页（.auth-page[data-theme="dark"]），不影响应用内 L5 浅色。
+     靠 CSS 变量级联覆盖认证子组件复用的 auth/全局 token，无需改动子组件。 */
+  .auth-page[data-theme="dark"] {
+    --auth-bg: #14100d;
+    --auth-wash:
+      radial-gradient(60% 50% at 15% 0%, rgba(232, 130, 78, 0.18) 0%, rgba(232, 130, 78, 0) 70%),
+      radial-gradient(55% 45% at 90% 8%, rgba(196, 140, 96, 0.13) 0%, rgba(196, 140, 96, 0) 72%),
+      radial-gradient(50% 40% at 75% 100%, rgba(203, 107, 61, 0.1) 0%, rgba(203, 107, 61, 0) 70%);
+    --auth-card: #211a14;
+    --auth-card-border: rgba(203, 107, 61, 0.22);
+    --auth-text: #f2e8de;
+    --auth-muted: #a1917f;
+    --auth-line: rgba(242, 232, 222, 0.14);
+    --auth-action: #cb6b3d;
+    --auth-action-hover: #b85a2e;
+    --auth-selected: rgba(203, 107, 61, 0.16);
+    --auth-tab-bg: #2a211a;
+    --auth-strength-weak: #e0786a;
+    --auth-strength-mid: #e0a85c;
+    --auth-strength-strong: #7fb089;
+    --auth-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.4),
+      0 8px 28px rgba(0, 0, 0, 0.5),
+      0 24px 56px rgba(0, 0, 0, 0.55);
+    /* 级联：认证子组件复用的全局 token（输入框、强度条、品牌按钮等） */
+    --action: #cb6b3d;
+    --action-hover: #b85a2e;
+    --line2: rgba(242, 232, 222, 0.16);
+    --status-ok: #7fb089;
+    --status-ok-bg: rgba(127, 176, 137, 0.16);
+    --status-ok-text: #9bd0ae;
+    --status-amber: #e0a85c;
+    --status-amber-text: #e9c089;
+    --status-err: #e0786a;
+    --status-err-text: #eca498;
+    --status-err-border: #5a3430;
+  }
+
+  /* 暗/亮切换悬浮按钮（预览 .theme-fab，作用域限认证页） */
+  .theme-fab {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 60;
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    border: 1px solid var(--auth-line);
+    background: var(--auth-card);
+    color: var(--auth-text);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    box-shadow: var(--auth-shadow);
+    transition:
+      color 0.25s ease,
+      border-color 0.25s ease,
+      transform 0.25s ease,
+      background-color 0.25s ease;
+  }
+
+  .theme-fab:hover {
+    color: var(--auth-action);
+    border-color: var(--action);
+    transform: translateY(-2px);
+  }
+
+  .theme-fab svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .theme-fab:focus-visible {
+    outline: 2px solid var(--action);
+    outline-offset: 2px;
+  }
+
   .auth-page .auth-input:focus-visible {
     border-color: var(--auth-action);
     --tw-ring-color: rgb(203 107 61 / 0.15);
@@ -1857,5 +1934,84 @@
     .app-sidebar {
       transition: none !important;
     }
+  }
+}
+
+/* v8 · Elite 动效与高级感增强
+   灵感：godly / shader gradient / motion 站点；贴合睿阁暖白·暖褐·赤陶品牌。
+   全部尊重 prefers-reduced-motion（全局守卫已把 transition/animation 时长压到 ~0）。 */
+@layer components {
+  :root {
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --rv-dur: 0.7s;
+  }
+
+  /* 缓慢呼吸的环境光晕（living gradient），只作背景氛围、不挡交互 */
+  @keyframes aurora-drift {
+    0%   { background-position: 0% 0%, 100% 0%, 50% 100%; }
+    50%  { background-position: 28% 18%, 72% 30%, 42% 78%; }
+    100% { background-position: 0% 0%, 100% 0%, 50% 100%; }
+  }
+
+  /* 主按钮高光扫过 */
+  @keyframes shine-sweep {
+    from { transform: translateX(-130%) skewX(-18deg); }
+    to   { transform: translateX(230%) skewX(-18deg); }
+  }
+
+  .hero-aurora {
+    position: absolute;
+    inset: -25%;
+    z-index: 0;
+    pointer-events: none;
+    background-image: var(--glow-a), var(--glow-b), var(--glow-c);
+    background-size: 180% 180%, 180% 180%, 180% 180%;
+    background-repeat: no-repeat;
+    opacity: 0.85;
+    filter: saturate(1.05);
+    animation: aurora-drift 20s ease-in-out infinite;
+  }
+
+  .btn-shine {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .btn-shine::after {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 45%;
+    background: linear-gradient(
+      100deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.42) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    transform: translateX(-130%) skewX(-18deg);
+    transition: transform 0.7s var(--ease-out);
+    pointer-events: none;
+  }
+  .btn-shine:hover::after,
+  .btn-shine:focus-visible::after {
+    transform: translateX(230%) skewX(-18deg);
+  }
+
+  /* 滚动入场：默认隐藏，Reveal 组件（IntersectionObserver）加 .in-view 触发 */
+  .reveal {
+    opacity: 0;
+    transition:
+      opacity var(--rv-dur) var(--ease-out),
+      transform var(--rv-dur) var(--ease-out);
+    transition-delay: var(--rv-delay, 0ms);
+    will-change: opacity, transform;
+  }
+  .reveal-up    { transform: translateY(22px); }
+  .reveal-scale { transform: scale(0.96); }
+  .reveal-left  { transform: translateX(-18px); }
+  .reveal.in-view {
+    opacity: 1;
+    transform: none;
   }
 }

@@ -28,8 +28,10 @@ from app.services.agent.tools import (
     ReadOnlyToolName,
     UnknownToolError,
     parse_agent_tool,
+    run_compare_chunks,
     run_generate_faq_draft,
     run_get_chunk_excerpt,
+    run_grep_in_document,
     run_list_knowledge_bases,
     run_search_documents,
     run_semantic_search,
@@ -159,6 +161,23 @@ async def _dispatch_tool(
             db,
             tool_scope,
             chunk_id=UUID(str(chunk_id)),
+        )
+    elif tool_name == ReadOnlyToolName.grep_in_document:
+        doc_id = args.get("document_id")
+        if doc_id is None:
+            return False, "缺少 document_id", None
+        result = await run_grep_in_document(
+            db,
+            tool_scope,
+            document_id=UUID(str(doc_id)),
+            pattern=str(args.get("pattern", "")),
+            context_lines=args.get("context_lines"),
+        )
+    elif tool_name == ReadOnlyToolName.compare_chunks:
+        result = await run_compare_chunks(
+            db,
+            tool_scope,
+            chunk_ids=args.get("chunk_ids") or [],
         )
     elif tool_name == AgentToolName.generate_faq_draft:
         # G4-2.2：末步写·待审 tool（自身落 agent_approvals(pending)）。

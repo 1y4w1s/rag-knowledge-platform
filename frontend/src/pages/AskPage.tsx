@@ -150,11 +150,11 @@ export function AskPage() {
   }, [scope]);
 
   useEffect(() => {
-    document.title = "知岸 · 对话";
+    document.title = "睿阁 · 对话";
     setOverride(<>对话</>);
     return () => {
       setOverride(null);
-      document.title = "知岸";
+      document.title = "睿阁";
       abortStreaming();
     };
   }, [setOverride, abortStreaming]);

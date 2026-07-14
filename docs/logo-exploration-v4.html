@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>知岸 LOGO 探索 v4 — 跳出 B 约束 · 原生概念重探</title>
+<style>
+  :root{
+    --terra:#CB6B3D;
+    --terra-deep:#A9552E;
+    --terra-soft:#E3A982;
+    --ink:#1C1815;
+    --warm-white:#FBF7F2;
+    --warm-paper:#F3ECE3;
+    --line:rgba(203,107,61,.22);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+    background:radial-gradient(120% 120% at 50% -10%, #241e19 0%, #15110d 60%);
+    color:#EDE6DC; padding:48px 20px 80px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto}
+  header{text-align:center;margin-bottom:14px}
+  .kicker{font-size:12px;letter-spacing:.34em;text-transform:uppercase;color:var(--terra-soft)}
+  h1{font-family:"Songti SC","STSong",serif;font-size:30px;font-weight:700;margin:10px 0 6px;color:#fff}
+  .sub{font-size:14px;color:#b7ab9d;max-width:680px;margin:0 auto;line-height:1.7}
+  .rule-note{
+    margin:26px auto 36px;max-width:760px;background:rgba(203,107,61,.07);
+    border:1px solid var(--line);border-radius:14px;padding:16px 20px;font-size:13.5px;line-height:1.75;color:#d8cdbf;
+  }
+  .rule-note b{color:var(--terra-soft)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{
+    background:linear-gradient(180deg,#221c16,#1a150f);
+    border:1px solid rgba(255,255,255,.06);border-radius:18px;overflow:hidden;
+  }
+  .card .top{padding:26px 24px 18px;display:flex;align-items:center;gap:18px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .mark-lg{flex:0 0 auto;width:92px;height:92px;display:grid;place-items:center;
+    background:radial-gradient(circle at 50% 40%, rgba(203,107,61,.16), transparent 70%);border-radius:14px}
+  .mark-lg svg{display:block}
+  .head-txt h3{font-family:"Songti SC","STSong",serif;font-size:19px;color:#fff;margin-bottom:4px}
+  .head-txt .tag-id{font-size:11px;color:var(--terra-soft);letter-spacing:.2em;text-transform:uppercase}
+  .head-txt p{font-size:12.5px;color:#9d917f;margin-top:6px;line-height:1.6}
+  .lockups{display:grid;grid-template-columns:1fr 1fr}
+  .lk{padding:20px 14px;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .lk.light{background:var(--warm-white)}
+  .lk.dark{background:#100c08}
+  .lk .lab{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#9d917f}
+  .lkup{display:flex;align-items:center;gap:10px}
+  .lkup svg{flex:0 0 auto}
+  .wm{font-family:"Songti SC","STSong",serif;font-weight:700;font-size:22px}
+  .lk.light .wm{color:var(--ink)}
+  .lk.dark .wm{color:#fff}
+  .scale{display:flex;gap:18px;justify-content:center;padding:16px;border-top:1px solid rgba(255,255,255,.05);align-items:flex-end}
+  .scale .it{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:10px;color:#9d917f}
+  .scale .it.d{border-radius:8px;padding:8px;background:#100c08}
+  .laws{padding:14px 20px 20px;display:flex;flex-wrap:wrap;gap:7px}
+  .chip{font-size:11px;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:#cdb7a4;background:rgba(203,107,61,.05)}
+  .chip.hit{color:#fff;background:rgba(203,107,61,.28);border-color:rgba(203,107,61,.5)}
+  .chip.weak{color:#c9a98f;background:transparent;border-color:rgba(203,107,61,.16);opacity:.7}
+  .vibe{font-size:12.5px;color:var(--terra-soft);padding:0 20px 20px;line-height:1.6}
+  footer{max-width:760px;margin:40px auto 0;font-size:13px;color:#9d917f;line-height:1.8;text-align:center}
+  footer b{color:var(--terra-soft)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">Logo Exploration · v4</div>
+    <h1>跳出「岸/灯塔」约束 · 原生概念重探</h1>
+    <p class="sub">唯一硬约束：赤陶橙 <b style="color:var(--terra-soft)">#CB6B3D</b>。以下 4 个方向均从「RAG 知识库 / 引用溯源 / 可信协作」的产品本质长出来，互不雷同，且零外来风格词汇。</p>
+  </header>
+
+  <div class="rule-note">
+    <b>为什么不再锁 B：</b>「岸/灯塔」是我从产品名「知岸」自己推导的隐喻，你从未指定它。把它当唯一解等于提前缴械。v4 把隐喻层也打开——只保留颜色这把尺子，让概念从产品功能本身生长。四张参考图的 <b>6 条法则</b> 仍是评判尺（形式规则 / 第二眼奖励 / 视觉重量 / 产品绑定 / 缩放可读 / 色彩文化适配），但不再借用它们的「长相」。
+  </div>
+
+  <div class="grid">
+
+    <!-- D1 Anchor -->
+    <div class="card">
+      <div class="top">
+        <div class="mark-lg">
+          <svg viewBox="0 0 48 48" width="80" height="80" fill="none" stroke="#CB6B3D" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="24" cy="8" r="3.6"/>
+            <line x1="24" y1="11.6" x2="24" y2="38"/>
+            <line x1="14" y1="20" x2="34" y2="20"/>
+            <path d="M11 31 Q24 45 37 31"/>
+            <path d="M11 31 l-2.4 -4.2 M37 31 l2.4 -4.2"/>
+          </svg>
+        </div>
+        <div class="head-txt">
+          <div class="tag-id">Concept D1</div>
+          <h3>锚 · Anchor</h3>
+          <p>「知岸」天然成对的航海符号：岸 + 锚。锚 = 停靠、稳定、有据可依——正好对应 RAG 的「引用溯源、答案可锚定到原文」。</p>
+        </div>
+      </div>
+      <div class="lockups">
+        <div class="lk light">
+          <div class="lab">Light</div>
+          <div class="lkup">
+            <svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#CB6B3D" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="8" r="3.6"/><line x1="24" y1="11.6" x2="24" y2="38"/><line x1="14" y1="20" x2="34" y2="20"/><path d="M11 31 Q24 45 37 31"/><path d="M11 31 l-2.4 -4.2 M37 31 l2.4 -4.2"/></svg>
+            <span class="wm">知岸</span>
+          </div>
+        </div>
+        <div class="lk dark">
+          <div class="lab">Dark</div>
+          <div class="lkup">
+            <svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#E3A982" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="8" r="3.6"/><line x1="24" y1="11.6" x2="24" y2="38"/><line x1="14" y1="20" x2="34" y2="20"/><path d="M11 31 Q24 45 37 31"/><path d="M11 31 l-2.4 -4.2 M37 31 l2.4 -4.2"/></svg>
+            <span class="wm">知岸</span>
+          </div>
+        </div>
+      </div>
+      <div class="scale">
+        <div class="it"><svg viewBox="0 0 48 48" width="32" height="32" fill="none" stroke="#CB6B3D" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="8" r="3.6"/><line x1="24" y1="11.6" x2="24" y2="38"/><line x1="14" y1="20" x2="34" y2="20"/><path d="M11 31 Q24 45 37 31"/><path d="M11 31 l-2.4 -4.2 M37 31 l2.4 -4.2"/></svg>32px</div>
+        <div class="it d"><svg viewBox="0 0 48 48" width="16" height="16" fill="none" stroke="#E3A982" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="8" r="3.6"/><line x1="24" y1="11.6" x2="24" y2="38"/><line x1="14" y1="20" x2="34" y2="20"/><path d="M11 31 Q24 45 37 31"/><path d="M11 31 l-2.4 -4.2 M37 31 l2.4 -4.2"/></svg>16px</div>
+      </div>
+      <div class="laws">
+        <span class="chip hit">✓ 形式规则：统一 3.4 描边</span>
+        <span class="chip hit">✓ 视觉重量：实心锚形有分量</span>
+        <span class="chip hit">✓ 产品绑定：锚=答案可锚定原文</span>
+        <span class="chip hit">✓ 缩放可读</span>
+        <span class="chip hit">✓ 色彩文化：赤陶+航海</span>
+        <span class="chip weak">△ 第二眼：偏直白</span>
+      </div>
+      <div class="vibe">气质：可靠、沉稳、有航海叙事。最「企业可信」，且和现有名「知岸」天生咬合。</div>
+    </div>
+
+    <!-- D2 Convergence -->
+    <div class="card">
+      <div class="top">
+        <div class="mark-lg">
+          <svg viewBox="0 0 48 48" width="80" height="80">
+            <g stroke="#CB6B3D" stroke-width="2.4" stroke-linecap="round" opacity="0.5">
+              <line x1="7" y1="11" x2="22" y2="22"/>
+              <line x1="41" y1="11" x2="26" y2="22"/>
+              <line x1="7" y1="37" x2="22" y2="26"/>
+              <line x1="41" y1="37" x2="26" y2="26"/>
+              <line x1="24" y1="5" x2="24" y2="19"/>
+              <line x1="24" y1="43" x2="24" y2="29"/>
+            </g>
+            <circle cx="24" cy="24" r="7.5" fill="#CB6B3D"/>
+          </svg>
+        </div>
+        <div class="head-txt">
+          <div class="tag-id">Concept D2</div>
+          <h3>聚 · Convergence</h3>
+          <p>多份文档（外围光源）向中心收束为一个答案。最直白讲「多源 → 一答」的 RAG 本质，几何对称、极简。</p>
+        </div>
+      </div>
+      <div class="lockups">
+        <div class="lk light">
+          <div class="lab">Light</div>
+          <div class="lkup">
+            <svg viewBox="0 0 48 48" width="26" height="26"><g stroke="#CB6B3D" stroke-width="2.4" stroke-linecap="round" opacity="0.5"><line x1="7" y1="11" x2="22" y2="22"/><line x1="41" y1="11" x2="26" y2="22"/><line x1="7" y1="37" x2="22" y2="26"/><line x1="41" y1="37" x2="26" y2="26"/><line x1="24" y1="5" x2="24" y2="19"/><line x1="24" y1="43" x2="24" y2="29"/></g><circle cx="24" cy="24" r="7.5" fill="#CB6B3D"/></svg>
+            <span class="wm">知岸</span>
+          </div>
+        </div>
+        <div class="lk dark">
+          <div class="lab">Dark</div>
+          <div class="lkup">
+            <svg viewBox="0 0 48 48" width="26" height="26"><g stroke="#E3A982" stroke-width="2.4" stroke-linecap="round" opacity="0.5"><line x1="7" y1="11" x2="22" y2="22"/><line x1="41" y1="11" x2="26" y2="22"/><line x1="7" y1="37" x2="22" y2="26"/><line x1="41" y1="37" x2="26" y2="26"/><line x1="24" y1="5" x2="24" y2="19"/><line x1="24" y1="43" x2="24" y2="29"/></g><circle cx="24" cy="24" r="7.5" fill="#E3A982"/></svg>
+            <span class="wm">知岸</span>
+          </div>
+        </div>
+      </div>
+      <div class="scale">
+        <div class="it"><svg viewBox="0 0 48 48" width="32" height="32"><g stroke="#CB6B3D" stroke-width="2.4" stroke-linecap="round" opacity="0.5"><line x1="7" y1="11" x2="22" y2="22"/><line x1="41" y1="11" x2="26" y2="22"/><line x1="7" y1="37" x2="22" y2="26"/><line x1="41" y1="37" x2="26" y2="26"/><line x1="24" y1="5" x2="24" y2="19"/><line x1="24" y1="43" x2="24" y2="29"/></g><circle cx="24" cy="24" r="7.5" fill="#CB6B3D"/></svg>32px</div>
+        <div class="it d"><svg viewBox="0 0 48 48" width="16" height="16"><g stroke="#E3A982" stroke-width="2.4" stroke-linecap="round" opacity="0.5"><line x1="7" y1="11" x2="22" y2="22"/><line x1="41" y1="11" x2="26" y2="22"/><line x1="7" y1="37" x2="22" y2="26"/><line x1="41" y1="37" x2="26" y2="26"/><line x1="24" y1="5" x2="24" y2="19"/><line x1="24" y1="43" x2="24" y2="29"/></g><circle cx="24" cy="24" r="7.5" fill="#E3A982"/></svg>16px</div>
+      </div>
+      <div class="laws">
+        <span class="chip hit">✓ 形式规则：放射对称</span>
+        <span class="chip hit">✓ 产品绑定：多源收敛成一答</span>
+        <span class="chip hit">✓ 缩放可读</span>
+        <span class="chip hit">✓ 色彩文化</span>
+        <span class="chip weak">△ 视觉重量：偏轻</span>
+        <span class="chip weak">△ 第二眼：单一</span>
+      </div>
+      <div class="vibe">气质：现代、理性、科技感强。最「不像传统企业软件」，适合做产品级图标。</div>
+    </div>
+
+    <!-- D3 Trace -->
+    <div class="card">
+      <div class="top">
+        <div class="mark-lg">
+          <svg viewBox="0 0 48 48" width="80" height="80" fill="none" stroke="#CB6B3D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 13 C 19 22, 20 25, 24 29 C 28 25, 29 22, 36 13"/>
+            <path d="M24 29 C 24 35, 24 39, 24 43"/>
+            <circle cx="24" cy="29" r="5.2" fill="#CB6B3D" stroke="none"/>
+            <circle cx="12" cy="13" r="3.4"/>
+            <circle cx="36" cy="13" r="3.4"/>
+            <circle cx="24" cy="43" r="3.4"/>
+          </svg>
+        </div>
+        <div class="head-txt">
+          <div class="tag-id">Concept D3</div>
+          <h3>溯 · Trace</h3>
+          <p>一条连续的「引用之线」把答案节点（实心）连到多个来源节点（空心）。直接画的是 RAG 的「溯源」动作本身。</p>
+        </div>
+      </div>
+      <div class="lockups">
+        <div class="lk light">
+          <div class="lab">Light</div>
+          <div class="lkup">
+            <svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#CB6B3D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13 C 19 22, 20 25, 24 29 C 28 25, 29 22, 36 13"/><path d="M24 29 C 24 35, 24 39, 24 43"/><circle cx="24" cy="29" r="5.2" fill="#CB6B3D" stroke="none"/><circle cx="12" cy="13" r="3.4"/><circle cx="36" cy="13" r="3.4"/><circle cx="24" cy="43" r="3.4"/></svg>
+            <span class="wm">知岸</span>
+          </div>
+        </div>
+        <div class="lk dark">
+          <div class="lab">Dark</div>
+          <div class="lkup">
+            <svg viewBox="0 0 48 48" width="26" height="26" fill="none" stroke="#E3A982" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13 C 19 22, 20 25, 24 29 C 28 25, 29 22, 36 13"/><path d="M24 29 C 24 35, 24 39, 24 43"/><circle cx="24" cy="29" r="5.2" fill="#E3A982" stroke="none"/><circle cx="12" cy="13" r="3.4"/><circle cx="36" cy="13" r="3.4"/><circle cx="24" cy="43" r="3.4"/></svg>
+            <span class="wm">知岸</span>
+          </div>
+        </div>
+      </div>
+      <div class="scale">
+        <div class="it"><svg viewBox="0 0 48 48" width="32" height="32" fill="none" stroke="#CB6B3D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13 C 19 22, 20 25, 24 29 C 28 25, 29 22, 36 13"/><path d="M24 29 C 24 35, 24 39, 24 43"/><circle cx="24" cy="29" r="5.2" fill="#CB6B3D" stroke="none"/><circle cx="12" cy="13" r="3.4"/><circle cx="36" cy="13" r="3.4"/><circle cx="24" cy="43" r="3.4"/></svg>32px</div>
+        <div class="it d"><svg viewBox="0 0 48 48" width="16" height="16" fill="none" stroke="#E3A982" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 13 C 19 22, 20 25, 24 29 C 28 25, 29 22, 36 13"/><path d="M24 29 C 24 35, 24 39, 24 43"/><circle cx="24" cy="29" r="5.2" fill="#E3A982" stroke="none"/><circle cx="12" cy="13" r="3.4"/><circle cx="36" cy="13" r="3.4"/><circle cx="24" cy="43" r="3.4"/></svg>16px</div>
+      </div>
+      <div class="laws">
+        <span class="chip hit">✓ 形式规则：统一曲线 + 节点系统</span>
+        <span class="chip hit">✓ 产品绑定：溯源之线=引用结构</span>
+        <span class="chip hit">✓ 第二眼：线连节点有解谜感</span>
+        <span class="chip hit">✓ 色彩文化</span>
+        <span class="chip weak">△ 视觉重量：线稿偏轻</span>
+        <span class="chip weak">△ 缩放：16px 节点易糊</span>
+      </div>
+      <div class="vibe">气质：叙事性强、有「连接」隐喻。最贴 RAG 灵魂，但小尺寸需加粗或简化。</div>
+    </div>
+
+    <!-- D4 Prism -->
+    <div class="card">
+      <div class="top">
+        <div class="mark-lg">
+          <svg viewBox="0 0 48 48" width="80" height="80">
+            <path d="M24 7 L40 41 L8 41 Z" fill="none" stroke="#CB6B3D" stroke-width="3" stroke-linejoin="round"/>
+            <line x1="4" y1="19" x2="20" y2="30" stroke="#CB6B3D" stroke-width="2.4" opacity="0.5" stroke-linecap="round"/>
+            <line x1="28" y1="31" x2="44" y2="21" stroke="#CB6B3D" stroke-width="2.2" opacity="0.85" stroke-linecap="round"/>
+            <line x1="28" y1="34" x2="44" y2="34" stroke="#CB6B3D" stroke-width="2.2" opacity="0.6" stroke-linecap="round"/>
+            <line x1="28" y1="37" x2="44" y2="46" stroke="#CB6B3D" stroke-width="2.2" opacity="0.4" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="head-txt">
+          <div class="tag-id">Concept D4</div>
+          <h3>棱 · Prism</h3>
+          <p>棱镜把一束杂光折射成有序光谱 = 把零散文档「提炼」成可信答案。仅用赤陶的透明度变化模拟「光谱」，不引入第二种颜色。</p>
+        </div>
+      </div>
+      <div class="lockups">
+        <div class="lk light">
+          <div class="lab">Light</div>
+          <div class="lkup">
+            <svg viewBox="0 0 48 48" width="26" height="26"><path d="M24 7 L40 41 L8 41 Z" fill="none" stroke="#CB6B3D" stroke-width="3" stroke-linejoin="round"/><line x1="4" y1="19" x2="20" y2="30" stroke="#CB6B3D" stroke-width="2.4" opacity="0.5" stroke-linecap="round"/><line x1="28" y1="31" x2="44" y2="21" stroke="#CB6B3D" stroke-width="2.2" opacity="0.85" stroke-linecap="round"/><line x1="28" y1="34" x2="44" y2="34" stroke="#CB6B3D" stroke-width="2.2" opacity="0.6" stroke-linecap="round"/><line x1="28" y1="37" x2="44" y2="46" stroke="#CB6B3D" stroke-width="2.2" opacity="0.4" stroke-linecap="round"/></svg>
+            <span class="wm">知岸</span>
+          </div>
+        </div>
+        <div class="lk dark">
+          <div class="lab">Dark</div>
+          <div class="lkup">
+            <svg viewBox="0 0 48 48" width="26" height="26"><path d="M24 7 L40 41 L8 41 Z" fill="none" stroke="#E3A982" stroke-width="3" stroke-linejoin="round"/><line x1="4" y1="19" x2="20" y2="30" stroke="#E3A982" stroke-width="2.4" opacity="0.5" stroke-linecap="round"/><line x1="28" y1="31" x2="44" y2="21" stroke="#E3A982" stroke-width="2.2" opacity="0.85" stroke-linecap="round"/><line x1="28" y1="34" x2="44" y2="34" stroke="#E3A982" stroke-width="2.2" opacity="0.6" stroke-linecap="round"/><line x1="28" y1="37" x2="44" y2="46" stroke="#E3A982" stroke-width="2.2" opacity="0.4" stroke-linecap="round"/></svg>
+            <span class="wm">知岸</span>
+          </div>
+        </div>
+      </div>
+      <div class="scale">
+        <div class="it"><svg viewBox="0 0 48 48" width="32" height="32"><path d="M24 7 L40 41 L8 41 Z" fill="none" stroke="#CB6B3D" stroke-width="3" stroke-linejoin="round"/><line x1="4" y1="19" x2="20" y2="30" stroke="#CB6B3D" stroke-width="2.4" opacity="0.5" stroke-linecap="round"/><line x1="28" y1="31" x2="44" y2="21" stroke="#CB6B3D" stroke-width="2.2" opacity="0.85" stroke-linecap="round"/><line x1="28" y1="34" x2="44" y2="34" stroke="#CB6B3D" stroke-width="2.2" opacity="0.6" stroke-linecap="round"/><line x1="28" y1="37" x2="44" y2="46" stroke="#CB6B3D" stroke-width="2.2" opacity="0.4" stroke-linecap="round"/></svg>32px</div>
+        <div class="it d"><svg viewBox="0 0 48 48" width="16" height="16"><path d="M24 7 L40 41 L8 41 Z" fill="none" stroke="#E3A982" stroke-width="3" stroke-linejoin="round"/><line x1="4" y1="19" x2="20" y2="30" stroke="#E3A982" stroke-width="2.4" opacity="0.5" stroke-linecap="round"/><line x1="28" y1="31" x2="44" y2="21" stroke="#E3A982" stroke-width="2.2" opacity="0.85" stroke-linecap="round"/><line x1="28" y1="34" x2="44" y2="34" stroke="#E3A982" stroke-width="2.2" opacity="0.6" stroke-linecap="round"/><line x1="28" y1="37" x2="44" y2="46" stroke="#E3A982" stroke-width="2.2" opacity="0.4" stroke-linecap="round"/></svg>16px</div>
+      </div>
+      <div class="laws">
+        <span class="chip hit">✓ 形式规则：三角+光束系统</span>
+        <span class="chip hit">✓ 第二眼：折射光谱有惊喜</span>
+        <span class="chip hit">✓ 产品绑定：杂光→有序=提炼答案</span>
+        <span class="chip hit">✓ 缩放可读</span>
+        <span class="chip weak">△ 视觉重量：线稿偏轻</span>
+        <span class="chip weak">△ 色彩文化：隐喻偏西式</span>
+      </div>
+      <div class="vibe">气质：精炼、智能、有「aha」折射感。最「聪明」的方向，但「棱镜」隐喻稍偏西方科学语境。</div>
+    </div>
+
+  </div>
+
+  <footer>
+    四个方向都只用了 <b>赤陶橙</b> 一种颜色（深版用其浅调 #E3A982），且互不雷同、零外来词汇。<br/>
+    你挑一个气质，或告诉我「想要更 X 一点」——我就在那条线上把形式做到成品级，再导出矢量 SVG + 横竖 lockup + 全尺寸 favicon + 品牌规范。<br/>
+    名字仍开：D1 锚与「知岸」天然咬合，但四个标记都可脱离名字独立成立。
+  </footer>
+</div>
+</body>
+</html>

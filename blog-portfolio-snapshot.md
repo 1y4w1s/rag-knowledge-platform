@@ -1,0 +1,194 @@
+- generic [active] [ref=e1]:
+  - link "Skip to Content" [ref=e2] [cursor=pointer]:
+    - /url: "#nextra-skip-nav"
+  - generic [ref=e3]:
+    - generic [ref=e5]:
+      - text: 👋 你好，欢迎来到 1y4w1s 的技术博客
+      - link "了解更多" [ref=e6] [cursor=pointer]:
+        - /url: https://github.com/1y4w1s
+    - button "Dismiss banner" [ref=e7] [cursor=pointer]
+  - banner [ref=e10]:
+    - navigation [ref=e12]:
+      - link "Home page" [ref=e13] [cursor=pointer]:
+        - /url: /zh
+        - generic [ref=e14]: 1y4w1s
+      - generic [ref=e15]:
+        - link "关于 1y4w1s" [ref=e16] [cursor=pointer]:
+          - /url: /zh/introduction
+        - link "📁 项目文档" [ref=e17] [cursor=pointer]:
+          - /url: /zh/projects
+        - link "📝 技术笔记" [ref=e18] [cursor=pointer]:
+          - /url: /zh/notes
+      - generic [ref=e20]:
+        - combobox "搜索..." [ref=e21]
+        - generic: CTRL K
+      - link [ref=e22] [cursor=pointer]:
+        - /url: https://github.com/1y4w1s
+        - img "Project repository" [ref=e23]
+      - button [ref=e25] [cursor=pointer]
+      - button [ref=e27] [cursor=pointer]
+      - link "登录" [ref=e254] [cursor=pointer]:
+        - /url: /zh/login
+  - article [ref=e33]:
+    - main [ref=e34]:
+      - generic [ref=e36]:
+        - link "🧑‍💻 全栈开发者 · 技术博客 · 作品集" [ref=e38] [cursor=pointer]:
+          - /url: https://github.com/1y4w1s
+        - heading [level=1] [ref=e39]
+        - 'link "🔥 技术栈: React 19 · Go · Python · Docker" [ref=e42] [cursor=pointer]':
+          - /url: /zh/introduction
+          - text: "🔥 技术栈:"
+          - generic [ref=e43]: React 19 · Go · Python · Docker
+        - generic [ref=e44]:
+          - text: 全栈开发者
+          - generic [ref=e255]:
+            - generic [ref=e256]: R
+            - generic [ref=e257]: e
+            - generic [ref=e258]: a
+            - generic [ref=e259]: c
+            - generic [ref=e260]: t
+          - generic [ref=e321]:
+            - generic [ref=e322]: G
+            - generic [ref=e323]: o
+          - text: 技术博客
+          - link "作品集" [ref=e49] [cursor=pointer]:
+            - /url: https://github.com/1y4w1s
+          - text: ·
+          - link "项目文档" [ref=e50] [cursor=pointer]:
+            - /url: https://github.com/1y4w1s?tab=repositories
+          - text: ·
+          - link "技术笔记" [ref=e51] [cursor=pointer]:
+            - /url: https://github.com/1y4w1s
+        - generic [ref=e53]:
+          - link "开始使用" [ref=e54] [cursor=pointer]:
+            - /url: /zh/introduction
+          - link "Github" [ref=e56] [cursor=pointer]:
+            - /url: https://github.com/1y4w1s
+      - generic [ref=e60]:
+        - generic [ref=e61]:
+          - generic [ref=e62]: 项目导航
+          - heading "浏览我的项目文档" [level=2] [ref=e64]
+          - paragraph [ref=e65]: 每个项目都包含完整的技术文档、架构说明与部署指南。
+          - paragraph [ref=e66]: RAG 知识平台 · auto-BOSS · AI 行业摘要 · 更多
+        - link "浏览项目" [ref=e68] [cursor=pointer]:
+          - /url: /zh/projects
+      - generic [ref=e72]:
+        - heading "Tech Stack" [level=2] [ref=e75]
+        - generic [ref=e77]:
+          - heading "Features" [level=2] [ref=e78]
+          - heading "项目作品与技术笔记 — 持续构建，持续记录。" [level=2] [ref=e80]
+          - generic [ref=e82]:
+            - generic [ref=e86]:
+              - heading "RAG 知识平台" [level=4] [ref=e89]
+              - paragraph [ref=e90]: 基于向量检索与大模型的智能问答平台，支持多轮对话、文档管理与知识库构建。
+            - generic [ref=e94]:
+              - heading "auto-BOSS 求职助手" [level=4] [ref=e97]
+              - paragraph [ref=e98]: 浏览器扩展，为候选人智能匹配优质公司、自动投递并辅助求职决策。
+            - generic [ref=e102]:
+              - heading "AI 行业摘要" [level=4] [ref=e105]
+              - paragraph [ref=e106]: 自动化采集 AI 行业资讯，LLM 生成每日简报与深度分析，跟踪前沿动态。
+            - generic [ref=e110]:
+              - heading "Chatroom 聊天室" [level=4] [ref=e113]
+              - paragraph [ref=e114]: 实时聊天应用，支持多房间、消息持久化与 WebSocket 通信。
+            - generic [ref=e118]:
+              - heading "Study App 学习工具" [level=4] [ref=e121]
+              - paragraph [ref=e122]: 全栈知识学习平台，涵盖算法、系统设计、工程实践与代码评审。
+            - generic [ref=e126]:
+              - heading "React / TypeScript" [level=4] [ref=e129]
+              - paragraph [ref=e130]: 主力前端技术栈，使用 React 19 + TypeScript + Vite 构建现代 SPA。
+            - generic [ref=e134]:
+              - heading "Go / Python" [level=4] [ref=e137]
+              - paragraph [ref=e138]: 后端服务与数据处理，Go 高并发 API 与 Python AI 管道。
+            - generic [ref=e142]:
+              - heading "Docker / DevOps" [level=4] [ref=e145]
+              - paragraph [ref=e146]: 容器化部署，Docker Compose 编排，CI/CD 自动化工作流。
+            - generic [ref=e150]:
+              - heading "Tailwind CSS" [level=4] [ref=e153]
+              - paragraph [ref=e154]: 原子化 CSS 框架，高效构建响应式与暗黑模式 UI。
+        - generic [ref=e155]:
+          - heading "构建不止，交付不停" [level=2] [ref=e156]
+          - heading "从架构设计到落地实现，每个项目都经过完整技术栈的打磨。" [level=2] [ref=e158]
+          - generic [ref=e159]:
+            - list [ref=e160]:
+              - listitem [ref=e161]:
+                - paragraph [ref=e162]: 5+
+                - paragraph [ref=e163]: 完整项目
+              - listitem [ref=e164]:
+                - paragraph [ref=e165]: React 19
+                - paragraph [ref=e166]: 前端主力框架
+              - listitem [ref=e167]:
+                - paragraph [ref=e168]: Go / Python
+                - paragraph [ref=e169]: 后端双引擎
+              - listitem [ref=e170]:
+                - paragraph [ref=e171]: RAG + LLM
+                - paragraph [ref=e172]: AI 核心能力
+            - generic [ref=e173]:
+              - article [ref=e174]:
+                - paragraph [ref=e175]: 技术领域
+                - list [ref=e176]:
+                  - listitem [ref=e177]:
+                    - generic [ref=e178]: AI
+                    - heading "RAG 知识检索" [level=3] [ref=e179]
+                    - paragraph [ref=e180]: 向量数据库 + LLM 增强生成，构建企业级知识问答系统。
+                  - listitem [ref=e181]:
+                    - generic [ref=e182]: 工程
+                    - heading "全栈开发" [level=3] [ref=e183]
+                    - paragraph [ref=e184]: 从 React 前端到 Go/Python 后端，完整的工程化实践。
+                  - listitem [ref=e185]:
+                    - generic [ref=e186]: 基础设施
+                    - heading "DevOps 自动化" [level=3] [ref=e187]
+                    - paragraph [ref=e188]: Docker 容器化部署，CI/CD 流水线，自动化运维。
+              - article [ref=e189]:
+                - paragraph [ref=e190]: 我的工作流
+                - list [ref=e191]:
+                  - listitem [ref=e192]:
+                    - generic [ref=e193]: "1"
+                    - heading "需求分析" [level=3] [ref=e194]
+                    - paragraph [ref=e195]: 梳理业务需求与系统边界，确定技术选型。
+                  - listitem [ref=e196]:
+                    - generic [ref=e197]: "2"
+                    - heading "架构设计" [level=3] [ref=e198]
+                    - paragraph [ref=e199]: 模块划分、数据流设计、接口契约定义。
+                  - listitem [ref=e200]:
+                    - generic [ref=e201]: "3"
+                    - heading "开发与交付" [level=3] [ref=e202]
+                    - paragraph [ref=e203]: 迭代开发、测试验证、容器化部署上线。
+            - generic [ref=e204]:
+              - paragraph [ref=e205]: 浏览项目文档与技术文章，了解每个作品的设计思路与实现细节。
+              - generic [ref=e206]:
+                - link "浏览项目文档" [ref=e207] [cursor=pointer]:
+                  - /url: /zh/projects
+                - link "阅读介绍" [ref=e208] [cursor=pointer]:
+                  - /url: /zh/introduction
+        - generic [ref=e209]:
+          - heading "Frequently Asked Questions" [level=2] [ref=e210]
+          - generic [ref=e211]:
+            - heading [level=3] [ref=e213]:
+              - button "这个博客用什么技术栈搭建的？" [ref=e214] [cursor=pointer]
+            - heading [level=3] [ref=e218]:
+              - button "项目代码开源吗？" [ref=e219] [cursor=pointer]
+            - heading [level=3] [ref=e223]:
+              - button "可以联系你吗？" [ref=e224] [cursor=pointer]
+            - heading [level=3] [ref=e228]:
+              - button "博客更新频率？" [ref=e229] [cursor=pointer]
+  - generic [ref=e232]:
+    - generic [ref=e233]:
+      - button "简体中文" [ref=e234] [cursor=pointer]
+      - button "System" [ref=e310] [cursor=pointer]
+    - separator [ref=e240]
+    - contentinfo [ref=e241]:
+      - generic [ref=e243]:
+        - link "CC BY-NC-SA 4.0" [ref=e244] [cursor=pointer]:
+          - /url: https://creativecommons.org/licenses/by-nc-sa/4.0/
+        - generic [ref=e245]:
+          - generic [ref=e246]: Copyright © 2026
+          - link "❤️ Wisdom" [ref=e247] [cursor=pointer]:
+            - /url: https://github.com/pdsuwwz
+            - generic [ref=e248]: ❤️
+            - text: Wisdom
+        - generic [ref=e249]:
+          - button [ref=e250] [cursor=pointer]
+          - button [ref=e252] [cursor=pointer]
+  - region "Notifications alt+T"
+  - button "Open Next.js Dev Tools" [ref=e316] [cursor=pointer]
+  - alert [ref=e320]

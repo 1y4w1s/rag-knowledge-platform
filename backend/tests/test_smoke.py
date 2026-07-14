@@ -5,7 +5,7 @@ from app.main import app
 
 
 def test_app_is_fastapi() -> None:
-    assert app.title == "知岸 API"
+    assert app.title == "睿阁 API"
     assert app.version == "0.12.0"
 
 

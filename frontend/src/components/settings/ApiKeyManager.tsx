@@ -85,7 +85,7 @@ export function ApiKeyManager() {
     <div id="account-api-keys" className="mt-10">
       <SettingsFormCard title="API Key 管理">
         <p className="text-sm text-foreground-secondary">
-          API Key 可用于外部脚本和系统直接调通知岸 API，无需登录。创建后请立即复制，密钥仅显示一次。
+          API Key 可用于外部脚本和系统直接调通睿阁 API，无需登录。创建后请立即复制，密钥仅显示一次。
         </p>
 
         {error ? (

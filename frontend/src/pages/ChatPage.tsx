@@ -158,7 +158,7 @@ export function ChatPage() {
       setKb(kbData);
       setKnowledgeBases(withCurrentKnowledgeBase(kbList, kbData));
       persistRecentKbId(id, workspace);
-      document.title = `知岸 · ${kbData.name}`;
+      document.title = `睿阁 · ${kbData.name}`;
       setOverride(buildChatBreadcrumb(id, kbData.name));
     } catch (err) {
       if (loadId !== loadIdRef.current) return;
@@ -177,7 +177,7 @@ export function ChatPage() {
     return () => {
       loadIdRef.current += 1;
       setOverride(null);
-      document.title = "知岸";
+      document.title = "睿阁";
       abortStreaming();
     };
   }, [loadPage, setOverride, abortStreaming]);

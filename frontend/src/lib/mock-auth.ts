@@ -7,7 +7,7 @@ export const DEMO_CREDENTIALS = {
   email: "demo-admin@example.com",
   username: "demo_admin",
   password: "password123",
-  orgName: "知岸演示公司",
+  orgName: "睿阁演示公司",
   nickname: "演示管理员",
 } as const;
 

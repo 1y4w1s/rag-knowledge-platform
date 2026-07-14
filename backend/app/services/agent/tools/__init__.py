@@ -1,5 +1,17 @@
 """Agent 只读 tool 包装层（G3 · registry + scope + tools）。"""
 
+from app.services.agent.tools.compare_chunks import (
+    ChunkDetail,
+    CompareChunksOutput,
+    CompareChunksToolResult,
+    run_compare_chunks,
+)
+from app.services.agent.tools.grep_in_document import (
+    GrepInDocumentOutput,
+    GrepInDocumentToolResult,
+    GrepMatch,
+    run_grep_in_document,
+)
 from app.services.agent.tools.get_chunk_excerpt import (
     NOT_FOUND_SUMMARY,
     GetChunkExcerptOutput,
@@ -71,7 +83,13 @@ __all__ = [
     "AGENT_MAX_LIMIT",
     "AGENT_MAX_TOP_K",
     "ALL_AGENT_TOOL_NAMES",
+    "ChunkDetail",
+    "CompareChunksOutput",
+    "CompareChunksToolResult",
     "FORBIDDEN_KB_SUMMARY",
+    "GrepInDocumentOutput",
+    "GrepInDocumentToolResult",
+    "GrepMatch",
     "NOT_FOUND_SUMMARY",
     "READ_ONLY_TOOL_NAMES",
     "AgentToolName",
@@ -109,7 +127,9 @@ __all__ = [
     "normalize_top_k",
     "parse_agent_tool",
     "parse_allowed_tool",
+    "run_compare_chunks",
     "run_get_chunk_excerpt",
+    "run_grep_in_document",
     "run_generate_faq_draft",
     "run_list_knowledge_bases",
     "run_search_documents",

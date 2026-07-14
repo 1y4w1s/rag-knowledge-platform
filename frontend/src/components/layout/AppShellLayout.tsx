@@ -52,7 +52,7 @@ function AppShellContent() {
       <AppSidebar />
       <div className="relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <AppTopbar
-          breadcrumb={override ?? handle?.breadcrumb ?? <>知岸</>}
+          breadcrumb={override ?? handle?.breadcrumb ?? <>睿阁</>}
           trailing={handle?.trailing}
         />
         <main id="main" tabIndex={-1} className="min-h-0 flex-1 overflow-auto p-6">

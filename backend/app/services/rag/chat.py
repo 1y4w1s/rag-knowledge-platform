@@ -12,6 +12,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.services.rag.generation import (
     build_messages,
+    compress_history,
+    rewrite_query,
     stream_deepseek_tokens,
     stream_no_context_reply,
 )
@@ -74,8 +76,29 @@ async def stream_chat_events(
             ]
 
     # R4-2：无依据走固定话术，不调 LLM
+    # 历史压缩：超过 6 轮时压缩早期对话
+    compressed = await compress_history(history) if history else None
+
+    # Fast mode tool call：空检索时改写查询重试一次
+    if not chunks:
+        rewritten = await rewrite_query(message)
+        if rewritten:
+            raw_chunks = await retrieve_chunks(
+                db,
+                kb_id=kb_id,
+                query=rewritten,
+                visible_kb_ids=visible_kb_ids,
+                hide_admin_only=hide_admin_only,
+            )
+            chunks = filter_relevant_chunks(raw_chunks, rewritten)
+            chunks = dedup_and_compress(chunks)
+            if chunks:
+                citations = [chunk_to_citation(c) for c in chunks]
+                for citation in citations:
+                    yield _sse_event("citation", citation)
+
     if chunks:
-        messages = build_messages(message, chunks, history=history)
+        messages = build_messages(message, chunks, history=history, compressed_summary=compressed)
         token_stream = stream_deepseek_tokens(messages)
     else:
         token_stream = stream_no_context_reply(message)
@@ -147,8 +170,29 @@ async def stream_workspace_chat_events(
                 for msg in history_rows
             ]
 
+    # Fast mode tool call：空检索时改写查询重试一次
+    if not chunks:
+        rewritten = await rewrite_query(message)
+        if rewritten:
+            raw_chunks = await retrieve_workspace_chunks(
+                db,
+                query=rewritten,
+                scope=scope,
+                org_scope=org_scope,
+                hide_admin_only=hide_admin_only,
+            )
+            chunks = filter_relevant_chunks(raw_chunks, rewritten)
+            chunks = dedup_and_compress(chunks)
+            if chunks:
+                citations = [workspace_chunk_to_citation(c) for c in chunks]
+                for citation in citations:
+                    yield _sse_event("citation", citation)
+
+    compressed = await compress_history(history) if history else None
+
     if chunks:
-        messages = build_messages(message, chunks, history=history)
+        compressed = await compress_history(history) if history else None
+        messages = build_messages(message, chunks, history=history, compressed_summary=compressed)
         token_stream = stream_deepseek_tokens(messages)
     else:
         token_stream = stream_no_context_reply(message)
