@@ -28,6 +28,7 @@ from app.api.ask_threads import router as ask_threads_router
 from app.api.kb_threads import router as kb_threads_router
 from app.api.audit import router as audit_router
 from app.api.auth import router as auth_router
+from app.api.api_keys import router as api_keys_router
 from app.api.chat import router as chat_router
 from app.api.dashboard import router as dashboard_router
 from app.api.documents import router as documents_router
@@ -77,4 +78,5 @@ app.include_router(ask_router, prefix="/api/v1")
 app.include_router(ask_threads_router, prefix="/api/v1")
 app.include_router(search_router, prefix="/api/v1")
 app.include_router(settings_router, prefix="/api/v1")
+app.include_router(api_keys_router, prefix="/api/v1")
 app.include_router(placeholder_router, prefix="/api/v1")
