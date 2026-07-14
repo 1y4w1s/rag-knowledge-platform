@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-GOLDEN_AGENT_QA_JSON = REPO_ROOT / "docs" / "golden_agent_qa.json"
+GOLDEN_AGENT_QA_JSON = REPO_ROOT / "docs" / "design-reviews" / "golden_agent_qa.json"
 
 AgentCategory = Literal["multi_step", "refusal", "forbidden_kb"]
 AgentScope = Literal["kb", "workspace"]

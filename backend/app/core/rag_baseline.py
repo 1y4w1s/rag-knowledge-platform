@@ -5,8 +5,8 @@
 
 from datetime import UTC, datetime
 
-GOLDEN_HIT_TOTAL = 10
-GOLDEN_HIT_PASSED = 10
+GOLDEN_HIT_TOTAL = 12
+GOLDEN_HIT_PASSED = 12
 GOLDEN_EMBEDDING_MODEL = "text-embedding-v2"
 GOLDEN_BASELINE_EVALUATED_AT = datetime(2026, 7, 6, tzinfo=UTC)
 
