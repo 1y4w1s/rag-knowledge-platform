@@ -118,3 +118,23 @@ class ChatMessagesListResponse(BaseModel):
 
     messages: list[ChatMessageResponse] = Field(default_factory=list)
 
+
+class SearchResultItem(BaseModel):
+    """对话历史搜索结果条目。"""
+    thread_id: UUID
+    thread_title: str
+    thread_kind: str
+    kb_id: UUID | None = None
+    kb_name: str | None = None
+    message_id: UUID
+    role: MessageRole
+    content: str
+    created_at: datetime
+
+
+class SearchMessagesResponse(BaseModel):
+    items: list[SearchResultItem] = Field(default_factory=list)
+    total: int
+    limit: int
+    offset: int
+
