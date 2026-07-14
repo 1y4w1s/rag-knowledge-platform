@@ -2166,3 +2166,102 @@
     transform: none;
   }
 }
+
+/* ============================================================
+   窄轨 icon rail（预览 icon-rail 风格）— 全局外壳
+   桌面：64px 仅图标 + hover 浮层标签；移动端抽屉展开 220px 带文字
+   ============================================================ */
+.rail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 64px;
+  flex: 0 0 64px;
+  padding: 16px 0;
+  background: var(--shell-glass);
+  border-right: 1px solid var(--shell-border);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar { display: none; }
+.rail-mark {
+  width: 30px; height: 30px;
+  margin-bottom: 4px;
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--action);
+  text-decoration: none;
+}
+.rail-sep { width: 26px; height: 1px; background: var(--line2); margin: 10px 0; }
+.rail-spacer { flex: 1 1 auto; }
+.rail-nav { display: flex; flex-direction: column; gap: 6px; width: 100%; align-items: center; padding: 4px 0; }
+.rail-item {
+  position: relative;
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--mut);
+  text-decoration: none;
+  transition: background .15s, color .15s;
+}
+.rail-item:hover { background: var(--nav-on); color: var(--text); }
+.rail-item.active { background: var(--nav-on); color: var(--action); }
+.rail-item.active::before {
+  content: "";
+  position: absolute;
+  left: -10px; top: 9px; bottom: 9px; width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--action);
+}
+.rail-item svg { width: 21px; height: 21px; }
+.rail-item .rail-label { display: none; }
+
+/* 桌面 hover 浮层标签 */
+@media (min-width: 769px) {
+  .rail-item .rail-label {
+    display: block;
+    position: absolute;
+    left: 54px; top: 50%; transform: translateY(-50%);
+    white-space: nowrap;
+    background: var(--surf);
+    border: 1px solid var(--line2);
+    color: var(--text);
+    font-size: 12px;
+    padding: 6px 11px;
+    border-radius: 9px;
+    opacity: 0; pointer-events: none;
+    transition: opacity .12s;
+    z-index: 30;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  }
+  .rail-item:hover .rail-label { opacity: 1; }
+}
+
+/* 移动端抽屉：展开为带文字的宽栏 */
+@media (max-width: 768px) {
+  .rail {
+    align-items: stretch;
+    width: 100%;
+    flex: 1 1 auto;
+    padding: 18px 12px;
+  }
+  .rail-nav { align-items: stretch; padding: 4px 0; }
+  .rail-item {
+    width: 100%; height: 44px;
+    justify-content: flex-start; gap: 12px;
+    padding: 0 12px; border-radius: 10px;
+  }
+  .rail-item.active::before { left: 0; top: 8px; bottom: 8px; }
+  .rail-item .rail-label {
+    display: inline; position: static; transform: none;
+    opacity: 1; pointer-events: auto; background: none; border: 0;
+    box-shadow: none; color: inherit; padding: 0; font-size: 13px;
+  }
+  .rail-bottom-block { align-items: stretch; }
+}
+.rail-bottom-block {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  width: 100%; padding: 8px 0 4px;
+}

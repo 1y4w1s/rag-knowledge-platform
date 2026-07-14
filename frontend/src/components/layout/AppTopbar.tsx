@@ -1,8 +1,11 @@
 import type { ReactNode } from "react";
+import { Link, useLocation } from "react-router-dom";
 
-import { UserAvatarMenu } from "@/components/layout/UserAvatarMenu";
-import { useAuth } from "@/lib/auth-context";
+import { RuigeLogo } from "@/components/brand/RuigeLogo";
+import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
+import { DepartmentPicker } from "@/components/sidebar/DepartmentPicker";
 import { useMobileDrawer } from "@/lib/mobile-drawer-context";
+import { useWorkspace } from "@/lib/workspace-context";
 
 interface AppTopbarProps {
   breadcrumb: ReactNode;
@@ -12,11 +15,13 @@ interface AppTopbarProps {
 }
 
 export function AppTopbar({ breadcrumb, trailing, theme, onToggleTheme }: AppTopbarProps) {
-  const { user } = useAuth();
+  const { isTeamWorkspace } = useWorkspace();
   const { isOpen, toggle } = useMobileDrawer();
+  const { pathname } = useLocation();
+  const showBreadcrumb = pathname !== "/dashboard";
 
   return (
-    <header className="app-topbar relative z-40 flex h-[52px] shrink-0 items-center gap-3 border-b border-[var(--shell-topbar-border)] bg-[var(--shell-glass)] px-6 text-sm shadow-[var(--shell-shadow)] backdrop-blur-xl after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-[linear-gradient(90deg,transparent,rgba(203,107,61,0.35),transparent)]">
+    <header className="app-topbar relative z-40 flex h-[56px] shrink-0 items-center gap-3 border-b border-[var(--shell-topbar-border)] bg-[var(--shell-glass)] px-5 text-sm shadow-[var(--shell-shadow)] backdrop-blur-xl after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-[linear-gradient(90deg,transparent,rgba(203,107,61,0.35),transparent)]">
       <button
         type="button"
         className="nav-toggle"
@@ -27,10 +32,38 @@ export function AppTopbar({ breadcrumb, trailing, theme, onToggleTheme }: AppTop
       >
         <span className="nav-toggle-icon" aria-hidden="true" />
       </button>
-      <div className="min-w-0 truncate text-muted [&_b]:font-medium [&_b]:text-foreground">
-        {breadcrumb}
-      </div>
+
+      {/* 品牌字标（链接回概览） */}
+      <Link to="/dashboard" className="flex shrink-0 items-center gap-2.5 no-underline">
+        <RuigeLogo size={26} />
+        <span className="leading-none">
+          <span className="block font-[var(--serif)] text-[19px] font-semibold text-foreground">
+            睿阁
+          </span>
+          <span className="mt-0.5 block text-[9px] tracking-[3px] text-muted">
+            KNOWLEDGE COCKPIT
+          </span>
+        </span>
+      </Link>
+
+      {/* 当前页面包屑（dashboad 页不重复显示） */}
+      {showBreadcrumb && (
+        <span className="hidden truncate text-muted lg:inline [&_b]:font-medium [&_b]:text-foreground">
+          <span className="mx-2 text-[var(--line2)]">/</span>
+          {breadcrumb}
+        </span>
+      )}
+
       <div className="flex-1" />
+
+      {/* 桌面端：工作区 / 部门切换 */}
+      <div className="hidden items-center gap-2 md:flex">
+        <WorkspaceSwitcher />
+        {isTeamWorkspace && <DepartmentPicker />}
+      </div>
+
+      {trailing}
+
       <button
         type="button"
         onClick={onToggleTheme}
@@ -48,8 +81,6 @@ export function AppTopbar({ breadcrumb, trailing, theme, onToggleTheme }: AppTop
           </svg>
         )}
       </button>
-      {trailing}
-      {user && <UserAvatarMenu />}
     </header>
   );
 }

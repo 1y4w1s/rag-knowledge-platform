@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+import { Link, useLocation } from "react-router-dom";
 import {
   LayoutGrid,
   Library,
@@ -9,103 +11,137 @@ import {
   UserCircle,
 } from "lucide-react";
 
+import { RuigeLogo } from "@/components/brand/RuigeLogo";
 import {
-  SidebarNavItem,
-  BrandMark,
   isChatNavActive,
   isKbNavActive,
 } from "@/components/layout/sidebar-nav";
 
-import { SidebarUserBlock } from "@/components/layout/UserAvatarMenu";
-
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
 import { DepartmentPicker } from "@/components/sidebar/DepartmentPicker";
+import { UserAvatarMenu } from "@/components/layout/UserAvatarMenu";
 
 import { useAuth } from "@/lib/auth-context";
 import { useMobileDrawer } from "@/lib/mobile-drawer-context";
 import { cn } from "@/lib/utils";
 import { useWorkspace } from "@/lib/workspace-context";
 
+interface RailNavItemProps {
+  to: string;
+  label: string;
+  icon: ReactNode;
+  match?: (pathname: string) => boolean;
+  end?: boolean;
+}
+
+function RailNavItem({ to, label, icon, match, end }: RailNavItemProps) {
+  const { pathname } = useLocation();
+  const active = match ? match(pathname) : end ? pathname === to : pathname.startsWith(to);
+
+  return (
+    <Link
+      to={to}
+      aria-current={active ? "page" : undefined}
+      className={cn("rail-item", active && "active")}
+      title={label}
+    >
+      {icon}
+      <span className="rail-label">{label}</span>
+    </Link>
+  );
+}
+
 export function AppSidebar() {
   const { user, isOrgAdmin } = useAuth();
   const { isOpen } = useMobileDrawer();
   const { isTeamWorkspace } = useWorkspace();
 
-  const chatPath = "/ask";
-
   const showAdminNav = isTeamWorkspace && isOrgAdmin;
-
   const showMemberNav =
     isTeamWorkspace && Boolean(user?.org_id) && !isOrgAdmin;
 
   return (
     <aside
       id="app-sidebar"
-      className={cn(
-        "app-sidebar relative flex h-full w-sidebar shrink-0 flex-col overflow-y-auto border-r border-[var(--shell-border)] bg-[var(--shell-glass)] px-2.5 py-4 backdrop-blur-xl",
-        isOpen && "open",
-      )}
+      className={cn("app-sidebar rail relative h-full shrink-0", isOpen && "open")}
     >
-      <div className="brand-row flex items-center gap-2.5 px-2.5 pb-3.5 mb-2 border-b border-border">
-        <BrandMark />
-        <span className="wordmark brand-text">睿阁</span>
-      </div>
+      <Link to="/dashboard" className="rail-mark" aria-label="睿阁 · 概览">
+        <RuigeLogo size={30} />
+      </Link>
+      <div className="rail-sep" />
 
-      <WorkspaceSwitcher />
-
-      <DepartmentPicker />
-
-      <div className="nav-label px-2.5 pb-1 pt-0.5 text-[0.62rem] font-semibold uppercase tracking-wide text-muted">
-        导航
-      </div>
-
-      <nav className="flex flex-1 flex-col gap-0.5 px-1">
-        <SidebarNavItem to="/dashboard" end icon={<LayoutGrid className="h-[18px] w-[18px]" />}>
-          概览
-        </SidebarNavItem>
-
-        <SidebarNavItem to="/knowledge-bases" match={isKbNavActive} icon={<Library className="h-[18px] w-[18px]" />}>
-          资料库
-        </SidebarNavItem>
-
-        <SidebarNavItem to={chatPath} match={isChatNavActive} icon={<MessageCircle className="h-[18px] w-[18px]" />}>
-          对话
-        </SidebarNavItem>
+      <nav className="rail-nav">
+        <RailNavItem
+          to="/dashboard"
+          end
+          label="概览"
+          icon={<LayoutGrid className="h-[21px] w-[21px]" />}
+        />
+        <RailNavItem
+          to="/knowledge-bases"
+          match={isKbNavActive}
+          label="资料库"
+          icon={<Library className="h-[21px] w-[21px]" />}
+        />
+        <RailNavItem
+          to="/ask"
+          match={isChatNavActive}
+          label="对话"
+          icon={<MessageCircle className="h-[21px] w-[21px]" />}
+        />
 
         {showAdminNav ? (
           <>
-            <SidebarNavItem to="/organization/departments" icon={<Building2 className="h-[18px] w-[18px]" />}>
-              组织与部门
-            </SidebarNavItem>
-
-            <SidebarNavItem to="/organization/members" icon={<Users className="h-[18px] w-[18px]" />}>
-              成员管理
-            </SidebarNavItem>
-
-            <SidebarNavItem to="/organization/settings" icon={<Settings className="h-[18px] w-[18px]" />}>
-              团队设置
-            </SidebarNavItem>
-
-            <SidebarNavItem to="/admin/audit" icon={<ClipboardList className="h-[18px] w-[18px]" />}>
-              操作审计
-            </SidebarNavItem>
+            <RailNavItem
+              to="/organization/departments"
+              label="组织与部门"
+              icon={<Building2 className="h-[21px] w-[21px]" />}
+            />
+            <RailNavItem
+              to="/organization/members"
+              label="成员管理"
+              icon={<Users className="h-[21px] w-[21px]" />}
+            />
+            <RailNavItem
+              to="/organization/settings"
+              label="团队设置"
+              icon={<Settings className="h-[21px] w-[21px]" />}
+            />
+            <RailNavItem
+              to="/admin/audit"
+              label="操作审计"
+              icon={<ClipboardList className="h-[21px] w-[21px]" />}
+            />
           </>
         ) : null}
 
         {showMemberNav ? (
-          <SidebarNavItem to="/organization/members" icon={<Users className="h-[18px] w-[18px]" />}>
-            团队成员
-          </SidebarNavItem>
+          <RailNavItem
+            to="/organization/members"
+            label="团队成员"
+            icon={<Users className="h-[21px] w-[21px]" />}
+          />
         ) : null}
       </nav>
 
-      <div className="mt-2 border-t border-border px-1 pt-3">
-        <SidebarNavItem to="/settings/account" icon={<UserCircle className="h-[18px] w-[18px]" />}>
-          账号设置
-        </SidebarNavItem>
-        <SidebarUserBlock />
+      <div className="rail-spacer" />
+
+      {/* 移动端抽屉内显示工作区 / 部门切换（桌面版在顶栏） */}
+      <div className="rail-bottom-block md:hidden">
+        <WorkspaceSwitcher />
+        {isTeamWorkspace && <DepartmentPicker />}
+      </div>
+
+      <div className="rail-bottom-block">
+        <RailNavItem
+          to="/settings/account"
+          label="账号设置"
+          icon={<UserCircle className="h-[21px] w-[21px]" />}
+        />
+        <div className="mt-1 flex justify-center">
+          <UserAvatarMenu size="sm" />
+        </div>
       </div>
     </aside>
   );
 }
-

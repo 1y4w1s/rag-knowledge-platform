@@ -147,6 +147,48 @@ async def contextualize_query(query: str, history: list[dict[str, str]]) -> str:
         return query
 
 
+MULTI_QUERY_PROMPT = """你是一个检索扩展助手。请将用户的问题扩展为 3 个不同表述的检索查询，用于向量检索。
+
+要求：
+- 第 1 个：保留原问法，适当补充关键词
+- 第 2 个：换一种表述方式（同义词、倒装、口语→书面）
+- 第 3 个：从另一个角度提问（提取核心实体作为查询）
+- 每行一个查询，不要编号，不要空行
+- 如果原问题已经很完整，少量调整即可
+
+原问题：{query}
+
+3 个查询："""
+
+
+async def expand_queries(query: str) -> list[str]:
+    """将问题扩展为 3 个不同表述的检索查询，用于多路召回。失败时返回 [query]。"""
+    if not query.strip():
+        return [query]
+
+    prompt = MULTI_QUERY_PROMPT.format(query=query)
+    try:
+        parts: list[str] = []
+        async for token in stream_deepseek_tokens([{"role": "user", "content": prompt}]):
+            parts.append(token)
+        text = "".join(parts).strip()
+        queries = [q.strip().strip('"').strip("'").strip("- ").strip("123") for q in text.split("\n") if q.strip()]
+        queries = [q for q in queries if len(q) > 3][:3]
+        if not queries:
+            return [query]
+        # Deduplicate (case-insensitive)
+        seen: set[str] = set()
+        result: list[str] = []
+        for q in [query] + queries:
+            key = q.lower().strip()
+            if key not in seen:
+                seen.add(key)
+                result.append(q)
+        return result[:4]
+    except Exception:
+        return [query]
+
+
 def build_messages(
     user_message: str,
     chunks: list[RetrievedChunk],
