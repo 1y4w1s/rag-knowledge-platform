@@ -4,13 +4,27 @@ import uuid
 from pathlib import Path
 
 from fastapi import status
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, PlainTextResponse
 from app.core.exceptions import NotFoundError, ConflictError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import CurrentUser, KbAction, require_kb_access
 from app.models.document import Document
 from app.models.enums import AccountType, DocumentStatus, DocumentVisibility, OrgRole
+
+_EXTRACTABLE: frozenset[str] = frozenset({"txt", "md", "docx"})
+
+
+def _extract_text(file_path: Path, file_type: str) -> str | None:
+    if file_type == "docx":
+        try:
+            from docx import Document as DocxDocument
+            doc = DocxDocument(str(file_path))
+            paras = [p.text for p in doc.paragraphs if p.text.strip()]
+            return "\n".join(paras) if paras else None
+        except Exception:
+            return None
+    return None
 
 _CONTENT_TYPES: dict[str, str] = {
     "pdf": "application/pdf",
@@ -64,6 +78,11 @@ async def get_document_preview(
     file_path = Path(doc.storage_path)
     if not file_path.is_file():
         raise NotFoundError("文档文件不存在")
+
+    if doc.file_type in _EXTRACTABLE:
+        text = _extract_text(file_path, doc.file_type)
+        if text is not None:
+            return PlainTextResponse(text)
 
     return FileResponse(
         path=file_path,
