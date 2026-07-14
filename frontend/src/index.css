@@ -68,6 +68,16 @@
     --brand-grad-deep: linear-gradient(135deg, #a8451e 0%, #6f2710 100%);
     --nav-active-grad: linear-gradient(135deg, rgba(232, 130, 78, 0.22), rgba(177, 78, 38, 0.12));
     --grain-opacity: 0.08;
+    /* R3 Dashboard · 语义色与材质 token */
+    --ok: #4c7c5e; --warn: #a5872b; --info: #3f72b0; --que: #5b6b7c; --bad: #a8453a;
+    --trend: rgba(203,107,61,.30); --trend-peak: rgba(203,107,61,.62);
+    --ink: rgba(40,30,24,.22); --ink-strong: rgba(40,30,24,.36);
+    --surf2: #f2e7d6;
+    --card-shadow: 0 1px 2px rgba(120,84,52,.10), 0 14px 34px -22px rgba(120,84,52,.30);
+    --card-shadow-lift: 0 2px 6px rgba(120,84,52,.14), 0 22px 48px -22px rgba(120,84,52,.36);
+    --top-hi: inset 0 1px 0 rgba(255,253,246,.85);
+    --paper-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    --serif: "Noto Serif SC","Songti SC",Georgia,serif;
     --sidebar: 220px;
     --sidebar-drawer-z: 120;
   }
@@ -471,6 +481,14 @@
     --status-err: #e0786a;
     --status-err-text: #eca498;
     --status-err-border: #5a3430;
+    /* R3 Dashboard · 暗色语义色覆盖 */
+    --ok: #83a58e; --warn: #d8c074; --info: #6f97c4; --que: #8b97a6; --bad: #c06a5e;
+    --trend: rgba(224,122,69,.26); --trend-peak: rgba(224,122,69,.58);
+    --ink: rgba(236,230,223,.18); --ink-strong: rgba(236,230,223,.42);
+    --surf2: #261e17;
+    --card-shadow: 0 12px 30px -22px rgba(0,0,0,.5);
+    --card-shadow-lift: 0 18px 38px -20px rgba(0,0,0,.65);
+    --top-hi: inset 0 1px 0 rgba(255,255,255,.05);
   }
 
   /* 暗/亮切换悬浮按钮（预览 .theme-fab，作用域限认证页） */

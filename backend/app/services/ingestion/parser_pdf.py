@@ -116,19 +116,16 @@ def _parse_pdf_tables_only(path: Path, *, batch_pages: int = 10) -> list[ParsedB
 def parse_pdf(path: Path, *, batch_pages: int = 10) -> list[ParsedBlock]:
     import pdfplumber
 
-    # 检测密码保护
     try:
-        pdfplumber.open(str(path))
+        pdf_file = pdfplumber.open(path)
     except pdfplumber.pdfminer.pdfparser.PDFEncryptionError:
         raise ValueError("文件已加密，请解密后上传")
-    except Exception:
-        pass
 
     blocks: list[ParsedBlock] = []
     heading_stack: list[str] = []
     doc_title: str | None = None
 
-    with pdfplumber.open(path) as pdf:
+    with pdf_file as pdf:
         if not pdf.pages:
             return []
 
