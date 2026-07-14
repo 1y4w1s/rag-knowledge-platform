@@ -143,6 +143,14 @@ def hit_at_k(chunks: list[RetrievedChunk], case: GoldenQACase, k: int = HIT_K) -
     return any(_chunk_matches(case, chunk) for chunk in chunks[:k])
 
 
+def reciprocal_rank(chunks: list[RetrievedChunk], case: GoldenQACase, k: int = HIT_K) -> float:
+    """计算 MRR 贡献：第一个匹配 chunk 的倒数排名；无匹配返回 0。"""
+    for rank, chunk in enumerate(chunks[:k], start=1):
+        if _chunk_matches(case, chunk):
+            return 1.0 / rank
+    return 0.0
+
+
 @pytest.fixture
 def upload_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
@@ -200,3 +208,6 @@ async def test_golden_qa_hit_at_3(
         f"{case.case_id} Hit@{HIT_K} 未命中；Top-{HIT_K}="
         f"{[(c.section_title, c.page_number, c.content[:40]) for c in chunks[:HIT_K]]}"
     )
+    rr = reciprocal_rank(chunks, case, k=HIT_K)
+    if rr < 1.0:
+        print(f"  {case.case_id}: RR={rr:.3f}")
