@@ -108,6 +108,45 @@ async def rewrite_query(query: str) -> str | None:
         return None
 
 
+CONTEXTUALIZE_PROMPT = """你是一个对话助手，负责将多轮对话中的最新问题改写为独立的检索查询。
+
+对话历史：
+{history_text}
+
+最新问题：{query}
+
+要求：
+- 将最新问题改写为不依赖对话历史就能理解的独立查询
+- 保留原问题的所有关键信息，不添加原文没有的信息
+- 如果最新问题本身已经是完整的独立查询，直接返回原文
+- 只输出改写后的查询，不要额外解释
+
+改写后的独立查询："""
+
+
+async def contextualize_query(query: str, history: list[dict[str, str]]) -> str:
+    """多轮对话中将最新问题改写为独立检索查询。失败或无历史时返回原问题。"""
+    if not history or not query.strip():
+        return query
+
+    lines = []
+    for msg in history[-6:]:  # 只看最近 3 轮
+        role = "用户" if msg["role"] == "user" else "助手"
+        text = msg.get("content", "")[:200]
+        lines.append(f"{role}：{text}")
+    history_text = "\n".join(lines)
+
+    prompt = CONTEXTUALIZE_PROMPT.format(history_text=history_text, query=query)
+    try:
+        parts: list[str] = []
+        async for token in stream_deepseek_tokens([{"role": "user", "content": prompt}]):
+            parts.append(token)
+        rewritten = "".join(parts).strip().strip('"').strip("'")
+        return rewritten if rewritten and rewritten != query else query
+    except Exception:
+        return query
+
+
 def build_messages(
     user_message: str,
     chunks: list[RetrievedChunk],

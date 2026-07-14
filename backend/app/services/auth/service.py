@@ -1,5 +1,6 @@
 """注册 / 登录业务逻辑（Wave 1.1 + 4.2.2 username）。"""
 
+import re
 import uuid
 
 from fastapi import status
@@ -16,6 +17,7 @@ from app.services.audit.log import write_audit_log
 from app.services.auth.jwt import create_access_token
 from app.services.auth.login_rate_limit import (
     clear_login_failures,
+    is_ip_login_rate_limited,
     is_login_rate_limited,
     record_login_failure,
 )
@@ -34,7 +36,15 @@ MIN_PASSWORD_LEN = 8
 
 def _validate_password(password: str) -> None:
     if len(password) < MIN_PASSWORD_LEN:
-        raise ValidationError(detail=f"密码至少 {MIN_PASSWORD_LEN} 位")
+        raise ValidationError(detail=f"password at least {MIN_PASSWORD_LEN} chars")
+    if not re.search(r"[A-Z]", password):
+        raise ValidationError(detail="password must contain an uppercase letter")
+    if not re.search(r"[a-z]", password):
+        raise ValidationError(detail="password must contain a lowercase letter")
+    if not re.search(r"[0-9]", password):
+        raise ValidationError(detail="password must contain a digit")
+    if not re.search(r"[!@#$%^&*(),.?\"{}|<>_\-+=~`\[\];'\\/]", password):
+        raise ValidationError(detail="password must contain a special character")
 
 
 def _user_public(
@@ -192,6 +202,18 @@ async def login_user(
 ) -> LoginResponse:
     user = await _find_user_by_identifier(db, identifier)
     if user is None or not verify_password(password, user.password_hash):
+        # IP 维度限流：同 IP 20 次/5min → 429
+        if is_ip_login_rate_limited(ip):
+            await write_audit_log(
+                db,
+                action="auth.ip_rate_limited",
+                metadata={"identifier": identifier.strip()},
+                ip=ip,
+            )
+            await db.commit()
+            raise RateLimitError("当前 IP 登录失败次数过多，请稍后重试")
+
+        # identifier 维度限流：5 次/15min → 429
         if is_login_rate_limited(ip, identifier):
             await write_audit_log(
                 db,

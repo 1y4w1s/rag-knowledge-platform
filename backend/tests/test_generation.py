@@ -8,11 +8,13 @@ import pytest
 
 from app.services.rag.generation import (
     COMPRESS_PROMPT,
+    CONTEXTUALIZE_PROMPT,
     KEEP_RECENT_ROUNDS,
     MAX_ROUNDS_BEFORE_COMPRESS,
     SYSTEM_PROMPT,
     build_messages,
     compress_history,
+    contextualize_query,
     no_context_reply_for,
     rewrite_query,
 )
@@ -214,3 +216,25 @@ def test_rewrite_query_constants() -> None:
     """验证 REWRITE_PROMPT 存在且格式正确。"""
     from app.services.rag.generation import REWRITE_PROMPT
     assert "{query}" in REWRITE_PROMPT
+
+
+def test_contextualize_query_returns_original_without_history() -> None:
+    """无历史时返回原问题。"""
+    import asyncio
+
+    result = asyncio.run(contextualize_query("年假几天？", []))
+    assert result == "年假几天？"
+
+
+def test_contextualize_query_returns_original_on_empty_query() -> None:
+    """空问题返回原问题。"""
+    import asyncio
+
+    result = asyncio.run(contextualize_query("", [{"role": "user", "content": "年假"}]))
+    assert result == ""
+
+
+def test_contextualize_prompt_format() -> None:
+    """验证 CONTEXTUALIZE_PROMPT 格式正确。"""
+    assert "{query}" in CONTEXTUALIZE_PROMPT
+    assert "{history_text}" in CONTEXTUALIZE_PROMPT

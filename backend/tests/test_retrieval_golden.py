@@ -94,7 +94,7 @@ async def _ingest_fixture(
 
 
 def _make_golden_docx(path: Path) -> None:
-    """与 golden_handbook.md 对齐的最小 DOCX（Heading 样式 + 年假/迟到条款）。"""
+    """与 golden_handbook.md 对齐的最小 DOCX（含所有章节）。"""
     from docx import Document as DocxDocument
 
     doc = DocxDocument()
@@ -106,6 +106,16 @@ def _make_golden_docx(path: Path) -> None:
     )
     doc.add_heading("1.2 迟到", level=3)
     doc.add_paragraph("迟到 30 分钟以内按事假半天处理；超过 30 分钟按旷工半天处理。")
+    doc.add_heading("第三章 考勤补充", level=2)
+    doc.add_heading("3.1 加班", level=3)
+    doc.add_paragraph("工作日加班按基本工资 1.5 倍计算加班费。")
+    doc.add_heading("3.2 出差", level=3)
+    doc.add_paragraph("出差期间每日补贴：一线城市 200 元。住宿费实报实销。")
+    doc.add_heading("第四章 职业发展", level=2)
+    doc.add_heading("4.1 培训", level=3)
+    doc.add_paragraph("员工每年可参加不超过 5 天的外部培训，费用由公司承担。")
+    doc.add_heading("5.1 离职通知期", level=2)
+    doc.add_paragraph("试用期员工提前 3 天通知；正式员工提前 30 天通知。")
     doc.save(str(path))
 
 

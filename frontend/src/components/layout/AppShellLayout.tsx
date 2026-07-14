@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation, useMatches } from "react-router-dom";
 
 import { AppSidebar } from "@/components/layout/AppSidebar";
@@ -33,12 +33,21 @@ function AppShellContent() {
     | ShellRouteHandle
     | undefined;
 
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
+    const saved =
+      typeof window !== "undefined" ? localStorage.getItem("ruige-theme") : null;
+    return saved === "dark" ? "dark" : "light";
+  });
+  useEffect(() => {
+    localStorage.setItem("ruige-theme", theme);
+  }, [theme]);
+
   useEffect(() => {
     close();
   }, [location.pathname, workspace, departmentId, close]);
 
   return (
-    <div className="app-shell flex h-screen overflow-hidden">
+    <div className="app-shell flex h-screen overflow-hidden" data-theme={theme}>
       <a href="#main" className="skip-link">
         跳到主内容
       </a>
@@ -52,6 +61,8 @@ function AppShellContent() {
       <AppSidebar />
       <div className="relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <AppTopbar
+          theme={theme}
+          onToggleTheme={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
           breadcrumb={override ?? handle?.breadcrumb ?? <>睿阁</>}
           trailing={handle?.trailing}
         />

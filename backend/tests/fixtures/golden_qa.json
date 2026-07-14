@@ -132,6 +132,149 @@
         "heading_path_contains": "考勤制度",
         "content_contains": "年假10天"
       }
+    },
+    {
+      "case_id": "GQ-13",
+      "tags": ["md", "section"],
+      "query": "工作日加班怎么算加班费？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.1 加班",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "1.5 倍"
+      }
+    },
+    {
+      "case_id": "GQ-14",
+      "tags": ["md", "number"],
+      "query": "出差到一线城市每天补贴多少？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.2 出差",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "200 元"
+      }
+    },
+    {
+      "case_id": "GQ-15",
+      "tags": ["md", "section"],
+      "query": "加班需要什么流程？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.1 加班",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "加班审批单"
+      }
+    },
+    {
+      "case_id": "GQ-16",
+      "tags": ["md", "section"],
+      "query": "出差住宿费怎么报销？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.2 出差",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "实报实销"
+      }
+    },
+    {
+      "case_id": "GQ-17",
+      "tags": ["md", "number"],
+      "query": "员工每年可以参加几天外部培训？",
+      "source": "md",
+      "expect": {
+        "section_title": "4.1 培训",
+        "heading_path_contains": "职业发展",
+        "content_contains": "不超过 5 天"
+      }
+    },
+    {
+      "case_id": "GQ-18",
+      "tags": ["md", "date"],
+      "query": "晋升评估一年几次？什么时间？",
+      "source": "md",
+      "expect": {
+        "section_title": "4.2 晋升",
+        "heading_path_contains": "职业发展",
+        "content_contains": "6 月"
+      }
+    },
+    {
+      "case_id": "GQ-19",
+      "tags": ["md", "number"],
+      "query": "竞业限制期是多久？",
+      "source": "md",
+      "expect": {
+        "section_title": "5.2 竞业限制",
+        "heading_path_contains": "离职管理",
+        "content_contains": "12 个月"
+      }
+    },
+    {
+      "case_id": "GQ-20",
+      "tags": ["md", "number"],
+      "query": "正式员工离职需要提前多久通知？",
+      "source": "md",
+      "expect": {
+        "section_title": "5.1 离职通知期",
+        "heading_path_contains": "离职管理",
+        "content_contains": "30 天"
+      }
+    },
+    {
+      "case_id": "GQ-21",
+      "tags": ["md", "negation"],
+      "query": "培训完就离职要不要赔钱？",
+      "source": "md",
+      "expect": {
+        "section_title": "4.1 培训",
+        "heading_path_contains": "职业发展",
+        "content_contains": "按比例退还"
+      }
+    },
+    {
+      "case_id": "GQ-22",
+      "tags": ["md", "term"],
+      "query": "没提前30天通知离职会怎么样？",
+      "source": "md",
+      "expect": {
+        "section_title": "5.1 离职通知期",
+        "heading_path_contains": "离职管理",
+        "content_contains": "代通知金"
+      }
+    },
+    {
+      "case_id": "GQ-23",
+      "tags": ["md", "number"],
+      "query": "竞业限制补偿金按什么标准发？",
+      "source": "md",
+      "expect": {
+        "section_title": "5.2 竞业限制",
+        "heading_path_contains": "离职管理",
+        "content_contains": "30%"
+      }
+    },
+    {
+      "case_id": "GQ-24",
+      "tags": ["md", "condition"],
+      "query": "晋升需要绩效达到什么标准？",
+      "source": "md",
+      "expect": {
+        "section_title": "4.2 晋升",
+        "heading_path_contains": "职业发展",
+        "content_contains": "B 级以上"
+      }
+    },
+    {
+      "case_id": "GQ-25",
+      "tags": ["md", "number"],
+      "query": "法定节假日加班费怎么算？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.1 加班",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "3 倍"
+      }
     }
   ]
 }
