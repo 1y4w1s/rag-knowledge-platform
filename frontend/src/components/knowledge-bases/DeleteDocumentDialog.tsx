@@ -54,7 +54,7 @@ export function DeleteDocumentDialog({
           删除文档
         </h2>
         <p className="mt-2 text-sm text-muted">
-          确定删除「{doc.filename}」？文档与索引将一并移除，此操作不可恢复。
+          确定删除「{doc.filename}」？文档将移入回收站，30 天内可恢复。
         </p>
 
         <div className="mt-6 flex justify-end gap-2">
