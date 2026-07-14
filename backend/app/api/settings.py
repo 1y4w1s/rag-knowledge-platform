@@ -14,12 +14,14 @@ from app.schemas.settings import (
     JoinTeamRequest,
     JoinTeamResponse,
     LeaveTeamResponse,
+    UpdateProfileRequest,
 )
 from app.services.account.settings import (
     change_password,
     get_account_settings,
     join_team_with_invite,
     leave_team,
+    update_profile,
 )
 
 router = APIRouter(prefix="/settings", tags=["settings"])
@@ -66,3 +68,14 @@ async def post_account_leave_team(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> LeaveTeamResponse:
     return await leave_team(db, current_user)
+
+
+@router.patch("/profile", response_model=AccountSettingsResponse)
+async def patch_account_profile(
+    body: UpdateProfileRequest,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> AccountSettingsResponse:
+    return await update_profile(
+        db, current_user, nickname=body.nickname, username=body.username,
+    )

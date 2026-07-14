@@ -115,7 +115,9 @@
     font-size:13px;align-items:flex-start}
   .feed .it:last-child{border:0}
   .ic{flex:0 0 26px;height:26px;border-radius:8px;display:flex;align-items:center;
-    justify-content:center;font-size:13px;background:var(--surf2)}
+    justify-content:center;background:var(--surf2);color:var(--brand)}
+  .ic svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;
+    stroke-linecap:round;stroke-linejoin:round}
   .feed .it .body{flex:1}
   .feed .it .body .t{color:var(--text)}
   .feed .it .body .m{color:var(--mut);font-size:11px;margin-top:2px}
@@ -133,10 +135,15 @@
   <!-- TOP COMMAND STRIP -->
   <div class="topbar">
     <div class="brand">
-      <svg class="mark" viewBox="0 0 32 32" fill="none">
-        <path d="M6 27V8l10-4 10 4v19l-10 4z" stroke="var(--brand)" stroke-width="1.6"/>
-        <path d="M6 8l10 4 10-4M16 12v19" stroke="var(--brand)" stroke-width="1.6"/>
-        <path d="M11 18l5 2 5-2" stroke="var(--brand-deep)" stroke-width="1.4"/>
+      <svg class="mark" viewBox="0 0 48 48" fill="none" style="color:var(--brand)">
+        <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+        <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
       </svg>
       <div>
         <h1>睿阁</h1>
@@ -270,9 +277,9 @@ const DATA = {
       {t:"PDF 表格解析失败原因",m:"2 条引用 · 昨天"},
     ],
     audit:[
-      {ic:"↑",t:"上传《Q3 财报.pdf》",m:"入库处理中",time:"12分钟前"},
-      {ic:"✎",t:"创建资料库「产品手册」",m:"个人空间",time:"1小时前"},
-      {ic:"↻",t:"重试 2 个失败文档",m:"storage",time:"3小时前"},
+      {ic:"upload",t:"上传《Q3 财报.pdf》",m:"入库处理中",time:"12分钟前"},
+      {ic:"pen-line",t:"创建资料库「产品手册」",m:"个人空间",time:"1小时前"},
+      {ic:"refresh-cw",t:"重试 2 个失败文档",m:"storage",time:"3小时前"},
     ]},
   "org-admin":{ name:"团队·管理员", kb:6, doc:248, comp:232, q:3,p:5,c:232,f:8,
     rate:96.7, dur:42.6, chunk:18420, chat:137, member:24, retry:3, clean:0, kbName:"产品手册",
@@ -284,9 +291,9 @@ const DATA = {
       {t:"检索延迟突增排查",m:"运维 · 3 条引用",time:"今天"},
     ],
     audit:[
-      {ic:"＋",t:"邀请成员 zhang@ 加入",m:"组织 · 管理员",time:"20分钟前"},
-      {ic:"↑",t:"上传《员工手册 v3.docx》",m:"HR · 入库完成",time:"1小时前"},
-      {ic:"🔒",t:"调整「财务部」部门权限",m:"组织 · 管理员",time:"4小时前"},
+      {ic:"user-plus",t:"邀请成员 zhang@ 加入",m:"组织 · 管理员",time:"20分钟前"},
+      {ic:"upload",t:"上传《员工手册 v3.docx》",m:"HR · 入库完成",time:"1小时前"},
+      {ic:"lock",t:"调整「财务部」部门权限",m:"组织 · 管理员",time:"4小时前"},
     ]},
   "org-member":{ name:"团队·成员", kb:6, doc:248, comp:232, q:3,p:5,c:232,f:8,
     rate:96.7, dur:42.6, chunk:18420, chat:137, member:24, retry:3, clean:0, kbName:"产品手册",
@@ -297,10 +304,21 @@ const DATA = {
       {t:"检索结果不含最新公告",m:"2 条引用 · 今天",time:"40分钟前"},
     ],
     audit:[
-      {ic:"↑",t:"上传《周报模板.docx》",m:"入库完成",time:"30分钟前"},
-      {ic:"💬",t:"发起对话「报销流程」",m:"知识库 · 产品手册",time:"1小时前"},
+      {ic:"upload",t:"上传《周报模板.docx》",m:"入库完成",time:"30分钟前"},
+      {ic:"message-square",t:"发起对话「报销流程」",m:"知识库 · 产品手册",time:"1小时前"},
     ]},
 };
+
+const ICONS = {
+  "message-square":'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  "upload":'<path d="M12 3v12"/><path d="m17 8-5-5-5 5"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>',
+  "pen-line":'<path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/>',
+  "refresh-cw":'<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/>',
+  "user-plus":'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6"/><path d="M22 11h-6"/>',
+  "lock":'<rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+  "file-text":'<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+};
+function svg(name){ return `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">${ICONS[name]||''}</svg>`; }
 
 function render(scope){
   const d = DATA[scope];
@@ -343,10 +361,10 @@ function render(scope){
 
   // threads
   document.getElementById('threads').innerHTML = d.threads.map(t=>
-    `<div class="it"><div class="ic">💬</div><div class="body"><div class="t">${t.t}</div><div class="m">${t.m}</div></div></div>`).join('');
+    `<div class="it"><div class="ic">${svg('message-square')}</div><div class="body"><div class="t">${t.t}</div><div class="m">${t.m}</div></div></div>`).join('');
   // audit
   document.getElementById('audit').innerHTML = d.audit.map(a=>
-    `<div class="it"><div class="ic">${a.ic}</div><div class="body"><div class="t">${a.t}</div><div class="m">${a.m}</div></div><div class="time">${a.time}</div></div>`).join('');
+    `<div class="it"><div class="ic">${svg(a.ic)}</div><div class="body"><div class="t">${a.t}</div><div class="m">${a.m}</div></div><div class="time">${a.time}</div></div>`).join('');
 }
 
 // scope toggle
