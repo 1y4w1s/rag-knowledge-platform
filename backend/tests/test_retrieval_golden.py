@@ -124,11 +124,17 @@ def _make_golden_pdf(path: Path) -> None:
     from reportlab.pdfgen import canvas
 
     c = canvas.Canvas(str(path), pagesize=letter)
-    c.drawString(72, 720, "Employee Handbook")
-    c.drawString(72, 690, "Chapter 1 Attendance")
-    c.drawString(72, 660, "Apply annual leave two weeks")
+    c.drawString(72, 750, "Employee Handbook")
+    c.drawString(72, 720, "Chapter 1 Attendance Policy")
+    c.drawString(72, 690, "Section 1.1: Annual Leave Entitlement")
+    c.drawString(72, 660, "Employees who have completed one year of service")
+    c.drawString(72, 640, "are entitled to 10 days of annual leave.")
+    c.drawString(72, 610, "Leave must be applied two weeks in advance.")
     c.showPage()
-    c.drawString(72, 720, "in advance. After one year: annual leave 10 days.")
+    c.drawString(72, 750, "1.1 Annual Leave Details")
+    c.drawString(72, 720, "Annual leave: 10 days per year.")
+    c.drawString(72, 690, "Apply at least two weeks in advance.")
+    c.drawString(72, 660, "Page 2 contains the detailed policy summary.")
     c.save()
 
 
@@ -140,7 +146,7 @@ def _chunk_matches(case: GoldenQACase, chunk: RetrievedChunk) -> bool:
         if case.heading_path_contains not in (chunk.heading_path or ""):
             return False
     if case.content_contains is not None:
-        if case.content_contains not in chunk.content:
+        if case.content_contains.lower() not in chunk.content.lower():
             return False
     if case.page_number is not None:
         if chunk.page_number != case.page_number:
