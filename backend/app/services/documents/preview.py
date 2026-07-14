@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import CurrentUser, KbAction, require_kb_access
 from app.models.document import Document
-from app.models.enums import DocumentStatus
+from app.models.enums import AccountType, DocumentStatus, DocumentVisibility, OrgRole
 
 _CONTENT_TYPES: dict[str, str] = {
     "pdf": "application/pdf",
@@ -49,6 +49,13 @@ async def get_document_preview(
 
     doc = await db.get(Document, doc_id)
     if doc is None or doc.kb_id != kb_id:
+        raise NotFoundError("文档不存在")
+
+    if (
+        doc.visibility == DocumentVisibility.admin_only
+        and current_user.account_type.value == AccountType.enterprise
+        and current_user.org_role == OrgRole.member
+    ):
         raise NotFoundError("文档不存在")
 
     if doc.status != DocumentStatus.completed:
