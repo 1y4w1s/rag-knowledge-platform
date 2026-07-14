@@ -22,7 +22,7 @@ async def test_write_audit_log_persisted_and_queryable() -> None:
             id=uuid.uuid4(),
             email=f"audit-{uuid.uuid4().hex[:8]}@example.com",
             username=f"audit{uuid.uuid4().hex[:8]}"[:32],
-            password_hash=hash_password("password123"),
+            password_hash=hash_password("Test123!@"),
             account_type=AccountType.personal,
         )
         db.add(user)

@@ -5,6 +5,9 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
+from sqlalchemy import and_, func, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.deps import CurrentUser
 from app.core.exceptions import ForbiddenError
 from app.models.audit_log import AuditLog
@@ -49,6 +52,10 @@ async def list_audit_logs(
     limit: int | None = None,
     offset: int | None = None,
     action: str | None = None,
+    actor_user_id: uuid.UUID | None = None,
+    resource_type: str | None = None,
+    resource_id: uuid.UUID | None = None,
+    ip: str | None = None,
     kb_id: uuid.UUID | None = None,
     created_from: datetime | None = None,
     created_to: datetime | None = None,
@@ -63,6 +70,18 @@ async def list_audit_logs(
 
     if action is not None:
         filters.append(AuditLog.action == action)
+
+    if actor_user_id is not None:
+        filters.append(AuditLog.actor_user_id == actor_user_id)
+
+    if resource_type is not None:
+        filters.append(AuditLog.resource_type == resource_type)
+
+    if resource_id is not None:
+        filters.append(AuditLog.resource_id == resource_id)
+
+    if ip is not None:
+        filters.append(AuditLog.ip == ip)
 
     if kb_id is not None:
         kb = await db.get(KnowledgeBase, kb_id)

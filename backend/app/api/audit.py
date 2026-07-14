@@ -27,17 +27,25 @@ async def get_audit_logs(
     limit: Annotated[int | None, Query(ge=1, le=100)] = None,
     offset: Annotated[int | None, Query(ge=0)] = None,
     action: Annotated[str | None, Query(max_length=64)] = None,
+    actor_user_id: Annotated[UUID | None, Query()] = None,
+    resource_type: Annotated[str | None, Query(max_length=32)] = None,
+    resource_id: Annotated[UUID | None, Query()] = None,
+    ip: Annotated[str | None, Query(max_length=45)] = None,
     kb_id: Annotated[UUID | None, Query()] = None,
     created_from: Annotated[datetime | None, Query()] = None,
     created_to: Annotated[datetime | None, Query()] = None,
 ) -> AuditLogListResponse:
-    """组织 Admin 分页查询审计日志（action / kb_id / 时间筛选）。"""
+    """组织 Admin 分页查询审计日志（action / actor / resource / IP / kb / 时间筛选）。"""
     return await list_audit_logs(
         db,
         admin,
         limit=limit,
         offset=offset,
         action=action,
+        actor_user_id=actor_user_id,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        ip=ip,
         kb_id=kb_id,
         created_from=created_from,
         created_to=created_to,
