@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.chat_message import ChatMessage
@@ -284,3 +284,44 @@ async def list_workspace_chat_messages(
     rows = list(result.scalars().all())
     rows.reverse()
     return _sort_messages_chronologically(rows)
+
+
+async def search_chat_messages(
+    db: AsyncSession,
+    *,
+    user_id: UUID,
+    query: str,
+    limit: int = 20,
+    offset: int = 0,
+) -> tuple[list[tuple[ChatMessage, ChatThread]], int]:
+    capped_limit = max(1, min(limit, 50))
+    capped_offset = max(0, offset)
+
+    base = (
+        select(ChatMessage, ChatThread)
+        .join(ChatThread, ChatMessage.thread_id == ChatThread.id)
+        .where(ChatMessage.user_id == user_id)
+        .where(
+            or_(
+                func.lower(ChatMessage.content).contains(query.lower()),
+                func.lower(ChatThread.title).contains(query.lower()),
+            )
+        )
+    )
+
+    total = int(
+        await db.scalar(select(func.count()).select_from(base.subquery())) or 0
+    )
+
+    rows = (
+        (await db.execute(
+            base.order_by(ChatMessage.created_at.desc())
+            .limit(capped_limit)
+            .offset(capped_offset)
+        ))
+        .unique()
+        .all()
+    )
+
+    items: list[tuple[ChatMessage, ChatThread]] = [(m, t) for m, t in rows]
+    return items, total

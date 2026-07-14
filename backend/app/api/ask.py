@@ -21,12 +21,14 @@ from app.schemas.chat import (
     ChatMessagesListResponse,
     ChatRequest,
     HistoryCitationPayload,
+    SearchMessagesResponse,
+    SearchResultItem,
 )
 from app.services.auth.api_rate_limit import ApiRateLimitKind, enforce_api_rate_limit
 from app.services.org.scope import resolve_org_scope_for_workspace
 from app.services.rag.chat import stream_workspace_chat_events
 from app.services.rag.message_builder import SSE_HEADERS, build_chat_message_list
-from app.services.rag.persistence import list_workspace_chat_messages
+from app.services.rag.persistence import list_workspace_chat_messages, search_chat_messages
 from app.services.workspace.scope import resolve_workspace
 
 router = APIRouter(prefix="/ask", tags=["ask"])
@@ -111,3 +113,26 @@ async def get_ask_messages(
         include_approval=False,
     )
     return ChatMessagesListResponse(messages=messages)
+
+
+@router.get("/search", response_model=SearchMessagesResponse)
+async def search_ask_messages(
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    q: Annotated[str, Query(min_length=1, max_length=200)] = ...,
+    limit: Annotated[int, Query(ge=1, le=50)] = 20,
+    offset: Annotated[int, Query(ge=0)] = 0,
+) -> SearchMessagesResponse:
+    items, total = await search_chat_messages(
+        db, user_id=current_user.id, query=q, limit=limit, offset=offset,
+    )
+    results = [
+        SearchResultItem(
+            thread_id=t.id, thread_title=t.title or "",
+            thread_kind=t.thread_kind.value, kb_id=t.kb_id,
+            message_id=m.id, role=m.role, content=m.content[:500],
+            created_at=m.created_at,
+        )
+        for m, t in items
+    ]
+    return SearchMessagesResponse(items=results, total=total, limit=limit, offset=offset)
