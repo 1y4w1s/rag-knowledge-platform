@@ -18,6 +18,7 @@ from app.services.rag.generation import (
 from app.services.org.scope import OrgScope
 from app.services.rag.persistence import save_chat_turn, save_workspace_chat_turn
 from app.services.rag.relevance import filter_relevant_chunks
+from app.services.rag.dedup import dedup_and_compress
 from app.services.rag.retrieval import (
     chunk_to_citation,
     retrieve_chunks,
@@ -50,6 +51,7 @@ async def stream_chat_events(
     )
     retrieval_duration_ms = int((time.perf_counter() - t0) * 1000)
     chunks = filter_relevant_chunks(raw_chunks, message)
+    chunks = dedup_and_compress(chunks)
     citations = [chunk_to_citation(c) for c in chunks]
 
     for citation in citations:
@@ -111,6 +113,7 @@ async def stream_workspace_chat_events(
     )
     retrieval_duration_ms = int((time.perf_counter() - t0) * 1000)
     chunks = filter_relevant_chunks(raw_chunks, message)
+    chunks = dedup_and_compress(chunks)
     citations = [workspace_chunk_to_citation(c) for c in chunks]
 
     for citation in citations:

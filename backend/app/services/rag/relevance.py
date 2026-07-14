@@ -75,7 +75,11 @@ def filter_relevant_chunks(
     chunks: list[RetrievedChunk],
     query: str,
 ) -> list[RetrievedChunk]:
-    """无依据时返回空列表，供对话层走「未找到」分支。"""
-    if should_refuse_answer(chunks, query):
+    """逐 chunk 相关性过滤：零词面重叠的 chunk 丢弃。
+
+    与旧版的区别：旧版是 all-or-nothing（全部丢弃或全部保留）；
+    新版逐 chunk 检查，不相关的 chunk 单独丢弃，保留部分相关结果。
+    """
+    if not chunks:
         return []
-    return chunks
+    return [c for c in chunks if query_overlaps_chunk(query, c)]
