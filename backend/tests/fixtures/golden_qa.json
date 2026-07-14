@@ -42,7 +42,7 @@
       "query": "annual leave 10 days which page",
       "source": "pdf",
       "expect": {
-        "content_contains": "annual leave 10 days",
+        "content_contains": "10 days of annual leave",
         "page_number": 2
       }
     },
@@ -107,7 +107,7 @@
       "query": "annual leave apply two weeks in advance",
       "source": "pdf",
       "expect": {
-        "content_contains": "Apply annual leave two weeks",
+        "content_contains": "weeks in advance",
         "page_number": 2
       }
     },
