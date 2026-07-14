@@ -26,7 +26,7 @@ async def _register_org_admin(
 ) -> tuple[dict[str, str], dict]:
     email = unique_email(prefix)
     username = unique_username(prefix)
-    password = "password123"
+    password = "Test123!@"
     reg = await client.post(
         "/api/v1/auth/register",
         json={
@@ -54,7 +54,7 @@ async def _create_org_member_and_login(
 ) -> tuple[dict[str, str], dict]:
     email = unique_email("audit-query-member")
     username = unique_username("auditquerymember")
-    password = "password123"
+    password = "Test123!@"
     async with SessionLocal() as db:
         user = User(
             id=uuid.uuid4(),

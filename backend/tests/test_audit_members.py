@@ -28,7 +28,7 @@ async def test_add_member_writes_audit_log(
         json={
             "email": member_email,
             "username": member_username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "personal",
         },
     )
@@ -71,7 +71,7 @@ async def test_remove_member_writes_audit_log(
         json={
             "email": member_email,
             "username": member_username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "personal",
         },
     )
@@ -119,7 +119,7 @@ async def test_role_change_writes_audit_log(
         json={
             "email": member_email,
             "username": member_username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "personal",
         },
     )

@@ -15,7 +15,7 @@ async def test_login_failed_writes_audit_log(client: AsyncClient) -> None:
     """登录失败连点 N 次，audit_logs 有 auth.login_failed 行。"""
     email = unique_email("audit-fail")
     username = unique_username("auditfail")
-    password = "password123"
+    password = "Test123!@"
     reg = await client.post(
         "/api/v1/auth/register",
         json={
@@ -48,7 +48,7 @@ async def test_login_failed_writes_audit_log(client: AsyncClient) -> None:
 async def test_login_success_writes_audit_log(client: AsyncClient) -> None:
     email = unique_email("audit-ok")
     username = unique_username("auditok")
-    password = "password123"
+    password = "Test123!@"
     reg = await client.post(
         "/api/v1/auth/register",
         json={
