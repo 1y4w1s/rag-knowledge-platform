@@ -31,6 +31,24 @@ export interface DashboardActivity {
   created_at: string;
 }
 
+export interface TrendPoint {
+  date: string; // YYYY-MM-DD (UTC)
+  count: number;
+}
+
+export interface FormatShare {
+  format: string;
+  count: number;
+}
+
+export interface RecentThread {
+  id: string;
+  title: string;
+  kb_id: string | null;
+  citation_count: number;
+  last_activity_at: string;
+}
+
 export interface DashboardStats {
   scope: "personal" | "organization";
   knowledge_base_count: number;
@@ -42,7 +60,11 @@ export interface DashboardStats {
   chat_message_count: number;
   member_count: number | null;
   recent_kb_id: string | null;
+  recent_kb_name: string | null;
   recent_activities: DashboardActivity[];
+  question_trend: TrendPoint[];
+  format_distribution: FormatShare[];
+  recent_threads: RecentThread[];
   golden_hit_rate_percent: number | null;
   golden_baseline_evaluated_at: string | null;
   avg_retrieval_latency_ms: number | null;

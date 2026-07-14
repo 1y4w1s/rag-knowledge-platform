@@ -22,7 +22,7 @@ export function CompositionBar({
       <div className="mb-4 flex items-center justify-between gap-3">
         <span className="text-[13px] text-[var(--mut)] tracking-wide">知识构成</span>
         <span className="rounded-[6px] border border-[var(--line2)] px-[7px] py-[2px] text-[10px] text-[var(--mut)] tracking-wider">
-          格式分布 · 待聚合
+          格式分布
         </span>
       </div>
 
