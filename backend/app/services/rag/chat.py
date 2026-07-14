@@ -16,7 +16,11 @@ from app.services.rag.generation import (
     stream_no_context_reply,
 )
 from app.services.org.scope import OrgScope
-from app.services.rag.persistence import save_chat_turn, save_workspace_chat_turn
+from app.services.rag.persistence import (
+    list_thread_messages,
+    save_chat_turn,
+    save_workspace_chat_turn,
+)
 from app.services.rag.relevance import filter_relevant_chunks
 from app.services.rag.dedup import dedup_and_compress
 from app.services.rag.retrieval import (
@@ -59,9 +63,19 @@ async def stream_chat_events(
     for citation in citations:
         yield _sse_event("citation", citation)
 
+    # 加载对话历史（多轮上下文记忆）
+    history = None
+    if thread_id is not None:
+        history_rows = await list_thread_messages(db, thread_id=thread_id, user_id=user_id)
+        if history_rows:
+            history = [
+                {"role": msg.role.value, "content": msg.content}
+                for msg in history_rows
+            ]
+
     # R4-2：无依据走固定话术，不调 LLM
     if chunks:
-        messages = build_messages(message, chunks)
+        messages = build_messages(message, chunks, history=history)
         token_stream = stream_deepseek_tokens(messages)
     else:
         token_stream = stream_no_context_reply(message)
@@ -123,8 +137,18 @@ async def stream_workspace_chat_events(
     for citation in citations:
         yield _sse_event("citation", citation)
 
+    # 加载对话历史（多轮上下文记忆）
+    history = None
+    if thread_id is not None:
+        history_rows = await list_thread_messages(db, thread_id=thread_id, user_id=user_id)
+        if history_rows:
+            history = [
+                {"role": msg.role.value, "content": msg.content}
+                for msg in history_rows
+            ]
+
     if chunks:
-        messages = build_messages(message, chunks)
+        messages = build_messages(message, chunks, history=history)
         token_stream = stream_deepseek_tokens(messages)
     else:
         token_stream = stream_no_context_reply(message)
