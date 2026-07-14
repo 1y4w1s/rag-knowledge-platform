@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import TokenClaims
+from app.services.auth.api_key_auth import authenticate_api_key
 from app.models.enums import AccountType, OrgRole
 from app.models.knowledge_base import KnowledgeBase
 from app.models.user import User
@@ -42,22 +43,26 @@ class CurrentUser(UserPublic):
     """已认证用户（JWT + DB 校验）。"""
 
 
-def _claims_from_request(request: Request) -> TokenClaims:
-    claims = getattr(request.state, "token_claims", None)
-    if claims is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="未提供认证凭据",
-        )
-    return claims
+def _claims_from_request(request: Request) -> TokenClaims | None:
+    return getattr(request.state, "token_claims", None)
 
 
 async def get_current_user(
     request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> CurrentUser:
-    """从中间件写入的 JWT claims 加载当前用户。"""
+    """从中间件写入的 JWT claims 或 API Key 加载当前用户。"""
     claims = _claims_from_request(request)
+    if claims is None:
+        # 尝试 API Key 认证（中间件将 raw token 存在 auth_token）
+        raw_token = getattr(request.state, "auth_token", None)
+        if raw_token:
+            claims = await authenticate_api_key(db, raw_token)
+    if claims is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="未提供认证凭据",
+        )
     user = await db.get(User, claims.user_id)
     if user is None:
         raise HTTPException(

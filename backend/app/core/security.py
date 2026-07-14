@@ -100,7 +100,9 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
 
         try:
             request.state.token_claims = decode_access_token(token)
-        except AuthenticationError as exc:
-            return JSONResponse(status_code=401, content={"detail": str(exc)})
+        except AuthenticationError:
+            # JWT 解码失败 → 保留 raw token，供 get_current_user 做 API Key fallback
+            request.state.auth_token = token
+            request.state.token_claims = None
 
         return await call_next(request)

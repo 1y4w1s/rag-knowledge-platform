@@ -106,3 +106,67 @@ export function formatAccountTypeLabel(settings: AccountSettings): string {
   if (settings.org_role === "member") return "团队版 · 成员";
   return "团队版";
 }
+
+// ── API Key 管理 ─────────────────────────────────────
+
+export interface ApiKeyItem {
+  id: string;
+  name: string;
+  prefix: string;
+  scopes: string;
+  is_active: boolean;
+  created_at: string;
+  last_used_at: string | null;
+  expires_at: string | null;
+}
+
+export interface ApiKeyCreateResponse {
+  id: string;
+  name: string;
+  prefix: string;
+  raw_key: string;
+  scopes: string;
+  created_at: string;
+}
+
+export async function createApiKey(
+  name: string,
+  scopes = "",
+): Promise<ApiKeyCreateResponse> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/api-keys`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name, scopes }),
+  });
+  if (!res.ok) throw new Error(await parseSettingsError(res));
+  return (await res.json()) as ApiKeyCreateResponse;
+}
+
+export async function listApiKeys(): Promise<ApiKeyItem[]> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/api-keys`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(await parseSettingsError(res));
+  const data = (await res.json()) as { items: ApiKeyItem[] };
+  return data.items;
+}
+
+export async function deleteApiKey(keyId: string): Promise<void> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/api-keys/${keyId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(await parseSettingsError(res));
+}

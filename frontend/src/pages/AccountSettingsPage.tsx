@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ChangePasswordForm } from "@/components/settings/ChangePasswordForm";
 import { JoinTeamForm } from "@/components/settings/JoinTeamForm";
 import { LeaveTeamForm } from "@/components/settings/LeaveTeamForm";
+import { ApiKeyManager } from "@/components/settings/ApiKeyManager";
 import {
   SettingsFormCard,
   SettingsReadonlyField,
@@ -182,6 +183,8 @@ export function AccountSettingsPage() {
       <div id="account-security">
         <ChangePasswordForm onSubmit={handlePasswordChange} />
       </div>
+
+      <ApiKeyManager />
     </div>
   );
 }
