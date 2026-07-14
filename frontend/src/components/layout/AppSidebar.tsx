@@ -42,7 +42,7 @@ export function AppSidebar() {
     <aside
       id="app-sidebar"
       className={cn(
-        "app-sidebar relative flex h-full w-sidebar shrink-0 flex-col overflow-y-auto border-r border-[rgba(232,196,176,0.45)] bg-[rgba(255,251,247,0.72)] px-2.5 py-4 backdrop-blur-xl",
+        "app-sidebar relative flex h-full w-sidebar shrink-0 flex-col overflow-y-auto border-r border-[var(--shell-border)] bg-[var(--shell-glass)] px-2.5 py-4 backdrop-blur-xl",
         isOpen && "open",
       )}
     >

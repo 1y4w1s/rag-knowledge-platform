@@ -97,7 +97,7 @@ def register_and_login(client: AsyncClient) -> RegisterAndLogin:
         prefix: str = "user",
         account_type: str = "personal",
         org_name: str | None = None,
-        password: str = "password123",
+        password: str = "Test123!@",
     ) -> tuple[dict[str, str], dict]:
         email = unique_email(prefix)
         username = unique_username(prefix)

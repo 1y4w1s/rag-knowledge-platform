@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.services.rag.generation import (
     build_messages,
     compress_history,
+    contextualize_query,
     rewrite_query,
     stream_deepseek_tokens,
     stream_no_context_reply,
@@ -48,24 +49,11 @@ async def stream_chat_events(
     thread_id: UUID | None = None,
     hide_admin_only: bool = False,
 ) -> AsyncIterator[str]:
-    """生成 SSE 帧：citation → token → done；无依据走拒绝分支；结束后落库。"""
-    t0 = time.perf_counter()
-    raw_chunks = await retrieve_chunks(
-        db,
-        kb_id=kb_id,
-        query=message,
-        visible_kb_ids=visible_kb_ids,
-        hide_admin_only=hide_admin_only,
-    )
-    retrieval_duration_ms = int((time.perf_counter() - t0) * 1000)
-    chunks = filter_relevant_chunks(raw_chunks, message)
-    chunks = dedup_and_compress(chunks)
-    citations = [chunk_to_citation(c) for c in chunks]
+    """生成 SSE 帧：citation → token → done；无依据走拒绝分支；结束后落库。
 
-    for citation in citations:
-        yield _sse_event("citation", citation)
-
-    # 加载对话历史（多轮上下文记忆）
+    多轮上下文整合：先加载历史，将最新问题改写为独立检索查询后再检索。
+    """
+    # 1. 加载对话历史（多轮上下文记忆）
     history = None
     if thread_id is not None:
         history_rows = await list_thread_messages(db, thread_id=thread_id, user_id=user_id)
@@ -75,13 +63,31 @@ async def stream_chat_events(
                 for msg in history_rows
             ]
 
-    # R4-2：无依据走固定话术，不调 LLM
-    # 历史压缩：超过 6 轮时压缩早期对话
+    # 2. 将最新问题改写为独立检索查询（带历史上下文）
+    retrieval_query = await contextualize_query(message, history) if history else message
+
+    t0 = time.perf_counter()
+    raw_chunks = await retrieve_chunks(
+        db,
+        kb_id=kb_id,
+        query=retrieval_query,
+        visible_kb_ids=visible_kb_ids,
+        hide_admin_only=hide_admin_only,
+    )
+    retrieval_duration_ms = int((time.perf_counter() - t0) * 1000)
+    chunks = filter_relevant_chunks(raw_chunks, retrieval_query)
+    chunks = dedup_and_compress(chunks)
+    citations = [chunk_to_citation(c) for c in chunks]
+
+    for citation in citations:
+        yield _sse_event("citation", citation)
+
+    # 3. 历史压缩（超过 6 轮时压缩早期对话）
     compressed = await compress_history(history) if history else None
 
-    # Fast mode tool call：空检索时改写查询重试一次
+    # 4. Fast mode tool call：空检索时改写查询重试一次
     if not chunks:
-        rewritten = await rewrite_query(message)
+        rewritten = await rewrite_query(retrieval_query)
         if rewritten:
             raw_chunks = await retrieve_chunks(
                 db,
@@ -97,6 +103,7 @@ async def stream_chat_events(
                 for citation in citations:
                     yield _sse_event("citation", citation)
 
+    # 5. 用原始消息构造 prompt（保留对话中的指代和口语表达）
     if chunks:
         messages = build_messages(message, chunks, history=history, compressed_summary=compressed)
         token_stream = stream_deepseek_tokens(messages)

@@ -87,7 +87,50 @@
   .app-shell {
     @apply relative min-h-screen bg-background;
     background-image: var(--wash);
+    /* 外壳暗色 token：默认浅色；[data-theme="dark"] 时覆盖（仅外壳，不动 --bg/--text 以免内部页面半崩） */
+    --shell-glass: rgba(255, 251, 247, 0.72);
+    --shell-border: rgba(232, 196, 176, 0.45);
+    --shell-topbar-border: rgba(232, 196, 176, 0.5);
+    --shell-shadow: 0 1px 0 rgba(255, 255, 255, 0.7), 0 1px 14px rgba(120, 70, 45, 0.07);
+    --shell-bg: #fafaf8;
+    --content-bg: #fafaf8;
   }
+
+  /* v7 · 外壳暗色（Phase-1：仅侧栏/顶栏，内容区保持浅色，应用内暗色单独排期） */
+  .app-shell[data-theme="dark"] {
+    --shell-glass: rgba(30, 23, 18, 0.72);
+    --shell-border: rgba(120, 90, 70, 0.35);
+    --shell-topbar-border: rgba(120, 90, 70, 0.4);
+    --shell-shadow: 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 14px rgba(0, 0, 0, 0.3);
+    --shell-bg: #16120f;
+    --content-bg: #fafaf8;
+    --nav-on: #2a211b;
+    --nav-active-bg: rgba(203, 107, 61, 0.16);
+    --nav-active-text: #f0a877;
+    --nav-active-grad: linear-gradient(135deg, rgba(232, 130, 78, 0.32), rgba(177, 78, 38, 0.2));
+    background: var(--shell-bg);
+    background-image: var(--wash);
+  }
+  /* 内容区保持浅色：内部页面尚未 token 化暗色，避免暗底上看不清 */
+  .app-shell[data-theme="dark"] #main { background: var(--content-bg); }
+  /* 侧栏 / 顶栏文字在暗玻璃上提亮（不覆盖全局 --mut/--text，避免影响内部内容） */
+  .app-shell[data-theme="dark"] .app-sidebar,
+  .app-shell[data-theme="dark"] .app-topbar { color: #e8e2db; }
+  .app-shell[data-theme="dark"] .app-sidebar .text-muted,
+  .app-shell[data-theme="dark"] .app-topbar .text-muted { color: #b3a89e; }
+  .app-shell[data-theme="dark"] .app-sidebar .text-foreground,
+  .app-shell[data-theme="dark"] .app-topbar .text-foreground { color: #f1ece6; }
+  .app-shell[data-theme="dark"] .app-sidebar .nav-item { color: #b3a89e; }
+  .app-shell[data-theme="dark"] .app-sidebar .nav-item:hover { color: #f1ece6; }
+  /* 头像按钮 / 浮层菜单暗色 */
+  .app-shell[data-theme="dark"] .bg-white { background-color: #241c16; border-color: rgba(120, 90, 70, 0.4); color: #e8e2db; }
+  .app-shell[data-theme="dark"] .text-\[\#52525B\] { color: #b3a89e; }
+  .app-shell[data-theme="dark"] .bg-\[\#F4F4F5\] { background-color: #2a211b; }
+  .app-shell[data-theme="dark"] .text-\[\#71717A\] { color: #b3a89e; }
+  /* 工作区切换 / 部门选择器暗色 */
+  .app-shell[data-theme="dark"] .ws-seg > button[data-ws] { color: #cabfb4; }
+  .app-shell[data-theme="dark"] .ws-seg > button.on { color: #f0a877; }
+  .app-shell[data-theme="dark"] .dept { color: #b3a89e; }
 
   /* v6 · Warm Premium 环境光晕（mesh 深度，不挡交互） */
   .app-aurora {
