@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import CurrentUser, KbAction, require_kb_access
 from app.models.document import Document
+from app.models.enums import DocumentVisibility, OrgRole
 from app.schemas.document import DocumentListResponse, DocumentResponse
 from app.services.documents.filters import (
     apply_document_list_filters,
@@ -69,6 +70,13 @@ async def list_documents(
         uploaded_to=uploaded_to,
     )
 
+    # 文档级可见性：member 看不到 admin_only 文档
+    if (
+        current_user.account_type.value == "enterprise"
+        and current_user.org_role == "member"
+    ):
+        filter_conditions.append(Document.visibility == DocumentVisibility.everyone)
+
     count_stmt = (
         select(func.count())
         .select_from(Document)
@@ -86,6 +94,12 @@ async def list_documents(
         uploaded_from=uploaded_from,
         uploaded_to=uploaded_to,
     )
+    # visibility 过滤不能走 apply_document_list_filters，单独加
+    if (
+        current_user.account_type.value == "enterprise"
+        and current_user.org_role == "member"
+    ):
+        stmt = stmt.where(Document.visibility == DocumentVisibility.everyone)
     stmt = (
         stmt.order_by(Document.created_at.desc())
         .limit(capped_limit)
@@ -121,5 +135,12 @@ async def get_document(
         )
     )
     if doc is None:
+        raise NotFoundError("文档不存在")
+    # 文档级可见性：member 不能直接访问 admin_only 文档
+    if (
+        doc.visibility == DocumentVisibility.admin_only
+        and current_user.account_type.value == "enterprise"
+        and current_user.org_role == "member"
+    ):
         raise NotFoundError("文档不存在")
     return DocumentResponse.model_validate(doc)

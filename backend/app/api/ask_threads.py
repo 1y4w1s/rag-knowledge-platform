@@ -300,6 +300,10 @@ async def post_ask_thread_chat(
             message=body.message,
             department_id=department_id,
             thread_id=thread_id,
+            hide_admin_only=(
+                current_user.account_type.value == "enterprise"
+                and current_user.org_role == "member"
+            ),
         )
 
     return StreamingResponse(

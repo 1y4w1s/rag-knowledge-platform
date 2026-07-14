@@ -138,3 +138,49 @@ async def get_document_preview_route(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> FileResponse:
     return await get_document_preview(db, current_user, kb_id, doc_id)
+
+
+# ── 文档可见性 ────────────────────────────────────────
+
+from app.models.enums import DocumentVisibility as DocVisEnum
+from pydantic import BaseModel
+
+
+class UpdateVisibilityRequest(BaseModel):
+    visibility: DocVisEnum
+
+
+@router.patch("/{doc_id}/visibility", response_model=DocumentResponse)
+async def update_document_visibility(
+    kb_id: UUID,
+    doc_id: UUID,
+    body: UpdateVisibilityRequest,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> DocumentResponse:
+    """修改文档可见性（仅上传者/团队 Admin/Owner 可操作）。"""
+    from app.models.enums import DocumentVisibility
+    from app.services.documents.listing import get_document
+
+    doc_resp = await get_document(db, current_user, kb_id, doc_id)
+    doc = await db.get(Document, doc_id)
+
+    # 权限检查：上传者 或 团队 Admin/Owner 可改
+    is_admin = (
+        current_user.account_type.value == "enterprise"
+        and current_user.org_role.value == "admin"
+    )
+    if (
+        doc.uploaded_by != current_user.id
+        and not is_admin
+        and not current_user.is_owner
+    ):
+        from fastapi import HTTPException as FastAPIHTTPException
+        raise FastAPIHTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="权限不足，仅文档上传者或团队管理员可修改可见性",
+        )
+
+    doc.visibility = body.visibility
+    await db.flush()
+    return DocumentResponse.model_validate(doc)

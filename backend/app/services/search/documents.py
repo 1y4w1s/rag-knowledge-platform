@@ -7,6 +7,7 @@ from sqlalchemy import ColumnElement, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.document import Document
+from app.models.enums import DocumentVisibility
 from app.models.knowledge_base import KnowledgeBase
 from app.schemas.search import SearchDocumentItem, SearchDocumentsResponse
 from app.services.org.scope import OrgScope
@@ -55,6 +56,7 @@ async def search_documents_by_filename(
     limit: int,
     *,
     org_scope: OrgScope | None = None,
+    hide_admin_only: bool = False,
 ) -> SearchDocumentsResponse:
     """在当前 workspace 内按文件名子串搜索文档。"""
     scope_clause = kb_scope_clause(scope, org_scope)
@@ -74,6 +76,8 @@ async def search_documents_by_filename(
         .where(scope_clause)
         .where(Document.filename.ilike(pattern, escape="\\"))
     )
+    if hide_admin_only:
+        base = base.where(Document.visibility != DocumentVisibility.admin_only)
 
     total = await db.scalar(
         select(func.count()).select_from(base.subquery())

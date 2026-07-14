@@ -295,6 +295,10 @@ async def post_kb_thread_chat(
             message=body.message,
             visible_kb_ids=visible_kb_ids,
             thread_id=thread_id,
+            hide_admin_only=(
+                current_user.account_type.value == "enterprise"
+                and current_user.org_role == "member"
+            ),
         )
 
     return StreamingResponse(

@@ -74,18 +74,22 @@ interface DocumentTableProps {
   kbId: string;
   documents: Document[];
   canManage: boolean;
+  canChangeVisibility: boolean;
   deletingDocId?: string | null;
   onRequestDelete: (doc: Document) => void;
   onRetry: (docId: string) => Promise<void>;
+  onVisibilityChange?: (docId: string, visibility: "everyone" | "admin_only") => void;
 }
 
 export function DocumentTable({
   kbId,
   documents,
   canManage,
+  canChangeVisibility,
   deletingDocId = null,
   onRequestDelete,
   onRetry,
+  onVisibilityChange,
 }: DocumentTableProps) {
   return (
     <table className="data-table">
@@ -96,6 +100,7 @@ export function DocumentTable({
           <th scope="col">大小</th>
           <th scope="col">切片数</th>
           <th scope="col">状态</th>
+          <th scope="col">可见性</th>
           <th scope="col">上传时间</th>
           <th scope="col">操作</th>
         </tr>
@@ -114,6 +119,32 @@ export function DocumentTable({
             <td className="text-muted">{formatChunkCount(doc)}</td>
             <td>
               <DocumentStatusBadge status={doc.status} />
+            </td>
+            <td>
+              {doc.visibility === "admin_only" ? (
+                <span className="inline-block rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-700">
+                  仅管理员
+                </span>
+              ) : (
+                <span className="inline-block rounded bg-green-100 px-1.5 py-0.5 text-xs text-green-700">
+                  全员
+                </span>
+              )}
+              {canChangeVisibility && onVisibilityChange ? (
+                <button
+                  type="button"
+                  className="ml-1 text-xs text-[var(--action)] underline"
+                  onClick={() =>
+                    onVisibilityChange(
+                      doc.id,
+                      doc.visibility === "admin_only" ? "everyone" : "admin_only",
+                    )
+                  }
+                  title={doc.visibility === "admin_only" ? "改为全员可见" : "改为仅管理员可见"}
+                >
+                  切换
+                </button>
+              ) : null}
             </td>
             <td className="text-muted">{formatUploadedAt(doc.created_at)}</td>
             <td>

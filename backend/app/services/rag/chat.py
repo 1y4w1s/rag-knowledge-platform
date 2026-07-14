@@ -40,6 +40,7 @@ async def stream_chat_events(
     message: str,
     visible_kb_ids: frozenset[UUID] | None = None,
     thread_id: UUID | None = None,
+    hide_admin_only: bool = False,
 ) -> AsyncIterator[str]:
     """生成 SSE 帧：citation → token → done；无依据走拒绝分支；结束后落库。"""
     t0 = time.perf_counter()
@@ -48,6 +49,7 @@ async def stream_chat_events(
         kb_id=kb_id,
         query=message,
         visible_kb_ids=visible_kb_ids,
+        hide_admin_only=hide_admin_only,
     )
     retrieval_duration_ms = int((time.perf_counter() - t0) * 1000)
     chunks = filter_relevant_chunks(raw_chunks, message)
@@ -102,6 +104,7 @@ async def stream_workspace_chat_events(
     message: str,
     department_id: str | None,
     thread_id: UUID | None = None,
+    hide_admin_only: bool = False,
 ) -> AsyncIterator[str]:
     """工作区对话：跨库检索 → gate → SSE（含 kb_name）→ workspace 落库。"""
     t0 = time.perf_counter()
@@ -110,6 +113,7 @@ async def stream_workspace_chat_events(
         query=message,
         scope=scope,
         org_scope=org_scope,
+        hide_admin_only=hide_admin_only,
     )
     retrieval_duration_ms = int((time.perf_counter() - t0) * 1000)
     chunks = filter_relevant_chunks(raw_chunks, message)

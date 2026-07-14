@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from app.models.enums import DocumentStatus
+from app.models.enums import DocumentStatus, DocumentVisibility
 
 
 class DocumentResponse(BaseModel):
@@ -22,6 +22,7 @@ class DocumentResponse(BaseModel):
     uploaded_by: UUID | None
     created_at: datetime
     updated_at: datetime
+    visibility: DocumentVisibility = DocumentVisibility.everyone
 
     model_config = {"from_attributes": True}
 
