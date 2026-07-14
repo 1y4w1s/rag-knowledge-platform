@@ -21,6 +21,8 @@ from app.core.database import get_db
 from app.core.request_ip import get_client_ip
 from app.core.deps import CurrentUser, get_current_user
 from app.services.auth.api_rate_limit import ApiRateLimitKind, enforce_api_rate_limit
+from app.models.document import Document
+from app.models.enums import DocumentVisibility
 from app.schemas.document import (
     DocumentListResponse,
     DocumentResponse,
@@ -84,6 +86,7 @@ async def post_documents(
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
     files: Annotated[list[UploadFile], File(...)],
+    visibility: Annotated[DocumentVisibility | None, Query()] = None,
 ) -> DocumentUploadResponse:
     enforce_api_rate_limit(ApiRateLimitKind.upload, current_user.id)
 
@@ -94,6 +97,7 @@ async def post_documents(
         files,
         background_tasks,
         ip=get_client_ip(request),
+        visibility=visibility,
     )
     return DocumentUploadResponse(documents=docs)
 

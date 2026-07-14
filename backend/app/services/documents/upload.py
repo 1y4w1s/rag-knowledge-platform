@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.core.deps import CurrentUser, KbAction, require_kb_access
 from app.models.document import Document
-from app.models.enums import DocumentStatus
+from app.models.enums import DocumentStatus, DocumentVisibility
 from app.schemas.document import DocumentResponse
 from app.services.audit.log import write_audit_log
 from app.services.documents.content_hash import (
@@ -98,6 +98,7 @@ async def upload_documents(
     background_tasks: BackgroundTasks,
     *,
     ip: str | None = None,
+    visibility: DocumentVisibility | None = None,
 ) -> list[DocumentResponse]:
     if not files:
         raise ValidationError("请至少上传一个文件")
@@ -165,6 +166,7 @@ async def upload_documents(
             storage_path=str(storage_path),
             status=DocumentStatus.queued,
             uploaded_by=current_user.id,
+            visibility=visibility or DocumentVisibility.everyone,
         )
         db.add(doc)
         await db.flush()
