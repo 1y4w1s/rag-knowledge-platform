@@ -41,3 +41,6 @@ reasonix.toml
 
 # Temp scripts
 _check_docs.py
+
+# Playwright browser test artifacts
+.playwright-mcp/
