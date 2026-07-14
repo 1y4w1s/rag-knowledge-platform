@@ -117,13 +117,13 @@
 
 | ID | 格式 | 后端 | 前端 | 优先级 | 说明 |
 |----|------|------|------|--------|------|
-| **F1** | **Excel .xlsx** | openpyxl → sheet/表 → MD table chunk | 上传白名单 · 详情 file_type 图标 | **P1** | 公司台账常见 |
-| **F2** | **PPT .pptx** | python-pptx → 标题+正文+备注 | 同上 | P1 | 培训课件 |
-| **F3** | **PDF 表格** | pdfplumber `extract_tables()` | 失败态文案 | P1 | 补 PDF 弱项 |
+| **F1** | **Excel .xlsx** | openpyxl → sheet/表 → MD table chunk | 上传白名单 · 详情 file_type 图标 | **P1 · ✅** | 公司台账常见 · [`format-f1-f2-f3-plan.md`](format-f1-f2-f3-plan.md) |
+| **F2** | **PPT .pptx** | python-pptx → 标题+正文+备注 | 同上 | **P1 · ✅** | 培训课件 · [`format-f1-f2-f3-plan.md`](format-f1-f2-f3-plan.md) |
+| **F3** | **PDF 表格** | pdfplumber `extract_tables()` | 失败态文案 | **P1 · ✅** | 补 PDF 弱项 · [`format-f1-f2-f3-plan.md`](format-f1-f2-f3-plan.md) |
 | **F4** | **扫描 PDF OCR**（✅ **I + §6 关单** 2026-07-08） | PaddleOCR/pdf2image → `ParsedBlock`+页码 → 现有 ingestion | failed/超限中文文案 · 可选 `OCR_ENABLED` | **P2 · ✅** | **不用多模态 LLM** · 见 [`format-f4-ocr-plan.md`](format-f4-ocr-plan.md) §6 |
 | **F5** | **图表/多模态** | 多模态 API + 图 chunk | 预览缩略图 | P2 | **与 F4 分离** · 用户 2026-07-08 不做 |
 
-**权宜（F1～F3 未做前）**：Excel→导出 MD · PPT→导出 PDF(文字层)。**扫描 PDF**：F4 ✅ 可选 OCR（`DEPLOY.md` §4.1）· 未装引擎时仍 failed。  
+**F1～F3 已全部实现**（2026-07-14）：详见 [`format-f1-f2-f3-plan.md`](format-f1-f2-f3-plan.md)。**扫描 PDF**：F4 ✅ 可选 OCR（`DEPLOY.md` §4.1）· 未装引擎时仍 failed。  
 **F4-6 backlog**：PNG/JPG 单图上传（plan §F4-6）。
 
 ---

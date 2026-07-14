@@ -9,6 +9,7 @@ __pycache__/
 *$py.class
 .venv/
 venv/
+.venv-test/
 *.egg-info/
 .pytest_cache/
 .coverage
@@ -32,3 +33,9 @@ dist/
 Thumbs.db
 .idea/
 .vscode/
+
+# AI session metadata
+.reasonix/
+
+# Temp scripts
+_check_docs.py

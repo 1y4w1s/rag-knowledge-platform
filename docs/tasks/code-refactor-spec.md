@@ -15,8 +15,8 @@
 | 域 | 内容 |
 |----|------|
 | 后端 | `retrieval.py` / `retrieval_workspace.py` 合并、`thread_persistence.py` KB/Workspace CRUD 合并、`persistence.py` 保存回合合并、API 层引用富化循环提取共享函数、服务层 `HTTPException` 替换为领域异常 |
-| 前端 | `AskPage` + `ChatPage` 提取共享组件/hook、`use-thread-session.ts` 拆分、`use-ask-session` + `use-chat-session` 合并、28-prop 钻取传对象、`chat-api.ts` 加 Zod 运行时校验、`EmptyStateV44.tsx` 文件拆分、`scenes.tsx` 工厂化 |
-| 测试 | `test_org_isolation.py` / `test_organization_members.py` / `test_audit_events.py` 按场景拆分文件、`conftest.py` 移除 test-file-as-plugin |
+| 前端 | `AskPage` + `ChatPage` 提取共享组件/hook、`use-thread-session.ts` 拆分、`use-ask-session` + `use-chat-session` 合并、**28-prop 钻取传对象 ✅**、`chat-api.ts` 加 Zod 运行时校验、`EmptyStateV44.tsx` 文件拆分、`scenes.tsx` 工厂化 |
+| 测试 | `test_org_isolation.py` ✅ F1 / `test_organization_members.py` ✅ F2 / `test_audit_events.py` ✅ F3 按场景拆分文件、`conftest.py` 移除 test-file-as-plugin |
 | 品质 | 每任务发布前跑 pytest A 层 + 对应 test_* 回归 + 前端 `npm run build` |
 
 ### 先修 BUG（P0 级，优先于所有重构）
@@ -58,24 +58,26 @@ P1 架构舟山 —— AI plan + implement，每条一窗
   ├─ C. ✅ persistence.py save_kb/workspace_chat_turn 合并（已完成：_save_turn 共享 helper）
   ├─ D. ✅ API 层引用富化循环 × 4 文件提取共享函数（已完成）
   ├─ E. ✅ 服务层 HTTPException → 领域异常（Phase 1 ✅ + Phase 2 ✅ + Phase 3 ✅）
-  └─ F.   tests/ 巨型文件拆分（3 个文件独立子任务）
+  ├─ F1. ✅ test_org_isolation.py 拆分（已删除的文件，清理残留 import 断链）
+  ├─ F2. ✅ test_organization_members.py 拆分（已完成：4 文件 + fixture）
+  └─ F3. ✅ test_audit_events.py 拆分（已完成：4 文件 + fixture）
 
 P2 前端舟山 —— 每条一窗
-  ├─ G. AskPage + ChatPage 提取共享组件
-  ├─ H. use-thread-session.ts 拆分为 3 个子 hook
-  ├─ I. use-ask-session + use-chat-session 合并
-  ├─ J. 28-prop 钻取 → 传对象
-  ├─ K. chat-api.ts Zod 运行时校验
-  ├─ L. EmptyStateV44.tsx 文件拆分
-  └─ M. scenes.tsx 工厂化
+  ├─ G. ✅ AskPage + ChatPage 提取共享组件（已完成：useChatPageHandlers + ChatPageShell）
+  ├─ H. ✅ use-thread-session.ts 拆分为 3 个子 hook（已完成：useThreadList + useMessageStream + useApprovalResolver + 合成面 facade）
+  ├─ I. ✅ use-ask-session + use-chat-session 合并（已完成：直接删除，零引用 dead code）
+  ├─ J. ✅ 28-prop 钻取 → 传对象（已完成：ChatPageShell 39 flat props → 5 分组对象 + 4 flat props）
+  ├─ K. ✅ chat-api.ts Zod 运行时校验（已完成：chat-schemas.ts + safeParse/parse + 30 测试）
+  ├─ L. ✅ EmptyStateV44.tsx 文件拆分
+  └─ M. ✅ scenes.tsx 工厂化（已完成：createScene 工厂函数 + 移除 7 处重复 inviteRoles）
 
 P3 清理 —— 可批量
-  └─ N. 空行/导入风格/SSE 标头常量/docstring 统一
+  └─ N. ✅ 空行/导入风格/SSE 标头常量/docstring 统一（已完成：api-error.ts import 顺序 · 后端 docstring 已修复）
 ```
 
-**建议开工顺序**：~~B1~~/~~B2~~（BUG 均已修复）→ ~~D~~ → ~~C~~ → ~~B~~ → ~~A~~ → ~~E-Phase1~~/~~E-Phase2~~/~~E-Phase3~~ → （F 可并行 G～M）→ N
+**建议开工顺序**：~~B1~~/~~B2~~（BUG 均已修复）→ ~~D~~ → ~~C~~ → ~~B~~ → ~~A~~ → ~~E-Phase1~~/~~E-Phase2~~/~~E-Phase3~~ → ~~F~~（G～M 前端重构）→ N
 
-原因：B1/B2/A/B/C/D 已完成；E Phase 1 ✅ + Phase 2 ✅ + **Phase 3 ✅**（services/ 零残留 HTTPException）；**F** 下一项。
+原因：B1/B2/A/B/C/D/E/F 已完成（F1/F2/F3 测试拆分均已完工）；**G～M 前端重构** 下一项。
 
 ---
 
@@ -181,16 +183,18 @@ P3 清理 —— 可批量
 | **行为** | `AskPage` 和 `ChatPage` 各约 40% 行数删减；两者行为完全不变 |
 | **边界条件** | ① AskPage 多出的 `hasVisibleKbs` guard 保留在 AskPage 中传入 ② 两页的 breadcrumb 路径不同 → 通过 props 或 children 传入 ③ 两页的 agent mode 默认值不同 → 在 handler 中通过参数区分 |
 | **异常处理** | 所有 handler 的错误处理逻辑（`try/catch`、`toast`）保持不变，仅移动到共享 hook 中 |
-| **验证标准** | ① `npm run build` 绿 ② 在浏览器操作 AskPage 和 ChatPage 各 3 条对话（新建 → 发消息 → 删线程 → 切换模式），功能正常 |
+| **验证标准** | ① `npm run build` 绿 ✅ ② 在浏览器操作 AskPage 和 ChatPage 各 3 条对话（新建 → 发消息 → 删线程 → 切换模式），功能正常 |
 | **强门禁** | 前端改动后 `npm run build` 必须绿，**docker compose build web** 也必须绿 |
+| **状态** | ✅ 已完成（2026-07-13） |
 
 ---
 
-### 任务 H · use-thread-session.ts 拆分
+### 任务 H · use-thread-session.ts 拆分 ✅ 已完成
 
 > **代号**：`code-refactor-H`  
 > **依赖**：无  
 > **风险**：中（该 hook 被 AskPage 和 ChatPage 同时使用）
+> **状态**：✅ 2026-07-14 完成
 
 #### H-1 · SPEC
 
@@ -201,8 +205,16 @@ P3 清理 —— 可批量
 | **行为** | 对外接口（`{ threads, activeThreadId, sendMessage, ... }`）完全不变，调用方（`AskPage`、`ChatPage`）不需要改任何 import |
 | **边界条件** | ① `sendMessage` 必须在 `useMessageStream` 中 ② 线程列表状态在 `useThreadList` 中 ③ 审核批准在 `useApprovalResolver` 中 ④ 三个 hook 通过参数共享 `activeThreadId`（由父级或 context 传递） |
 | **异常处理** | 保持所有回滚逻辑（`rollbackInFlightMessages`）完整迁移 |
-| **验证标准** | ① `npm run build` 绿 ② `AskPage` 和 `ChatPage` 各自的对话流程完整测试（新建→发消息→切换线程→中止→滚动→引用预览→审核操作） ③ `pytest` 不相关 |
-| **强门禁** | **不准**在拆分的同时修行为；拆分后文件总行数应约等于拆分前 509 行（+ 少量导入/导出胶水） |
+| **验证标准** | ① `npm run build` 绿 ✅ ② `AskPage` 和 `ChatPage` 各自的对话流程完整测试（新建→发消息→切换线程→中止→滚动→引用预览→审核操作）③ `pytest` 不相关 |
+| **强门禁** | **不准**在拆分的同时修行为；拆分后文件总行数应约等于拆分前 509 行（+ 少量导入/导出胶水）|
+
+#### H-2 · 事后修复
+
+| 项 | 内容 |
+|----|------|
+| **R1** | 初期 `deps` 对象每次 render 新引用 → 子 hook 全部 `useCallback` 重创 → `useEffect` 无限重跑。修复：改为逐一传参，利用 React 的 `useState` setter 稳定引用特性 |
+| **R2** | `useMessageStream` 签名去掉 `messages`/`activeThreadId` pass-through 参数，由合成面直接返回 |
+| **验证** | `npm run build` ✅ · 用户确认对话框功能正常 |
 
 ---
 
@@ -276,15 +288,29 @@ P3 清理 —— 可批量
 | **验证标准** | `pytest tests/ -q -k "org"` 与原全量运行对比，测试数一致 |
 | **强门禁** | ❗ **必须删除 `conftest.py` 第 9 行 `pytest_plugins = ("tests.test_org_isolation",)`** 否则循环依赖未修复 |
 
-#### F-2 · SPEC（子任务 F2：`test_organization_members.py`）
+#### F-2 · SPEC（子任务 F2：`test_organization_members.py`）✅ 已完成，见 `code-refactor-F-plan.md`
 
-（AI 动工时输出完整 SPEC，结构与 F-1 一致）
-
-#### F-3 · SPEC（子任务 F3：`test_audit_events.py`）
-
-（AI 动工时输出完整 SPEC，结构与 F-1 一致）
+#### F-3 · SPEC（子任务 F3：`test_audit_events.py`）✅ 已完成，见 `code-refactor-F-plan.md`
 
 ---
+
+### 任务 L · EmptyStateV44.tsx 文件拆分 ✅
+
+> **代号**：`code-refactor-L`  
+> **依赖**：无  
+> **风险**：低（纯拆分，不改变行为）  
+> **状态**：✅ 2026-07-14 完成
+
+#### L-1 · SPEC
+
+| 项 | 内容 |
+|----|------|
+| **输入** | `frontend/src/components/ui/EmptyState/EmptyStateV44.tsx`（408 行，含 HeroArt + Icon + EmptyStateV44 + InviteDialogProps + InviteDialog） |
+| **输出** | 3 个文件：`HeroArt.tsx`（SVG 插画）、`InviteDialog.tsx`（邀请弹窗 + props 接口）、`EmptyStateV44.tsx`（Icon + 主组件，~226 行） |
+| **行为** | `EmptyStateV44` 导出名不变；`index.ts`/`scenes.tsx` re-export 不变；所有调用方 `import { EmptyStateV44 } from "@/components/ui/EmptyState"` 不受影响 |
+| **边界条件** | ① `HeroArt` 无 props，纯 SVG ② `InviteDialog` 接口签名未变 ③ `DEFAULT_INVITE_ROLES` 在 EmptyStateV44.tsx 用于 fallback、在 InviteDialog.tsx 用于 role-grid 过滤，各自独立 import |
+| **异常处理** | 不涉及 |
+| **验证标准** | ① `npm run build` 绿 ② `npx vitest run src/components/ui/EmptyState/EmptyStateV44.test.tsx` 3/3 green |
 
 ### 任务 J～M · 前端清理
 

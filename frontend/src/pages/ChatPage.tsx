@@ -1,18 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 
-import { AgentBudgetChip } from "@/components/chat/AgentBudgetChip";
-import { ToolTimeline } from "@/components/chat/ToolTimeline";
-import { AgentModeSwitcher } from "@/components/chat/AgentModeSwitcher";
-import { ChatInput, type ChatInputDraftRestore } from "@/components/chat/ChatInput";
-import { ChatLoadingPanel } from "@/components/chat/ChatLoadingPanel";
-import { ChatMessageList } from "@/components/chat/ChatMessageList";
+import { ChatPageShell } from "@/components/chat/ChatPageShell";
 import { ChatPageShellSkeleton } from "@/components/chat/ChatPageShellSkeleton";
 import { ChatToolbar } from "@/components/chat/ChatToolbar";
-import { ThreadListPanel } from "@/components/chat/ThreadListPanel";
 import { AlertBanner } from "@/components/ui/AlertBanner";
 import { Button } from "@/components/ui/button";
-import { DEFAULT_AGENT_MODE, type AgentMode } from "@/lib/agent-mode";
 import { useAuth } from "@/lib/auth-context";
 import {
   fetchKnowledgeBase,
@@ -28,11 +21,7 @@ import { useWorkspace } from "@/lib/workspace-context";
 import { useShellBreadcrumb } from "@/lib/shell-breadcrumb";
 import type { ThreadContext } from "@/lib/thread-api";
 import { useThreadSession } from "@/lib/use-thread-session";
-import { useMediaQuery } from "@/lib/use-media-query";
-import { cn } from "@/lib/utils";
-
-const CHAT_SHELL =
-  "-m-6 flex h-[calc(100vh-3.25rem)] flex-col overflow-hidden";
+import { useChatPageHandlers } from "@/lib/use-chat-page-handlers";
 
 function DetailSkeleton() {
   return (
@@ -44,7 +33,8 @@ export function ChatPage() {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
-  const { workspace, isTeamWorkspace, generation, getGeneration } = useWorkspace();
+  const { workspace, isTeamWorkspace, generation, getGeneration } =
+    useWorkspace();
   const {
     departmentId,
     generation: departmentGeneration,
@@ -94,18 +84,7 @@ export function ChatPage() {
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const isMobile = useMediaQuery("(max-width: 768px)");
-  const [threadPanelCollapsed, setThreadPanelCollapsed] = useState(isMobile);
-  const [creatingThread, setCreatingThread] = useState(false);
-  const [archivingThreadId, setArchivingThreadId] = useState<string | null>(
-    null,
-  );
-  const [agentMode, setAgentMode] = useState<AgentMode>(DEFAULT_AGENT_MODE);
-  const [draftRestore, setDraftRestore] = useState<
-    ChatInputDraftRestore | undefined
-  >();
 
-  const scrollRef = useRef<HTMLDivElement>(null);
   const consumedQuickQRef = useRef<string | null>(null);
   const loadIdRef = useRef(0);
 
@@ -135,10 +114,34 @@ export function ChatPage() {
     abortForModeSwitch,
   } = useThreadSession(threadContext);
 
-  const scrollToBottom = useCallback(() => {
-    const node = scrollRef.current;
-    if (node) node.scrollTop = node.scrollHeight;
-  }, []);
+  const {
+    threadPanelCollapsed,
+    setThreadPanelCollapsed,
+    creatingThread,
+    archivingThreadId,
+    agentMode,
+    draftRestore,
+    scrollRef,
+    scrollToBottom,
+    handleAgentModeChange,
+    handleCreateThread,
+    handleNewChat,
+    handleSelectThread,
+    handleArchiveThread,
+    handleSend,
+    handleAdoptApproval,
+    handleCancelApproval,
+    handleDismissThreadPanel,
+  } = useChatPageHandlers({
+    abortStreaming,
+    abortForModeSwitch,
+    createNewThread,
+    selectThread,
+    archiveThread,
+    sendMessage,
+    resolveApproval,
+    canSend: teamBusinessAllowed,
+  });
 
   const loadPage = useCallback(async () => {
     if (!id) return;
@@ -184,15 +187,6 @@ export function ChatPage() {
   }, [messages, scrollToBottom]);
 
   useEffect(() => {
-    if (threadPanelCollapsed) return;
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setThreadPanelCollapsed(true);
-    }
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [threadPanelCollapsed]);
-
-  useEffect(() => {
     if (loading || !kb || !id || !teamBusinessAllowed) return;
 
     const q = searchParams.get("q")?.trim();
@@ -220,58 +214,6 @@ export function ChatPage() {
     teamBusinessAllowed,
   ]);
 
-  function handleAgentModeChange(mode: AgentMode) {
-    if (mode === agentMode) return;
-    const draft = abortForModeSwitch();
-    if (draft) {
-      setDraftRestore({ nonce: Date.now(), text: draft });
-    }
-    setAgentMode(mode);
-  }
-
-  async function handleCreateThread() {
-    abortStreaming();
-    setCreatingThread(true);
-    try {
-      await createNewThread();
-      setThreadPanelCollapsed(true);
-    } finally {
-      setCreatingThread(false);
-    }
-  }
-
-  function handleNewChat() {
-    void handleCreateThread();
-  }
-
-  function handleSelectThread(threadId: string) {
-    selectThread(threadId);
-    setThreadPanelCollapsed(true);
-  }
-
-  async function handleArchiveThread(threadId: string) {
-    setArchivingThreadId(threadId);
-    try {
-      await archiveThread(threadId);
-    } finally {
-      setArchivingThreadId(null);
-    }
-  }
-
-  function handleSend(message: string) {
-    if (!teamBusinessAllowed) return;
-    abortStreaming();
-    void sendMessage(message, agentMode);
-  }
-
-  function handleAdoptApproval(_messageIndex: number, approvalId: string) {
-    void resolveApproval(approvalId, "adopt");
-  }
-
-  function handleCancelApproval(_messageIndex: number, approvalId: string) {
-    void resolveApproval(approvalId, "cancel");
-  }
-
   if (!id) {
     return (
       <AlertBanner className="rounded-lg">无效的资料库地址</AlertBanner>
@@ -297,116 +239,63 @@ export function ChatPage() {
   }
 
   return (
-    <div className={CHAT_SHELL}>
-      <div className="ask-chat-layout">
-        <div
-          className={cn(
-            "thread-list-drawer-backdrop",
-            !threadPanelCollapsed && "open",
-          )}
-          aria-hidden={threadPanelCollapsed}
-          onClick={() => setThreadPanelCollapsed(true)}
+    <ChatPageShell
+      threadPanel={{
+        collapsed: threadPanelCollapsed,
+        className: "chat-thread-panel",
+        subtitle: "本资料库 · 仅自己可见",
+        onDismiss: handleDismissThreadPanel,
+        threads,
+        activeThreadId,
+        threadsLoading,
+        threadsError,
+        creatingThread,
+        archivingThreadId,
+        onSelectThread: handleSelectThread,
+        onCreateThread: handleCreateThread,
+        onArchiveThread: handleArchiveThread,
+        onRetryThreads: () => void loadThreads(),
+      }}
+      toolbar={
+        <ChatToolbar
+          kbId={id}
+          kbName={kb.name}
+          knowledgeBases={knowledgeBases}
+          onNewChat={handleNewChat}
+          creatingThread={creatingThread}
+          threadPanelCollapsed={threadPanelCollapsed}
+          onToggleThreadPanel={() => setThreadPanelCollapsed((c) => !c)}
         />
-        <ThreadListPanel
-          className={cn(
-            "chat-thread-panel",
-            threadPanelCollapsed && "thread-list-panel-collapsed",
-          )}
-          threads={threads}
-          activeThreadId={activeThreadId}
-          loading={threadsLoading}
-          error={threadsError}
-          creating={creatingThread}
-          archivingThreadId={archivingThreadId}
-          onSelectThread={handleSelectThread}
-          onCreateThread={handleCreateThread}
-          onArchiveThread={handleArchiveThread}
-          onRetry={() => void loadThreads()}
-          subtitle="本资料库 · 仅自己可见"
-        />
-
-        <div className="ask-chat-main">
-          <ChatToolbar
-            kbId={id}
-            kbName={kb.name}
-            knowledgeBases={knowledgeBases}
-            onNewChat={handleNewChat}
-            creatingThread={creatingThread}
-            threadPanelCollapsed={threadPanelCollapsed}
-            onToggleThreadPanel={() => setThreadPanelCollapsed((c) => !c)}
-          />
-
-          <div className="agent-mode-bar">
-            <AgentModeSwitcher
-              value={agentMode}
-              onChange={handleAgentModeChange}
-            />
-            <AgentBudgetChip mode={agentMode} budget={agentBudget} />
-          </div>
-
-          <div ref={scrollRef} className="chat-scroll">
-            <div className="chat-inner">
-              {historyError && (
-                <AlertBanner
-                  className="mb-4"
-                  action={
-                    activeThreadId ? (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={() => void loadMessages(activeThreadId)}
-                      >
-                        重试
-                      </Button>
-                    ) : undefined
-                  }
-                >
-                  {historyError}
-                </AlertBanner>
-              )}
-              {streamError && (
-                <AlertBanner className="mb-4">{streamError}</AlertBanner>
-              )}
-              {historyLoading ? (
-                <ChatLoadingPanel
-                  label="加载对话历史…"
-                  testId="chat-history-loading"
-                />
-              ) : (
-                <>
-                  {agentMode === "thorough" && toolSteps.length > 0 ? (
-                    <ToolTimeline
-                      steps={toolSteps}
-                      defaultOpen={streaming}
-                      className="mb-4"
-                    />
-                  ) : null}
-                  <ChatMessageList
-                    kbId={id}
-                    messages={messages}
-                    onToggleCitation={toggleCitation}
-                    onAdoptApproval={handleAdoptApproval}
-                    onCancelApproval={handleCancelApproval}
-                    resolvingApprovalId={resolvingApprovalId}
-                    approvalError={approvalError}
-                    hasThreads={threads.length > 0}
-                  />
-                </>
-              )}
-            </div>
-          </div>
-
-          <ChatInput
-            disabled={streaming || !teamBusinessAllowed}
-            placeholder={
-              teamBusinessAllowed ? undefined : "分配部门后即可开始对话"
-            }
-            draftRestore={draftRestore}
-            onSend={handleSend}
-          />
-        </div>
-      </div>
-    </div>
+      }
+      agentConfig={{
+        mode: agentMode,
+        budget: agentBudget,
+        onChange: handleAgentModeChange,
+      }}
+      chatState={{
+        messages,
+        historyLoading,
+        historyError,
+        streamError,
+        streaming,
+        toolSteps,
+        loadMessages,
+      }}
+      messageListConfig={{
+        kbId: id,
+        onToggleCitation: toggleCitation,
+        onAdoptApproval: handleAdoptApproval,
+        onCancelApproval: handleCancelApproval,
+        resolvingApprovalId,
+        approvalError,
+      }}
+      inputConfig={{
+        disabled: streaming || !teamBusinessAllowed,
+        placeholder: teamBusinessAllowed ? undefined : "分配部门后即可开始对话",
+        draftRestore,
+        onSend: handleSend,
+      }}
+      scrollRef={scrollRef}
+    />
   );
 }

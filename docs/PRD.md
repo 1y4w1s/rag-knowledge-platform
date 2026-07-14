@@ -247,25 +247,24 @@
 
 ## 6. 支持的文档格式
 
-### 6.1 MVP（第一版必做）
+### 6.1 当前支持（6 格式）
+
+| 格式 | 说明 | 实现状态 |
+|------|------|----------|
+| **PDF（文字层）** | pdfplumber 提取散文+页码，跨页合并 | ✅ 基线 |
+| **PDF（扫描件）** | 前 3 页文字 < 50 字→PaddleOCR 本地引擎 | ✅ F4 |
+| **PDF（表格）** | pdfplumber.extract_tables() → MD 表格 block | ✅ F3 |
+| **TXT** | 纯文本，按 `\n\n` 分块 | ✅ 基线 |
+| **Markdown (.md)** | 标题层级追踪，表格检测 | ✅ 基线 |
+| **Word (.docx)** | 段落+表格混合，样式名+正则标题 | ✅ 基线 |
+| **Excel (.xlsx)** | openpyxl → 每 sheet 一张 MD 表格 block | ✅ F1 |
+| **PPT (.pptx)** | python-pptx → 每 slide 一段散文，备注追加 | ✅ F2 |
+
+### 6.2 backlog（暂不支持）
 
 | 格式 | 说明 |
 |------|------|
-| **PDF** | 含可选中文字的 PDF |
-| **TXT** | 纯文本 |
-| **Markdown (.md)** | 纯文本类 |
-| **Word (.docx)** | 常见办公文档 |
-
-### 6.2 第二版（PRD 写明但 MVP 不做）
-
-| 格式 | 说明 |
-|------|------|
-| **PPT (.pptx)** | 幻灯片 |
-| **Excel (.xlsx)** | 表格 |
-| **扫描版 PDF** | **✅ F4 Implement**（[`format-f4-ocr-plan.md`](tasks/format-f4-ocr-plan.md)）· 检测后 PaddleOCR→带页码文本 → 现有 chunk/对话引用 · **不用多模态 LLM** · `OCR_ENABLED=0` 或未装引擎时仍 failed |
-| **图片 PNG/JPG** | F4-6 backlog · MVP 仍不支持单图上传 |
-
-> 你提到「多格式」——MVP 先做上面 4 种，答辩时可说明「架构支持扩展」。若毕业设计答辩前必须支持 PPT，请明确，我会把 PPT 挪进 MVP。
+| **图片 PNG/JPG** | F4-6 backlog · 不支持单图上传 |
 
 ---
 

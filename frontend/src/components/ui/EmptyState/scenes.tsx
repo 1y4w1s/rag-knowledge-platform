@@ -6,8 +6,14 @@ export { PATHS, DEFAULT_INVITE_ROLES } from "./types";
 import type { EmptyStateScene } from "./types";
 import { PATHS } from "./types";
 
+function createScene(
+  v: Omit<EmptyStateScene, "inviteRoles">
+): EmptyStateScene {
+  return { ...v, inviteRoles: ["admin", "editor", "viewer", "collaborator"] };
+}
+
 /** Dashboard v4.4 空态场景配置 */
-export const DASHBOARD_SCENE: EmptyStateScene = {
+export const DASHBOARD_SCENE: EmptyStateScene = createScene({
   idPrefix: "dash",
   eyebrow: "0 资料库 · 0 篇文档",
   title: (
@@ -82,11 +88,10 @@ export const DASHBOARD_SCENE: EmptyStateScene = {
   inviteLabel: "邀请同事一起用",
   inviteSub: "生成一个邀请链接，提供 50+ 邀请模板，按团队 / 部门 / 角色自动填好。",
   inviteLink: "zhi-an.cn/i/8K2F-3N9P",
-  inviteRoles: ["admin", "editor", "viewer", "collaborator"],
-};
+});
 
 /** KBs v4.4 空态场景配置（与 DASHBOARD 同源，文案适配资料库列表） */
-export const KBS_SCENE: EmptyStateScene = {
+export const KBS_SCENE: EmptyStateScene = createScene({
   idPrefix: "kbs",
   eyebrow: "0 资料库 · 0 篇文档",
   title: (
@@ -161,11 +166,10 @@ export const KBS_SCENE: EmptyStateScene = {
   inviteLabel: "邀请同事一起用",
   inviteSub: "生成一个邀请链接，提供 50+ 邀请模板，按团队 / 部门 / 角色自动填好。",
   inviteLink: "zhi-an.cn/i/8K2F-3N9P",
-  inviteRoles: ["admin", "editor", "viewer", "collaborator"],
-};
+});
 
 /** KB 详情 v4.4 空态（无文档） */
-export const KBDETAIL_SCENE: EmptyStateScene = {
+export const KBDETAIL_SCENE: EmptyStateScene = createScene({
   idPrefix: "kd",
   eyebrow: "0 文档 · 0 段已索引",
   title: (
@@ -240,11 +244,10 @@ export const KBDETAIL_SCENE: EmptyStateScene = {
   inviteLabel: "邀请协作者一起整理",
   inviteSub: "可按角色（管理员 / 编辑者 / 访客 / 协作者）发送；也可生成链接让对方在 7 天内自助加入。",
   inviteLink: "zhi-an.cn/kb/q3/8K2F-3N9P",
-  inviteRoles: ["admin", "editor", "viewer", "collaborator"],
-};
+});
 
 /** Ask v4.4 空态（暂无可用资料库） */
-export const ASK_SCENE: EmptyStateScene = {
+export const ASK_SCENE: EmptyStateScene = createScene({
   idPrefix: "ask",
   eyebrow: "0 资料库已选 · 0 段可查",
   title: (
@@ -319,11 +322,10 @@ export const ASK_SCENE: EmptyStateScene = {
   inviteLabel: "把资料库分享给团队",
   inviteSub: "把某个资料库单独共享给同事或部门，对方只能看到这个 KB，无法访问其他内容。",
   inviteLink: "zhi-an.cn/share/kb/9X7Y-2K4M",
-  inviteRoles: ["admin", "editor", "viewer", "collaborator"],
-};
+});
 
 /** 成员 v4.4 空态（仅自己一人） */
-export const MEMBERS_SCENE: EmptyStateScene = {
+export const MEMBERS_SCENE: EmptyStateScene = createScene({
   idPrefix: "mb",
   eyebrow: "1 成员 · 0 邀请中",
   title: (
@@ -398,11 +400,10 @@ export const MEMBERS_SCENE: EmptyStateScene = {
   inviteLabel: "把同事拉进来",
   inviteSub: "输入邮箱生成邀请链接；或一键从飞书 / 钉钉 / 企微导入通讯录。",
   inviteLink: "zhi-an.cn/i/8K2F-3N9P-ZR99",
-  inviteRoles: ["admin", "editor", "viewer", "collaborator"],
-};
+});
 
 /** 账号设置 v4.4 空态（新账号首设引导） */
-export const ACCOUNT_SCENE: EmptyStateScene = {
+export const ACCOUNT_SCENE: EmptyStateScene = createScene({
   idPrefix: "ac",
   eyebrow: "新账号 · 0 设置项",
   title: (
@@ -476,11 +477,10 @@ export const ACCOUNT_SCENE: EmptyStateScene = {
   inviteLabel: "把设置同步到其他账号",
   inviteSub: "如果你同时管多个团队 / 账号，可把通知偏好和安全选项一键同步过去。",
   inviteLink: "zhi-an.cn/sync/8K2F-3N9P",
-  inviteRoles: ["admin", "editor", "viewer", "collaborator"],
-};
+});
 
 /** 对话 v4.4 空态（首次对话） */
-export const CHAT_SCENE: EmptyStateScene = {
+export const CHAT_SCENE: EmptyStateScene = createScene({
   idPrefix: "ct",
   eyebrow: "0 对话 · 0 提问",
   title: (
@@ -555,5 +555,4 @@ export const CHAT_SCENE: EmptyStateScene = {
   inviteLabel: "把对话分享给同事",
   inviteSub: "把这次问答的链接发给同事，对方可直接接着问；权限可设为「只读」或「可继续」。",
   inviteLink: "zhi-an.cn/c/8K2F-3N9P-X7YQ",
-  inviteRoles: ["admin", "editor", "viewer", "collaborator"],
-};
+});

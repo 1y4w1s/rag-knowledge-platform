@@ -9,7 +9,7 @@ import {
   MEMBERS_SCENE,
   ACCOUNT_SCENE,
   CHAT_SCENE,
-} from "@/components/ui/EmptyState/scenes";
+} from "@/components/ui/EmptyState";
 
 const scenes = [
   { key: "dashboard", scene: DASHBOARD_SCENE },

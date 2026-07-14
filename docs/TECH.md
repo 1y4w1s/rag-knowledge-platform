@@ -134,7 +134,7 @@ knowledge_bases ── documents ── document_chunks ──► Qdrant 向量
 | id | UUID PK | |
 | kb_id | UUID FK → knowledge_bases | |
 | filename | VARCHAR | 原始文件名 |
-| file_type | VARCHAR | pdf / txt / md / docx |
+| file_type | VARCHAR | pdf / txt / md / docx / xlsx / pptx |
 | file_size | BIGINT | 字节 |
 | storage_path | VARCHAR | 存储路径 |
 | status | ENUM | `queued` / `processing` / `completed` / `failed` |
@@ -647,8 +647,11 @@ flowchart LR
 |------|------|--------|
 | PDF（文字层） | **pdfplumber**（layout + 页码） | `page_number`；**跨页段落合并**（见 4.3.7） |
 | PDF（扫描件） | **PaddleOCR + pdf2image**（F4 ✅） | 同上；前 3 页累计可抽文字 &lt; 50 → OCR 分支 |
+| PDF（表格） | **pdfplumber.extract_tables()**（F3 ✅） | 追加 table block 到散文之后 |
 | TXT / MD | UTF-8 / Header 解析 | 行号 / 标题层级 |
 | DOCX | python-docx | Heading 样式 + regex 兜底 |
+| **XLSX** | **openpyxl → 每 sheet 一条 MD 表格**（F1 ✅） | `section_title` = sheet 名 · `block_kind=table` |
+| **PPTX** | **python-pptx → 每 slide 一段散文**（F2 ✅） | `page_number` = slide 编号 · 备注追加「【备注】…」|
 
 **扫描 PDF（F4 ✅）**：前 `min(3, 页数)` 页 `extract_text` 去空白后总长 &lt; 50 → 走 `ocr_pdf_pages()` → `ParsedBlock`（带 `page_number`）→ **与文字层 PDF 相同** chunk/embed/对话 citation 链路。**不接多模态 vision API**（与 F5 分离）。`OCR_ENABLED=0` 或未装 Paddle → 仍 `failed` +「不支持扫描件」/「OCR 服务未启用」。单文件 **≤ `OCR_MAX_PAGES`（默认 30）** 页，超限 failed + 中文拆文件提示。实现见 `parser_pdf.py` · `ocr.py` · [`format-f4-ocr-plan.md`](tasks/format-f4-ocr-plan.md)。
 

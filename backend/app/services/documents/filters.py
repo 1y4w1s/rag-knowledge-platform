@@ -11,7 +11,7 @@ from sqlalchemy import ColumnElement, and_
 from app.models.document import Document
 from app.models.enums import DocumentStatus
 
-ALLOWED_FILE_TYPES = frozenset({"pdf", "docx", "txt", "md"})
+ALLOWED_FILE_TYPES = frozenset({"pdf", "docx", "txt", "md", "xlsx", "pptx"})
 
 
 def normalize_file_types(raw: list[str] | None) -> list[str] | None:
