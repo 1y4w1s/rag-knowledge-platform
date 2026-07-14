@@ -98,6 +98,7 @@ async def search_documents_by_content(
     )
     if hide_admin_only:
         match_base = match_base.where(Document.visibility != DocumentVisibility.admin_only)
+    match_base = match_base.where(Document.deleted_at.is_(None))
     match_base = match_base.subquery()
 
     total = await db.scalar(

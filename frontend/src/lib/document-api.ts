@@ -26,6 +26,7 @@ export interface Document {
   created_at: string;
   updated_at: string;
   visibility: "everyone" | "admin_only";
+  deleted_at?: string | null;
 }
 
 async function authFetch(
@@ -311,4 +312,37 @@ export async function updateDocumentVisibility(
   );
   if (!res.ok) throw new Error(await parseApiError(res));
   return (await res.json()) as Document;
+}
+
+// ── 回收站 ─────────────────────────────────────────
+
+export async function listTrash(kbId: string): Promise<Document[]> {
+  const res = await authFetch(
+    `${API_BASE}/knowledge-bases/${kbId}/documents/trash`,
+  );
+  if (!res.ok) throw new Error(await parseApiError(res));
+  return (await res.json()) as Document[];
+}
+
+export async function restoreDocument(
+  kbId: string,
+  docId: string,
+): Promise<Document> {
+  const res = await authFetch(
+    `${API_BASE}/knowledge-bases/${kbId}/documents/${docId}/restore`,
+    { method: "POST" },
+  );
+  if (!res.ok) throw new Error(await parseApiError(res));
+  return (await res.json()) as Document;
+}
+
+export async function permanentlyDeleteDocument(
+  kbId: string,
+  docId: string,
+): Promise<void> {
+  const res = await authFetch(
+    `${API_BASE}/knowledge-bases/${kbId}/documents/${docId}/permanent`,
+    { method: "DELETE" },
+  );
+  if (!res.ok) throw new Error(await parseApiError(res));
 }

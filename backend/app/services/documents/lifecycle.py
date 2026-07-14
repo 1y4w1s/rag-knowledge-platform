@@ -67,6 +67,26 @@ async def delete_document(
         metadata={"filename": filename},
         ip=ip,
     )
+
+    # 软删：设置 deleted_at，保留磁盘文件和 chunk
+    from datetime import datetime, timezone
+    doc.deleted_at = datetime.now(timezone.utc)
+    await db.commit()
+
+
+async def permanently_delete_document(
+    db: AsyncSession,
+    kb_id: uuid.UUID,
+    doc_id: uuid.UUID,
+) -> None:
+    """回收站内的永久删除（物理删除 DB 记录 + 磁盘文件）。"""
+    doc = await _get_document_in_kb(db, kb_id=kb_id, doc_id=doc_id)
+    if doc.deleted_at is None:
+        raise ValidationError("只能永久删除回收站中的文档")
+
+    storage_path = doc.storage_path
+    from app.services.storage.cleaner import remove_document_tree
+
     await db.delete(doc)
     await db.commit()
 
@@ -77,16 +97,15 @@ async def delete_document(
         await write_audit_log(
             db,
             action="storage.cleanup_failed",
-            actor_user_id=current_user.id,
+            actor_user_id=None,
             resource_type="document",
             resource_id=doc_id,
             kb_id=kb_id,
             metadata={
-                "filename": filename,
+                "filename": doc.filename,
                 "file_errors": cleanup.file_errors,
                 "tree_errors": cleanup.tree_errors,
             },
-            ip=ip,
         )
         await db.commit()
 

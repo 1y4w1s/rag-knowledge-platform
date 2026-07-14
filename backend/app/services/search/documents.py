@@ -78,6 +78,7 @@ async def search_documents_by_filename(
     )
     if hide_admin_only:
         base = base.where(Document.visibility != DocumentVisibility.admin_only)
+    base = base.where(Document.deleted_at.is_(None))
 
     total = await db.scalar(
         select(func.count()).select_from(base.subquery())

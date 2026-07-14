@@ -81,6 +81,7 @@ async def list_documents(
         select(func.count())
         .select_from(Document)
         .where(Document.kb_id == kb_id)
+        .where(Document.deleted_at.is_(None))
     )
     if filter_conditions:
         count_stmt = count_stmt.where(and_(*filter_conditions))
@@ -132,6 +133,7 @@ async def get_document(
         select(Document).where(
             Document.id == doc_id,
             Document.kb_id == kb_id,
+            Document.deleted_at.is_(None),
         )
     )
     if doc is None:
