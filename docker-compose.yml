@@ -21,12 +21,19 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U zhiku -d zhiku"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    stop_grace_period: 60s
     deploy:
       resources:
         limits:
@@ -43,14 +50,46 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://zhiku:${POSTGRES_PASSWORD:-changeme}@postgres:5432/zhiku
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx;r=httpx.get('http://localhost:8000/health');exit(0 if r.json().get('database')=='ok' else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    stop_grace_period: 30s
     deploy:
       resources:
         limits:
           memory: 768M
+
+  migrate:
+    build:
+      context: ./backend
+      pull: false
+    container_name: zhiku-migrate
+    restart: "no"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://zhiku:${POSTGRES_PASSWORD:-changeme}@postgres:5432/zhiku
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["alembic", "upgrade", "head"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "1"
 
 volumes:
   postgres_data:
