@@ -3,6 +3,7 @@
 import uuid
 from pathlib import Path
 
+import asyncio
 from fastapi import BackgroundTasks, UploadFile, status
 from app.core.exceptions import ValidationError, ConflictError
 from sqlalchemy import func, select
@@ -19,6 +20,9 @@ from app.services.documents.content_hash import (
     sha256_hex,
 )
 from app.services.ingestion.pipeline import process_document_ingestion
+
+# 并发控制：最多 5 个文档同时处理
+_INGESTION_SEMAPHORE = asyncio.Semaphore(5)
 
 ALLOWED_EXTENSIONS: frozenset[str] = frozenset({".pdf", ".txt", ".md", ".docx", ".xlsx", ".pptx"})
 
@@ -176,7 +180,8 @@ async def upload_documents(
             ip=ip,
         )
 
-        background_tasks.add_task(process_document_ingestion, doc.id)
+        async with _INGESTION_SEMAPHORE:
+            background_tasks.add_task(process_document_ingestion, doc.id)
         created.append(DocumentResponse.model_validate(doc))
 
     await db.commit()

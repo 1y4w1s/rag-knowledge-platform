@@ -6,6 +6,7 @@ from __future__ import annotations
 
 
 
+import asyncio
 import logging
 
 import uuid
@@ -36,6 +37,7 @@ from app.services.ingestion.embedder import (
     current_embedding_model,
     embed_texts,
     embedding_input_text,
+    try_embed_texts,
 )
 
 from app.services.ingestion.parser import parse_document
@@ -323,7 +325,10 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
         ]
 
-        vectors = await embed_texts(embed_inputs)
+        vectors = await try_embed_texts(embed_inputs)
+        if vectors is None:
+            logger.warning("embedding degraded: document=%s fallback to FTS-only", document_id)
+            vectors = []
 
 
 
