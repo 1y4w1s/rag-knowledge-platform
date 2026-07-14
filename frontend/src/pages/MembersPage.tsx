@@ -74,7 +74,7 @@ export function MembersPage() {
   }, [loadData]);
 
   useEffect(() => {
-    document.title = isOrgAdmin ? "知岸 · 成员管理" : "知岸 · 团队成员";
+    document.title = isOrgAdmin ? "睿阁 · 成员管理" : "睿阁 · 团队成员";
     let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     if (!meta) {
       meta = document.createElement("meta");

@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { RuigeLogo } from "@/components/brand/RuigeLogo";
+
 interface AuthCardProps {
   children: ReactNode;
 }
@@ -32,9 +34,7 @@ export function AuthCard({ children }: AuthCardProps) {
 export function AuthCardBrand() {
   return (
     <header className="mb-7 flex flex-col items-center text-center">
-      <h1 className="brand-text font-serif text-[2.5rem] font-bold leading-none tracking-[0.04em]">
-        知岸
-      </h1>
+      <RuigeLogo size={44} withWordmark className="justify-center" />
       <span
         aria-hidden
         className="mt-3 h-[3px] w-9 rounded-full"

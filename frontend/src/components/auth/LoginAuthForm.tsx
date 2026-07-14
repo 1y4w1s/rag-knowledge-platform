@@ -31,7 +31,7 @@ const RegisterForm = lazy(() =>
 
 import { Button } from "@/components/ui/button";
 
-import { login, registerAndLogin } from "@/lib/auth-api";
+import { login } from "@/lib/auth-api";
 
 import { useAuth } from "@/lib/auth-context";
 
@@ -39,13 +39,9 @@ import {
 
   FORGOT_PASSWORD_HINT,
 
-  showDemoLogin,
-
 } from "@/lib/auth-env";
 
 import { type FieldErrors, validateLoginFields } from "@/lib/auth-form-validation";
-
-import { DEMO_CREDENTIALS } from "@/lib/mock-auth";
 
 
 
@@ -168,58 +164,6 @@ export function LoginAuthForm() {
     } catch (err) {
 
       setApiError(err instanceof Error ? err.message : "操作失败，请稍后重试");
-
-    } finally {
-
-      setLoading(false);
-
-    }
-
-  }
-
-
-
-  async function handleDemoLogin() {
-
-    setApiError(null);
-
-    setFieldErrors({});
-
-    setLoading(true);
-
-    try {
-
-      try {
-
-        await finishLogin(DEMO_CREDENTIALS.username, DEMO_CREDENTIALS.password);
-
-      } catch {
-
-        const session = await registerAndLogin(
-
-          DEMO_CREDENTIALS.email,
-
-          DEMO_CREDENTIALS.username,
-
-          DEMO_CREDENTIALS.password,
-
-          "enterprise",
-
-          DEMO_CREDENTIALS.orgName,
-
-          DEMO_CREDENTIALS.nickname,
-
-        );
-
-        applySession(session);
-
-        navigate(redirectTo, { replace: true });
-
-      }
-
-    } catch (err) {
-
-      setApiError(err instanceof Error ? err.message : "演示账号登录失败");
 
     } finally {
 
@@ -450,32 +394,6 @@ export function LoginAuthForm() {
                 {loading ? "提交中…" : "登录"}
 
               </Button>
-
-
-
-              {showDemoLogin && (
-
-                <p className="text-center text-xs text-[var(--auth-muted)]">
-
-                  <button
-
-                    type="button"
-
-                    className="text-[var(--auth-action)] underline-offset-2 hover:underline"
-
-                    disabled={loading}
-
-                    onClick={handleDemoLogin}
-
-                  >
-
-                    开发者 · 一键 demo 登录
-
-                  </button>
-
-                </p>
-
-              )}
 
             </div>
 

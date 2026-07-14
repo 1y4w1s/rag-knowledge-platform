@@ -1,5 +1,5 @@
 """
-知岸 API 入口。
+睿阁 API 入口。
 
 Wave 0.2：Docker 中 uvicorn 启动；提供 /health。
 Wave 1.1：注册 / 登录 API。
@@ -45,7 +45,7 @@ from app.core.config import settings
 from app.core.security import JWTAuthMiddleware
 from app.core.exception_handlers import EXCEPTION_HANDLERS
 
-app = FastAPI(title="知岸 API", version="0.12.0")
+app = FastAPI(title="睿阁 API", version="0.12.0")
 
 _origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
 app.add_middleware(

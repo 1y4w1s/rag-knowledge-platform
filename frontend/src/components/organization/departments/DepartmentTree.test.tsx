@@ -29,31 +29,31 @@ function makeNode(
 describe("DepartmentTree", () => {
   it("renders root label and child nodes", () => {
     const root: DepartmentTreeNode = {
-      ...makeNode("root", "知岸演示", null, 2),
+      ...makeNode("root", "睿阁演示", null, 2),
       children: [makeNode("c1", "研发部", "root"), makeNode("c2", "产品部", "root")],
     };
     render(
       <DepartmentTree
         root={root}
-        orgName="知岸演示公司"
+        orgName="睿阁演示公司"
         selectedId={null}
         onSelect={vi.fn()}
       />,
     );
-    expect(screen.getByText("知岸演示公司")).toBeDefined();
+    expect(screen.getByText("睿阁演示公司")).toBeDefined();
     expect(screen.getByText("研发部")).toBeDefined();
     expect(screen.getByText("产品部")).toBeDefined();
   });
 
   it("uses SVG chevron and no geometric arrow characters", () => {
     const root: DepartmentTreeNode = {
-      ...makeNode("root", "知岸演示", null, 1),
+      ...makeNode("root", "睿阁演示", null, 1),
       children: [makeNode("c1", "研发部", "root")],
     };
     render(
       <DepartmentTree
         root={root}
-        orgName="知岸演示公司"
+        orgName="睿阁演示公司"
         selectedId={null}
         onSelect={vi.fn()}
       />,
@@ -65,13 +65,13 @@ describe("DepartmentTree", () => {
 
   it("toggles children with the chevron button", async () => {
     const root: DepartmentTreeNode = {
-      ...makeNode("root", "知岸演示", null, 1),
+      ...makeNode("root", "睿阁演示", null, 1),
       children: [makeNode("c1", "研发部", "root")],
     };
     render(
       <DepartmentTree
         root={root}
-        orgName="知岸演示公司"
+        orgName="睿阁演示公司"
         selectedId={null}
         onSelect={vi.fn()}
       />,
@@ -84,11 +84,11 @@ describe("DepartmentTree", () => {
   });
 
   it("uses warm-neutral count badge, not cold blue", () => {
-    const root = makeNode("root", "知岸演示", null, 3);
+    const root = makeNode("root", "睿阁演示", null, 3);
     render(
       <DepartmentTree
         root={root}
-        orgName="知岸演示公司"
+        orgName="睿阁演示公司"
         selectedId={null}
         onSelect={vi.fn()}
       />,
@@ -100,14 +100,14 @@ describe("DepartmentTree", () => {
 
   it("calls onSelect when a node is clicked", async () => {
     const root: DepartmentTreeNode = {
-      ...makeNode("root", "知岸演示", null, 1),
+      ...makeNode("root", "睿阁演示", null, 1),
       children: [makeNode("c1", "研发部", "root")],
     };
     const onSelect = vi.fn();
     render(
       <DepartmentTree
         root={root}
-        orgName="知岸演示公司"
+        orgName="睿阁演示公司"
         selectedId={null}
         onSelect={onSelect}
       />,

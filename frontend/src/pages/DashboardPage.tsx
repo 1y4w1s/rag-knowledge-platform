@@ -13,6 +13,8 @@ import { AlertBanner } from "@/components/ui/AlertBanner";
 import { Button } from "@/components/ui/button";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { useAuth } from "@/lib/auth-context";
+import { Reveal } from "@/components/common/Reveal";
+import { CountUp } from "@/components/common/CountUp";
 import {
   fetchDashboardStats,
   isDashboardEmpty,
@@ -53,6 +55,7 @@ function DashboardHeroCard({
       className="relative overflow-hidden rounded-2xl p-6 text-white shadow-[var(--shadow-xl)] sm:p-7"
       style={{ backgroundImage: "var(--brand-grad-deep)" }}
     >
+      <div className="hero-aurora" aria-hidden />
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-40"
@@ -69,7 +72,7 @@ function DashboardHeroCard({
             "linear-gradient(90deg, rgba(60,22,8,0.58) 0%, rgba(60,22,8,0.22) 45%, transparent 70%)",
         }}
       />
-      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="relative z-10 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <p className="text-[0.78rem] font-medium text-white/90">欢迎回来</p>
           <h2 className="mt-1 font-serif text-[1.55rem] font-bold leading-tight sm:text-[1.75rem]">
@@ -81,7 +84,7 @@ function DashboardHeroCard({
           <div className="mt-4 flex gap-3">
             <Link
               to="/ask"
-              className="inline-flex items-center rounded-[10px] bg-white/15 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/30 transition-colors hover:bg-white/25"
+              className="btn-shine inline-flex items-center rounded-[10px] bg-white/15 px-4 py-2 text-sm font-medium text-white ring-1 ring-white/30 transition-colors hover:bg-white/25"
             >
               开始提问 ›
             </Link>
@@ -90,13 +93,13 @@ function DashboardHeroCard({
         <div className="flex shrink-0 gap-7">
           <div className="text-right">
             <div className="font-mono text-[1.7rem] font-bold leading-none tabular-nums">
-              {stats ? stats.knowledge_base_count : "—"}
+              {stats ? <CountUp value={stats.knowledge_base_count} /> : "—"}
             </div>
             <div className="mt-1 text-xs text-white/75">资料库</div>
           </div>
           <div className="text-right">
             <div className="font-mono text-[1.7rem] font-bold leading-none tabular-nums">
-              {stats ? stats.chat_message_count : "—"}
+              {stats ? <CountUp value={stats.chat_message_count} /> : "—"}
             </div>
             <div className="mt-1 text-xs text-white/75">近 7 日提问</div>
           </div>
@@ -170,7 +173,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     setOverride(null);
-    document.title = "知岸 · 概览";
+    document.title = "睿阁 · 概览";
   }, [setOverride]);
 
   const isEmpty = stats !== null && isDashboardEmpty(stats);
@@ -211,14 +214,16 @@ export function DashboardPage() {
         </AlertBanner>
       )}
 
-      <DashboardDocumentSearch
-        expectedGen={generation}
-        getCurrentGeneration={getGeneration}
-        expectedDepartmentGen={departmentGeneration}
-        getCurrentDepartmentGeneration={getDepartmentGeneration}
-        workspace={workspace}
-        departmentId={workspace === "personal" ? null : departmentId}
-      />
+      <Reveal variant="up">
+        <DashboardDocumentSearch
+          expectedGen={generation}
+          getCurrentGeneration={getGeneration}
+          expectedDepartmentGen={departmentGeneration}
+          getCurrentDepartmentGeneration={getDepartmentGeneration}
+          workspace={workspace}
+          departmentId={workspace === "personal" ? null : departmentId}
+        />
+      </Reveal>
 
       {loading ? (
         <>
@@ -227,26 +232,30 @@ export function DashboardPage() {
         </>
       ) : stats ? (
         <>
-          <DashboardZoneA
-            isEmpty={isEmpty}
-            recentKbId={stats.recent_kb_id}
-            statsScope={stats.scope}
-            isOrgAdmin={isOrgAdmin}
-            memberCount={stats.member_count}
-            canWriteKb={canWriteKb}
-            canUseTeamBusiness={teamBusinessAllowed}
-            onMemberWriteBlocked={
-              isMemberReadOnly ? notifyMemberWriteBlocked : undefined
-            }
-          />
-          {!isEmpty && (
-            <DashboardStatusBanner
-              stats={stats}
+          <Reveal variant="up" delay={60}>
+            <DashboardZoneA
+              isEmpty={isEmpty}
               recentKbId={stats.recent_kb_id}
-              workspace={workspace}
+              statsScope={stats.scope}
+              isOrgAdmin={isOrgAdmin}
+              memberCount={stats.member_count}
               canWriteKb={canWriteKb}
-              onShowToast={showToast}
+              canUseTeamBusiness={teamBusinessAllowed}
+              onMemberWriteBlocked={
+                isMemberReadOnly ? notifyMemberWriteBlocked : undefined
+              }
             />
+          </Reveal>
+          {!isEmpty && (
+            <Reveal variant="up" delay={80}>
+              <DashboardStatusBanner
+                stats={stats}
+                recentKbId={stats.recent_kb_id}
+                workspace={workspace}
+                canWriteKb={canWriteKb}
+                onShowToast={showToast}
+              />
+            </Reveal>
           )}
           <DashboardStatsGrid
             stats={stats}
@@ -274,8 +283,16 @@ export function DashboardPage() {
             />
           ) : (
             <>
-              {opsMetrics && <DashboardOpsMetrics metrics={opsMetrics} />}
-              {ragMetrics && <DashboardRagMetrics metrics={ragMetrics} />}
+              {opsMetrics && (
+                <Reveal variant="up" delay={120}>
+                  <DashboardOpsMetrics metrics={opsMetrics} />
+                </Reveal>
+              )}
+              {ragMetrics && (
+                <Reveal variant="up" delay={140}>
+                  <DashboardRagMetrics metrics={ragMetrics} />
+                </Reveal>
+              )}
             </>
           )}
         </>

@@ -2,6 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import type { ReactNode, ReactElement } from "react";
 
 import { cn } from "@/lib/utils";
+import { RuigeLogo } from "@/components/brand/RuigeLogo";
 
 interface SidebarNavItemProps {
   to: string;
@@ -38,15 +39,7 @@ export function SidebarNavItem({ to, children, match, end, icon }: SidebarNavIte
 }
 
 export function BrandMark() {
-  return (
-    <span
-      className="grid h-6 w-6 shrink-0 place-items-center rounded-[7px] font-serif text-[0.82rem] font-semibold leading-none text-white shadow-[0_2px_8px_rgba(203,107,61,0.35)]"
-      style={{ backgroundImage: "var(--brand-grad)" }}
-      aria-hidden
-    >
-      知
-    </span>
-  );
+  return <RuigeLogo size={24} />;
 }
 
 export function isKbNavActive(pathname: string): boolean {

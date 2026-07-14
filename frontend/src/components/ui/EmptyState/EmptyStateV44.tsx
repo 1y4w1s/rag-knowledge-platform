@@ -56,7 +56,7 @@ export function EmptyStateV44({ scene }: { scene: EmptyStateScene }) {
   }
 
   function sendInvite() {
-    const name = inviteName.trim() || "知岸团队";
+    const name = inviteName.trim() || "睿阁团队";
     setInvited((prev) => [name, ...prev]);
     setInviteName("");
   }

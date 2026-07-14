@@ -50,7 +50,7 @@ export function AccountSettingsPage() {
   }, [loadSettings]);
 
   useEffect(() => {
-    document.title = "知岸 · 账号设置";
+    document.title = "睿阁 · 账号设置";
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) {
       meta = document.createElement("meta");
@@ -59,10 +59,10 @@ export function AccountSettingsPage() {
     }
     meta.setAttribute(
       "content",
-      "管理知岸账号：查看账号信息、修改登录密码、加入或离开团队空间。",
+      "管理睿阁账号：查看账号信息、修改登录密码、加入或离开团队空间。",
     );
     return () => {
-      document.title = "知岸";
+      document.title = "睿阁";
     };
   }, []);
 

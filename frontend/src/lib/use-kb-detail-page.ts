@@ -74,7 +74,7 @@ export function useKbDetailPage(kbId: string | undefined) {
       const kbData = await fetchKnowledgeBase(kbId);
       setKb(kbData);
       persistRecentKbId(kbId, workspace);
-      document.title = `知岸 · ${kbData.name}`;
+      document.title = `睿阁 · ${kbData.name}`;
       setOverride(buildKbDetailBreadcrumb(kbData.name));
       await loadDocuments(kbId, { page: 1 });
     } catch (err) {
@@ -97,14 +97,14 @@ export function useKbDetailPage(kbId: string | undefined) {
     void loadPage();
     return () => {
       setOverride(null);
-      document.title = "知岸";
+      document.title = "睿阁";
     };
   }, [loadPage, setOverride]);
 
   const handleKbUpdated = useCallback(
     (updated: KnowledgeBase) => {
       setKb(updated);
-      document.title = `知岸 · ${updated.name}`;
+      document.title = `睿阁 · ${updated.name}`;
       setOverride(buildKbDetailBreadcrumb(updated.name));
     },
     [setOverride],

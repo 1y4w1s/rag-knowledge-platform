@@ -69,7 +69,7 @@ export function AdminAuditPage() {
       isFirstLoad.current = false;
     });
 
-    document.title = "操作审计 · 知岸";
+    document.title = "操作审计 · 睿阁";
     const metaDescription = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
     if (metaDescription) {
       metaDescription.content = "查看团队关键操作记录，登录、上传、删文档、成员变更等行为均在此留痕。";

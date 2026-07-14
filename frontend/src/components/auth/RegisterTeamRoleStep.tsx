@@ -82,7 +82,7 @@ export function RegisterTeamRoleStep({
               value={orgName}
               maxLength={255}
               onChange={onOrgNameChange}
-              placeholder="例如：知岸科技"
+              placeholder="例如：睿阁科技"
               error={fieldErrors.orgName}
               hint="用于侧栏展示，建议 20 字以内；更长名称可在组织设置修改"
             />

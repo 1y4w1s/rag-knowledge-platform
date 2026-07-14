@@ -49,7 +49,7 @@ export function KnowledgeBaseDetailPage() {
   const [grantUnits, setGrantUnits] = useState<OrgUnit[] | null>(null);
 
   useEffect(() => {
-    document.title = "知岸 · 资料库详情";
+    document.title = "睿阁 · 资料库详情";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) {
       meta.setAttribute(
@@ -61,7 +61,7 @@ export function KnowledgeBaseDetailPage() {
 
   useEffect(() => {
     if (page.kb?.name) {
-      document.title = `知岸 · ${page.kb.name}`;
+      document.title = `睿阁 · ${page.kb.name}`;
       const meta = document.querySelector('meta[name="description"]');
       if (meta) {
         meta.setAttribute(
