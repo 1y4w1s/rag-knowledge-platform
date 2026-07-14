@@ -1,4 +1,4 @@
-import { useRef, type ChangeEvent } from "react";
+import { useRef, useState, type ChangeEvent } from "react";
 
 import { DocumentListFiltersEmptyPanel } from "@/components/knowledge-bases/DocumentListFiltersEmptyPanel";
 import { DocumentListPagination } from "@/components/knowledge-bases/DocumentListPagination";
@@ -14,6 +14,7 @@ import { EmptyStateV44, KBDETAIL_SCENE } from "@/components/ui/EmptyState";
 import { MemberReadOnlyHint } from "@/components/knowledge-bases/MemberReadOnlyHint";
 import { AlertBanner } from "@/components/ui/AlertBanner";
 import { Button } from "@/components/ui/button";
+import { TrashDialog } from "@/components/knowledge-bases/TrashDialog";
 import { useAuth } from "@/lib/auth-context";
 import { updateDocumentVisibility, type Document, DOCUMENT_PAGE_SIZE } from "@/lib/document-api";
 import type { DocumentListFilters } from "@/lib/document-advanced-filter";
@@ -82,6 +83,7 @@ export function KnowledgeBaseDetailDocumentSection({
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const { isOrgAdmin, user } = useAuth();
   const canChangeVisibility = isOrgAdmin || user?.is_owner === true;
+  const [trashOpen, setTrashOpen] = useState(false);
 
   async function handleVisibilityChange(docId: string, visibility: "everyone" | "admin_only") {
     try {
@@ -189,10 +191,26 @@ export function KnowledgeBaseDetailDocumentSection({
                   onPageChange={onPageChange}
                 />
               )}
+              {uploadAllowed && (
+                <button
+                  type="button"
+                  className="mt-3 text-xs text-muted-foreground underline hover:text-foreground"
+                  onClick={() => setTrashOpen(true)}
+                >
+                  回收站
+                </button>
+              )}
             </>
           )}
         </>
       )}
+
+      <TrashDialog
+        kbId={kbId}
+        open={trashOpen}
+        onOpenChange={setTrashOpen}
+        onRefresh={onRefresh}
+      />
     </>
   );
 }

@@ -81,6 +81,7 @@ async def _vector_recall(
     )
     if hide_admin_only:
         stmt = stmt.where(Document.visibility != DocumentVisibility.admin_only)
+    stmt = stmt.where(Document.deleted_at.is_(None))
     visible_clause = _visible_kb_clause(visible_kb_ids)
     if visible_clause is not None:
         stmt = stmt.where(visible_clause)
@@ -121,6 +122,7 @@ async def _fts_recall(
     )
     if hide_admin_only:
         stmt = stmt.where(Document.visibility != DocumentVisibility.admin_only)
+    stmt = stmt.where(Document.deleted_at.is_(None))
     visible_clause = _visible_kb_clause(visible_kb_ids)
     if visible_clause is not None:
         stmt = stmt.where(visible_clause)
@@ -323,6 +325,7 @@ async def _vector_recall_workspace(
     )
     if hide_admin_only:
         stmt = stmt.where(Document.visibility != DocumentVisibility.admin_only)
+    stmt = stmt.where(Document.deleted_at.is_(None))
     visible_clause = _visible_kb_clause(visible_kb_ids)
     if visible_clause is not None:
         stmt = stmt.where(visible_clause)
@@ -372,6 +375,7 @@ async def _fts_recall_workspace(
     )
     if hide_admin_only:
         stmt = stmt.where(Document.visibility != DocumentVisibility.admin_only)
+    stmt = stmt.where(Document.deleted_at.is_(None))
     visible_clause = _visible_kb_clause(visible_kb_ids)
     if visible_clause is not None:
         stmt = stmt.where(visible_clause)

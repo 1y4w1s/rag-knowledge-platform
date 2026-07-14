@@ -59,3 +59,6 @@ class Document(Base):
         nullable=False,
         default=DocumentVisibility.everyone,
     )
+    deleted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )

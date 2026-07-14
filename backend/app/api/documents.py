@@ -184,3 +184,41 @@ async def update_document_visibility(
     doc.visibility = body.visibility
     await db.flush()
     return DocumentResponse.model_validate(doc)
+
+
+# ── 回收站 ────────────────────────────────────────────
+
+
+@router.get("/trash", response_model=list[DocumentResponse])
+async def get_trash(
+    kb_id: UUID,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> list[DocumentResponse]:
+    """列回收站中的文档。"""
+    from app.services.documents.trash import list_trash as _list_trash
+    return await _list_trash(db, kb_id)
+
+
+@router.post("/{doc_id}/restore", response_model=DocumentResponse)
+async def restore_document_route(
+    kb_id: UUID,
+    doc_id: UUID,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> DocumentResponse:
+    """从回收站恢复文档。"""
+    from app.services.documents.trash import restore_document as _restore
+    return await _restore(db, kb_id, doc_id)
+
+
+@router.delete("/{doc_id}/permanent", status_code=204)
+async def permanently_delete_document_route(
+    kb_id: UUID,
+    doc_id: UUID,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    """永久删除回收站中的文档（物理删除）。"""
+    from app.services.documents.lifecycle import permanently_delete_document as _perma_delete
+    await _perma_delete(db, kb_id, doc_id)
