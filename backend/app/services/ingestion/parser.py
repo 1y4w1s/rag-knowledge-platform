@@ -339,4 +339,25 @@ def parse_document(path: Path, file_type: str, *, pdf_batch_pages: int = 10) -> 
         return parse_xlsx(path)
     if ext == "pptx":
         return parse_pptx(path)
+    if ext in ("png", "jpg", "jpeg"):
+        return parse_image_ocr(path)
     raise ValueError(f"不支持的文件类型: {file_type}")
+
+
+IMAGE_EXTENSIONS = {"png", "jpg", "jpeg"}
+
+
+def parse_image_ocr(path: Path) -> list[ParsedBlock]:
+    """图片文件走 OCR 识别。"""
+    from app.services.ingestion.ocr import is_ocr_enabled, is_ocr_runtime_available, ocr_image_path
+
+    if not is_ocr_enabled():
+        raise ValueError("OCR 未启用")
+    if not is_ocr_runtime_available():
+        raise ValueError("OCR 服务未安装")
+
+    page_number, text = ocr_image_path(path)
+    cleaned = text.strip()
+    if not cleaned:
+        raise ValueError("OCR 未识别到文字")
+    return [ParsedBlock(content=cleaned, page_number=page_number)]

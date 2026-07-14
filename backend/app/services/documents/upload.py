@@ -24,7 +24,7 @@ from app.services.ingestion.pipeline import process_document_ingestion
 # 并发控制：最多 5 个文档同时处理
 _INGESTION_SEMAPHORE = asyncio.Semaphore(5)
 
-ALLOWED_EXTENSIONS: frozenset[str] = frozenset({".pdf", ".txt", ".md", ".docx", ".xlsx", ".pptx"})
+ALLOWED_EXTENSIONS: frozenset[str] = frozenset({".pdf", ".txt", ".md", ".docx", ".xlsx", ".pptx", ".png", ".jpg", ".jpeg"})
 
 
 def _extension(filename: str | None) -> str:
