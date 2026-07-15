@@ -14,7 +14,8 @@ from app.services.ingestion.types import ChunkDraft, IngestionConfig, ParsedBloc
 
 
 
-SENTENCE_END = re.compile(r"[。！？!?；;]")
+SENTENCE_END = re.compile(r"[。！？!?；;]|(?<=\.) (?=[A-Z0-9])")
+SOFT_MAX_MARGIN = 0.2
 
 
 
@@ -30,7 +31,7 @@ def _section_key(block: ParsedBlock) -> str:
 
 def _last_sentence(text: str, max_chars: int) -> str:
 
-    sentences = re.split(r"(?<=[。！？!?；;])", text.strip())
+    sentences = re.split(SENTENCE_END, text.strip())
 
     sentences = [s for s in sentences if s.strip()]
 
@@ -92,7 +93,8 @@ def _split_long_text(
 
 
 
-    sentences = re.split(r"(?<=[。！？!?；;])", text.strip())
+    soft_max = int(max_chars * (1 + SOFT_MAX_MARGIN))
+    sentences = re.split(SENTENCE_END, text.strip())
 
     sentences = [s for s in sentences if s.strip()]
 
@@ -104,7 +106,7 @@ def _split_long_text(
 
     for sentence in sentences:
 
-        if len(current) + len(sentence) <= max_chars:
+        if len(current) + len(sentence) <= soft_max:
 
             current += sentence
 
