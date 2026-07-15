@@ -152,16 +152,21 @@ async def stream_workspace_chat_events(
     hide_admin_only: bool = False,
 ) -> AsyncIterator[str]:
     """工作区对话：跨库检索 → gate → SSE（含 kb_name）→ workspace 落库。"""
+    expanded = await expand_queries(message)
+    all_chunks: list[RetrievedChunk] = []
+    seen_chunk_ids: set[UUID] = set()
     t0 = time.perf_counter()
-    raw_chunks = await retrieve_workspace_chunks(
-        db,
-        query=message,
-        scope=scope,
-        org_scope=org_scope,
-        hide_admin_only=hide_admin_only,
-    )
+    for eq in expanded:
+        raw = await retrieve_workspace_chunks(
+            db, query=eq, scope=scope,
+            org_scope=org_scope, hide_admin_only=hide_admin_only,
+        )
+        for c in raw:
+            if c.chunk_id not in seen_chunk_ids:
+                seen_chunk_ids.add(c.chunk_id)
+                all_chunks.append(c)
     retrieval_duration_ms = int((time.perf_counter() - t0) * 1000)
-    chunks = filter_relevant_chunks(raw_chunks, message)
+    chunks = filter_relevant_chunks(all_chunks, message)
     chunks = dedup_and_compress(chunks)
     citations = [workspace_chunk_to_citation(c) for c in chunks]
 
