@@ -8,12 +8,7 @@
 
 ## 🖼️ 界面预览
 
-| | | | |
-|:------:|:------:|:--------:|:----------:|
-| **登录页** | **仪表盘** | **智能问答** | **资料库列表** |
-| ![登录页](screenshot-01-login.png) | ![仪表盘](screenshot-02-dashboard.png) | ![智能问答](screenshot-03-ask.png) | ![资料库列表](screenshot-04-knowledge-bases.png) |
-| **账号设置** | **组织成员** | **部门管理** | **审计日志** |
-| ![账号设置](screenshot-05-account.png) | ![组织成员](screenshot-06-members.png) | ![部门管理](screenshot-07-departments.png) | ![审计日志](screenshot-08-settings.png) |
+> 截图待补充。详见 [`docs/DESIGN.md`](docs/DESIGN.md)。
 
 ---
 
