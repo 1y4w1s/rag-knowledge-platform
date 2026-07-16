@@ -38,7 +38,7 @@ async def test_validate_invite_success(
     headers, admin = await register_and_login(
         prefix="invite-admin",
         account_type="enterprise",
-        org_name="知岸科技",
+        org_name="睿阁科技",
     )
     code = await _create_invite(client, headers)
 
@@ -49,7 +49,7 @@ async def test_validate_invite_success(
     assert resp.status_code == 200
     data = resp.json()
     assert data["org_id"] == admin["org_id"]
-    assert data["org_name"] == "知岸科技"
+    assert data["org_name"] == "睿阁科技"
 
 
 @pytest.mark.asyncio

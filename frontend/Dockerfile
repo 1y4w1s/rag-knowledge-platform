@@ -1,4 +1,4 @@
-# 知岸 EW-B4 · 多阶段：Vite 构建 → nginx 静态托管
+﻿# 睿阁 EW-B4 · 多阶段：Vite 构建 → nginx 静态托管
 # 构建上下文：仓库根目录（见 docker-compose.prod.yml web.build）
 
 FROM node:20-alpine AS build

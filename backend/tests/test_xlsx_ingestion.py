@@ -38,7 +38,7 @@ def _make_golden_xlsx(path: Path) -> None:
     # Sheet 2: 项目支出
     ws2 = wb.create_sheet("项目支出")
     ws2.append(["项目", "负责人", "金额(万)", "状态"])
-    ws2.append(["知岸 v1", "张三", 200, "已完成"])
+    ws2.append(["睿阁 v1", "张三", 200, "已完成"])
     ws2.append(["OCR 模块", "李四", 80, "进行中"])
     ws2.append(["数据迁移", "王五", 50, "未开始"])
 
@@ -142,7 +142,7 @@ async def test_xlsx_ingestion_creates_table_chunks(
     # Verify content has table data
     contents = " ".join(c.content for c in table_chunks)
     assert "研发部" in contents
-    assert "知岸 v1" in contents or "知岸" in contents
+    assert "睿阁 v1" in contents or "睿阁" in contents
 
 
 async def test_xlsx_ingestion_upload_endpoint(

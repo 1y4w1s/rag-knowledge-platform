@@ -32,12 +32,12 @@ def _make_golden_pptx(path: Path) -> None:
     # Slide 1: Title
     slide1 = prs.slides.add_slide(prs.slide_layouts[6])  # blank
     txBox = slide1.shapes.add_textbox(Inches(1), Inches(1), Inches(10), Inches(1))
-    txBox.text_frame.text = "知岸产品介绍"
+    txBox.text_frame.text = "睿阁产品介绍"
     txBox2 = slide1.shapes.add_textbox(Inches(1), Inches(3), Inches(10), Inches(1))
     txBox2.text_frame.text = "企业级知识库 RAG 平台"
     # Add notes
     notes_slide = slide1.notes_slide
-    notes_slide.notes_text_frame.text = "开场介绍知岸的核心定位"
+    notes_slide.notes_text_frame.text = "开场介绍睿阁的核心定位"
 
     # Slide 2: Features
     slide2 = prs.slides.add_slide(prs.slide_layouts[6])
@@ -143,7 +143,7 @@ async def test_pptx_ingestion_creates_prose_chunks(
 
     # Verify slide titles appear in heading_path (stored as section_title)
     headings = " ".join(c.heading_path for c in chunks if c.heading_path)
-    assert "知岸产品介绍" in headings
+    assert "睿阁产品介绍" in headings
     assert "核心功能" in headings
     assert "Q&A" in headings
 
