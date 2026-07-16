@@ -123,8 +123,7 @@ export function useOrgDepartments() {
     // 根节点不存在时先创建
     try {
       const newRoot = await ensureOrgUnitRoot();
-      const items = await reloadUnits();
-      const tree = buildDepartmentTree(items);
+      await reloadUnits();
       setCreateDialog({
         open: true,
         parentId: newRoot.id,

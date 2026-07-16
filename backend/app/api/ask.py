@@ -2,10 +2,11 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.api.disconnect_guard import with_disconnect_guard
 from app.api.ask_common import (
     assert_has_visible_knowledge_bases,
     assert_team_business_allowed,
@@ -36,6 +37,7 @@ router = APIRouter(prefix="/ask", tags=["ask"])
 
 @router.post("/chat")
 async def post_ask_chat(
+    request: Request,
     body: ChatRequest,
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -55,7 +57,7 @@ async def post_ask_chat(
     )
 
     return StreamingResponse(
-        stream_workspace_chat_events(
+        with_disconnect_guard(request, stream_workspace_chat_events(
             db,
             scope=scope,
             org_scope=org_scope,
@@ -66,6 +68,7 @@ async def post_ask_chat(
                 current_user.account_type.value == "enterprise"
                 and current_user.org_role == "member"
             ),
+        ),
         ),
         media_type="text/event-stream",
         headers=SSE_HEADERS,

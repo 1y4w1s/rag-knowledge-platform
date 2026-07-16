@@ -1,4 +1,4 @@
-"""Hybrid 检索：向量 + 全文 tsvector，RRF 融合 Top-K（Wave 3.4）。"""
+﻿"""Hybrid 检索：向量 + 全文 tsvector，RRF 融合 Top-K（Wave 3.4）。"""
 
 from __future__ import annotations
 
@@ -16,10 +16,25 @@ from app.models.enums import DocumentVisibility
 from app.models.knowledge_base import KnowledgeBase
 from app.services.ingestion.embedder import embed_texts
 from app.services.org.scope import OrgScope
+from app.services.rag.cjk import segment_cjk
 from app.services.rag.diversity import apply_kb_diversity
 from app.services.rag.rerank import rerank_chunks
 from app.services.rag.rrf import reciprocal_rank_fusion
 from app.services.rag.types import RetrievedChunk
+import re
+
+
+def _has_special_chars(query: str) -> bool:
+    """检查查询是否包含 plainto_tsquery 会丢弃的特殊字符。"""
+    stripped = re.sub(r'[\\w\\s]', '', query)
+    return bool(stripped)
+
+
+def _escape_ilike(value: str) -> str:
+    """同 search/documents.py，本地引用避免循环。"""
+    return value.replace("\\\\", "\\\\\\\\").replace("%", "\\\\%").replace("_", "\\\\_")
+
+
 from app.services.search.documents import kb_scope_clause
 from app.services.workspace.scope import WorkspaceScope
 
@@ -60,6 +75,16 @@ def _visible_kb_clause(
     if not visible_kb_ids:
         return DocumentChunk.kb_id.is_(None)
     return DocumentChunk.kb_id.in_(visible_kb_ids)
+
+import re
+
+
+def _escape_ilike(value: str) -> str:
+    """Escape ILIKE wildcards: %, _, backslash."""
+    return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+
+
+
 
 
 async def _vector_recall(
@@ -110,7 +135,7 @@ async def _fts_recall(
     visible_kb_ids: frozenset[UUID] | None = None,
     hide_admin_only: bool = False,
 ) -> list[_RecallRow]:
-    ts_query = func.plainto_tsquery(TS_CONFIG, query)
+    ts_query = func.plainto_tsquery(TS_CONFIG, segment_cjk(query))
     rank = func.ts_rank_cd(DocumentChunk.content_tsv, ts_query).label("fts_rank")
     stmt = (
         select(DocumentChunk, Document.filename, rank)
@@ -386,8 +411,15 @@ async def _fts_recall_workspace(
     hide_admin_only: bool = False,
 ) -> list[_RecallRow]:
     scope_clause = kb_scope_clause(scope, org_scope)
-    ts_query = func.plainto_tsquery(TS_CONFIG, query)
+    ts_query = func.plainto_tsquery(TS_CONFIG, segment_cjk(query))
     rank = func.ts_rank_cd(DocumentChunk.content_tsv, ts_query).label("fts_rank")
+
+    fts_condition = DocumentChunk.content_tsv.op("@")(ts_query)
+    if _has_special_chars(query):
+        fts_condition = fts_condition | DocumentChunk.content.ilike(
+            f"%{_escape_ilike(query)}%", escape="\\\\"
+        )
+
     stmt = (
         select(
             DocumentChunk,
@@ -398,9 +430,6 @@ async def _fts_recall_workspace(
         .join(Document, DocumentChunk.document_id == Document.id)
         .join(KnowledgeBase, DocumentChunk.kb_id == KnowledgeBase.id)
         .where(scope_clause)
-        .where(DocumentChunk.content_tsv.is_not(None))
-        .where(_exclude_parent_chunks())
-        .where(DocumentChunk.content_tsv.op("@@")(ts_query))
     )
     if hide_admin_only:
         stmt = stmt.where(Document.visibility != DocumentVisibility.admin_only)

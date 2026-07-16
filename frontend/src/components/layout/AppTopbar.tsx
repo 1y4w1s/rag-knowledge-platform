@@ -7,13 +7,14 @@ import { useMobileDrawer } from "@/lib/mobile-drawer-context";
 interface AppTopbarProps {
   theme: "light" | "dark";
   onToggleTheme: () => void;
+  themeMode?: "light" | "dark" | "system";
 }
 
 /**
  * 顶栏（100% 对齐预览 dashboard-bold-preview.html · topbar）
  * 结构：左 nav-toggle（仅移动端） + 品牌；右 scope chip + pill 三按钮组 + 极简 sun 图标
  */
-export function AppTopbar({ theme, onToggleTheme }: AppTopbarProps) {
+export function AppTopbar({ theme, onToggleTheme, themeMode }: AppTopbarProps) {
   const { isOpen, toggle } = useMobileDrawer();
   const { pathname } = useLocation();
 
@@ -55,13 +56,29 @@ export function AppTopbar({ theme, onToggleTheme }: AppTopbarProps) {
         <button
           type="button"
           onClick={onToggleTheme}
-          aria-label={theme === "dark" ? "切换到亮色" : "切换到暗色"}
+          aria-label={
+            themeMode === "dark"
+              ? "切换到亮色"
+              : themeMode === "system"
+                ? "切换到暗色（当前跟随系统）"
+                : "切换到跟随系统"
+          }
           className="sun-icon"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" />
-          </svg>
+          {themeMode === "system" ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          ) : theme === "dark" ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" />
+            </svg>
+          )}
         </button>
       </div>
     </header>

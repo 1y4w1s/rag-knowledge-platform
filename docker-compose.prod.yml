@@ -42,10 +42,7 @@ services:
       - "80:80"
       # HTTPS（可选）：运行 scripts/gen-certs.ps1 生成证书后取消注释
       # - "443:443"
-    volumes:
-      # HTTPS 证书挂载（可选）
-      # - ./docker/nginx/certs:/etc/nginx/certs:ro
-      # - ./docker/nginx/ssl.conf:/etc/nginx/conf.d/ssl.conf:ro
+    volumes: []
     depends_on:
       - api
     deploy:

@@ -44,7 +44,7 @@ function AppShellContent() {
     | ShellRouteHandle
     | undefined;
 
-  const { theme, toggleTheme } = useTheme();
+  const { theme, mode, toggleTheme } = useTheme();
   const hideBreadcrumb =
     location.pathname === "/dashboard" ||
     HIDE_BREADCRUMB_PREFIXES.some((p) => location.pathname.startsWith(p));
@@ -69,6 +69,7 @@ function AppShellContent() {
       <div className="relative z-[1] flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <AppTopbar
           theme={theme}
+          themeMode={mode}
           onToggleTheme={toggleTheme}
         />
         {/* 面包屑 + trailing：预览顶栏里没有这些元素，单独一行渲染在顶栏与内容之间。已有 SectionTitle/h2 的页面（黑名单）不显示，避免双标题 */}

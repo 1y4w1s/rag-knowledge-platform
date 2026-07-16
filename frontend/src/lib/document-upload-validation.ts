@@ -20,7 +20,7 @@ function duplicateNames(names: string[]): string[] {
 export function validateUploadFiles(
   files: File[],
   existingFilenames: string[] = [],
-): { ok: true; files: File[] } | { ok: false; message: string } {
+): { ok: true; files: File[]; conflicts: string[] } | { ok: false; message: string } {
   if (files.length === 0) {
     return { ok: false, message: "请至少选择一个文件" };
   }
@@ -47,16 +47,13 @@ export function validateUploadFiles(
   const existingKeys = new Set(
     existingFilenames.map((name) => normalizeFilename(name).toLowerCase()),
   );
-  const conflicts = files
-    .map((file) => normalizeFilename(file.name))
-    .filter((name) => existingKeys.has(name.toLowerCase()));
+  const conflicts = [
+    ...new Set(
+      files
+        .map((file) => normalizeFilename(file.name))
+        .filter((name) => existingKeys.has(name.toLowerCase())),
+    ),
+  ];
 
-  if (conflicts.length > 0) {
-    return {
-      ok: false,
-      message: `资料库中已存在同名文件：${[...new Set(conflicts)].join("、")}`,
-    };
-  }
-
-  return { ok: true, files };
+  return { ok: true, files, conflicts };
 }

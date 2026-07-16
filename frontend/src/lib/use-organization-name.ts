@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useAuth } from "@/lib/auth-context";
 import { fetchOrganizationSettings } from "@/lib/organization-api";

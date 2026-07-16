@@ -33,6 +33,10 @@ export function ChatInput({
     event.preventDefault();
     const trimmed = value.trim();
     if (!trimmed || disabled) return;
+    // 拦截纯 emoji/符号/标点提问（无任何文字内容）
+    if (!/[\p{L}\p{N}\u4e00-\u9fff]/u.test(trimmed)) {
+      return;
+    }
     onSend(trimmed);
     setValue("");
   }

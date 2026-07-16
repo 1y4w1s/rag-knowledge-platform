@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { Upload } from "lucide-react";
 
 import { DocumentUploadButton } from "@/components/knowledge-bases/DocumentUploadButton";
@@ -12,6 +12,7 @@ type KnowledgeBaseDetailHeaderProps = {
   uploadAllowed: boolean;
   chatAllowed?: boolean;
   uploading: boolean;
+  uploadFileName?: string | null;
   onEdit: () => void;
   onUpload: (files: File[]) => void;
   onMemberWriteBlocked: () => void;
@@ -23,6 +24,7 @@ export function KnowledgeBaseDetailHeader({
   kbId,
   uploadAllowed,
   chatAllowed = true,
+  uploadFileName,
   uploading,
   onEdit,
   onUpload,
@@ -49,7 +51,7 @@ export function KnowledgeBaseDetailHeader({
       </div>
       <div className="flex flex-wrap items-center gap-2 shrink-0">
         {uploadAllowed ? (
-          <DocumentUploadButton uploading={uploading} onFilesSelected={onUpload} />
+          <DocumentUploadButton uploading={uploading} fileName={uploadFileName} onFilesSelected={onUpload} />
         ) : (
           <MemberWriteBlockedButton
             variant="outline"

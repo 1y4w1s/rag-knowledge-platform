@@ -20,25 +20,36 @@ CHAT_MAX_REQUESTS = 30
 CHAT_WINDOW_SECONDS = 60 * 60
 UPLOAD_MAX_REQUESTS = 20
 UPLOAD_WINDOW_SECONDS = 60 * 60
+SEARCH_MAX_REQUESTS = 60
+SEARCH_WINDOW_SECONDS = 60 * 60
 
 # IP 限流（防止多账号绕过用户级限流）
 IP_CHAT_MAX_REQUESTS = 60
 IP_CHAT_WINDOW_SECONDS = 60 * 60
 IP_UPLOAD_MAX_REQUESTS = 40
 IP_UPLOAD_WINDOW_SECONDS = 60 * 60
+IP_SEARCH_MAX_REQUESTS = 120
+IP_SEARCH_WINDOW_SECONDS = 60 * 60
 
 _counters: dict[str, list[float]] = defaultdict(list)
 _rate_limit_lock = threading.Lock()
+
+# 内存守卫：最多保留 key 数，超出时触发清理最旧条目
+_MAX_COUNTER_KEYS = 10_000
+_cleanup_counter = 0
 
 
 class ApiRateLimitKind(str, Enum):
     chat = "chat"
     upload = "upload"
+    search = "search"
 
 
 def _limits(kind: ApiRateLimitKind) -> tuple[int, int]:
     if kind == ApiRateLimitKind.chat:
         return CHAT_MAX_REQUESTS, CHAT_WINDOW_SECONDS
+    if kind == ApiRateLimitKind.search:
+        return SEARCH_MAX_REQUESTS, SEARCH_WINDOW_SECONDS
     return UPLOAD_MAX_REQUESTS, UPLOAD_WINDOW_SECONDS
 
 
@@ -53,6 +64,8 @@ def _ip_rate_limit_key(kind: ApiRateLimitKind, ip: str) -> str:
 def _ip_limits(kind: ApiRateLimitKind) -> tuple[int, int]:
     if kind == ApiRateLimitKind.chat:
         return IP_CHAT_MAX_REQUESTS, IP_CHAT_WINDOW_SECONDS
+    if kind == ApiRateLimitKind.search:
+        return IP_SEARCH_MAX_REQUESTS, IP_SEARCH_WINDOW_SECONDS
     return IP_UPLOAD_MAX_REQUESTS, IP_UPLOAD_WINDOW_SECONDS
 
 
@@ -63,7 +76,27 @@ def _prune(key: str, window_seconds: int, *, now: float) -> list[float]:
         _counters[key] = kept
     else:
         _counters.pop(key, None)
+    # 每 100 次 prune 触发一次全局清理，防止单次触发时延抖动
+    global _cleanup_counter
+    _cleanup_counter += 1
+    if _cleanup_counter % 100 == 0 and len(_counters) > _MAX_COUNTER_KEYS:
+        _evict_oldest_keys()
     return kept
+
+
+def _evict_oldest_keys() -> None:
+    """淘汰最旧的 10% key，防止内存无限增长。"""
+    now = monotonic()
+    # 先 prune 所有 key
+    for k in list(_counters.keys()):
+        window_start = now - (60 * 60)  # 用 1h 窗口 prune
+        _counters[k] = [t for t in _counters[k] if t > window_start]
+        if not _counters[k]:
+            _counters.pop(k, None)
+    # 如果仍然超限，按最后活跃时间淘汰
+    while len(_counters) > _MAX_COUNTER_KEYS:
+        oldest_key = min(_counters.keys(), key=lambda k: max(_counters[k]) if _counters[k] else 0)
+        _counters.pop(oldest_key, None)
 
 
 def _degradation_multiplier() -> float:

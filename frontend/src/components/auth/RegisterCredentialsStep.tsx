@@ -1,4 +1,5 @@
 import { AuthField } from "@/components/auth/AuthField";
+import { PasswordRequirements } from "@/components/auth/PasswordRequirements";
 import type {
   RegisterTeamRole,
   RegisterUsage,
@@ -107,11 +108,12 @@ export function RegisterCredentialsStep({
             autoComplete="new-password"
             value={password}
             onChange={onPasswordChange}
-            placeholder="至少 8 位"
+            placeholder="至少 8 位，需包含大写、小写、数字与特殊字符"
             error={fieldErrors.password}
             showPasswordToggle
             showStrength
           />
+          <PasswordRequirements password={password} />
           <AuthField
             id="confirmPassword"
             label="确认密码"

@@ -93,21 +93,21 @@ async def permanently_delete_document(
     cleanup = remove_document_tree(
         kb_id=kb_id, doc_id=doc_id, storage_path=storage_path
     )
-    if cleanup.file_errors + cleanup.tree_errors > 0:
-        await write_audit_log(
-            db,
-            action="storage.cleanup_failed",
-            actor_user_id=None,
-            resource_type="document",
-            resource_id=doc_id,
-            kb_id=kb_id,
-            metadata={
-                "filename": doc.filename,
-                "file_errors": cleanup.file_errors,
-                "tree_errors": cleanup.tree_errors,
-            },
-        )
-        await db.commit()
+    audit_action = "storage.cleanup_failed" if cleanup.file_errors + cleanup.tree_errors > 0 else "document.permanently_deleted"
+    await write_audit_log(
+        db,
+        action=audit_action,
+        actor_user_id=None,
+        resource_type="document",
+        resource_id=doc_id,
+        kb_id=kb_id,
+        metadata={
+            "filename": doc.filename,
+            "file_errors": cleanup.file_errors,
+            "tree_errors": cleanup.tree_errors,
+        },
+    )
+    await db.commit()
 
 
 async def retry_document(

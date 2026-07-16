@@ -10,6 +10,7 @@ from app.models.enums import DocumentStatus
 from app.models.knowledge_base import KnowledgeBase
 from app.schemas.knowledge_base import KnowledgeBaseListResponse, KnowledgeBaseResponse
 from app.services.org.scope import OrgScope
+from app.services.search.documents import _escape_ilike
 from app.services.workspace.scope import WorkspaceScope
 
 DEFAULT_LIMIT = 24
@@ -138,11 +139,11 @@ async def list_knowledge_bases(
     count_stmt = select(func.count()).select_from(KnowledgeBase)
     count_stmt = _apply_visibility(count_stmt, scope, org_scope)
     if search:
-        needle = f"%{search}%"
+        needle = f"%{_escape_ilike(search)}%"
         count_stmt = count_stmt.where(
             or_(
-                KnowledgeBase.name.ilike(needle),
-                KnowledgeBase.description.ilike(needle),
+                KnowledgeBase.name.ilike(needle, escape="\\"),
+                KnowledgeBase.description.ilike(needle, escape="\\"),
             )
         )
     total = int(await db.scalar(count_stmt) or 0)
@@ -159,11 +160,11 @@ async def list_knowledge_bases(
     )
     stmt = _apply_visibility(stmt, scope, org_scope)
     if search:
-        needle = f"%{search}%"
+        needle = f"%{_escape_ilike(search)}%"
         stmt = stmt.where(
             or_(
-                KnowledgeBase.name.ilike(needle),
-                KnowledgeBase.description.ilike(needle),
+                KnowledgeBase.name.ilike(needle, escape="\\"),
+                KnowledgeBase.description.ilike(needle, escape="\\"),
             )
         )
 

@@ -1,4 +1,4 @@
-"""文档预览（Wave 2.4）。"""
+﻿"""文档预览（Wave 2.4）。"""
 
 import uuid
 from pathlib import Path
@@ -89,7 +89,10 @@ async def get_document_preview(
     if doc.file_type in _EXTRACTABLE:
         text = _extract_text(file_path, doc.file_type)
         if text is not None:
-            return PlainTextResponse(text)
+            return PlainTextResponse(
+                text,
+                headers={"Referrer-Policy": "no-referrer"},
+            )
 
     # PDF / 图片 → 浏览器内嵌显示，不下载
     if doc.file_type in _INLINE_TYPES:
@@ -97,7 +100,8 @@ async def get_document_preview(
             path=file_path,
             media_type=media_type_for_file_type(doc.file_type),
             headers={
-                "Content-Disposition": f'inline; filename="{doc.filename}"'
+                "Content-Disposition": f'inline; filename="{doc.filename}"',
+                "Referrer-Policy": "no-referrer",
             },
         )
 
@@ -105,4 +109,5 @@ async def get_document_preview(
         path=file_path,
         media_type=media_type_for_file_type(doc.file_type),
         filename=doc.filename,
+        headers={"Referrer-Policy": "no-referrer"},
     )

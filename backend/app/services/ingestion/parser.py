@@ -1,4 +1,4 @@
-"""多格式文档解析（TECH-4.2）。"""
+﻿"""多格式文档解析（TECH-4.2）。"""
 
 from __future__ import annotations
 
@@ -23,14 +23,43 @@ CHAPTER_RE = re.compile(
 MD_HEADER_RE = re.compile(r"^(#{1,3})\s+(.+)$")
 
 
+import logging
+
+logger = logging.getLogger(__name__)
+
+ENCODING_FALLBACKS = ["utf-8", "gbk", "gb2312", "gb18030", "latin-1"]
+
+
+def _read_text_with_fallback(path: Path) -> str:
+    """尝试多种编码读取文本文件，全部失败则返回空字符串。"""
+    for enc in ENCODING_FALLBACKS:
+        try:
+            return path.read_text(encoding=enc)
+        except (UnicodeDecodeError, UnicodeError):
+            continue
+    logger.warning("无法解码文件: %s，已跳过", path)
+    return ""
+
+
+def _strip_invisible_chars(text: str) -> str:
+    """移除零宽空格、控制字符等不可见 Unicode。"""
+    return re.sub(r"[\u200b-\u200f\u2028-\u202f\u2060-\u2069\ufeff]", "", text)
+
+
 def parse_txt(content: str) -> list[ParsedBlock]:
     blocks: list[ParsedBlock] = []
     heading_stack: list[str] = []
     doc_title: str | None = None
 
+    content = _strip_invisible_chars(content)
+
     for para in re.split(r"\n\s*\n", content.strip()):
         text = para.strip()
         if not text:
+            continue
+
+        # 跳过纯符号/纯数字段落（无实际语义内容）
+        if not re.search(r"[\u4e00-\u9fff\w]", text):
             continue
 
         if CHAPTER_RE.match(text.split("\n", 1)[0]):
@@ -330,9 +359,9 @@ def parse_document(path: Path, file_type: str, *, pdf_batch_pages: int = 10) -> 
                 raise ValueError("不支持扫描件")
         return blocks
     if ext == "txt":
-        return parse_txt(path.read_text(encoding="utf-8"))
+        return parse_txt(_read_text_with_fallback(path))
     if ext == "md":
-        return parse_md(path.read_text(encoding="utf-8"))
+        return parse_md(_read_text_with_fallback(path))
     if ext == "docx":
         return parse_docx(path)
     if ext == "xlsx":

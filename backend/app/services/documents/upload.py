@@ -1,6 +1,7 @@
 """文档上传与列表（Wave 2.2）。"""
 
 import uuid
+import re
 from pathlib import Path
 
 import asyncio
@@ -66,8 +67,11 @@ async def _assert_filename_available(
     *,
     kb_id: uuid.UUID,
     filename: str,
-) -> str:
-    """同一资料库内文件名不可重复（忽略大小写）。"""
+) -> tuple[str, uuid.UUID | None]:
+    """检查文件名是否可用。返回 (安全文件名, 已存在的文档ID或None)。
+
+    排除软删除的文档（回收站中的文件不视为冲突）。
+    """
     safe_name = Path(filename).name.strip()
     if not safe_name:
         raise ValidationError("文件名无效")
@@ -76,14 +80,11 @@ async def _assert_filename_available(
         .where(
             Document.kb_id == kb_id,
             func.lower(Document.filename) == safe_name.lower(),
+            Document.deleted_at.is_(None),
         )
         .limit(1)
     )
-    if existing is not None:
-        raise ConflictError(
-            detail=f"资料库中已存在同名文件「{safe_name}」",
-        )
-    return safe_name
+    return safe_name, existing
 
 
 def _storage_dir(kb_id: uuid.UUID, doc_id: uuid.UUID) -> Path:
@@ -119,8 +120,18 @@ async def upload_documents(
         file_type = _validate_extension(upload.filename)
         content = await _read_upload_with_size_limit(upload)
         display_name = Path(original_name).name.strip()
+        display_name = re.sub(r"[\x00-\x1f\x7f]", "", display_name) or "_"
         if not display_name:
             raise ValidationError("文件名无效")
+        # Windows 保留设备名（大小写不敏感）
+        _WINDOWS_RESERVED = frozenset({
+            "con", "prn", "aux", "nul",
+            "com1", "com2", "com3", "com4", "com5", "com6", "com7", "com8", "com9",
+            "lpt1", "lpt2", "lpt3", "lpt4", "lpt5", "lpt6", "lpt7", "lpt8", "lpt9",
+        })
+        name_stem = Path(display_name).stem.lower()
+        if name_stem in _WINDOWS_RESERVED:
+            raise ValidationError(f"文件名「{display_name}」为系统保留名称，请重命名后上传")
         if len(content) == 0:
             raise ValidationError(
                 detail=f"文件「{display_name}」为空（0 字节），请添加内容后再上传",
@@ -137,16 +148,53 @@ async def upload_documents(
                 detail=f"本次选择了重复文件「{display_name}」，请去掉重复项后重试",
             )
         batch_names.add(name_key)
-        display_name = await _assert_filename_available(
+        display_name, existing_doc_id = await _assert_filename_available(
             db,
             kb_id=kb_id,
             filename=original_name,
         )
-        await assert_content_unique_in_kb(
-            db,
-            kb_id=kb_id,
-            content_sha256=content_hash,
-        )
+
+        replacing = existing_doc_id is not None
+
+        if replacing:
+            # 覆盖模式：加载旧文档，跳过内容去重
+            existing_doc = await db.get(Document, existing_doc_id)
+            if existing_doc is None:
+                # 理论上不会发生，但防御性处理
+                raise ValidationError(detail="内部错误：待覆盖文档不存在")
+            if existing_doc.status == DocumentStatus.processing:
+                raise ConflictError(
+                    detail=f"文件「{display_name}」正在处理中，请稍后重试",
+                )
+            # 先记审计日志，再删旧文档
+            await write_audit_log(
+                db,
+                action="document.replaced",
+                actor_user_id=current_user.id,
+                resource_type="document",
+                resource_id=existing_doc_id,
+                kb_id=kb_id,
+                metadata={
+                    "filename": display_name,
+                    "previous_doc_id": str(existing_doc_id),
+                    "previous_size": existing_doc.file_size,
+                    "new_size": len(content),
+                    "new_content_hash": content_hash,
+                },
+                ip=ip,
+            )
+            # 硬删旧文档（CASCADE 自动清理 document_chunks）
+            storage_path = existing_doc.storage_path
+            await db.delete(existing_doc)
+            await db.flush()
+            from app.services.storage.cleaner import remove_document_tree
+            remove_document_tree(kb_id=kb_id, doc_id=existing_doc_id, storage_path=storage_path)
+        else:
+            await assert_content_unique_in_kb(
+                db,
+                kb_id=kb_id,
+                content_sha256=content_hash,
+            )
 
         doc_id = uuid.uuid4()
         storage_dir = _storage_dir(kb_id, doc_id)
@@ -171,16 +219,17 @@ async def upload_documents(
         db.add(doc)
         await db.flush()
 
-        await write_audit_log(
-            db,
-            action="document.upload",
-            actor_user_id=current_user.id,
-            resource_type="document",
-            resource_id=doc_id,
-            kb_id=kb_id,
-            metadata={"filename": display_name},
-            ip=ip,
-        )
+        if not replacing:
+            await write_audit_log(
+                db,
+                action="document.upload",
+                actor_user_id=current_user.id,
+                resource_type="document",
+                resource_id=doc_id,
+                kb_id=kb_id,
+                metadata={"filename": display_name},
+                ip=ip,
+            )
 
         async with _INGESTION_SEMAPHORE:
             background_tasks.add_task(process_document_ingestion, doc.id)

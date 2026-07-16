@@ -1,4 +1,4 @@
-"""跨库正文搜索（Plan-RAG R1-2）：chunk tsvector + 子串聚合。"""
+﻿"""跨库正文搜索（Plan-RAG R1-2）：chunk tsvector + 子串聚合。"""
 
 from __future__ import annotations
 
@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
 from app.models.enums import DocumentVisibility
+from app.services.rag.cjk import segment_cjk
 from app.models.knowledge_base import KnowledgeBase
 from app.schemas.search import SearchDocumentItem, SearchDocumentsResponse
 from app.services.org.scope import OrgScope
@@ -19,7 +20,7 @@ SNIPPET_CONTEXT = 60
 
 
 def _ts_query(query: str):
-    return func.plainto_tsquery(TS_CONFIG, query)
+    return func.plainto_tsquery(TS_CONFIG, segment_cjk(query))
 
 
 def _snippet_highlight(content: str, query: str, context: int = SNIPPET_CONTEXT) -> str:
