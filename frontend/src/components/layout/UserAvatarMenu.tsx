@@ -58,7 +58,7 @@ export function UserAvatarMenu({ size = "md", className }: UserAvatarMenuProps) 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 top-[calc(100%+8px)] z-50 min-w-[160px] rounded-[10px] border border-border bg-white p-1.5 shadow-md"
+          className="absolute left-0 top-[calc(100%+8px)] z-50 min-w-[160px] rounded-[10px] border border-border bg-white p-1.5 shadow-md"
         >
           <Link
             role="menuitem"

@@ -54,13 +54,22 @@ export function validateRegisterCredentials(
   if (!password) {
     errors.password = "请输入密码";
   } else if (password.length < 8) {
-    errors.password = "密码至少 8 位";
+    errors.password = "至少 8 位";
+  } else {
+    const missing: string[] = [];
+    if (!/[A-Z]/.test(password)) missing.push("大写字母");
+    if (!/[a-z]/.test(password)) missing.push("小写字母");
+    if (!/\d/.test(password)) missing.push("数字");
+    if (!/[^A-Za-z0-9]/.test(password)) missing.push("特殊字符");
+    if (missing.length > 0) {
+      errors.password = `缺少${missing.join("、")}`;
+    }
   }
 
   if (!confirmPassword) {
-    errors.confirmPassword = "请再次输入密码";
+    errors.confirmPassword = "请确认密码";
   } else if (password !== confirmPassword) {
-    errors.confirmPassword = "两次输入的密码不一致";
+    errors.confirmPassword = "两次密码不一致";
   }
 
   return errors;

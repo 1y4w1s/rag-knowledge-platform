@@ -90,6 +90,11 @@ def _check_production_guard() -> None:
             "❌ JWT_SECRET 为默认值，请修改为长随机字符串后重新启动。"
             "\n   生产环境建议：openssl rand -hex 32"
         )
+    if len(settings.jwt_secret) < 32:
+        raise RuntimeError(
+            "❌ JWT_SECRET 长度不足 32 字符，请使用更长的密钥。"
+            "\n   生产环境建议：openssl rand -hex 32"
+        )
     if not settings.deepseek_api_key:
         logger.warning("⚠️  DEEPSEEK_API_KEY 未配置，LLM 对话功能不可用。")
     if not settings.tongyi_api_key and settings.embedding_provider == "tongyi":

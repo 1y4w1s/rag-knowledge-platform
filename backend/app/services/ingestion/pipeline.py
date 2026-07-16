@@ -1,13 +1,12 @@
-"""入库管道：解析 → 结构优先切片 → 嵌入 → document_chunks + pgvector。"""
-
-
+﻿"""入库管道：解析 → 结构优先切片 → 嵌入 → document_chunks + pgvector。"""
 
 from __future__ import annotations
 
-
-
 import asyncio
 import logging
+
+# 并发 ingestion 上限（防止 BackgroundTasks 无界堆积）
+_INGESTION_SEMAPHORE = asyncio.Semaphore(5)
 
 import uuid
 
@@ -144,7 +143,7 @@ async def _write_chunks(
 
     await db.execute(
 
-        delete(DocumentChunk).where(DocumentChunk.document_id == doc.id)
+            delete(DocumentChunk).where(DocumentChunk.document_id == doc.id)
 
     )
 
@@ -158,25 +157,28 @@ async def _write_chunks(
 
     for draft in drafts:
 
-        parent_chunk_id = None
+            parent_chunk_id = None
 
-        if draft.parent_group and draft.chunk_kind != "parent":
+            if draft.parent_group and draft.chunk_kind != "parent":
 
             parent_chunk_id = parent_ids.get(draft.parent_group)
 
 
 
-        embedding = None
-        embed_model = None
+            embedding = None
+            embed_model = None
 
-        if _is_searchable(draft):
+            if _is_searchable(draft):
 
-            embedding = next(vector_iter)
-            embed_model = current_embedding_model()
+            try:
+                embedding = next(vector_iter)
+                embed_model = current_embedding_model()
+            except StopIteration:
+                pass
 
 
 
-        chunk = DocumentChunk(
+            chunk = DocumentChunk(
 
             id=uuid.uuid4(),
 
@@ -204,25 +206,25 @@ async def _write_chunks(
 
         )
 
-        db.add(chunk)
+            db.add(chunk)
 
-        await db.flush()
+            await db.flush()
 
 
 
-        if draft.chunk_kind == "parent" and draft.parent_group:
+            if draft.chunk_kind == "parent" and draft.parent_group:
 
             parent_ids[draft.parent_group] = chunk.id
 
 
 
-        if not _is_searchable(draft):
+            if not _is_searchable(draft):
 
             continue
 
 
 
-        tsv_source = " ".join(
+            tsv_source = " ".join(
 
             part
 
@@ -232,7 +234,7 @@ async def _write_chunks(
 
         )
 
-        await db.execute(
+            await db.execute(
 
             text(
 
@@ -257,16 +259,14 @@ async def _write_chunks(
 async def process_document_ingestion(document_id: UUID) -> None:
 
     """BackgroundTask 入口：完整入库管道。"""
+    async with _INGESTION_SEMAPHORE:
+            started_at = datetime.now(timezone.utc)
 
-    started_at = datetime.now(timezone.utc)
+        async with SessionLocal() as db:
 
+            doc = await db.get(Document, document_id)
 
-
-    async with SessionLocal() as db:
-
-        doc = await db.get(Document, document_id)
-
-        if doc is None:
+            if doc is None:
 
             logger.warning("ingestion: document %s not found", document_id)
 
@@ -274,17 +274,22 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
 
 
-        storage_path = doc.storage_path
+            storage_path = doc.storage_path
 
-        file_type = doc.file_type
+            if doc.status == DocumentStatus.processing:
+            logger.warning("ingestion: document %s already processing, skipped", document_id)
+            return
 
-        doc.status = DocumentStatus.processing
 
-        doc.processing_started_at = started_at
+            file_type = doc.file_type
 
-        doc.error_message = None
+            doc.status = DocumentStatus.processing
 
-        await db.commit()
+            doc.processing_started_at = started_at
+
+            doc.error_message = None
+
+            await db.commit()
 
 
 
@@ -354,7 +359,7 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
 
 
-        logger.info(
+            logger.info(
             "ingestion completed: document=%s chunks=%s ingestion.parser=%s",
             document_id,
             chunk_count,
@@ -362,13 +367,13 @@ async def process_document_ingestion(document_id: UUID) -> None:
         )
 
     except Exception as exc:
-        user_message = _user_facing_ingestion_error(exc, parser_mode=parser_mode)
-        logger.exception(
+            user_message = _user_facing_ingestion_error(exc, parser_mode=parser_mode)
+            logger.exception(
             "ingestion failed: document=%s ingestion.parser=%s error=%s",
             document_id,
             parser_mode or "default",
             user_message,
         )
-        await _mark_failed(document_id, user_message)
+            await _mark_failed(document_id, user_message)
 
 

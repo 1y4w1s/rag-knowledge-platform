@@ -1,11 +1,12 @@
-"""RAG 对话 API（Wave 3.1～3.2 · EW-D4 历史）：POST chat SSE + GET messages。"""
+﻿"""RAG 对话 API（Wave 3.1～3.2 · EW-D4 历史）：POST chat SSE + GET messages。"""
 
 from typing import Annotated
 from uuid import UUID
 
 from app.core.exceptions import ForbiddenError, NotFoundError
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import StreamingResponse
+from app.api.disconnect_guard import with_disconnect_guard
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -44,6 +45,7 @@ router = APIRouter(
 @router.post("/chat")
 async def post_chat(
     kb_id: UUID,
+    request: Request,
     body: ChatRequest,
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
@@ -65,7 +67,7 @@ async def post_chat(
         visible_kb_ids = org_scope.visible_kb_ids
 
     return StreamingResponse(
-        stream_chat_events(
+        with_disconnect_guard(request, stream_chat_events(
             db,
             kb_id=kb_id,
             user_id=current_user.id,
@@ -75,6 +77,7 @@ async def post_chat(
                 current_user.account_type.value == "enterprise"
                 and current_user.org_role == "member"
             ),
+        ),
         ),
         media_type="text/event-stream",
         headers=SSE_HEADERS,

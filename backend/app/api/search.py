@@ -11,6 +11,7 @@ from app.core.deps import (
     DepartmentIdQuery,
     get_current_user,
 )
+from app.services.auth.api_rate_limit import ApiRateLimitKind, enforce_api_rate_limit
 from app.services.org.scope import resolve_org_scope_for_workspace
 from app.schemas.search import SearchDocumentsResponse, SearchMode
 from app.services.search.content import search_documents_by_content
@@ -38,6 +39,7 @@ async def search_documents(
     department_id: DepartmentIdQuery = None,
 ) -> SearchDocumentsResponse:
     """跨库文档搜索：文件名子串或正文 tsvector（同 workspace 聚合）。"""
+    enforce_api_rate_limit(ApiRateLimitKind.search, current_user.id)
     scope = await resolve_workspace(db, current_user, workspace)
     org_scope = await resolve_org_scope_for_workspace(
         db, current_user, scope, department_id=department_id

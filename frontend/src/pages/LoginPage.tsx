@@ -17,7 +17,7 @@ export function LoginPage() {
   const [searchParams] = useSearchParams();
   const { isAuthenticated } = useAuth();
   const redirectTo = safeRedirect(searchParams.get("redirect"));
-  const { theme, toggleTheme } = useTheme();
+  const { theme, mode, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -41,33 +41,33 @@ export function LoginPage() {
         type="button"
         onClick={toggleTheme}
         className="theme-fab"
-        aria-label={theme === "dark" ? "切换到暖白主题" : "切换到暗色主题"}
-        title={theme === "dark" ? "切换到暖白主题" : "切换到暗色主题"}
+        aria-label={
+          mode === "dark"
+            ? "切换到暖白主题"
+            : mode === "system"
+              ? "切换到暗色（当前跟随系统）"
+              : "切换到跟随系统"
+        }
+        title={
+          mode === "dark"
+            ? "切换到暖白主题"
+            : mode === "system"
+              ? "切换到暗色（当前跟随系统）"
+              : "切换到跟随系统"
+        }
       >
-        {theme === "dark" ? (
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <circle cx="12" cy="12" r="4.2" />
-            <path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7" />
+        {mode === "system" ? (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+        ) : theme === "dark" ? (
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" />
           </svg>
         ) : (
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M20 14.5A8 8 0 0 1 9.5 4 7 7 0 1 0 20 14.5z" />
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
           </svg>
         )}
       </button>

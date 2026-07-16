@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { marked } from "marked";
+import DOMPurify from "dompurify";
 
 interface DocumentPreviewViewerProps {
   mode: "pdf" | "text" | "markdown" | "image" | "unsupported";
@@ -89,7 +90,8 @@ export function DocumentPreviewViewer({
 function MarkdownRenderer({ content }: { content: string }) {
   const html = useMemo(() => {
     try {
-      return marked.parse(content, { breaks: true, gfm: true });
+      const raw = marked.parse(content, { breaks: true, gfm: true, async: false }) as string;
+      return DOMPurify.sanitize(raw);
     } catch {
       return `<pre class="markdown-fallback">${content}</pre>`;
     }

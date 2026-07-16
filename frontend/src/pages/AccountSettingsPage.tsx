@@ -215,7 +215,13 @@ export function AccountSettingsPage() {
                 <p role="alert" className="mt-1 text-xs text-[var(--bad)]">
                   {profileError}
                 </p>
-              ) : null}
+              ) : (
+                <p className="mt-1 text-xs text-[var(--mut)]">
+                  {nicknameDraft === (settings.nickname ?? "")
+                    ? "修改昵称后即可保存"
+                    : "昵称有改动，可点击保存"}
+                </p>
+              )}
             </div>
           </div>
         </SettingsFormCard>

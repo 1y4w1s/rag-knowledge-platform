@@ -22,6 +22,7 @@ export function useKbDocumentActions(
   showToast: ShowToast,
 ) {
   const [uploading, setUploading] = useState(false);
+  const [uploadFileName, setUploadFileName] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Document | null>(null);
@@ -173,17 +174,28 @@ export function useKbDocumentActions(
         return;
       }
 
+      const { files: validFiles, conflicts } = validation;
+      if (conflicts.length > 0) {
+        const confirmMsg = `以下文件已存在，上传后将覆盖旧文件及其切片数据：\n${conflicts.map((n) => `  • ${n}`).join("\n")}\n\n确认覆盖？`;
+        if (!window.confirm(confirmMsg)) return;
+      }
+
       setUploading(true);
+      setUploadFileName(validFiles.length === 1 ? validFiles[0].name : `${validFiles.length} 个文件`);
       clearInlineErrors();
       try {
-        await uploadDocuments(kbId, validation.files);
+        await uploadDocuments(kbId, validFiles);
         await loadDocuments(kbId);
+        if (conflicts.length > 0) {
+          showToast(`${conflicts.length} 个文件已覆盖更新`);
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : "上传失败";
         if (notifyPermissionDenied(message)) return;
         setUploadError(message);
       } finally {
         setUploading(false);
+        setUploadFileName(null);
       }
     },
     [
@@ -192,11 +204,13 @@ export function useKbDocumentActions(
       clearInlineErrors,
       loadDocuments,
       notifyPermissionDenied,
+      showToast,
     ],
   );
 
   return {
     uploading,
+    uploadFileName,
     uploadError,
     actionError,
     deleteTarget,

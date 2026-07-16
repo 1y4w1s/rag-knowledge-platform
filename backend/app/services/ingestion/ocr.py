@@ -106,7 +106,11 @@ def ocr_pdf_pages(
 
     limit = max_pages if max_pages is not None else settings.ocr_max_pages
     pdf_path = Path(pdf_path)
-    info = pdfinfo_from_path(str(pdf_path))
+    try:
+        info = pdfinfo_from_path(str(pdf_path))
+    except Exception:
+        raise ValueError("PDF 加密或损坏，无法进行 OCR 识别")
+
     page_count = int(info.get("Pages", 0))
 
     if page_count > limit:

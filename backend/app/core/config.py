@@ -50,7 +50,11 @@ class Settings(BaseSettings):
     rerank_input_top_n: int = 20
     ocr_enabled: bool = True
     ocr_max_pages: int = 30
-    resend_api_key: str = ""
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_use_tls: bool = True
     forgot_password_from_email: str = "noreply@ruige.app"
     forgot_password_token_expire_minutes: int = 60
     forgot_password_reset_url: str = "http://localhost:5173/reset-password"
