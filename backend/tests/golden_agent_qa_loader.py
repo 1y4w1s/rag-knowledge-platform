@@ -17,7 +17,7 @@ FixtureKind = Literal["md", "none"]
 REQUIRED_CATEGORIES: frozenset[str] = frozenset(
     {"multi_step", "refusal", "forbidden_kb"}
 )
-EXPECTED_CASE_COUNT = 15
+EXPECTED_CASE_COUNT = 150
 
 
 @dataclass(frozen=True, slots=True)
