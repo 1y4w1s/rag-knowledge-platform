@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { createPortal } from "react-dom";
+import { useEffect, useState, type RefObject } from "react";
+
+import { useFloatingMenu } from "@/lib/use-floating-menu";
 
 import type { DepartmentPickerModel } from "@/lib/department-picker-tree";
 import { DEPARTMENT_ALL, type DepartmentScopeId } from "@/lib/department-storage";
@@ -105,15 +108,11 @@ export function DepartmentPickerPopover({
   onSelect,
   onClose,
 }: DepartmentPickerPopoverProps) {
-  const popoverRef = useRef<HTMLDivElement>(null);
   const [collapsedIds, setCollapsedIds] = useState<Set<string>>(() => new Set());
-
-  useEffect(() => {
-    if (!open || !popoverRef.current || !anchorRef.current) return;
-    const anchor = anchorRef.current;
-    popoverRef.current.style.top = `${anchor.offsetTop + anchor.offsetHeight + 8}px`;
-    popoverRef.current.style.left = `${anchor.offsetLeft + anchor.offsetWidth + 8}px`;
-  }, [open, anchorRef, orgName, model.root?.unit.id]);
+  const { floatingRef: deptFloatingRef, style: deptStyle } = useFloatingMenu(
+    anchorRef as React.RefObject<HTMLElement | null>,
+    open,
+  );
 
   useEffect(() => {
     if (!open) return;
@@ -124,7 +123,7 @@ export function DepartmentPickerPopover({
 
     function onPointerDown(e: MouseEvent) {
       const target = e.target as Node;
-      if (popoverRef.current?.contains(target)) return;
+      if (deptFloatingRef.current?.contains(target)) return;
       if (anchorRef.current?.contains(target)) return;
       onClose();
     }
@@ -138,8 +137,8 @@ export function DepartmentPickerPopover({
   }, [open, onClose, anchorRef]);
 
   useEffect(() => {
-    if (!open || !popoverRef.current) return;
-    const first = popoverRef.current.querySelector<HTMLButtonElement>(
+    if (!open || !deptFloatingRef.current) return;
+    const first = deptFloatingRef.current.querySelector<HTMLButtonElement>(
       ".dept-picker-tree-node:not(:disabled), .dept-picker-all-option",
     );
     first?.focus();
@@ -156,10 +155,11 @@ export function DepartmentPickerPopover({
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div
-      ref={popoverRef}
-      className="dept-picker-popover popover-base"
+      ref={deptFloatingRef}
+      style={deptStyle}
+      className="popover-base z-[9999] w-[260px] max-h-[min(280px,50vh)] overflow-y-auto"
       role="dialog"
       aria-label="选择当前部门"
       aria-modal="true"
@@ -193,6 +193,7 @@ export function DepartmentPickerPopover({
       ) : (
         <p className="dept-picker-empty">暂无可用部门</p>
       )}
-    </div>
+    </div>,
+    document.body,
   );
 }
