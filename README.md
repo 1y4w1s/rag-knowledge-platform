@@ -13,9 +13,13 @@
 | ![登录页](screenshot-01-login.png) | ![仪表盘](screenshot-02-dashboard.png) | ![智能问答](screenshot-03-ask.png) | ![知识库列表](screenshot-04-knowledge-bases.png) |
 | **账号设置** | **组织成员** | **部门管理** | **组织设置** | **审计日志** |
 
-| **暗色主题** | **暗色登录页** |
-| ![登录页暗色](screenshot-login-dark.png) |
-| ![账号设置](screenshot-05-settings-account.png) | ![组织成员](screenshot-06-organization-members.png) | ![部门管理](screenshot-07-organization-departments.png) | ![组织设置](screenshot-08-organization-settings.png) | ![审计日志](screenshot-09-admin-audit.png) |
+
+| **暗色主题** | **登录页** | **概览** | **智能问答** | **资料库** |
+|:---:|:---:|:---:|:---:|:---:|
+| 暗色 | ![登录页暗色](screenshot-login-dark.png) | ![概览暗色](screenshot-dashboard-dark.png) | ![智能问答暗色](screenshot-ask-dark.png) | ![资料库暗色](screenshot-kb-dark.png) |
+| **暗色主题** | **账号设置** | **组织成员** | **部门管理** | **组织设置** | **审计日志** |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| 暗色 | ![账号设置暗色](screenshot-settings-dark.png) | ![组织成员暗色](screenshot-members-dark.png) | ![部门管理暗色](screenshot-dept-dark.png) | ![组织设置暗色](screenshot-org-settings-dark.png) | ![审计日志暗色](screenshot-audit-dark.png) |
 
 ---
 
