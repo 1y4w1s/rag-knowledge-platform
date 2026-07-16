@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -1652,11 +1652,10 @@
 
   .org-popover {
     position: absolute;
-    left: 10px;
-    right: 10px;
     top: auto;
     margin-top: 8px;
     z-index: 30;
+    width: 280px;
     background: var(--surf);
     border: 1px solid var(--line2);
     border-radius: 12px;
@@ -1787,11 +1786,10 @@
 
   .dept-picker-popover {
     position: absolute;
-    left: 0;
-    right: 0;
     top: auto;
     margin-top: 8px;
     z-index: 30;
+    width: 260px;
     max-height: min(280px, 50vh);
     overflow-y: auto;
     background: var(--surf);
