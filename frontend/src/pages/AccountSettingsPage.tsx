@@ -262,17 +262,6 @@ export function AccountSettingsPage() {
       </div>
       </div>
 
-      {!settings.org_id ? (
-          <JoinTeamForm onJoined={(message, orgId) => void handleJoined(message, orgId)} />
-      ) : (
-        <RequireTeamWorkspace feature="离开团队">
-          <LeaveTeamForm
-            orgName={settings.org_name ?? "团队"}
-            isOwner={Boolean(user?.is_owner)}
-            onLeft={(message) => void handleLeft(message)}
-          />
-        </RequireTeamWorkspace>
-      )}
 
 
       <ApiKeyManager />
