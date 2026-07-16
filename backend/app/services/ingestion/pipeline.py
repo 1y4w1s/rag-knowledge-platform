@@ -161,7 +161,7 @@ async def _write_chunks(
 
             if draft.parent_group and draft.chunk_kind != "parent":
 
-            parent_chunk_id = parent_ids.get(draft.parent_group)
+                parent_chunk_id = parent_ids.get(draft.parent_group)
 
 
 
@@ -170,11 +170,11 @@ async def _write_chunks(
 
             if _is_searchable(draft):
 
-            try:
-                embedding = next(vector_iter)
-                embed_model = current_embedding_model()
-            except StopIteration:
-                pass
+                try:
+                    embedding = next(vector_iter)
+                    embed_model = current_embedding_model()
+                except StopIteration:
+                    pass
 
 
 
@@ -214,13 +214,13 @@ async def _write_chunks(
 
             if draft.chunk_kind == "parent" and draft.parent_group:
 
-            parent_ids[draft.parent_group] = chunk.id
+                parent_ids[draft.parent_group] = chunk.id
 
 
 
             if not _is_searchable(draft):
 
-            continue
+                continue
 
 
 
@@ -260,7 +260,7 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
     """BackgroundTask 入口：完整入库管道。"""
     async with _INGESTION_SEMAPHORE:
-            started_at = datetime.now(timezone.utc)
+        started_at = datetime.now(timezone.utc)
 
         async with SessionLocal() as db:
 
@@ -268,7 +268,7 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
             if doc is None:
 
-            logger.warning("ingestion: document %s not found", document_id)
+                logger.warning("ingestion: document %s not found", document_id)
 
             return
 
@@ -277,7 +277,7 @@ async def process_document_ingestion(document_id: UUID) -> None:
             storage_path = doc.storage_path
 
             if doc.status == DocumentStatus.processing:
-            logger.warning("ingestion: document %s already processing, skipped", document_id)
+                logger.warning("ingestion: document %s already processing, skipped", document_id)
             return
 
 
