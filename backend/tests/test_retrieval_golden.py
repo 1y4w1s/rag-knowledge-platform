@@ -4,7 +4,6 @@ v0.5：支持多相关文档标注 + 拒答测试。
 
 from __future__ import annotations
 
-import asyncio
 import math
 import re
 import uuid
@@ -90,22 +89,13 @@ async def _ingest_fixture(
         db.add(doc)
         await db.commit()
 
-    await asyncio.wait_for(process_document_ingestion(doc_id), timeout=60)
+    await process_document_ingestion(doc_id)
 
     async with SessionLocal() as db:
         row = await db.get(Document, doc_id)
-        assert row is not None, "Document not found after ingestion"
-        # Poll up to 60s for completion
-        for attempt in range(60):
-            if row.status == DocumentStatus.completed:
-                return row
-            if row.status == DocumentStatus.failed:
-                break
-            await asyncio.sleep(1)
-            row = await db.get(Document, doc_id)
+        assert row is not None
         assert row.status == DocumentStatus.completed, (
-            f"Expected completed, got {row.status}"
-            f"{' - error: ' + row.error_message[:200] if row.error_message else ''}"
+            f"Doc {doc_id} status={row.status}, error={row.error_message}"
         )
         return row
 

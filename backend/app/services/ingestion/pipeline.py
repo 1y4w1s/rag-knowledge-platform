@@ -1,4 +1,4 @@
-﻿"""入库管道：解析 → 结构优先切片 → 嵌入 → document_chunks + pgvector。"""
+"""入库管道：解析 → 结构优先切片 → 嵌入 → document_chunks + pgvector。"""
 
 from __future__ import annotations
 
