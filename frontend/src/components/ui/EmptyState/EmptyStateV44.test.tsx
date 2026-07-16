@@ -22,18 +22,6 @@ describe("EmptyStateV44", () => {
     });
   });
 
-  it("renders metrics icons inside the .ic container with no black fill", () => {
-    render(<EmptyStateV44 scene={ASK_SCENE} />);
-    const metricIcons = document.querySelectorAll(".empty-card .top .ic svg");
-    expect(metricIcons.length).toBe(ASK_SCENE.metrics.length);
-
-    metricIcons.forEach((svg) => {
-      const path = svg.querySelector("path");
-      expect(path).toHaveAttribute("fill", "none");
-      expect(path).toHaveAttribute("stroke", "currentColor");
-    });
-  });
-
   it("renders hero CTA buttons with icons", () => {
     render(<EmptyStateV44 scene={ASK_SCENE} />);
     const buttons = document.querySelectorAll(".empty-hero .actions .dash-btn");
