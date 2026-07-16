@@ -1,4 +1,4 @@
-# 知岸 Postgres + pgvector（自建，避免 pgvector/pgvector 镜像在国内难拉）
+# 睿阁 Postgres + pgvector（自建，避免 pgvector/pgvector 镜像在国内难拉）
 # 基础镜像是常用的 postgres:16-bookworm；pgvector 用 apt 安装（国内走清华 Debian 源）
 FROM postgres:16-bookworm
 

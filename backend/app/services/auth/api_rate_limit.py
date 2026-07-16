@@ -1,4 +1,4 @@
-"""API 限流（EW-A5 · TECH-SEC P1）：对话与上传按 user_id 滑动窗口。
+﻿"""API 限流（EW-A5 · TECH-SEC P1）：对话与上传按 user_id 滑动窗口。
 
 单实例内存计数；多副本部署须换 Redis（Wave 2+）。
 """
@@ -7,10 +7,12 @@ from __future__ import annotations
 
 from collections import defaultdict
 from enum import Enum
+import threading
 from time import monotonic
 from uuid import UUID
 
 from fastapi import status
+from app.core.degradation import DegradationLevel, assess_degradation
 from app.core.exceptions import RateLimitError
 
 # 生产阈值（plan：30 chat / 20 upload 每用户每小时）
@@ -19,7 +21,14 @@ CHAT_WINDOW_SECONDS = 60 * 60
 UPLOAD_MAX_REQUESTS = 20
 UPLOAD_WINDOW_SECONDS = 60 * 60
 
+# IP 限流（防止多账号绕过用户级限流）
+IP_CHAT_MAX_REQUESTS = 60
+IP_CHAT_WINDOW_SECONDS = 60 * 60
+IP_UPLOAD_MAX_REQUESTS = 40
+IP_UPLOAD_WINDOW_SECONDS = 60 * 60
+
 _counters: dict[str, list[float]] = defaultdict(list)
+_rate_limit_lock = threading.Lock()
 
 
 class ApiRateLimitKind(str, Enum):
@@ -37,6 +46,16 @@ def _rate_limit_key(kind: ApiRateLimitKind, user_id: UUID) -> str:
     return f"{kind.value}:{user_id}"
 
 
+def _ip_rate_limit_key(kind: ApiRateLimitKind, ip: str) -> str:
+    return f"ip:{kind.value}:{ip}"
+
+
+def _ip_limits(kind: ApiRateLimitKind) -> tuple[int, int]:
+    if kind == ApiRateLimitKind.chat:
+        return IP_CHAT_MAX_REQUESTS, IP_CHAT_WINDOW_SECONDS
+    return IP_UPLOAD_MAX_REQUESTS, IP_UPLOAD_WINDOW_SECONDS
+
+
 def _prune(key: str, window_seconds: int, *, now: float) -> list[float]:
     window_start = now - window_seconds
     kept = [t for t in _counters.get(key, []) if t > window_start]
@@ -45,6 +64,23 @@ def _prune(key: str, window_seconds: int, *, now: float) -> list[float]:
     else:
         _counters.pop(key, None)
     return kept
+
+
+def _degradation_multiplier() -> float:
+    """根据当前降级等级收紧限流配额。
+
+    降级后用户可能反复重试，但系统资源（DB FTS）反而更脆弱，
+    需要主动收紧入口流量以保护后端。
+    """
+    level = assess_degradation()
+    factors = {
+        DegradationLevel.NORMAL: 1.0,
+        DegradationLevel.LLM_DOWN: 0.5,
+        DegradationLevel.RERANK_DOWN: 0.5,
+        DegradationLevel.EMBED_DOWN: 0.3,
+        DegradationLevel.ALL_DOWN: 0.3,
+    }
+    return factors.get(level, 0.3)
 
 
 def _detail_message(kind: ApiRateLimitKind, window_seconds: int) -> str:
@@ -58,17 +94,39 @@ def enforce_api_rate_limit(
     kind: ApiRateLimitKind,
     user_id: UUID,
     *,
+    ip: str | None = None,
     now: float | None = None,
 ) -> None:
-    """未超限则记录本次请求；已达上限则 429。"""
+    """未超限则记录本次请求；已达上限则 429。
+
+    Args:
+        kind: 限流类型（chat / upload）
+        user_id: 用户 ID（用于用户级限流）
+        ip: 客户端 IP（可选，用于 IP 级限流，防止多账号绕过）
+        now: 时间戳（测试用）
+    """
     ts = now if now is not None else monotonic()
+    multiplier = _degradation_multiplier()
     max_requests, window_seconds = _limits(kind)
+    effective_max = max(1, int(max_requests * multiplier))
     key = _rate_limit_key(kind, user_id)
-    timestamps = _prune(key, window_seconds, now=ts)
-    if len(timestamps) >= max_requests:
-        raise RateLimitError(detail=_detail_message(kind, window_seconds))
-    timestamps.append(ts)
-    _counters[key] = timestamps
+    with _rate_limit_lock:
+        timestamps = _prune(key, window_seconds, now=ts)
+        if len(timestamps) >= effective_max:
+            raise RateLimitError(detail=_detail_message(kind, window_seconds))
+        timestamps.append(ts)
+        _counters[key] = timestamps
+
+        # IP 级限流（附加层，仅在有 IP 时启用）
+        if ip is not None:
+            ip_key = _ip_rate_limit_key(kind, ip)
+            ip_max, ip_window = _ip_limits(kind)
+            ip_effective = max(1, int(ip_max * multiplier))
+            ip_timestamps = _prune(ip_key, ip_window, now=ts)
+            if len(ip_timestamps) >= ip_effective:
+                raise RateLimitError(detail=_detail_message(kind, ip_window))
+            ip_timestamps.append(ts)
+            _counters[ip_key] = ip_timestamps
 
 
 def reset_all_api_rate_limits() -> None:

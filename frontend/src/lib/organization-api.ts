@@ -171,3 +171,15 @@ export function formatJoinedAt(iso: string): string {
 export function formatCreatedAt(iso: string): string {
   return formatJoinedAt(iso);
 }
+
+export async function dissolveOrganization(confirmName: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/organization/dissolve`, {
+    method: "POST",
+    headers: {
+      ...authHeaders(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ confirm_name: confirmName }),
+  });
+  if (!res.ok) throw new Error(await parseOrgError(res));
+}

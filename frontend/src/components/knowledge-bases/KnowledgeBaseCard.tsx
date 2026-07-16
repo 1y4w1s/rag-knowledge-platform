@@ -32,6 +32,15 @@ function formatUpdatedLabel(iso: string): string {
   });
 }
 
+/** 绝对日期，用于 0 文档库：空库没有"更新"概念，改为"创建于 YYYY-MM-DD" */
+function formatCreatedLabel(iso: string): string {
+  return new Date(iso).toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+
 type KbStatusDot = "ok" | "processing" | "failed";
 
 function resolveStatusDot(kb: KnowledgeBase): KbStatusDot {
@@ -69,7 +78,7 @@ function KbStatusBadge({ kb }: { kb: KnowledgeBase }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-[10px] px-2 py-1 text-[0.68rem] font-medium",
+        "inline-flex items-center gap-1 rounded-[6px] px-2 py-1 text-[0.68rem] font-medium",
         BADGE_BG[status],
         BADGE_TEXT[status],
       )}
@@ -100,29 +109,32 @@ export function KnowledgeBaseCard({
   onMemberWriteBlocked,
 }: KnowledgeBaseCardProps) {
   const updatedAt = kb.updated_at ?? kb.created_at;
+  const isEmpty = (kb.document_count ?? 0) === 0;
 
   return (
-    <article className="relative rounded-xl border border-[var(--line2)] bg-white/85 p-4 shadow-sm card-lift hover:border-[rgba(166,139,107,0.45)]">
+    <article className="card-lift relative rounded-2xl border border-[var(--line2)] bg-[var(--surf)] p-4 shadow-[var(--card-shadow)] hover:border-[var(--line)]">
       <span className="card-top-accent" aria-hidden />
       <div className="flex items-start justify-between gap-3">
         <h3
-          className="min-w-0 flex-1 truncate font-serif text-[0.95rem] font-semibold tracking-[0.02em] text-foreground"
+          className="min-w-0 flex-1 truncate font-serif text-[0.95rem] font-semibold text-foreground"
           title={kb.name}
         >
           {kb.name}
         </h3>
         <KbStatusBadge kb={kb} />
       </div>
-      <p className="mt-1.5 text-[0.72rem] text-muted">
-        {kb.document_count ?? 0} 篇文档 · {formatUpdatedLabel(updatedAt)}
+      <p className="mt-1.5 text-[0.72rem] text-[var(--mut)]">
+        {isEmpty
+          ? `空库 · 创建于 ${formatCreatedLabel(kb.created_at)}`
+          : `${kb.document_count ?? 0} 篇文档 · ${formatUpdatedLabel(updatedAt)}`}
       </p>
       {kb.description && (
-        <p className="mt-2 line-clamp-2 text-xs text-[var(--mut-warm)]">
+        <p className="mt-2 line-clamp-2 text-xs text-[var(--mut)]">
           {kb.description}
         </p>
       )}
       <div className="mt-3.5 flex flex-wrap items-center gap-2">
-        <Button asChild size="sm" variant="brand" className="rounded-[10px]">
+        <Button asChild size="sm" variant="brand" className="rounded-[8px]">
           <Link to={`/knowledge-bases/${kb.id}`}>
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />
             进入
@@ -131,19 +143,18 @@ export function KnowledgeBaseCard({
         {canEdit && onEdit ? (
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
             onClick={() => onEdit(kb)}
-            className="rounded-[10px] border-[var(--line2)] bg-white text-[0.75rem] text-muted hover:text-foreground"
+            className="rounded-[8px] text-[0.75rem] text-[var(--mut)] hover:bg-[var(--surf2)] hover:text-foreground"
           >
             编辑
           </Button>
         ) : onMemberWriteBlocked ? (
           <MemberWriteBlockedButton
-            variant="outline"
             size="sm"
             onBlocked={onMemberWriteBlocked}
-            className="rounded-[10px] border-[var(--line2)] bg-white text-[0.75rem] text-muted"
+            className="rounded-[8px] text-[0.75rem] text-[var(--mut)] hover:bg-[var(--surf2)] hover:text-foreground"
           >
             编辑
           </MemberWriteBlockedButton>
@@ -151,20 +162,19 @@ export function KnowledgeBaseCard({
         {canDelete ? (
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             size="sm"
             disabled={deleting}
             onClick={() => onDelete(kb)}
-            className="rounded-[10px] border-[var(--line2)] bg-white text-[0.75rem] text-muted hover:text-[var(--err)]"
+            className="rounded-[8px] text-[0.75rem] text-[var(--mut)] hover:bg-[var(--bad)]/10 hover:text-[var(--bad)]"
           >
             {deleting ? "删除中…" : "删除"}
           </Button>
         ) : onMemberWriteBlocked ? (
           <MemberWriteBlockedButton
-            variant="outline"
             size="sm"
             onBlocked={onMemberWriteBlocked}
-            className="rounded-[10px] border-[var(--line2)] bg-white text-[0.75rem] text-muted"
+            className="rounded-[8px] text-[0.75rem] text-[var(--mut)] hover:bg-[var(--surf2)] hover:text-foreground"
           >
             删除
           </MemberWriteBlockedButton>

@@ -24,7 +24,6 @@ interface DepartmentDetailPanelProps {
   updatingUserId: string | null;
   removingUserId: string | null;
   onDismissError: () => void;
-  onCreateChild: () => void;
   onAddMember: () => void;
   onRename: (name: string) => Promise<void>;
   onDelete: () => Promise<void>;
@@ -46,7 +45,6 @@ export function DepartmentDetailPanel({
   updatingUserId,
   removingUserId,
   onDismissError,
-  onCreateChild,
   onAddMember,
   onRename,
   onDelete,
@@ -97,9 +95,6 @@ export function DepartmentDetailPanel({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" size="sm" variant="outline" onClick={onCreateChild}>
-            新建子部门
-          </Button>
           <Button type="button" size="sm" onClick={onAddMember}>
             + 添加成员
           </Button>

@@ -15,9 +15,11 @@ export function isEnterpriseMember(user: StoredUser | null): boolean {
   );
 }
 
-/** 企业用户尚未加入任何部门（ORG-1-3 E6 · 未分配池） */
+/** 企业用户尚未加入任何部门（ORG-1-3 E6 · 未分配池）
+ *  所有者（Owner）不受部门分配限制，永远不算未分配。 */
 export function isUnassignedEnterpriseUser(user: StoredUser | null): boolean {
   if (!user || user.account_type !== "enterprise") return false;
+  if (user.is_owner) return false;
   return (user.unit_ids?.length ?? 0) === 0;
 }
 

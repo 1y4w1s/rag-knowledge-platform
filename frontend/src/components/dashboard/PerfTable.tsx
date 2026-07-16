@@ -31,8 +31,8 @@ export function PerfTable(props: PerfTableProps) {
   return (
     <div className="rounded-2xl border border-[var(--line2)] bg-[var(--surf)] p-5 shadow-[var(--top-hi),var(--card-shadow)] transition-colors hover:border-[var(--line)]">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <span className="text-[13px] text-[var(--mut)] tracking-wide">检索性能</span>
-        <span className="rounded-[6px] border border-[var(--line2)] px-[7px] py-[2px] text-[10px] text-[var(--mut)] tracking-wider">
+        <span className="text-[13px] text-[var(--mut)]">检索性能</span>
+        <span className="rounded-[6px] border border-[var(--line2)] px-2 py-[3px] text-xs text-[var(--mut)]">
           近 7 日
         </span>
       </div>

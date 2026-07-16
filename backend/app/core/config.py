@@ -27,7 +27,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    database_url: str = "postgresql+asyncpg://zhiku:changeme@localhost:5432/zhiku"
+    database_url: str = "postgresql+asyncpg://ruige:changeme@localhost:5432/ruige"
     jwt_secret: str = "replace-with-a-long-random-string"
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     upload_dir: str = "./uploads"
@@ -54,6 +54,37 @@ class Settings(BaseSettings):
     forgot_password_from_email: str = "noreply@ruige.app"
     forgot_password_token_expire_minutes: int = 60
     forgot_password_reset_url: str = "http://localhost:5173/reset-password"
+
+    # ── 运行环境 ────────────────────────────────────────────────────
+    environment: str = "development"  # development | production
+
+    # ── 弹性 / 超时 / 重试配置 ──────────────────────────────────────
+    llm_timeout_seconds: float = 120.0
+    rerank_timeout_seconds: float = 60.0
+    embed_timeout_seconds: float = 60.0
+    retrieval_timeout_seconds: float = 30.0
+
+    retry_max_attempts: int = 2
+    retry_base_delay: float = 1.0
+    retry_max_delay: float = 30.0
+
+    http_max_connections: int = 10  # 每服务 HTTP 连接池大小
+
+    embedding_cache_max_size: int = 5000
+    embedding_cache_ttl_seconds: int = 3600
+
+    # ── 检索配置 ────────────────────────────────────────────────────
+    vector_recall_k: int = 20       # 向量召回 Top-N
+    fts_recall_k: int = 20          # 全文检索召回 Top-N
+    llm_top_k: int = 5              # 最终送 LLM 的片段数
+
+    circuit_breaker_failure_threshold: int = 5
+    circuit_breaker_recovery_timeout: float = 30.0
+
+    # ── 降级配置 ────────────────────────────────────────────────────
+    degradation_llm_fallback_to_fts: bool = True
+    degradation_enabled: bool = True
+    degradation_cooldown_seconds: int = 60  # 降级后冷却窗口，阻止抖动回弹
 
 
 settings = Settings()

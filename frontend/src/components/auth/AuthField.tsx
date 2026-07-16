@@ -64,8 +64,8 @@ export function AuthField({
             error ? `${id}-error` : hint ? `${id}-hint` : undefined
           }
           className={cn(
-            "auth-input rounded-[10px] border-[var(--auth-line)] bg-[var(--auth-card)] text-[var(--auth-text)] placeholder:text-[color:#B5A8A2]",
-            error && "border-red-300 focus-visible:ring-red-200",
+            "auth-input rounded-[8px] border-[var(--auth-line)] bg-[var(--auth-card)] text-[var(--auth-text)] placeholder:text-[color:#B5A8A2]",
+            error && "border-[var(--status-err-border)] focus-visible:ring-[var(--status-err-border)]",
             isPasswordField && showPasswordToggle && "pr-10",
           )}
         />
@@ -90,7 +90,7 @@ export function AuthField({
       {error ? (
         <p
           id={`${id}-error`}
-          className="mt-1.5 text-xs text-red-600"
+          className="mt-1.5 text-xs text-[var(--status-err-text)]"
           role="alert"
         >
           {error}
@@ -139,7 +139,7 @@ export function AuthFormAlert({ message, action }: AuthFormAlertProps) {
   return (
     <div
       role="alert"
-      className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+      className="rounded-md border border-[var(--status-err-border)] bg-[var(--status-err-bg)] px-3 py-2 text-sm text-[var(--status-err-text)]"
     >
       <p>{message}</p>
       {action && (

@@ -47,3 +47,29 @@ _check_docs.py
 
 # Playwright browser test artifacts
 .playwright-mcp/
+
+# Temp screenshots / logs / generated files
+vite-server*.log
+console-*.log
+page-2026-*
+dashboard-snapshot.yml
+ruige-*.jpg
+zhixishi-dashboard.png
+blog-portfolio-*.png
+account-settings-page.png
+kb-detail-page.png
+kb-detail-redone.png
+kb-detail-trash.png
+knowledge-bases-page.png
+knowledge-bases-page-dark.png
+login-page.png
+md-preview.png
+topbar-and-kb-list.png
+txt-preview.png
+test_image.png
+test_chart.png
+test-documents/
+
+# Root-level npm artifacts (playwright e2e only)
+/package.json
+/package-lock.json

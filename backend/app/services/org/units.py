@@ -340,3 +340,20 @@ async def delete_org_unit(
     )
     await db.delete(unit)
     await db.commit()
+
+
+async def ensure_org_root_unit(
+    db: AsyncSession,
+    *,
+    org_id: UUID,
+    org_name: str,
+) -> OrgUnitResponse:
+    """确保根部门存在；若已存在则直接返回，不存在则创建（懒初始化）。"""
+    existing = await get_org_root_unit(db, org_id)
+    if existing is not None:
+        return await _unit_to_response(db, existing)
+
+    root = await create_org_root_unit(db, org_id=org_id, name=org_name)
+    await db.commit()
+    await db.refresh(root)
+    return await _unit_to_response(db, root)

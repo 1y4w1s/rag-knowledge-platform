@@ -86,17 +86,30 @@ def _is_public_path(path: str) -> bool:
 
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):
-    """全局 JWT Bearer 校验：保护 ``/api/v1/*``（公开路径除外）。"""
+    """全局 JWT Bearer 校验：保护 ``/api/v1/*``（公开路径除外）。
+
+    PDF / 文本预览端点（/api/v1/knowledge-bases/{uuid}/documents/{uuid}/preview）
+    需要在 iframe 内嵌展示 —— iframe 跨源时拿不到 Authorization 头，
+    因此额外支持从 ``?token=`` query 参数读取 JWT。
+    仅对 PDF preview 路径启用该 fallback（其他端点仍要求 Bearer 头）。
+    """
+
+    _PDF_PREVIEW_RE = __import__("re").compile(
+        r"^/api/v1/knowledge-bases/[^/]+/documents/[^/]+/preview$"
+    )
 
     async def dispatch(self, request: Request, call_next) -> Response:
         if _is_public_path(request.url.path):
             return await call_next(request)
 
         auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return JSONResponse(status_code=401, content={"detail": "未提供认证凭据"})
+        token: str | None = None
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.removeprefix("Bearer ").strip()
 
-        token = auth_header.removeprefix("Bearer ").strip()
+        if not token and self._PDF_PREVIEW_RE.match(request.url.path):
+            token = request.query_params.get("token")
+
         if not token:
             return JSONResponse(status_code=401, content={"detail": "未提供认证凭据"})
 

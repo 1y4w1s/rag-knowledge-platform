@@ -5,8 +5,8 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Noto Sans SC"', "Inter", "PingFang SC", "sans-serif"],
-        serif: ['"Noto Serif SC"', "Songti SC", "serif"],
+        sans: ['"LXGW WenKai"', "PingFang SC", "Microsoft YaHei", "sans-serif"],
+        serif: ['"LXGW WenKai"', '"Noto Serif SC"', "Songti SC", "serif"],
       },
       colors: {
         background: "var(--bg)",

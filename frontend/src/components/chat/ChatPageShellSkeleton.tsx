@@ -14,11 +14,11 @@ export function ChatPageShellSkeleton({
   return (
     <div
       className={cn(
-        "-m-6 flex min-h-[calc(100vh-3.25rem)] flex-col",
+        "full-bleed h-auto overflow-visible",
         className,
       )}
     >
-      <div className="h-12 animate-pulse border-b border-[var(--line2)] bg-white/50" />
+      <div className="h-12 animate-pulse border-b border-[var(--line2)] bg-[var(--surf-shell)]" />
       <div className="flex flex-1 items-center justify-center px-6">
         <ChatLoadingPanel label={label} />
       </div>

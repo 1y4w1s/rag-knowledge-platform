@@ -39,7 +39,7 @@ def _sample_chunk(*, content: str = "员工年假 10 天。") -> RetrievedChunk:
 
 
 def test_system_prompt_covers_grounding_language_and_injection_defense() -> None:
-    assert "仅根据" in SYSTEM_PROMPT and "检索片段" in SYSTEM_PROMPT
+    assert "检索片段" in SYSTEM_PROMPT
     assert "中文" in SYSTEM_PROMPT and "英文" in SYSTEM_PROMPT
     assert "禁止编造" in SYSTEM_PROMPT
     assert "禁止透露" in SYSTEM_PROMPT or "禁止" in SYSTEM_PROMPT

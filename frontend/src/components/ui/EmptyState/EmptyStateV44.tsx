@@ -18,14 +18,11 @@ function Icon({ d, className }: { d: string; className?: string }) {
 
 export function EmptyStateV44({ scene }: { scene: EmptyStateScene }) {
   const p = scene.idPrefix;
-  const [simple, setSimple] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteName, setInviteName] = useState("");
   const [invited, setInvited] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
 
-  const toggleId = `${p}SimpleToggle`;
-  const labelId = `${p}EmptyLbl`;
   const hId = `${p}EmptyH`;
   const stepsId = `${p}StepsH`;
   const dimId = `${p}DimH`;
@@ -35,13 +32,6 @@ export function EmptyStateV44({ scene }: { scene: EmptyStateScene }) {
   const inviteLinkId = `${p}InviteLink`;
   const inviteListId = `${p}InviteList`;
   const inviteCountId = `${p}InviteCount`;
-
-  function toggleSimple() {
-    const on = !simple;
-    setSimple(on);
-    if (on) document.body.classList.add("v44-simple");
-    else document.body.classList.remove("v44-simple");
-  }
 
   async function copyInvite() {
     const el = document.getElementById(inviteLinkId);
@@ -63,25 +53,6 @@ export function EmptyStateV44({ scene }: { scene: EmptyStateScene }) {
 
   return (
     <div className={cn("empty-empty v44-empty", `v44-${p}`)}>
-      {scene.showSimpleToggle !== false && (
-        <div className="empty-toolbar">
-          <span className="empty-toolbar-label" id={labelId}>
-            装饰动效
-          </span>
-          <button
-            type="button"
-            className="simple-toggle"
-            id={toggleId}
-            role="switch"
-            aria-pressed={simple}
-            aria-labelledby={labelId}
-            title="切换装饰动效（适合低视力/老花）"
-            onClick={toggleSimple}
-          />
-          <span className="empty-toolbar-hint">低视力友好</span>
-        </div>
-      )}
-
       <section className="empty-hero" aria-labelledby={hId}>
         <div className="empty-hero-copy">
           <span className="eyebrow">

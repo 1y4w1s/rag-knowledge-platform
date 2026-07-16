@@ -9,6 +9,8 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
+from app.core.retry import async_retry
 from app.models.enums import AgentRunMode
 from app.services.agent.finalize import finish_react_run
 from app.services.audit.agent import (
@@ -221,7 +223,8 @@ async def _execute_step(
         latency_ms = int((time.perf_counter() - t0) * 1000)
         return False, str(exc), latency_ms, None
 
-    ok, summary, data = await _dispatch_tool(
+    ok, summary, data = await async_retry(
+        _dispatch_tool,
         db,
         workspace=workspace,
         tool_scope=tool_scope,
@@ -231,6 +234,9 @@ async def _execute_step(
         run_id=run_id,
         thread_id=thread_id,
         user_id=user_id,
+        max_retries=settings.retry_max_attempts,
+        base_delay=settings.retry_base_delay,
+        breaker_name="agent_tool_dispatch",
     )
     latency_ms = int((time.perf_counter() - t0) * 1000)
     return ok, summary, latency_ms, data

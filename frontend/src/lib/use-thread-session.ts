@@ -58,7 +58,10 @@ export function useThreadSession(context: ThreadContext) {
 
   useEffect(() => {
     if (ms.sendingRef.current) {
-      void ms.loadMessages(activeThreadId);
+      // Sending: sendMessage has already populated messages with
+      // user + assistant placeholder; stream callbacks handle updates.
+      // Don't call loadMessages — it fetches from the API which is
+      // still empty mid-stream, overwriting the in-progress messages.
       return;
     }
     ms.abortStreaming();

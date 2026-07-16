@@ -149,7 +149,8 @@ export function ChatPageShell({
   chatInnerOverride,
 }: ChatPageShellProps) {
   return (
-    <div className="-m-6 flex h-[calc(100vh-3.25rem)] flex-col overflow-hidden">
+    // Full-width container — uses full-bleed utility (DESIGN.md §2, S2 fix)
+    <div className="full-bleed">
       <div className="ask-chat-layout">
         <div
           className={cn(

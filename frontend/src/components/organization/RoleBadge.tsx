@@ -14,10 +14,10 @@ export function RoleBadge({
 }) {
   const label = formatOrgRoleLabel(role, isOwner);
   const tone = isOwner
-    ? "bg-[var(--action)] text-white shadow-sm"
+    ? "bg-[var(--role)] text-white shadow-sm"
     : role === "admin"
-      ? "bg-[var(--nav-active-bg)] text-[var(--nav-active-text)]"
-      : "bg-[var(--ubg)] text-[var(--mut-warm)]";
+      ? "bg-[var(--role-bg)] text-[var(--role-ink)]"
+      : "bg-[var(--role-bg)] text-[var(--role-ink)]";
 
   return (
     <span

@@ -6,7 +6,7 @@ import {
   MessageCircle,
   Building2,
   Users,
-  Settings,
+  UsersRound,
   ClipboardList,
   UserCircle,
 } from "lucide-react";
@@ -105,7 +105,7 @@ export function AppSidebar() {
             <RailNavItem
               to="/organization/settings"
               label="团队设置"
-              icon={<Settings className="h-[21px] w-[21px]" />}
+              icon={<UsersRound className="h-[21px] w-[21px]" />}
             />
             <RailNavItem
               to="/admin/audit"

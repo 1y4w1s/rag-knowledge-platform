@@ -43,3 +43,8 @@ class ValidationError(ServiceError):
 
 class RateLimitError(ServiceError):
     status_code = 429
+
+
+class BadRequestError(ServiceError):
+    """400 Bad Request — 请求参数校验失败。"""
+    status_code = 400

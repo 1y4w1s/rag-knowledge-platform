@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.request_ip import get_client_ip
-from app.core.deps import CurrentUser, get_current_user
+from app.core.deps import CurrentUser, KbAction, get_current_user, require_kb_access
 from app.services.auth.api_rate_limit import ApiRateLimitKind, enforce_api_rate_limit
 from app.models.document import Document
 from app.models.enums import DocumentVisibility
@@ -62,6 +62,60 @@ async def get_documents(
         uploaded_from=uploaded_from,
         uploaded_to=uploaded_to,
     )
+
+
+# ── 回收站 ────────────────────────────────────────────
+# 注意：GET /trash 必须在 GET /{doc_id} 之前注册，
+# 否则 "trash" 被当作 UUID 解析返回 422。
+
+
+@router.get("/trash", response_model=list[DocumentResponse])
+async def get_trash(
+    kb_id: UUID,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> list[DocumentResponse]:
+    """列回收站中的文档。"""
+    from app.services.documents.trash import list_trash as _list_trash
+
+    await require_kb_access(
+        kb_id=kb_id, action=KbAction.read, current_user=current_user, db=db
+    )
+    return await _list_trash(db, kb_id)
+
+
+@router.post("/{doc_id}/restore", response_model=DocumentResponse)
+async def restore_document_route(
+    kb_id: UUID,
+    doc_id: UUID,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> DocumentResponse:
+    """从回收站恢复文档。"""
+    from app.services.documents.trash import restore_document as _restore
+
+    await require_kb_access(
+        kb_id=kb_id, action=KbAction.write, current_user=current_user, db=db
+    )
+    return await _restore(db, kb_id, doc_id)
+
+
+@router.delete("/{doc_id}/permanent", status_code=204)
+async def permanently_delete_document_route(
+    kb_id: UUID,
+    doc_id: UUID,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    """永久删除回收站中的文档（物理删除）。"""
+    from app.services.documents.lifecycle import (
+        permanently_delete_document as _perma_delete,
+    )
+
+    await require_kb_access(
+        kb_id=kb_id, action=KbAction.write, current_user=current_user, db=db
+    )
+    await _perma_delete(db, kb_id, doc_id)
 
 
 @router.get("/{doc_id}", response_model=DocumentResponse)
@@ -190,39 +244,3 @@ async def update_document_visibility(
     return DocumentResponse.model_validate(doc)
 
 
-# ── 回收站 ────────────────────────────────────────────
-
-
-@router.get("/trash", response_model=list[DocumentResponse])
-async def get_trash(
-    kb_id: UUID,
-    current_user: Annotated[CurrentUser, Depends(get_current_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> list[DocumentResponse]:
-    """列回收站中的文档。"""
-    from app.services.documents.trash import list_trash as _list_trash
-    return await _list_trash(db, kb_id)
-
-
-@router.post("/{doc_id}/restore", response_model=DocumentResponse)
-async def restore_document_route(
-    kb_id: UUID,
-    doc_id: UUID,
-    current_user: Annotated[CurrentUser, Depends(get_current_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> DocumentResponse:
-    """从回收站恢复文档。"""
-    from app.services.documents.trash import restore_document as _restore
-    return await _restore(db, kb_id, doc_id)
-
-
-@router.delete("/{doc_id}/permanent", status_code=204)
-async def permanently_delete_document_route(
-    kb_id: UUID,
-    doc_id: UUID,
-    current_user: Annotated[CurrentUser, Depends(get_current_user)],
-    db: Annotated[AsyncSession, Depends(get_db)],
-) -> None:
-    """永久删除回收站中的文档（物理删除）。"""
-    from app.services.documents.lifecycle import permanently_delete_document as _perma_delete
-    await _perma_delete(db, kb_id, doc_id)

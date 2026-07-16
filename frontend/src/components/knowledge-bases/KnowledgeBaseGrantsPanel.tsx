@@ -181,7 +181,7 @@ export function KnowledgeBaseGrantsPanel({
     <section className="mb-5 rounded-[var(--r)] border border-[color:var(--line2)] bg-white/85">
       <button
         type="button"
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-[color:rgb(245_242_237/0.45)]"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-[color:color-mix(in_srgb,var(--ubg)_45%,transparent)]"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
@@ -201,7 +201,7 @@ export function KnowledgeBaseGrantsPanel({
           </p>
 
           {isPublicKb && (
-            <p className="mt-3 rounded-md border border-[color:var(--line2)] bg-[color:rgb(245_242_237/0.55)] px-3 py-2 text-xs text-muted">
+            <p className="mt-3 rounded-md border border-[color:var(--line2)] bg-[color:color-mix(in_srgb,var(--ubg)_55%,transparent)] px-3 py-2 text-xs text-muted">
               公司公共资料库已全员可见，无需再添加「全公司」共享。
             </p>
           )}

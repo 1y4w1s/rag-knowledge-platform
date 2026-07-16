@@ -22,28 +22,42 @@ export function formatRelativeTime(iso: string): string {
   return `${dt.getMonth() + 1}-${dt.getDate()}`;
 }
 
+/** 判断是否为「最近」（1 小时内）→ 用于 feed 左侧品牌色高亮条 */
+export function isRecent(iso: string): boolean {
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return false;
+  return Date.now() - then < 3_600_000; /* 1 hour */
+}
+
 /** 大数缩写：1234 -> 1.2k。 */
 export function formatK(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
   return String(n);
 }
 
-/** 最近对话 → FeedItem。 */
+/** 中文数字格式化（18.4k → 18,400） */
+export function formatNumberLocale(n: number): string {
+  return n.toLocaleString("zh-CN");
+}
+
+/** 最近对话 → FeedItem（含 recent 标记）。 */
 export function mapThreadsToFeed(threads: RecentThread[]): FeedItem[] {
   return threads.map((t) => ({
     iconName: "message-square",
     title: t.title.trim() || "未命名对话",
     meta: `${t.citation_count} 条引用`,
     time: formatRelativeTime(t.last_activity_at),
+    recent: isRecent(t.last_activity_at),
   }));
 }
 
-/** 操作动态 → FeedItem（后端 type 直接作图标键）。 */
+/** 操作动态 → FeedItem（后端 type 直接作图标键，含 recent 标记）。 */
 export function mapActivitiesToFeed(activities: DashboardActivity[]): FeedItem[] {
   return activities.map((a) => ({
     iconName: a.type || "refresh-cw",
     title: a.title,
     meta: a.kb_id ? `kb:${a.kb_id.slice(0, 8)}` : "全局",
     time: formatRelativeTime(a.created_at),
+    recent: isRecent(a.created_at),
   }));
 }

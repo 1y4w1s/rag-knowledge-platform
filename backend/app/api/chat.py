@@ -3,6 +3,7 @@
 from typing import Annotated
 from uuid import UUID
 
+from app.core.exceptions import ForbiddenError, NotFoundError
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -90,8 +91,7 @@ async def get_chat_messages(
 ) -> ChatMessagesListResponse:
     kb = await db.get(KnowledgeBase, kb_id)
     if kb is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
+        raise NotFoundError(
             detail="知识库不存在",
         )
 
@@ -108,8 +108,7 @@ async def get_chat_messages(
         limit=limit,
     )
     if not kb_visible and not rows:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+        raise ForbiddenError(
             detail="无权访问该资料库",
         )
 

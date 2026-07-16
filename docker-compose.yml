@@ -1,4 +1,4 @@
-# 知岸 — 2G 云精简栈（Postgres + API）
+﻿# 睿阁 — 2G 云精简栈（Postgres + API）
 # 国内首次启动（推荐）：
 #   1. 配置 scripts/docker-engine.example.json → Docker Desktop → Engine → Apply
 #   2. .\scripts\docker-pull.ps1
@@ -11,19 +11,19 @@ services:
     build:
       context: ./docker/postgres
       pull: false
-    image: zhiku-postgres:16-pgvector
-    container_name: zhiku-postgres
+    image: ruige-postgres:16-pgvector
+    container_name: ruige-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: zhiku
+      POSTGRES_USER: ruige
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      POSTGRES_DB: zhiku
+      POSTGRES_DB: ruige
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U zhiku -d zhiku"]
+      test: ["CMD-SHELL", "pg_isready -U ruige -d zhiku"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -43,12 +43,12 @@ services:
     build:
       context: ./backend
       pull: false
-    container_name: zhiku-api
+    container_name: ruige-api
     restart: unless-stopped
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://zhiku:${POSTGRES_PASSWORD:-changeme}@postgres:5432/zhiku
+      DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:-changeme}@postgres:5432/ruige
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
@@ -70,17 +70,19 @@ services:
       resources:
         limits:
           memory: 768M
+    volumes:
+      - uploads_data:/app/uploads
 
   migrate:
     build:
       context: ./backend
       pull: false
-    container_name: zhiku-migrate
+    container_name: ruige-migrate
     restart: "no"
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://zhiku:${POSTGRES_PASSWORD:-changeme}@postgres:5432/zhiku
+      DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:-changeme}@postgres:5432/ruige
     depends_on:
       postgres:
         condition: service_healthy
@@ -93,3 +95,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:

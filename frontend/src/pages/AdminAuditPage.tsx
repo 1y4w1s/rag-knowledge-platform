@@ -9,6 +9,7 @@ import {
 import { AuditLogTable } from "@/components/admin/AuditLogTable";
 import { DocumentListPagination } from "@/components/knowledge-bases/DocumentListPagination";
 import { AlertBanner } from "@/components/ui/AlertBanner";
+import { SectionTitle } from "@/components/common/SectionTitle";
 import { Button } from "@/components/ui/button";
 import { fetchAuditLogs, type AuditLog } from "@/lib/audit-api";
 
@@ -94,7 +95,7 @@ export function AdminAuditPage() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl space-y-4">
+      <div className="max-w-[1180px] mx-auto px-7 pb-16 pt-7 space-y-4">
         <div className="h-8 w-48 animate-pulse rounded bg-border/70" />
         <div className="h-24 animate-pulse rounded-xl border border-[var(--line2)] bg-white/60" />
         <div className="h-64 animate-pulse rounded-xl border border-[var(--line2)] bg-white/60" />
@@ -104,7 +105,7 @@ export function AdminAuditPage() {
 
   if (error) {
     return (
-      <div className="max-w-5xl">
+      <div className="max-w-[1180px] mx-auto px-7 pb-16 pt-7">
         <AlertBanner
           action={
             <Button type="button" variant="outline" size="sm" onClick={() => void loadLogs()}>
@@ -119,26 +120,22 @@ export function AdminAuditPage() {
   }
 
   return (
-    <div className="max-w-5xl space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="font-serif text-xl font-semibold tracking-[0.02em] text-foreground">
-            操作审计
-          </h2>
-          <p className="mt-1 text-sm text-muted">
-            团队关键操作记录，仅管理员可查看。
-          </p>
-        </div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={refreshing}
-          onClick={() => void loadLogs({ silent: true })}
-        >
-          {refreshing ? "刷新中…" : "刷新"}
-        </Button>
-      </div>
+    <div className="max-w-[1180px] mx-auto px-7 pb-16 pt-7 space-y-4">
+      <SectionTitle
+        label="操作审计"
+        en="AUDIT LOG"
+        trailing={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={refreshing}
+            onClick={() => void loadLogs({ silent: true })}
+          >
+            {refreshing ? "刷新中…" : "刷新"}
+          </Button>
+        }
+      />
 
       <AuditLogFilters
         values={draftFilters}

@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import re
 
 import httpx
 
 from app.core.config import settings
+from app.core.http_client import get_tongyi_client
+from app.core.retry import async_retry
 from app.services.ingestion.embedder import embedding_input_text
 from app.services.rag.types import RetrievedChunk
 
@@ -80,10 +83,13 @@ async def _rerank_tongyi(
         "instruct": RERANK_INSTRUCT,
     }
 
-    async with httpx.AsyncClient(timeout=60.0) as client:
-        resp = await client.post(TONGYI_RERANK_URL, headers=headers, json=payload)
-        resp.raise_for_status()
-        data = resp.json()
+    client = get_tongyi_client()
+    resp = await asyncio.wait_for(
+        client.post(TONGYI_RERANK_URL, headers=headers, json=payload),
+        timeout=settings.rerank_timeout_seconds,
+    )
+    resp.raise_for_status()
+    data = resp.json()
 
     results = data.get("results")
     if not isinstance(results, list):
@@ -114,7 +120,12 @@ async def rerank_chunks(
         if provider == "mock" or (provider == "tongyi" and not settings.tongyi_api_key):
             ordered_indices = _mock_rerank_indices(query, documents)
         elif provider == "tongyi":
-            api_indices = await _rerank_tongyi(query, documents, top_n=top_k)
+            api_indices = await async_retry(
+                _rerank_tongyi, query, documents,
+                top_n=top_k,
+                max_retries=settings.retry_max_attempts, base_delay=settings.retry_base_delay,
+                breaker_name="tongyi_rerank",
+            )
             ordered_indices = api_indices if api_indices else list(range(len(chunks)))
         else:
             raise ValueError(f"不支持的 rerank 提供商: {settings.rerank_provider}")

@@ -54,7 +54,7 @@ export function MembersTable({
     <div className="overflow-hidden rounded-xl border border-[var(--line2)] bg-white/70">
       <div
         role="row"
-        className={`${gridCols} border-b border-[var(--line2)] bg-[#FBF8F5] py-2.5 text-xs font-medium text-muted`}
+        className={`${gridCols} border-b border-[var(--line2)] bg-[var(--surface-2)] py-2.5 text-xs font-medium text-muted`}
       >
         <div role="columnheader">成员</div>
         <div role="columnheader">角色</div>

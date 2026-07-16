@@ -5,6 +5,8 @@ import { InviteCodePanel } from "@/components/organization/InviteCodePanel";
 import { MembersTable } from "@/components/organization/MembersTable";
 import { RemoveMemberDialog } from "@/components/organization/RemoveMemberDialog";
 import { TransferOwnershipDialog } from "@/components/organization/TransferOwnershipDialog";
+import { RequireTeamWorkspace } from "@/components/common/RequireTeamWorkspace";
+import { SectionTitle } from "@/components/common/SectionTitle";
 import { AlertBanner } from "@/components/ui/AlertBanner";
 import { Button } from "@/components/ui/button";
 import { EmptyStateV44, MEMBERS_SCENE } from "@/components/ui/EmptyState";
@@ -159,7 +161,7 @@ export function MembersPage() {
 
   if (loading) {
     return (
-      <div className="max-w-3xl space-y-4">
+      <div className="max-w-[1180px] mx-auto px-7 pb-16 pt-7 space-y-4">
         <div className="h-8 w-48 animate-pulse rounded bg-border/70" />
         <div className="h-40 animate-pulse rounded-xl border border-[var(--line2)] bg-white/60" />
       </div>
@@ -168,7 +170,7 @@ export function MembersPage() {
 
   if (error) {
     return (
-      <div className="max-w-3xl">
+      <div className="max-w-[1180px] mx-auto px-7 pb-16 pt-7">
         <AlertBanner
           action={
             <Button type="button" variant="outline" size="sm" onClick={() => void loadData()}>
@@ -183,31 +185,31 @@ export function MembersPage() {
   }
 
   return (
-    <div className="max-w-3xl space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="font-serif text-xl font-semibold tracking-[0.02em] text-foreground">
-            {pageTitle}
-          </h2>
-          <p className="mt-1 text-sm text-muted">{members.length} 人</p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={refreshing}
-            onClick={() => void loadData({ silent: true })}
-          >
-            {refreshing ? "刷新中…" : "刷新"}
-          </Button>
-          {isOrgAdmin ? (
-            <Button type="button" size="sm" onClick={() => setAddOpen(true)}>
-              + 添加成员
+    <RequireTeamWorkspace feature="成员管理">
+    <div className="max-w-[1180px] mx-auto px-7 pb-16 pt-7">
+      <SectionTitle
+        label={pageTitle}
+        en="MEMBERS"
+        count={members.length}
+        trailing={
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={refreshing}
+              onClick={() => void loadData({ silent: true })}
+            >
+              {refreshing ? "刷新中…" : "刷新"}
             </Button>
-          ) : null}
-        </div>
-      </div>
+            {isOrgAdmin ? (
+              <Button type="button" size="sm" onClick={() => setAddOpen(true)}>
+                + 添加成员
+              </Button>
+            ) : null}
+          </div>
+        }
+      />
 
       {actionError ? (
         <AlertBanner onDismiss={() => setActionError(null)}>{actionError}</AlertBanner>
@@ -276,5 +278,6 @@ export function MembersPage() {
         </>
       ) : null}
     </div>
+    </RequireTeamWorkspace>
   );
 }

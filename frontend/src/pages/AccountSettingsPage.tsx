@@ -9,9 +9,12 @@ import {
   SettingsFormCard,
   SettingsReadonlyField,
 } from "@/components/settings/SettingsFormCard";
+import { SectionTitle } from "@/components/common/SectionTitle";
+import { RequireTeamWorkspace } from "@/components/common/RequireTeamWorkspace";
 import { AlertBanner } from "@/components/ui/AlertBanner";
 import { Button } from "@/components/ui/button";
 import { EmptyStateV44, ACCOUNT_SCENE } from "@/components/ui/EmptyState";
+import { Toast, useToast } from "@/components/ui/Toast";
 import { fetchCurrentUser } from "@/lib/auth-api";
 import { useAuth } from "@/lib/auth-context";
 import { getAccessToken, saveAuthSession } from "@/lib/auth-storage";
@@ -19,6 +22,7 @@ import {
   changeAccountPassword,
   fetchAccountSettings,
   formatAccountTypeLabel,
+  updateAccountProfile,
   type AccountSettings,
 } from "@/lib/settings-api";
 import { useWorkspace } from "@/lib/workspace-context";
@@ -28,9 +32,13 @@ export function AccountSettingsPage() {
   const navigate = useNavigate();
   const { logout, syncFromStorage, user } = useAuth();
   const { setWorkspace, redirectWithGuardToast } = useWorkspace();
+  const { toast, show: showToast, dismiss: dismissToast } = useToast();
   const [settings, setSettings] = useState<AccountSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [nicknameDraft, setNicknameDraft] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
 
   const loadSettings = useCallback(async () => {
     setLoading(true);
@@ -44,6 +52,27 @@ export function AccountSettingsPage() {
       setLoading(false);
     }
   }, []);
+
+  // 同步昵称输入框：settings 加载完成后初始化 draft，外部更新时（保存成功后）保持一致
+  useEffect(() => {
+    setNicknameDraft(settings?.nickname ?? "");
+  }, [settings?.nickname]);
+
+  async function handleSaveNickname() {
+    if (!settings) return;
+    setSavingProfile(true);
+    setProfileError(null);
+    try {
+      const trimmed = nicknameDraft.trim();
+      const next = await updateAccountProfile({ nickname: trimmed || null });
+      setSettings(next);
+      showToast("昵称已更新");
+    } catch (err) {
+      setProfileError(err instanceof Error ? err.message : "保存失败");
+    } finally {
+      setSavingProfile(false);
+    }
+  }
 
   useEffect(() => {
     void loadSettings();
@@ -131,10 +160,10 @@ export function AccountSettingsPage() {
   }
 
   return (
-    <div className="max-w-[440px]">
-      <h2 className="mb-4 font-serif text-xl font-semibold tracking-[0.02em] text-foreground">
-        账号设置
-      </h2>
+    <>
+    <div className="max-w-[1180px] mx-auto px-7 pb-16 pt-7">
+      <SectionTitle label="账号设置" en="ACCOUNT" />
+      <div className="max-w-[440px] space-y-4">
       <div id="account-profile">
         <SettingsFormCard title="账号信息">
           <div className="space-y-3.5">
@@ -151,6 +180,43 @@ export function AccountSettingsPage() {
                 value={settings.org_name}
               />
             ) : null}
+            {/* 昵称：PATCH /settings/profile · Wave 5.3 暴露 */}
+            <div>
+              <label htmlFor="account-nickname" className="settings-field-label">
+                昵称
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="account-nickname"
+                  type="text"
+                  value={nicknameDraft}
+                  onChange={(e) => {
+                    setNicknameDraft(e.target.value);
+                    if (profileError) setProfileError(null);
+                  }}
+                  maxLength={64}
+                  placeholder="选填，最多 64 字符"
+                  className="settings-field-input flex-1"
+                  disabled={savingProfile}
+                />
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => void handleSaveNickname()}
+                  disabled={
+                    savingProfile ||
+                    nicknameDraft === (settings.nickname ?? "")
+                  }
+                >
+                  {savingProfile ? "保存中…" : "保存"}
+                </Button>
+              </div>
+              {profileError ? (
+                <p role="alert" className="mt-1 text-xs text-[var(--bad)]">
+                  {profileError}
+                </p>
+              ) : null}
+            </div>
           </div>
         </SettingsFormCard>
       </div>
@@ -173,11 +239,13 @@ export function AccountSettingsPage() {
           <JoinTeamForm onJoined={(message, orgId) => void handleJoined(message, orgId)} />
         </>
       ) : (
-        <LeaveTeamForm
-          orgName={settings.org_name ?? "团队"}
-          isOwner={Boolean(user?.is_owner)}
-          onLeft={(message) => void handleLeft(message)}
-        />
+        <RequireTeamWorkspace feature="离开团队">
+          <LeaveTeamForm
+            orgName={settings.org_name ?? "团队"}
+            isOwner={Boolean(user?.is_owner)}
+            onLeft={(message) => void handleLeft(message)}
+          />
+        </RequireTeamWorkspace>
       )}
 
       <div id="account-security">
@@ -185,6 +253,25 @@ export function AccountSettingsPage() {
       </div>
 
       <ApiKeyManager />
+
+      <div className="pt-4">
+        <SettingsFormCard title="会话">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => {
+              logout();
+              navigate("/login", { replace: true });
+            }}
+          >
+            退出登录
+          </Button>
+        </SettingsFormCard>
+      </div>
+      </div>
     </div>
+
+    <Toast message={toast?.message ?? null} onDismiss={dismissToast} />
+    </>
   );
 }

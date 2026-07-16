@@ -57,3 +57,8 @@ class OrganizationOwnershipTransferRequest(BaseModel):
 class OrganizationOwnershipTransferResponse(BaseModel):
     previous_owner: OrganizationMemberResponse
     new_owner: OrganizationMemberResponse
+
+
+class DissolveOrgRequest(BaseModel):
+    """解散团队请求：须输入团队全名以确认。"""
+    confirm_name: str = Field(min_length=1)

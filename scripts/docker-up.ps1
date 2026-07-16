@@ -1,4 +1,4 @@
-# Zhian (知岸) - pull images then docker compose up
+# 睿阁 (Ruige) - pull images then docker compose up
 # Run: .\scripts\docker-up.ps1
 
 $Root = Split-Path -Parent $PSScriptRoot
