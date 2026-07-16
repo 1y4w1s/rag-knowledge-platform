@@ -1,0 +1,1 @@
+Normal text mixed with Ã©Ã§ latin-1 garbage bytes ÿşÀÁÂ and more €‚ƒ

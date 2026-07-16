@@ -1,0 +1,2 @@
+<html><body><h1>标题</h1><p>HTML标签混入文本。</p><script>alert('xss')</script></body></html>
+正常段落。
