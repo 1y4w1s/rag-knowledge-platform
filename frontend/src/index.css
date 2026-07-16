@@ -450,6 +450,10 @@
     @apply mt-2 text-sm text-muted;
   }
 
+  .popover-base {
+    @apply rounded-[12px] border border-[var(--line2)] bg-[var(--bg)] p-1.5 shadow-[0_8px_24px_rgba(0,0,0,0.1)];
+  }
+
   .settings-card {
     @apply rounded-[var(--r)] border border-[color:var(--line2)] bg-white/85 p-[22px] shadow-sm;
   }
