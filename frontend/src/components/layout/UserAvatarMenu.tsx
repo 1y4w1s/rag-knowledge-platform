@@ -58,7 +58,7 @@ export function UserAvatarMenu({ size = "md", className }: UserAvatarMenuProps) 
       {open && (
         <div
           role="menu"
-          className={`popover-base absolute left-full top-0 z-50 ml-2 min-w-[160px]`}
+          className={`popover-base absolute left-full bottom-0 z-50 ml-2 min-w-[160px]`}
         >
           <Link
             role="menuitem"
