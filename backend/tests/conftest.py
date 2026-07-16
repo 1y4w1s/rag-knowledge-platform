@@ -2,6 +2,7 @@
 
 import uuid
 from collections.abc import Awaitable, Callable
+from unittest.mock import patch
 
 import pytest
 from httpx import ASGITransport, AsyncClient
