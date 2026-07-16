@@ -29,7 +29,7 @@ function val(row: PerfTableProps, key: string): number | string | null {
 
 export function PerfTable(props: PerfTableProps) {
   return (
-    <div className="rounded-2xl border border-[var(--line2)] bg-[var(--surf)] p-5 shadow-[var(--top-hi),var(--card-shadow)] transition-colors hover:border-[var(--line)]">
+    <div className="h-full rounded-2xl border border-[var(--line2)] bg-[var(--surf)] p-5 shadow-[var(--top-hi),var(--card-shadow)] transition-colors hover:border-[var(--line)]">
       <div className="mb-4 flex items-center justify-between gap-3">
         <span className="text-[13px] text-[var(--mut)]">检索性能</span>
         <span className="rounded-[6px] border border-[var(--line2)] px-2 py-[3px] text-xs text-[var(--mut)]">

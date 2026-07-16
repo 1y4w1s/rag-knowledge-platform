@@ -166,8 +166,12 @@ export function DashboardPage() {
       <section aria-label="可信与性能">
         <SectionTitle label="可信与性能" en="RAG Proof & Latency" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="h-full">
           <RagProofCard hitRate={stats.golden_hit_rate_percent} evaluatedAt={stats.golden_baseline_evaluated_at} note={stats.golden_hit_rate_percent !== null ? `${stats.golden_hit_rate_percent}% 基线 — 引用溯源可信` : undefined} />
+          </div>
+          <div className="h-full">
           <PerfTable latency={stats.avg_retrieval_latency_ms} sampleCount={stats.retrieval_latency_sample_count} />
+          </div>
         </div>
       </section>
 

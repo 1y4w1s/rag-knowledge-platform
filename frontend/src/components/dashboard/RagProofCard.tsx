@@ -12,7 +12,7 @@ export function RagProofCard({ hitRate, evaluatedAt, note }: RagProofCardProps) 
     : "";
 
   return (
-    <div className="rounded-2xl border border-[var(--line2)] bg-[var(--surf)] px-0 py-2 shadow-[var(--top-hi),var(--card-shadow)] transition-colors hover:border-[var(--line)]">
+    <div className="h-full rounded-2xl border border-[var(--line2)] bg-[var(--surf)] px-0 py-2 shadow-[var(--top-hi),var(--card-shadow)] transition-colors hover:border-[var(--line)]">
       <div className="mb-4 text-center text-[13px] text-[var(--mut)]">
         检索可证明性 · Golden Hit@3
       </div>
