@@ -6,6 +6,7 @@ from app.models.agent_step import AgentStep
 from app.models.audit_log import AuditLog
 from app.models.base import Base
 from app.models.chat_feedback import ChatFeedback
+from app.models.chat_message import ChatMessage
 from app.models.chat_thread import ChatThread
 from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
