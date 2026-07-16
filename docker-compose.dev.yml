@@ -1,4 +1,4 @@
-# 知岸 — 本机开发：仅 Postgres（API 用 venv + uvicorn --reload）
+﻿# 睿阁 — 本机开发：仅 Postgres（API 用 venv + uvicorn --reload）
 # 用法：docker compose -f docker-compose.dev.yml up -d --build
 
 services:

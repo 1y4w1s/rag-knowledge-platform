@@ -59,7 +59,7 @@ def _make_golden_table_pdf(path: Path) -> None:
     story.append(Paragraph("Table 2: 项目支出", styles["Heading2"]))
     data2 = [
         ["项目名称", "负责人", "金额(万)", "状态"],
-        ["知岸 v1", "张三", "200", "已完成"],
+        ["睿阁 v1", "张三", "200", "已完成"],
         ["OCR 模块", "李四", "80", "进行中"],
         ["数据迁移", "王五", "50", "未开始"],
     ]

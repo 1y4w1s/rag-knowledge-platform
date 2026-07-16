@@ -1,5 +1,5 @@
-#!/usr/bin/env python3
-"""知岸 Seed 脚本：清空脏数据 + 灌入 demo 数据。
+﻿#!/usr/bin/env python3
+"""睿阁 Seed 脚本：清空脏数据 + 灌入 demo 数据。
 
 用法（在 Docker 容器内运行）：
     cd /app && python scripts/seed_test_data.py

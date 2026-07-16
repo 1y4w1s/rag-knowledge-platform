@@ -1,0 +1,14 @@
+{
+  "url": "/dashboard",
+  "docH": 900,
+  "theme": "light",
+  "bodyBg": "rgba(0, 0, 0, 0)",
+  "bodyColor": "rgb(26, 21, 18)",
+  "sectionCount": 5,
+  "h1": null,
+  "h2List": [],
+  "h3List": [],
+  "containers": 1,
+  "trackingWide": [],
+  "hardcoded": []
+}

@@ -26,7 +26,7 @@ from tests.conftest import create_test_kb as _create_kb
 
 FIXTURES = Path(__file__).parent / "fixtures" / "ocr"
 SAMPLE_SCAN_PDF = FIXTURES / "sample_scan.pdf"
-OCR_FIXED_SENTENCE = "知岸扫描件测试固定句"
+OCR_FIXED_SENTENCE = "睿阁扫描件测试固定句"
 OCR_PAGE2_SENTENCE = "第二页扫描内容页码测试"
 
 

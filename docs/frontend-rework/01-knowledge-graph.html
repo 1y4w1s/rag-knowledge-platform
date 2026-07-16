@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>睿阁 · 后端知识图谱（前端重做参考）</title>
+<style>
+  :root{
+    --bg:#FBF7F0; --ink:#3A2E25; --brown:#6B4F3A; --accent:#9C6B4A;
+    --line:#C9B8A8; --new:#2E7D52; --mod:#B8862B; --muted:#8A7B6D;
+    --card:#FFFFFF; --soft:#F2E9DD; --gray:#B8AEA3;
+  }
+  *{box-sizing:border-box}
+  body{font-family:"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink);margin:0;line-height:1.5}
+  header{padding:22px 28px 14px;border-bottom:1px solid var(--line)}
+  header h1{margin:0 0 4px;font-size:20px;color:var(--brown);letter-spacing:.5px}
+  header p{margin:0;font-size:13px;color:var(--muted)}
+  nav.tabs{display:flex;gap:8px;padding:14px 28px 0;flex-wrap:wrap}
+  .tab{border:1px solid var(--line);background:var(--card);color:var(--brown);
+    padding:8px 16px;border-radius:8px 8px 0 0;cursor:pointer;font-size:14px;font-weight:600;transition:.15s}
+  .tab:hover{border-color:var(--accent)}
+  .tab.active{background:var(--brown);color:#fff;border-color:var(--brown)}
+  main{padding:0 28px 36px}
+  .panel{display:none;margin-top:18px}
+  .panel.active{display:block}
+  .frame{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:16px;overflow:auto}
+  svg{width:100%;height:auto;display:block}
+  .node rect{fill:var(--card);stroke:var(--brown);stroke-width:1.6}
+  .node.new rect{stroke:var(--new);stroke-width:2}
+  .node.gray rect{stroke:var(--gray);stroke-dasharray:5 4;fill:var(--soft)}
+  .node text{fill:var(--ink);font-size:12.5px}
+  .node .tname{font-weight:700;font-size:13.5px;fill:var(--brown)}
+  .node.new .tname{fill:var(--new)}
+  .node.gray .tname{fill:var(--muted)}
+  .edge{stroke:var(--line);stroke-width:1.5;fill:none}
+  .edge.new{stroke:var(--new);stroke-width:1.8}
+  .edge.gray{stroke:var(--gray);stroke-dasharray:5 4}
+  .elabel{fill:var(--muted);font-size:11px}
+  .stage{fill:var(--soft);stroke:var(--brown);stroke-width:1.2;rx:10}
+  .stage text{fill:var(--brown);font-weight:700;font-size:12px}
+  .layerbox{fill:none;stroke:var(--brown);stroke-width:1.4;rx:12}
+  .layerlabel{fill:var(--brown);font-weight:700;font-size:13px}
+  .pill{fill:var(--soft);stroke:var(--brown);stroke-width:1.2}
+  .pill.new{stroke:var(--new)}
+  .pill.gray{stroke:var(--gray);stroke-dasharray:4 3}
+  .pill text{font-size:11.5px;fill:var(--ink)}
+  .note{fill:var(--accent);font-size:11.5px;font-style:italic}
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0 0;font-size:12px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:14px;height:14px;border-radius:3px;border:2px solid var(--brown)}
+  .sw.new{border-color:var(--new)}
+  .sw.gray{border-color:var(--gray);border-style:dashed}
+  .cap{font-size:12px;color:var(--muted);margin:10px 2px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>睿阁 · 后端知识图谱</h1>
+  <p>前端重做技术参考包 · 基线：未提交改动 + 近期 commit（2026-07-15）· 事实源见 <code>00-backend-change-inventory.md</code></p>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-target="er">① 实体关系图 (ER)</button>
+  <button class="tab" data-target="flow">② 数据流图</button>
+  <button class="tab" data-target="dep">③ 模块依赖图</button>
+</nav>
+
+<main>
+  <!-- ============ ① ER ============ -->
+  <section id="er" class="panel active">
+    <div class="frame">
+      <svg viewBox="0 0 980 640" role="img" aria-label="实体关系图">
+        <defs>
+          <marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#C9B8A8"/>
+          </marker>
+          <marker id="arrN" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#2E7D52"/>
+          </marker>
+        </defs>
+
+        <!-- users -->
+        <g class="node">
+          <rect x="30" y="60" width="190" height="86" rx="9"/>
+          <text class="tname" x="44" y="84">users</text>
+          <text x="44" y="104">id (PK)</text>
+          <text x="44" y="122">email / username</text>
+          <text x="44" y="140">account_type / org_id</text>
+        </g>
+        <!-- knowledge_bases -->
+        <g class="node">
+          <rect x="300" y="40" width="200" height="86" rx="9"/>
+          <text class="tname" x="314" y="64">knowledge_bases</text>
+          <text x="314" y="84">id (PK)</text>
+          <text x="314" y="102">owner_user_id → users</text>
+          <text x="314" y="120">owner_org_id</text>
+        </g>
+        <!-- organization -->
+        <g class="node">
+          <rect x="300" y="160" width="200" height="70" rx="9"/>
+          <text class="tname" x="314" y="184">organization</text>
+          <text x="314" y="204">id (PK) / name</text>
+          <text x="314" y="222">owner_user_id</text>
+        </g>
+        <!-- org_units -->
+        <g class="node">
+          <rect x="300" y="268" width="200" height="70" rx="9"/>
+          <text class="tname" x="314" y="292">org_units</text>
+          <text x="314" y="312">id (PK) / parent_id</text>
+          <text x="314" y="330">org_id</text>
+        </g>
+        <!-- documents -->
+        <g class="node">
+          <rect x="580" y="40" width="210" height="100" rx="9"/>
+          <text class="tname" x="594" y="64">documents 🔧</text>
+          <text x="594" y="84">id (PK) / kb_id</text>
+          <text x="594" y="102">visibility (everyone/admin_only)</text>
+          <text x="594" y="120">deleted_at (回收站软删)</text>
+          <text x="594" y="138">status</text>
+        </g>
+        <!-- chat_messages -->
+        <g class="node">
+          <rect x="580" y="180" width="210" height="86" rx="9"/>
+          <text class="tname" x="594" y="204">chat_messages</text>
+          <text x="594" y="224">id (PK) = message_id</text>
+          <text x="594" y="242">thread_id / role</text>
+          <text x="594" y="260">content / citations</text>
+        </g>
+        <!-- chat_feedback NEW -->
+        <g class="node new">
+          <rect x="840" y="180" width="190" height="86" rx="9"/>
+          <text class="tname" x="854" y="204">chat_feedback 🆕</text>
+          <text x="854" y="224">id (PK)</text>
+          <text x="854" y="242">message_id → chat_messages</text>
+          <text x="854" y="260">user_id / rating</text>
+        </g>
+        <!-- api_keys -->
+        <g class="node">
+          <rect x="580" y="320" width="210" height="70" rx="9"/>
+          <text class="tname" x="594" y="344">api_keys</text>
+          <text x="594" y="364">id (PK) / user_id</text>
+          <text x="594" y="382">key_hash / scopes</text>
+        </g>
+        <!-- agent_approvals -->
+        <g class="node">
+          <rect x="840" y="40" width="190" height="70" rx="9"/>
+          <text class="tname" x="854" y="64">agent_approvals</text>
+          <text x="854" y="84">id (PK) / kb_id</text>
+          <text x="854" y="102">status (pending/...)</text>
+        </g>
+        <!-- audit_logs -->
+        <g class="node">
+          <rect x="580" y="450" width="210" height="70" rx="9"/>
+          <text class="tname" x="594" y="474">audit_logs</text>
+          <text x="594" y="494">id (PK)</text>
+          <text x="594" y="512">actor_user_id / action</text>
+        </g>
+        <!-- threads -->
+        <g class="node">
+          <rect x="840" y="320" width="190" height="70" rx="9"/>
+          <text class="tname" x="854" y="344">kb/ask_threads</text>
+          <text x="854" y="364">id (PK) / kb_id</text>
+          <text x="854" y="382">title / status</text>
+        </g>
+
+        <!-- edges -->
+        <line class="edge" x1="230" y1="103" x2="298" y2="83" marker-end="url(#arr)"/>
+        <line class="edge" x1="400" y1="126" x2="398" y2="158" marker-end="url(#arr)"/>
+        <line class="edge" x1="400" y1="195" x2="398" y2="266" marker-end="url(#arr)"/>
+        <line class="edge" x1="500" y1="83" x2="578" y2="83" marker-end="url(#arr)"/>
+        <line class="edge" x1="690" y1="140" x2="688" y2="178" marker-end="url(#arr)"/>
+        <line class="edge new" x1="790" y1="223" x2="838" y2="223" marker-end="url(#arrN)"/>
+        <line class="edge" x1="790" y1="223" x2="838" y2="223" marker-end="url(#arrN)"/>
+        <line class="edge" x1="690" y1="357" x2="688" y2="358" marker-end="url(#arr)"/>
+        <line class="edge" x1="790" y1="83" x2="838" y2="83" marker-end="url(#arr)"/>
+        <line class="edge" x1="690" y1="493" x2="688" y2="494" marker-end="url(#arr)"/>
+        <line class="edge" x1="790" y1="363" x2="838" y2="363" marker-end="url(#arr)"/>
+        <text class="elabel" x="250" y="78">owner 1:N</text>
+        <text class="elabel" x="404" y="148">1:N</text>
+        <text class="elabel" x="404" y="258">tree</text>
+        <text class="elabel" x="510" y="68">1:N</text>
+        <text class="elabel" x="700" y="162">1:N</text>
+        <text class="elabel" x="800" y="210" fill="#2E7D52">msg 1:N · 🆕</text>
+        <text class="elabel" x="700" y="360">1:N</text>
+        <text class="elabel" x="800" y="70">1:N</text>
+        <text class="elabel" x="700" y="500">actor</text>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i class="sw"></i> 既有实体</span>
+      <span><i class="sw new"></i> 🆕 新增（chat_feedback）</span>
+      <span><i class="sw gray"></i> 软删/状态字段</span>
+    </div>
+    <p class="cap">要点：① <b>chat_feedback</b> 是唯一新增表，外键 <code>message_id→chat_messages.id</code>、<code>user_id→users.id</code>；② <b>documents</b> 新增 <code>visibility</code> 与回收站软删 <code>deleted_at</code>（独立时间戳列，非 status）；③ <b>chat_messages.id</b> 即反馈用的 <code>message_id</code>。</p>
+  </section>
+
+  <!-- ============ ② FLOW ============ -->
+  <section id="flow" class="panel">
+    <div class="frame">
+      <svg viewBox="0 0 980 660" role="img" aria-label="数据流图">
+        <defs>
+          <marker id="f" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#6B4F3A"/>
+          </marker>
+          <marker id="fg" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#B8AEA3"/>
+          </marker>
+        </defs>
+
+        <!-- 入库管道 -->
+        <rect class="stage" x="20" y="20" width="940" height="150" rx="10"/>
+        <text x="36" y="42" fill="#6B4F3A" font-weight="700" font-size="13">入库管道（文档 → 向量）</text>
+
+        <g class="pill"><rect x="40" y="60" width="150" height="56" rx="8"/><text x="54" y="82">上传</text><text x="54" y="100">multipart + visibility</text></g>
+        <g class="pill"><rect x="220" y="60" width="150" height="56" rx="8"/><text x="234" y="82">解析 parser</text><text x="234" y="100">含 PDF/OCR</text></g>
+        <g class="pill"><rect x="400" y="60" width="150" height="56" rx="8"/><text x="414" y="82">切片 chunker 🔧</text><text x="414" y="100">结构优先+英文句切</text></g>
+        <g class="pill"><rect x="580" y="60" width="150" height="56" rx="8"/><text x="594" y="82">嵌入 embedder 🔧</text><text x="594" y="100">LRU+TTL 缓存</text></g>
+        <g class="pill"><rect x="760" y="60" width="170" height="56" rx="8"/><text x="774" y="82">入库 pgvector</text><text x="774" y="100">documents + chunks</text></g>
+
+        <line class="edge" x1="190" y1="88" x2="218" y2="88" marker-end="url(#f)"/>
+        <line class="edge" x1="370" y1="88" x2="398" y2="88" marker-end="url(#f)"/>
+        <line class="edge" x1="550" y1="88" x2="578" y2="88" marker-end="url(#f)"/>
+        <line class="edge" x1="730" y1="88" x2="758" y2="88" marker-end="url(#f)"/>
+
+        <!-- 检索生成管道 -->
+        <rect class="stage" x="20" y="200" width="940" height="320" rx="10"/>
+        <text x="36" y="222" fill="#6B4F3A" font-weight="700" font-size="13">检索 + 生成管道（提问 → 回答）</text>
+
+        <g class="pill"><rect x="40" y="245" width="150" height="50" rx="8"/><text x="54" y="266">用户提问</text><text x="54" y="284">message + thread</text></g>
+        <g class="pill"><rect x="220" y="245" width="150" height="50" rx="8"/><text x="234" y="266">输入安全过滤</text><text x="234" y="284">safety_filter 1.5步</text></g>
+        <g class="pill gray"><rect x="400" y="245" width="160" height="50" rx="8"/><text x="414" y="266">多路召回 decompose</text><text x="414" y="284">⚠双重触发·灰显</text></g>
+        <g class="pill"><rect x="590" y="245" width="160" height="50" rx="8"/><text x="604" y="266">hybrid 检索</text><text x="604" y="284">向量+FTS · RRF</text></g>
+        <g class="pill"><rect x="780" y="245" width="150" height="50" rx="8"/><text x="794" y="266">检索后压缩</text><text x="794" y="284">去重+截断</text></g>
+
+        <g class="pill"><rect x="590" y="330" width="160" height="50" rx="8"/><text x="604" y="351">生成 LLM 流式</text><text x="604" y="369">通义/DeepSeek(服务端)</text></g>
+        <g class="pill gray"><rect x="400" y="330" width="160" height="50" rx="8"/><text x="414" y="351">HyDE</text><text x="414" y="369">⚠未接线·灰显</text></g>
+        <g class="pill"><rect x="780" y="330" width="150" height="50" rx="8"/><text x="794" y="351">SSE 事件</text><text x="794" y="369">citation/token/done</text></g>
+
+        <g class="pill"><rect x="590" y="420" width="340" height="50" rx="8"/><text x="604" y="441">前端渲染 + 反馈回流 → chat_feedback</text><text x="604" y="459">done.message_id 作反馈键</text></g>
+
+        <line class="edge" x1="190" y1="270" x2="218" y2="270" marker-end="url(#f)"/>
+        <line class="edge gray" x1="370" y1="270" x2="398" y2="270" marker-end="url(#fg)"/>
+        <line class="edge" x1="560" y1="270" x2="588" y2="270" marker-end="url(#f)"/>
+        <line class="edge" x1="750" y1="270" x2="778" y2="270" marker-end="url(#f)"/>
+        <line class="edge" x1="670" y1="295" x2="670" y2="328" marker-end="url(#f)"/>
+        <line class="edge gray" x1="560" y1="355" x2="558" y2="288" marker-end="url(#fg)"/>
+        <line class="edge" x1="670" y1="380" x2="670" y2="418" marker-end="url(#f)"/>
+        <line class="edge" x1="855" y1="380" x2="855" y2="418" marker-end="url(#f)"/>
+        <text class="note" x="372" y="262">前端无感</text>
+        <text class="note" x="412" y="322">仅 benchmark 用</text>
+
+        <!-- 回收站 -->
+        <rect class="stage" x="20" y="540" width="940" height="100" rx="10"/>
+        <text x="36" y="562" fill="#6B4F3A" font-weight="700" font-size="13">回收站（软删 → 恢复 / 永久删）</text>
+        <g class="pill"><rect x="40" y="580" width="160" height="46" rx="8"/><text x="54" y="602">删除文档</text><text x="54" y="620">软删 deleted_at</text></g>
+        <g class="pill"><rect x="250" y="580" width="150" height="46" rx="8"/><text x="264" y="602">恢复 restore</text><text x="264" y="620">清 deleted_at</text></g>
+        <g class="pill"><rect x="440" y="580" width="160" height="46" rx="8"/><text x="454" y="602">永久删 permanent</text><text x="454" y="620">DB + 磁盘兜底</text></g>
+        <g class="pill"><rect x="650" y="580" width="180" height="46" rx="8"/><text x="664" y="602">列出 trash</text><text x="664" y="620">GET .../documents/trash</text></g>
+        <line class="edge" x1="200" y1="603" x2="248" y2="603" marker-end="url(#f)"/>
+        <line class="edge" x1="400" y1="603" x2="438" y2="603" marker-end="url(#f)"/>
+        <line class="edge" x1="600" y1="603" x2="648" y2="603" marker-end="url(#f)"/>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i class="sw"></i> 生产链路节点</span>
+      <span><i class="sw gray"></i> ⚠ 灰显 = 未接线/前端无感（decompose 双重触发、HyDE）</span>
+    </div>
+    <p class="cap">要点：① 输入违规走 <b>完整 token+done 流</b>（citations=[]），<b>无输出侧拦截事件</b>，前端按普通回答渲染；② <code>done.message_id</code> 是反馈唯一键；③ 切片/嵌入缓存优化在入库侧，前端无感；④ 回收站逻辑在 <code>documents/trash.py</code>，不在 <code>storage/cleaner.py</code>。</p>
+  </section>
+
+  <!-- ============ ③ DEP ============ -->
+  <section id="dep" class="panel">
+    <div class="frame">
+      <svg viewBox="0 0 980 660" role="img" aria-label="模块依赖图">
+        <defs>
+          <marker id="d" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+            <path d="M0,0 L7,3 L0,6 Z" fill="#6B4F3A"/>
+          </marker>
+        </defs>
+
+        <!-- API layer -->
+        <rect class="layerbox" x="20" y="20" width="940" height="120" rx="12"/>
+        <text class="layerlabel" x="36" y="42">API 层（23 routers · /api/v1）</text>
+        <g class="pill"><rect x="40" y="56" width="120" height="34" rx="7"/><text x="54" y="78">auth</text></g>
+        <g class="pill"><rect x="172" y="56" width="120" height="34" rx="7"/><text x="186" y="78">knowledge_bases</text></g>
+        <g class="pill"><rect x="304" y="56" width="120" height="34" rx="7"/><text x="318" y="78">documents</text></g>
+        <g class="pill"><rect x="436" y="56" width="120" height="34" rx="7"/><text x="450" y="78">chat / threads</text></g>
+        <g class="pill new"><rect x="568" y="56" width="120" height="34" rx="7"/><text x="582" y="78">feedback 🆕</text></g>
+        <g class="pill"><rect x="700" y="56" width="120" height="34" rx="7"/><text x="714" y="78">ask / search</text></g>
+        <g class="pill"><rect x="40" y="98" width="120" height="34" rx="7"/><text x="54" y="120">dashboard</text></g>
+        <g class="pill"><rect x="172" y="98" width="120" height="34" rx="7"/><text x="186" y="120">audit (admin)</text></g>
+        <g class="pill"><rect x="304" y="98" width="120" height="34" rx="7"/><text x="318" y="120">org / units</text></g>
+        <g class="pill"><rect x="436" y="98" width="120" height="34" rx="7"/><text x="450" y="120">kb_grants</text></g>
+        <g class="pill"><rect x="568" y="98" width="120" height="34" rx="7"/><text x="582" y="120">settings</text></g>
+        <g class="pill"><rect x="700" y="98" width="120" height="34" rx="7"/><text x="714" y="120">api_keys</text></g>
+        <g class="pill new"><rect x="832" y="98" width="120" height="34" rx="7"/><text x="846" y="120">agent 🆕</text></g>
+
+        <!-- Services layer -->
+        <rect class="layerbox" x="20" y="160" width="940" height="180" rx="12"/>
+        <text class="layerlabel" x="36" y="182">Services 层</text>
+        <g class="pill"><rect x="40" y="196" width="220" height="60" rx="7"/><text x="54" y="218">rag</text><text x="54" y="238">retrieval / chat / generation</text></g>
+        <g class="pill new"><rect x="40" y="266" width="220" height="60" rx="7"/><text x="54" y="288">rag 🆕</text><text x="54" y="308">feedback / safety_filter</text></g>
+        <g class="pill"><rect x="280" y="196" width="220" height="60" rx="7"/><text x="294" y="218">ingestion</text><text x="294" y="238">parser / chunker / ocr</text></g>
+        <g class="pill"><rect x="280" y="266" width="220" height="60" rx="7"/><text x="294" y="288">storage</text><text x="294" y="308">cleaner / trash(回收站)</text></g>
+        <g class="pill"><rect x="520" y="196" width="220" height="60" rx="7"/><text x="534" y="218">auth</text><text x="534" y="238">login_rate_limit(硬编码)</text></g>
+        <g class="pill"><rect x="520" y="266" width="220" height="60" rx="7"/><text x="534" y="288">agent</text><text x="534" y="308">approvals (adopt/cancel)</text></g>
+        <g class="pill"><rect x="760" y="196" width="180" height="60" rx="7"/><text x="774" y="218">embedder</text><text x="774" y="238">LRU 缓存 🔧</text></g>
+        <g class="pill"><rect x="760" y="266" width="180" height="60" rx="7"/><text x="774" y="288">audit</text><text x="774" y="308">写入审计事件</text></g>
+
+        <!-- Models + Core -->
+        <rect class="layerbox" x="20" y="360" width="460" height="90" rx="12"/>
+        <text class="layerlabel" x="36" y="382">Models 层（19 表 + enums）</text>
+        <g class="pill"><rect x="40" y="396" width="420" height="40" rx="7"/><text x="54" y="421">users · knowledge_bases · documents · chat_messages · chat_feedback🆕 · api_keys · agent_approvals · audit_logs · org_units · …</text></g>
+
+        <rect class="layerbox" x="500" y="360" width="460" height="90" rx="12"/>
+        <text class="layerlabel" x="516" y="382">Core 层</text>
+        <g class="pill"><rect x="520" y="396" width="420" height="40" rx="7"/><text x="534" y="421">config · security(JWT/无状态重置) · deps(RBAC) · db(async) · exceptions(401/403/404/429)</text></g>
+
+        <!-- External -->
+        <rect class="layerbox" x="20" y="470" width="940" height="150" rx="12"/>
+        <text class="layerlabel" x="36" y="492">外部依赖</text>
+        <g class="pill"><rect x="40" y="506" width="290" height="100" rx="8"/><text x="54" y="528">PostgreSQL + pgvector</text><text x="54" y="548">文档 / 向量 / 消息 / 反馈</text><text x="54" y="568">审计 / 组织 / 授权</text><text x="54" y="588">迁移: alembic (30+)</text></g>
+        <g class="pill"><rect x="350" y="506" width="290" height="100" rx="8"/><text x="364" y="528">LLM（服务端 Key）</text><text x="364" y="548">DeepSeek + 通义千问</text><text x="364" y="568">embedding: 通义(缓存)</text><text x="364" y="588">Key 仅服务端 · 不在前端</text></g>
+        <g class="pill"><rect x="660" y="506" width="280" height="100" rx="8"/><text x="674" y="528">Resend（邮件）</text><text x="674" y="548">forgot-password 重置邮件</text><text x="674" y="568">需 RESEND_API_KEY 配置</text><text x="674" y="588">无状态 JWT · 60min</text></g>
+
+        <!-- dependency arrows -->
+        <line class="edge" x1="490" y1="140" x2="300" y2="158" marker-end="url(#d)"/>
+        <line class="edge" x1="490" y1="340" x2="250" y2="358" marker-end="url(#d)"/>
+        <line class="edge" x1="730" y1="340" x2="720" y2="358" marker-end="url(#d)"/>
+        <text class="elabel" x="360" y="152">api → services</text>
+        <text class="elabel" x="300" y="352">services → models/core</text>
+        <text class="elabel" x="720" y="352">→ DB / LLM / 邮件</text>
+      </svg>
+    </div>
+    <div class="legend">
+      <span><i class="sw"></i> 既有模块</span>
+      <span><i class="sw new"></i> 🆕 新增（feedback / safety_filter / agent）</span>
+    </div>
+    <p class="cap">要点：① 依赖方向严格 <b>api → services → models/core → 外部</b>，前端只对接 api 层；② 新增 <b>feedback</b> / <b>safety_filter</b> / <b>agent</b> 三个子系统；③ 登录限流阈值 <b>硬编码</b>在 <code>login_rate_limit.py</code>，不在 config；④ 所有 Key（LLM/Resend）仅服务端，前端永不直接持有。</p>
+  </section>
+</main>
+
+<script>
+  document.querySelectorAll('.tab').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.target).classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>

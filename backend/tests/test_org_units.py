@@ -21,7 +21,7 @@ async def _register_org_admin(
     client: AsyncClient,
     *,
     prefix: str = "org-admin",
-    org_name: str = "知岸科技",
+    org_name: str = "睿阁科技",
 ) -> tuple[dict[str, str], dict]:
     email = unique_email(prefix)
     username = unique_username(prefix)

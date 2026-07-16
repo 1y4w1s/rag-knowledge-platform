@@ -1,6 +1,6 @@
-"""Eval-Ops 测试数据种子（S/M/L 档 · 元数据 · 不调嵌入 API）。
+﻿"""Eval-Ops 测试数据种子（S/M/L 档 · 元数据 · 不调嵌入 API）。
 
-前置：先跑 ``seed_enterprise_demo.py`` 创建「知岸演示公司」与 demo_admin。
+前置：先跑 ``seed_enterprise_demo.py`` 创建「睿阁演示公司」与 demo_admin。
 
 用法（项目根目录）：
   docker cp backend/scripts/seed_volume_data.py zhiku-api:/tmp/seed_volume_data.py
@@ -30,7 +30,7 @@ from app.models.org_unit import OrgUnit
 from app.models.user import User
 from app.services.org.units import create_org_root_unit, create_org_unit, get_org_root_unit
 
-ORG_NAME = "知岸演示公司"
+ORG_NAME = "睿阁演示公司"
 ADMIN_EMAIL = "demo-admin@example.com"
 DEFAULT_DEPARTMENT = "研发部"
 EVAL_OPS_MARKER = "eval-ops:"

@@ -1,0 +1,21 @@
+{
+  "url": "/knowledge-bases",
+  "docH": 900,
+  "theme": "dark",
+  "bodyBg": "rgb(22, 18, 15)",
+  "bodyColor": "rgb(236, 230, 223)",
+  "sectionCount": 1,
+  "h1": null,
+  "h2List": [],
+  "h3List": [
+    "Full Eval 22a6b1a1",
+    "Full Eval f91ff62e",
+    "Full Eval 5159b978",
+    "Golden QA Real 63685b5d",
+    "Golden QA Real ee6791f4",
+    "Full Eval 99641d4c"
+  ],
+  "containers": 1,
+  "trackingWide": [],
+  "hardcoded": []
+}

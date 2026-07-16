@@ -1,4 +1,4 @@
-# 知岸 — 仅 API 容器（数据库用 Supabase 等外部 Postgres 时）
+﻿# 睿阁 — 仅 API 容器（数据库用 Supabase 等外部 Postgres 时）
 # 用法：.env 里 DATABASE_URL 指向 Supabase 后 → docker compose -f docker-compose.api.yml up -d --build
 
 services:
