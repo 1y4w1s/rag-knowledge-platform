@@ -49,7 +49,6 @@
 | 切片策略 | 结构优先切片（章节/段落感知，heading-path 追踪） |
 | 容器化 | Docker Compose（PostgreSQL + API + Nginx） |
 | CI/CD | GitHub Actions（自动迁移 + pytest） |
-| 视觉模型 | Qwen-VL-Plus / GLM-4V-Flash（布局分析支持） |
 
 详细架构见 [`docs/TECH.md`](docs/TECH.md)。
 
@@ -187,28 +186,6 @@ npm run dev  # → http://localhost:5173
 
 ---
 
-## 🔧 抗异常能力
-
-经 **8 轮面试拷打**，覆盖 9 个维度，累计修复 **32+ 个问题**：
-
-| 维度 | 覆盖 |
-|------|------|
-| 上传 | 空文件拦截、内容去重、编码自动检测、大文件降级、保留名过滤 |
-| 解析 | Unicode 正则修复、零宽字符、纯符号过滤、加密 PDF 优雅退出 |
-| 并发 | Ingestion 状态守卫 + Semaphore(5)、删除中保护 |
-| 安全 | XSS(DOMPurify)、Prompt 注入、JWT 强度、CORS、Referrer 策略 |
-| 限流 | 对话/上传/搜索 三路限流 + 降级系数 + IP 级 |
-| 审计 | 永久删除事件补全、登录失败渐进锁屏 |
-| UX | 密码 checklist、主题 3 态、菜单 Portal、上传进度反馈 |
-| 检索 | CJK 分词、`C++`/`C#` ILIKE 回退、通配符转义 |
-| SSE | 断开检测 + 取消 LLM 流 |
-
----
-
 ## 📜 许可证
 
 本项目为自用项目，未指定开源许可证前请勿公开传播 API Key 或 `.env`。
-
----
-
-> **睿阁** — 让知识有岸可依，让答案有据可查。
