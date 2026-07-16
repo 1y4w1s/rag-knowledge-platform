@@ -2,7 +2,6 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import {
   DEFAULT_INVITE_ROLES,
-  PATHS,
   type EmptyStateScene,
 } from "./types";
 import { HeroArt } from "./HeroArt";
@@ -16,7 +15,7 @@ function Icon({ d, className }: { d: string; className?: string }) {
   );
 }
 
-export function EmptyStateV44({ scene }: { scene: EmptyStateScene }) {
+export function EmptyStateV44({ scene, variant }: { scene: EmptyStateScene; variant?: "docs" | "settings" }) {
   const p = scene.idPrefix;
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteName, setInviteName] = useState("");
@@ -25,8 +24,6 @@ export function EmptyStateV44({ scene }: { scene: EmptyStateScene }) {
 
   const hId = `${p}EmptyH`;
   const stepsId = `${p}StepsH`;
-  const dimId = `${p}DimH`;
-  const ragId = `${p}RagH`;
   const inviteDialogId = `${p}InviteDialog`;
   const inviteNameId = `${p}InviteName`;
   const inviteLinkId = `${p}InviteLink`;
@@ -97,7 +94,7 @@ export function EmptyStateV44({ scene }: { scene: EmptyStateScene }) {
           </dl>
         </div>
         <div className="empty-hero-art" aria-hidden="true">
-          <HeroArt />
+          <HeroArt variant={variant} />
         </div>
       </section>
 
@@ -119,51 +116,6 @@ export function EmptyStateV44({ scene }: { scene: EmptyStateScene }) {
               <span className="meta">{s.meta}</span>
             </article>
           ))}
-        </div>
-      </section>
-
-      <section className="empty-section" aria-labelledby={dimId}>
-        <h4 className="empty-h3" id={dimId}>
-          4 个会随你成长起来的位置
-          <span className="tag">未来指标预览</span>
-          <span className="empty-h3-note">FUTURE METRICS</span>
-        </h4>
-        <div className="empty-grid">
-          {scene.metrics.map((m) => (
-            <article key={m.title} className="empty-card">
-              <div className="top">
-                <span className="ic" aria-hidden="true">
-                  <Icon d={m.iconPath} />
-                </span>
-                <h5>{m.title}</h5>
-              </div>
-              <p className="sub">{m.desc}</p>
-              <a className="cta" href="#" aria-label={m.cta}>
-                {m.cta}
-              </a>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="empty-section" aria-labelledby={ragId}>
-        <h4 className="empty-h3" id={ragId}>
-          能力概览
-          <span className="tag">准备好后会显示</span>
-          <span className="empty-h3-note">RAG METRICS</span>
-        </h4>
-        <div className="rag-preview">
-          <div className="visual" aria-hidden="true">
-            <Icon d={PATHS.refresh} />
-          </div>
-          <div className="rag-body">
-            <h5>{scene.ragTitle}</h5>
-            <p>{scene.ragDesc}</p>
-          </div>
-          <a className="dash-btn line preview-cta" href="#" aria-label={scene.ragCta}>
-            {scene.ragCta}
-            <Icon d={PATHS.arrowRight} />
-          </a>
         </div>
       </section>
 

@@ -230,6 +230,7 @@ export function AccountSettingsPage() {
       {!settings.org_id ? (
         <>
           <EmptyStateV44
+            variant="settings"
             scene={{
               ...ACCOUNT_SCENE,
               ctaPrimary: {
