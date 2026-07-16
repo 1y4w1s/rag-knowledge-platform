@@ -19,6 +19,7 @@ COPY app ./app
 COPY alembic ./alembic
 COPY alembic.ini .
 COPY tests ./tests
+COPY pytest.ini .
 
 EXPOSE 8000
 

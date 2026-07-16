@@ -8,11 +8,9 @@
 
 ## 🖼️ 界面预览
 
-| 登录页 |
-|:------:|
-| ![登录页](screenshot-01-login.png) |
-
-> 更多截图请在本地用浏览器开发者工具截取后放入项目根目录，命名为 `screenshot-02-dashboard.png` 等。
+| 登录页 | 仪表盘 | 智能问答 | 资料库列表 |
+|:------:|:------:|:--------:|:----------:|
+| ![登录页](screenshot-01-login.png) | ![仪表盘](screenshot-02-dashboard.png) | ![智能问答](screenshot-03-ask.png) | ![资料库列表](screenshot-04-knowledge-bases.png) |
 
 ---
 
@@ -97,7 +95,7 @@ rag-knowledge-platform/
 ### 一键启动
 
 ```powershell
-cd D:\MyPrograms\rag-knowledge-platform
+cd rag-knowledge-platform
 .\scripts\docker-up.ps1
 ```
 
@@ -144,11 +142,13 @@ npm run dev  # → http://localhost:5173
 
 ## 🧪 测试账号
 
-| 角色 | 用户名 | 密码 | 说明 |
-|------|--------|------|------|
-| 个人版 | `testuser_ui` | `Test@123456` | 个人空间，含脏数据测试 KB |
-| 团队管理员 | `team_admin2` | `Team@123456` | 组织「测试团队」，可管理成员 |
-| 团队成员 | `team_member` | `Team@123456` | 只读成员，可访问共享资料库 |
+| 角色 | 用户名 | 说明 |
+|------|--------|------|
+| 个人版 | `testuser_ui` | 个人空间，含测试数据 |
+| 团队管理员 | `team_admin2` | 组织「测试团队」|
+| 团队成员 | `team_member` | 只读成员 |
+
+> 密码请在部署后通过注册页自行创建，或联系管理员获取。
 
 ---
 
@@ -180,7 +180,6 @@ npm run dev  # → http://localhost:5173
 | [`docs/DEPLOY.md`](docs/DEPLOY.md) | 生产/内网部署指南 |
 | [`docs/DESIGN.md`](docs/DESIGN.md) | UI/UX 设计系统（Design Token） |
 | [`docs/tasks/anti-abnormal-plan.md`](docs/tasks/anti-abnormal-plan.md) | 抗异常改进计划 |
-| [`docs/tasks/MCP-排障手册.md`](docs/tasks/MCP-排障手册.md) | MCP 连接排障手册 |
 | [`AGENTS.md`](AGENTS.md) | AI 协作规则 |
 
 ---

@@ -1,0 +1,19 @@
+{
+  "cases": [
+    {"id": "GQ-1", "category": "RAG", "query": "什么是机器学习？", "expected_doc": "ai_intro.pdf", "expected_chunk": "机器学习是人工智能的重要分支"},
+    {"id": "GQ-2", "category": "RAG", "query": "深度学习有哪些应用？", "expected_doc": "ai_intro.pdf", "expected_chunk": "深度学习在图像识别和自然语言处理中有广泛应用"},
+    {"id": "GQ-3", "category": "RAG", "query": "自然语言处理的基本方法", "expected_doc": "nlp_basics.pdf", "expected_chunk": "自然语言处理包括分词、词性标注和句法分析"},
+    {"id": "GQ-4", "category": "RAG", "query": "什么是向量数据库？", "expected_doc": "vector_db.pdf", "expected_chunk": "向量数据库用于存储和检索高维嵌入向量"},
+    {"id": "GQ-5", "category": "RAG", "query": "Transformer 架构的核心思想", "expected_doc": "transformer.pdf", "expected_chunk": "Transformer 基于自注意力机制实现并行计算"},
+    {"id": "GQ-6", "category": "RETRIEVAL", "query": "混合检索有哪些方法？", "expected_doc": "retrieval.pdf", "expected_chunk": "混合检索结合向量搜索和关键词搜索的优点"},
+    {"id": "GQ-7", "category": "RETRIEVAL", "query": "RRF 排序算法原理", "expected_doc": "retrieval.pdf", "expected_chunk": "RRF 通过倒数排名融合多个排序结果"},
+    {"id": "GQ-8", "category": "RETRIEVAL", "query": "全文检索 vs 向量检索", "expected_doc": "retrieval.pdf", "expected_chunk": "全文检索基于关键词匹配，向量检索基于语义相似度"},
+    {"id": "GQ-9", "category": "RETRIEVAL", "query": "BM25 算法简介", "expected_doc": "retrieval.pdf", "expected_chunk": "BM25 是一种基于词频和逆文档频率的排序算法"},
+    {"id": "GQ-10", "category": "RETRIEVAL", "query": "如何评估检索质量", "expected_doc": "eval.pdf", "expected_chunk": "检索质量常用指标包括 HitRate、MRR 和 NDCG"},
+    {"id": "GQ-11", "category": "TOOL", "query": "如何上传文档到知识库", "expected_doc": "usage_guide.pdf", "expected_chunk": "在知识库详情页点击上传文档按钮选择文件"},
+    {"id": "GQ-12", "category": "TOOL", "query": "怎么创建团队空间", "expected_doc": "admin_guide.pdf", "expected_chunk": "管理员在组织设置中创建团队空间并邀请成员"},
+    {"id": "GQ-13", "category": "TOOL", "query": "如何删除一个资料库", "expected_doc": "kb_guide.pdf", "expected_chunk": "在资料库列表页点击编辑按钮后选择删除"},
+    {"id": "GQ-14", "category": "TOOL", "query": "API Key 有什么用", "expected_doc": "api_guide.pdf", "expected_chunk": "API Key 用于外部系统直接调用睿阁 API"},
+    {"id": "GQ-15", "category": "TOOL", "query": "审计日志如何查看", "expected_doc": "audit_guide.pdf", "expected_chunk": "在管理后台的审计日志页面查看所有操作记录"}
+  ]
+}
