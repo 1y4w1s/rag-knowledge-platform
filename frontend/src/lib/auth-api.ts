@@ -102,6 +102,19 @@ export async function register(
   return data.user;
 }
 
+export async function forgotPassword(
+  identifier: string,
+): Promise<string> {
+  const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ identifier }),
+  });
+  if (!res.ok) throw new Error(await parseApiError(res));
+  const data = (await res.json()) as { message?: string };
+  return data.message ?? "请求已提交";
+}
+
 export async function registerAndLogin(
   email: string,
   username: string,

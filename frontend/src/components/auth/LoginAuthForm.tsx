@@ -31,14 +31,13 @@ const RegisterForm = lazy(() =>
 
 import { Button } from "@/components/ui/button";
 
-import { login } from "@/lib/auth-api";
+import { login, forgotPassword } from "@/lib/auth-api";
 
 import { useAuth } from "@/lib/auth-context";
 
 import {
 
-  FORGOT_PASSWORD_HINT,
-
+  
 } from "@/lib/auth-env";
 
 import { type FieldErrors, validateLoginFields } from "@/lib/auth-form-validation";
@@ -91,7 +90,7 @@ export function LoginAuthForm() {
 
   const [loading, setLoading] = useState(false);
 
-  const [forgotHintVisible, setForgotHintVisible] = useState(false);
+  const [forgotFormVisible, setForgotFormVisible] = useState(false);
 
 
 
@@ -103,7 +102,7 @@ export function LoginAuthForm() {
 
     setApiError(null);
 
-    setForgotHintVisible(false);
+    setForgotFormVisible(false);
 
   }
 
@@ -345,7 +344,7 @@ export function LoginAuthForm() {
 
                     className="text-xs text-[var(--auth-muted)] underline-offset-2 hover:text-[var(--auth-action)] hover:underline"
 
-                    onClick={() => setForgotHintVisible(true)}
+                    onClick={() => setForgotFormVisible(true)}
 
                   >
 
@@ -355,20 +354,53 @@ export function LoginAuthForm() {
 
                 </div>
 
-                {forgotHintVisible && (
-
-                  <p
-
-                    role="status"
-
-                    className="mt-1.5 text-right text-xs leading-relaxed text-[var(--auth-muted)]"
-
+                {forgotFormVisible ? (
+                  <div className="mt-2 space-y-2">
+                    <input
+                      type="email"
+                      placeholder="输入注册邮箱"
+                      id="forgot-email"
+                      className="w-full rounded border px-2 py-1 text-xs"
+                    />
+                    <div className="flex gap-2 justify-end">
+                      <button
+                        type="button"
+                        className="text-xs text-[var(--auth-muted)] underline"
+                        onClick={() => setForgotFormVisible(false)}
+                      >
+                        返回
+                      </button>
+                      <button
+                        type="button"
+                        className="rounded bg-[var(--accent)] px-3 py-1 text-xs text-white"
+                        onClick={async () => {
+                          const input = document.getElementById("forgot-email") as HTMLInputElement;
+                          const email = input?.value?.trim();
+                          if (!email) return;
+                          try {
+                            await forgotPassword(email);
+                            input.value = "";
+                            setTimeout(() => setForgotFormVisible(false), 3000);
+                          } catch (e: any) {
+                            alert(e.message ?? "请求失败");
+                          }
+                        }}
+                      >
+                        发送重置邮件
+                      </button>
+                    </div>
+                    <p className="text-right text-xs text-[var(--auth-muted)]">
+                      如果该邮箱已注册，您将收到密码重置邮件
+                    </p>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    className="text-xs text-[var(--auth-muted)] underline-offset-2 hover:text-[var(--auth-action)] hover:underline"
+                    onClick={() => setForgotFormVisible(true)}
                   >
-
-                    {FORGOT_PASSWORD_HINT}
-
-                  </p>
-
+                    忘记密码？
+                  </button>
                 )}
 
               </div>
