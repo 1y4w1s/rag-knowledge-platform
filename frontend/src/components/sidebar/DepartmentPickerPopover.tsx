@@ -112,6 +112,7 @@ export function DepartmentPickerPopover({
     if (!open || !popoverRef.current || !anchorRef.current) return;
     const anchor = anchorRef.current;
     popoverRef.current.style.top = `${anchor.offsetTop + anchor.offsetHeight + 8}px`;
+    popoverRef.current.style.left = `${anchor.offsetLeft + anchor.offsetWidth + 8}px`;
   }, [open, anchorRef, orgName, model.root?.unit.id]);
 
   useEffect(() => {

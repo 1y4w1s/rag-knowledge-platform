@@ -26,6 +26,7 @@ export function OrgNamePopover({
     if (!open || !popoverRef.current || !anchorRef.current) return;
     const seg = anchorRef.current;
     popoverRef.current.style.top = `${seg.offsetTop + seg.offsetHeight + 8}px`;
+    popoverRef.current.style.left = `${seg.offsetLeft + seg.offsetWidth + 8}px`;
   }, [open, anchorRef, fullName]);
 
   useEffect(() => {
