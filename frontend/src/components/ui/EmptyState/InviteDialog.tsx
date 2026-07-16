@@ -18,7 +18,7 @@ interface InviteDialogProps {
   onSend: () => void;
   label: string;
   sub: string;
-  roles: ("admin" | "editor" | "viewer" | "collaborator")[];
+  roles: (typeof DEFAULT_INVITE_ROLES)[number]["key"][];
 }
 
 export function InviteDialog({
@@ -79,7 +79,7 @@ export function InviteDialog({
           <div className="role-grid" role="group" aria-label="角色">
             {DEFAULT_INVITE_ROLES.filter((r) => roles.includes(r.key)).map((r) => (
               <label key={r.key} className="role-chip">
-                <input type="checkbox" defaultChecked={r.key === "admin" || r.key === "editor"} />
+                <input type="checkbox" defaultChecked={r.key === "admin"} />
                 {r.label}
               </label>
             ))}

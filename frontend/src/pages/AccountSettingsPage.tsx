@@ -132,7 +132,7 @@ export function AccountSettingsPage() {
 
   if (loading) {
     return (
-      <div className="max-w-[440px] space-y-4">
+      <div className="max-w-[640px] space-y-4">
         <div className="settings-card animate-pulse space-y-4">
           <div className="h-5 w-24 rounded bg-border/80" />
           <div className="h-10 rounded bg-border/60" />
@@ -163,7 +163,37 @@ export function AccountSettingsPage() {
     <>
     <div className="max-w-[1180px] mx-auto px-7 pb-16 pt-7">
       <SectionTitle label="账号设置" en="ACCOUNT" />
-      <div className="max-w-[440px] space-y-4">
+      <div className="max-w-[640px] space-y-6">
+
+      {!settings.org_id ? (
+        <>
+          <EmptyStateV44
+            variant="settings"
+            scene={{
+              ...ACCOUNT_SCENE,
+              ctaPrimary: {
+                ...ACCOUNT_SCENE.ctaPrimary,
+                onClick: () => scrollToId("account-profile"),
+              },
+              ctaSecondary: {
+                ...ACCOUNT_SCENE.ctaSecondary,
+                onClick: () => scrollToId("account-security"),
+              },
+            }}
+          />
+          <JoinTeamForm onJoined={(message, orgId) => void handleJoined(message, orgId)} />
+        </>
+      ) : (
+        <RequireTeamWorkspace feature="离开团队">
+          <LeaveTeamForm
+            orgName={settings.org_name ?? "团队"}
+            isOwner={Boolean(user?.is_owner)}
+            onLeft={(message) => void handleLeft(message)}
+          />
+        </RequireTeamWorkspace>
+      )}
+
+      <div className="grid grid-cols-2 gap-5">
       <div id="account-profile">
         <SettingsFormCard title="账号信息">
           <div className="space-y-3.5">
@@ -227,24 +257,13 @@ export function AccountSettingsPage() {
         </SettingsFormCard>
       </div>
 
+      <div id="account-security">
+        <ChangePasswordForm onSubmit={handlePasswordChange} />
+      </div>
+      </div>
+
       {!settings.org_id ? (
-        <>
-          <EmptyStateV44
-            variant="settings"
-            scene={{
-              ...ACCOUNT_SCENE,
-              ctaPrimary: {
-                ...ACCOUNT_SCENE.ctaPrimary,
-                onClick: () => scrollToId("account-profile"),
-              },
-              ctaSecondary: {
-                ...ACCOUNT_SCENE.ctaSecondary,
-                onClick: () => scrollToId("account-security"),
-              },
-            }}
-          />
           <JoinTeamForm onJoined={(message, orgId) => void handleJoined(message, orgId)} />
-        </>
       ) : (
         <RequireTeamWorkspace feature="离开团队">
           <LeaveTeamForm
@@ -255,9 +274,6 @@ export function AccountSettingsPage() {
         </RequireTeamWorkspace>
       )}
 
-      <div id="account-security">
-        <ChangePasswordForm onSubmit={handlePasswordChange} />
-      </div>
 
       <ApiKeyManager />
 

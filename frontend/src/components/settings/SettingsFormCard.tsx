@@ -31,8 +31,8 @@ export function SettingsReadonlyField({
   value,
 }: SettingsReadonlyFieldProps) {
   return (
-    <div>
-      <label htmlFor={id} className="settings-field-label">
+    <div className="flex items-baseline gap-3">
+      <label htmlFor={id} className="settings-field-label w-20 shrink-0">
         {label}
       </label>
       <input
@@ -40,7 +40,7 @@ export function SettingsReadonlyField({
         type="text"
         readOnly
         value={value}
-        className="settings-field-input settings-field-input-readonly"
+        className="settings-field-input settings-field-input-readonly flex-1"
       />
     </div>
   );

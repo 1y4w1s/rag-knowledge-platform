@@ -32,7 +32,7 @@ export interface EmptyStateScene {
   inviteSub: string;
   inviteLink: string;
   /** 邀请弹窗是否需要"协作"角色 */
-  inviteRoles?: ("admin" | "editor" | "viewer" | "collaborator")[];
+  inviteRoles?: ("admin" | "member")[];
   showSimpleToggle?: boolean;
 }
 
@@ -58,7 +58,5 @@ export const PATHS = {
 
 export const DEFAULT_INVITE_ROLES = [
   { key: "admin", label: "管理员" },
-  { key: "editor", label: "编辑者" },
-  { key: "viewer", label: "访客" },
-  { key: "collaborator", label: "协作者" },
+  { key: "member", label: "成员" },
 ] as const;

@@ -47,7 +47,7 @@ export function IngestionPanel({
   const navigate = useNavigate();
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-[var(--line2)] bg-[var(--surf)] shadow-[var(--top-hi),var(--card-shadow)] grid grid-cols-[1.7fr_1px_1fr]">
+    <div className="overflow-hidden rounded-2xl border border-[var(--line2)] bg-[var(--surf)] shadow-[var(--top-hi),var(--card-shadow)] grid grid-cols-[1.2fr_1px_1fr]">
       {/* 左侧：文档流转管道 */}
       <div className="flex flex-col py-[22px] px-6">
         <div className="mb-4 flex items-center justify-between gap-3">
@@ -148,7 +148,7 @@ export function IngestionPanel({
           ].map(({ label, value, zeroOk, isText }) => (
             <div
               key={label}
-              className="flex items-baseline justify-between border-b border-[var(--line2)] py-[11px] text-[13px] last:border-0"
+              className="flex items-baseline justify-between border-b border-[var(--line2)] py-[14px] text-[13px] last:border-0"
             >
               <span>{label}</span>
               {isText ? (

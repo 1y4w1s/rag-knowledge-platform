@@ -451,15 +451,15 @@
   }
 
   .settings-card {
-    @apply max-w-[440px] rounded-[var(--r)] border border-[color:var(--line2)] bg-white/85 p-[22px] shadow-sm;
+    @apply rounded-[var(--r)] border border-[color:var(--line2)] bg-white/85 p-[22px] shadow-sm;
   }
 
   .settings-card h3 {
-    @apply mb-4 text-[0.92rem] font-semibold text-foreground;
+    @apply mb-5 text-[1rem] font-bold text-foreground tracking-tight;
   }
 
   .settings-field-label {
-    @apply mb-1.5 block text-xs font-medium text-muted-foreground;
+    @apply mb-1.5 block text-xs font-semibold text-muted-foreground;
   }
 
   .settings-field-input {
