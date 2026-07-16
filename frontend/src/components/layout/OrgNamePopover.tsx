@@ -73,7 +73,7 @@ export function OrgNamePopover({
   return (
     <div
       ref={popoverRef}
-      className="org-popover"
+      className="org-popover popover-base"
       role="dialog"
       aria-label="团队全称"
       aria-modal="true"

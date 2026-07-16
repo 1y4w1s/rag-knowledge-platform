@@ -158,7 +158,7 @@ export function DepartmentPickerPopover({
   return (
     <div
       ref={popoverRef}
-      className="dept-picker-popover"
+      className="dept-picker-popover popover-base"
       role="dialog"
       aria-label="选择当前部门"
       aria-modal="true"

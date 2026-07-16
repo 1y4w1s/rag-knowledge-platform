@@ -20,6 +20,7 @@ export function UserAvatarMenu({ size = "md", className }: UserAvatarMenuProps) 
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const [upward, setUpward] = useState(false);
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
@@ -30,6 +31,17 @@ export function UserAvatarMenu({ size = "md", className }: UserAvatarMenuProps) 
     document.addEventListener("click", onDocClick);
     return () => document.removeEventListener("click", onDocClick);
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    // 检测视口剩余空间，决定菜单向上还是向下弹出
+    const el = wrapRef.current;
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setUpward(spaceBelow < 160);
+    }
+  }, [open]);
 
   if (!user) return null;
 
@@ -58,7 +70,7 @@ export function UserAvatarMenu({ size = "md", className }: UserAvatarMenuProps) 
       {open && (
         <div
           role="menu"
-          className="absolute left-0 top-[calc(100%+8px)] z-50 min-w-[160px] rounded-[10px] border border-border bg-white p-1.5 shadow-md"
+          className={`popover-base absolute left-0 z-50 min-w-[160px] ${upward ? "bottom-[calc(100%+8px)]" : "top-[calc(100%+8px)]"}`}
         >
           <Link
             role="menuitem"
