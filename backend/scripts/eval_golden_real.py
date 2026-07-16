@@ -19,28 +19,20 @@ from pathlib import Path
 from app.core.database import SessionLocal
 from app.services.rag.retrieval import retrieve_chunks
 from app.services.rag.generation import build_messages, stream_deepseek_tokens
-from tests.golden_qa_loader import GOLDEN_QA_CASES, HIT_K, GoldenQACase
+from tests.golden_qa_loader import (
+    GOLDEN_QA_CASES,
+    HIT_K,
+    GoldenQACase,
+    chunk_matches,
+    hit_at_k,
+    reciprocal_rank,
+)
 
-CASE_COST_WARN = 25 * 2  # 25 retrievals + ~25 LLM calls
+CASE_COST_WARN = len(GOLDEN_QA_CASES) * 2
 print(f"  [warn] This will consume approximately {CASE_COST_WARN} API calls.")
 print()
 
 FIXTURES = Path("/tmp/tests/fixtures")
-
-
-def _chunk_matches(case: GoldenQACase, chunk) -> bool:
-    if case.section_title and chunk.section_title != case.section_title:
-        return False
-    if case.heading_path_contains and (
-        not chunk.heading_path or case.heading_path_contains not in chunk.heading_path
-    ):
-        return False
-    if case.content_contains and case.content_contains not in (chunk.parent_content or chunk.content):
-        return False
-    if case.page_number is not None and chunk.page_number != case.page_number:
-        return False
-    return True
-
 
 JUDGE_PROMPT = """你是一个 RAG 评测助手。请评估以下回答的质量。
 
@@ -84,7 +76,7 @@ async def judge_answer(query: str, context: str, answer: str) -> dict | None:
 async def run_retrieval_only():
     """Phase 1: Retrieval quality with real embeddings."""
     print("=" * 72)
-    print("  PHASE 1: RETRIEVAL QUALITY (Real Embeddings)")
+    print(f"  PHASE 1: RETRIEVAL QUALITY (Real Embeddings, {len(GOLDEN_QA_CASES)} cases)")
     print("=" * 72)
     print()
 
@@ -129,7 +121,8 @@ async def run_retrieval_only():
         print(f"  [OK] Document uploaded. Waiting for ingestion...")
         await asyncio.sleep(3)
 
-    print("  Running 25 retrievals with real embeddings...")
+    total = len(GOLDEN_QA_CASES)
+    print(f"  Running {total} retrievals with real embeddings...")
     results = []
     t0 = time.time()
 
@@ -138,13 +131,14 @@ async def run_retrieval_only():
             t1 = time.time()
             chunks = await retrieve_chunks(db, kb_id=kb_id, query=case.query, top_k=HIT_K)
             t2 = time.time()
-            passed, hit_rank = False, None
-            for rank, chunk in enumerate(chunks[:HIT_K], start=1):
-                if _chunk_matches(case, chunk):
-                    passed = True
-                    hit_rank = rank
-                    break
-            rr = 1.0 / hit_rank if hit_rank else 0.0
+            passed = hit_at_k(chunks, case, k=HIT_K)
+            rr = reciprocal_rank(chunks, case, k=HIT_K)
+            hit_rank = None
+            if not case.expect_rejection:
+                for rank, chunk in enumerate(chunks[:HIT_K], start=1):
+                    if chunk_matches(case, chunk):
+                        hit_rank = rank
+                        break
             results.append({
                 "case_id": case.case_id,
                 "query": case.query,
@@ -154,17 +148,17 @@ async def run_retrieval_only():
                 "rr": rr,
                 "latency_ms": int((t2 - t1) * 1000),
             })
-            print(f"    [{i+1}/25] {case.case_id}: {'PASS' if passed else 'FAIL'} (rank={hit_rank}, {int((t2-t1)*1000)}ms)")
+            status = "PASS" if passed else "FAIL"
+            print(f"    [{i+1}/{total}] {case.case_id}: {status} (rank={hit_rank}, {int((t2-t1)*1000)}ms)")
 
     elapsed = time.time() - t0
-    total = len(results)
     hits = sum(1 for r in results if r["hit"])
     mrr = sum(r["rr"] for r in results) / total
     avg_latency = sum(r["latency_ms"] for r in results) / total
 
     print()
     print("-" * 72)
-    print("  RETRIEVAL RESULTS (Real Embeddings)")
+    print(f"  RETRIEVAL RESULTS (Real Embeddings, {total} cases)")
     print("-" * 72)
     print(f"  Hit@{HIT_K}:  {hits}/{total} ({hits/total*100:.1f}%)")
     print(f"  MRR:       {mrr:.4f}")
@@ -181,7 +175,8 @@ async def run_generation_eval(kb_id, results):
     print("=" * 72)
     print("  PHASE 2: GENERATION QUALITY (DeepSeek + LLM-as-judge)")
     print("=" * 72)
-    print("  [warn] This will call DeepSeek ~50 times (answer + judge per case)")
+    total = len(GOLDEN_QA_CASES)
+    print(f"  [warn] This will call DeepSeek ~{total * 2} times (answer + judge per case)")
     print()
 
     judge_results = []
@@ -192,7 +187,7 @@ async def run_generation_eval(kb_id, results):
                 c.parent_content or c.content for c in chunks[:3]
             )
             if not context:
-                print(f"    [{i+1}/25] {case.case_id}: SKIP (no context)")
+                print(f"    [{i+1}/{total}] {case.case_id}: SKIP (no context)")
                 judge_results.append(None)
                 continue
 
@@ -207,7 +202,7 @@ async def run_generation_eval(kb_id, results):
             score = await judge_answer(case.query, context[:1500], answer[:1000])
             judge_results.append(score)
             status = f"c={score['correctness']}/f={score['faithfulness']}/r={score['relevance']}" if score else "judge failed"
-            print(f"    [{i+1}/25] {case.case_id}: {status}")
+            print(f"    [{i+1}/{total}] {case.case_id}: {status}")
 
     # Aggregate
     valid = [s for s in judge_results if s]
@@ -235,12 +230,6 @@ async def main():
     if kb_id is None:
         return
 
-    # Ask user if they want phase 2
-    print()
-    print("  Phase 2 (Generation Quality) requires ~50 DeepSeek API calls.")
-    print("  Run it? (y/n) [will auto-run in 5s]")
-    # We'll check if the user typed something, or proceed automatically
-    # Since we're in Docker with no stdin, we'll prompt via output and let the user decide
     print()
     import os
     if os.environ.get("RUN_GENERATION") == "1":
@@ -249,33 +238,33 @@ async def main():
         print("  [skip] Set RUN_GENERATION=1 to enable generation eval")
     print()
 
-    # Phase 2 requires a separate flag since it costs API credits
-    # For now, report retrieval-only results
+    total = len(results)
     print()
     print("=" * 72)
     print("  SUMMARY: Real-Embedding Evaluation")
     print("=" * 72)
     missed = [r for r in results if not r["hit"]]
-    print(f"  Hit@{HIT_K}:  {sum(1 for r in results if r['hit'])}/25 ({sum(1 for r in results if r['hit'])/25*100:.1f}%)")
-    print(f"  MRR:       {sum(r['rr'] for r in results)/25:.4f}")
-    print(f"  Avg latency: {sum(r['latency_ms'] for r in results)/25:.0f}ms")
+    print(f"  Hit@{HIT_K}:  {sum(1 for r in results if r['hit'])}/{total} ({sum(1 for r in results if r['hit'])/total*100:.1f}%)")
+    print(f"  MRR:       {sum(r['rr'] for r in results)/total:.4f}")
+    print(f"  Avg latency: {sum(r['latency_ms'] for r in results)/total:.0f}ms")
     if missed:
         print(f"  Missed:    {', '.join(r['case_id'] for r in missed)}")
     print()
-    print("  Compare with mock: Hit@3 92.0% vs real ___%")
-    print()
 
-    # Compare with mock results
+    non_rejection = [r for r in results if not next(c.expect_rejection for c in GOLDEN_QA_CASES if c.case_id == r["case_id"])]
+    rej_hits = sum(1 for r in non_rejection if r["hit"])
+    print(f"  Non-rejection subset: {rej_hits}/{len(non_rejection)} ({rej_hits/len(non_rejection)*100:.1f}%)")
+
     mock_hits = 23
     mock_mrr = 0.9000
     real_hits = sum(1 for r in results if r["hit"])
-    real_mrr = sum(r["rr"] for r in results) / 25
+    real_mrr = sum(r["rr"] for r in results) / total
     print("-" * 72)
     print("  MOCK vs REAL EMBEDDING COMPARISON")
     print("-" * 72)
     print(f"  {'Metric':20s} {'Mock':12s} {'Real':12s} {'Delta':12s}")
     print(f"  {'-'*20} {'-'*12} {'-'*12} {'-'*12}")
-    print(f"  {'Hit@3':20s} {mock_hits:>5}/25 ({mock_hits/25*100:.1f}%)  {real_hits:>5}/25 ({real_hits/25*100:.1f}%)  {'+' if real_hits > mock_hits else ''}{(real_hits - mock_hits)/25*100:.1f}%")
+    print(f"  {'Hit@3':20s} {mock_hits:>5}/25 ({mock_hits/25*100:.1f}%)  {real_hits:>5}/{total} ({real_hits/total*100:.1f}%)  {'+' if real_hits > mock_hits else ''}{(real_hits - mock_hits)/25*100:.1f}%")
     print(f"  {'MRR':20s} {mock_mrr:<12.4f} {real_mrr:<12.4f} {'+' if real_mrr > mock_mrr else ''}{real_mrr - mock_mrr:.4f}")
     print()
 

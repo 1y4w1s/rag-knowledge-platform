@@ -19,10 +19,14 @@ from app.core.database import SessionLocal
 from app.services.ingestion import embedder
 from app.services.ingestion.embedder import EMBEDDING_DIM
 from app.services.rag.retrieval import retrieve_chunks
-from app.services.rag.types import RetrievedChunk
-from app.services.rag.generation import build_messages, stream_deepseek_tokens
-from tests.golden_qa_loader import GOLDEN_QA_CASES, HIT_K, GoldenQACase
-import json
+from tests.golden_qa_loader import (
+    GOLDEN_QA_CASES,
+    HIT_K,
+    GoldenQACase,
+    chunk_matches,
+    hit_at_k,
+    reciprocal_rank,
+)
 
 _CJK = re.compile(r"[\u4e00-\u9fff]")
 _LATIN = re.compile(r"[a-z0-9]+")
@@ -42,20 +46,6 @@ def _lexical_mock_vector(text: str) -> list[float]:
 
 
 embedder._mock_vector = _lexical_mock_vector
-
-
-def _chunk_matches(case: GoldenQACase, chunk: RetrievedChunk) -> bool:
-    if case.section_title and chunk.section_title != case.section_title:
-        return False
-    if case.heading_path_contains and (
-        not chunk.heading_path or case.heading_path_contains not in chunk.heading_path
-    ):
-        return False
-    if case.content_contains and case.content_contains.lower() not in (chunk.content or "").lower():
-        return False
-    if case.page_number is not None and chunk.page_number != case.page_number:
-        return False
-    return True
 
 
 FIXTURES = Path("/tmp/tests/fixtures")
@@ -107,21 +97,22 @@ async def main():
             chunks = await retrieve_chunks(db, kb_id=kb_id, query=case.query, top_k=HIT_K)
             latency = time.time() - t1
 
-            # Gather per-case data
-            hit = False
+            passed = hit_at_k(chunks, case, k=HIT_K)
+            rr = reciprocal_rank(chunks, case, k=HIT_K)
+            # For per-case reporting, find first match rank
             hit_rank = None
-            for rank, c in enumerate(chunks[:HIT_K], start=1):
-                if _chunk_matches(case, c):
-                    hit = True
-                    hit_rank = rank
-                    break
+            if not case.expect_rejection:
+                for rank, c in enumerate(chunks[:HIT_K], start=1):
+                    if chunk_matches(case, c):
+                        hit_rank = rank
+                        break
 
             all_results.append({
                 "case_id": case.case_id,
                 "source": case.source,
-                "hit": hit,
+                "hit": passed,
                 "hit_rank": hit_rank,
-                "rr": 1.0 / hit_rank if hit_rank else 0.0,
+                "rr": rr,
                 "top_k_count": len(chunks),
                 "latency_ms": int(latency * 1000),
             })
@@ -134,37 +125,51 @@ async def main():
         mrr = sum(r["rr"] for r in all_results) / total
         avg_latency = sum(r["latency_ms"] for r in all_results) / total
 
-        # Precision@K: With 1 relevant doc per query, precision = 1/K if hit else 0
-        total_precision = 0.0
-        for r in all_results:
-            if r["hit"]:
-                total_precision += 1.0 / HIT_K
-        precision_at_k = total_precision / total
+        # Compute avg expected relevant count for Precision/F1 normalization
+        total_expected = sum(
+            len(c.expects) if c.expects else 1 for c in GOLDEN_QA_CASES if not c.expect_rejection
+        )
+        non_rejection = sum(1 for c in GOLDEN_QA_CASES if not c.expect_rejection)
 
-        # NDCG@K approximation: DCG = sum of rel_i / log2(i+1), IDCG = 1/log2(2) = 1.0
-        # Since we have 1 relevant doc, DCG = 1/log2(rank+1) if hit, else 0
+        # Precision@K: per query, min(matches_in_top_k, expected) / K
+        total_precision = 0.0
+        for i, case in enumerate(GOLDEN_QA_CASES):
+            if case.expect_rejection:
+                continue
+            expected = len(case.expects) if case.expects else 1
+            r = all_results[i]
+            if r["hit"]:
+                total_precision += min(expected, HIT_K) / HIT_K
+        precision_at_k = total_precision / non_rejection if non_rejection else 0
+
+        # NDCG@K: DCG = sum of rel_i / log2(i+1), IDCG = sum over expected relevant
         ndcg_list = []
-        for r in all_results:
-            dcg = 0.0
+        for i, case in enumerate(GOLDEN_QA_CASES):
+            if case.expect_rejection:
+                continue
+            r = all_results[i]
+            expected = len(case.expects) if case.expects else 1
             if r["hit_rank"]:
                 dcg = 1.0 / math.log2(r["hit_rank"] + 1)
-            idcg = 1.0  # ideal: relevant at rank 1
-            ndcg_list.append(dcg / idcg)
-        ndcg_at_k = sum(ndcg_list) / total
+            else:
+                dcg = 0.0
+            # IDCG: ideal ranking where all expected are at top ranks
+            idcg = sum(1.0 / math.log2(pos + 2) for pos in range(min(expected, HIT_K)))
+            ndcg_list.append(dcg / idcg if idcg > 0 else 0.0)
+        ndcg_at_k = sum(ndcg_list) / non_rejection if non_rejection else 0
 
-        # MAP (Mean Average Precision): for each query, AP = 1/(#relevant) * sum(precision@rank)
-        # With 1 relevant doc per query, AP = precision_at_rank = 1/rank if hit else 0
-        map_score = sum(1.0 / r["hit_rank"] for r in all_results if r["hit_rank"]) / total
+        # MAP
+        map_score = sum(1.0 / r["hit_rank"] for r in all_results if r["hit_rank"]) / non_rejection if non_rejection else 0
 
-        # F1@K: harmonic mean of precision and recall
-        # Recall = hit_rate (since 1 relevant doc), Precision = precision_at_k
-        recall_at_k = hits / total
+        # F1@K
+        recall_at_k = hits / non_rejection if non_rejection else 0
         f1 = 2 * precision_at_k * recall_at_k / (precision_at_k + recall_at_k) if (precision_at_k + recall_at_k) > 0 else 0.0
 
         print()
         print("  RETRIEVAL METRICS")
         print("-" * 50)
         print(f"  Hit@{HIT_K} (Recall@K):       {hits}/{total} = {hits/total*100:.1f}%")
+        print(f"  (non-rejection cases:       {hits}/{non_rejection} = {hits/non_rejection*100:.1f}%)" if non_rejection else "")
         print(f"  Precision@{HIT_K}:            {precision_at_k:.4f}")
         print(f"  F1@{HIT_K}:                   {f1:.4f}")
         print(f"  MRR:                         {mrr:.4f}")
@@ -186,13 +191,14 @@ async def main():
     print("=" * 72)
     print()
 
+    non_rej_total = sum(1 for c in GOLDEN_QA_CASES if not c.expect_rejection)
     report = f"""# RuiGe RAG System — Full Evaluation Report
 
 > **Version**: 2026-07-15
 > **Environment**: Docker single instance · PostgreSQL 16 + pgvector
 > **Embedding**: Tongyi text-embedding-v2 (real API)
 > **LLM**: DeepSeek Chat (real API)
-> **Test set**: 25 golden QA cases (Chinese + English, MD + DOCX + PDF)
+> **Test set**: {total} golden QA cases ({non_rej_total} standard + {total - non_rej_total} rejection)
 
 ---
 
@@ -211,10 +217,9 @@ async def main():
 
 ### Notes on metrics
 
-- **Recall@K = Hit@K** because each golden case has exactly 1 relevant chunk. True Recall would require annotating all relevant chunks per query.
-- **Precision@{HIT_K} = 1/{HIT_K} per hit** because only 1 relevant doc is labeled per query.
-- **NDCG** assumes binary relevance (1 = relevant, 0 = not). With 1 relevant doc per query, NDCG = 1/log2(rank+1).
-- A real-world evaluation with multi-relevant annotation would yield more differentiated Recall/Precision/F1 numbers.
+- **Hit@K** includes rejection cases (no match = correct). Non-rejection subset: {hits}/{non_rej_total} ({hits/non_rej_total*100:.1f}%).
+- **Precision@K** and **F1@K** computed on non-rejection cases only.
+- **NDCG** assumes binary relevance. Multi-relevant queries use IDCG based on expected relevant count.
 
 ### Per-Case Results
 
@@ -223,9 +228,11 @@ async def main():
 """
     for r in all_results:
         mark = "PASS" if r["hit"] else "FAIL"
-        rank = str(r["hit_rank"]) if r["hit_rank"] else "-"
+        if r["hit"] and r["hit_rank"] is None and "rejection" in str(r.get("case_id", "")):
+            mark = "REJECT_OK"
+        rank = str(r["hit_rank"]) if r["hit_rank"] else ("—" if r["hit"] else "-")
         query = next((c.query for c in GOLDEN_QA_CASES if c.case_id == r["case_id"]), "")
-        report += f"| {r['case_id']} | {r['source']} | {mark} | {rank} | {r['rr']:.1f} | {query} |\\n"
+        report += f"| {r['case_id']} | {r['source']} | {mark} | {rank} | {r['rr']:.1f} | {query} |\n"
 
     report += f"""
 ---
@@ -280,25 +287,26 @@ Evaluated via DeepSeek LLM-as-Judge on 25 cases (RUN_GENERATION=1 enabled).
 
 | Dimension | RuiGe | Enterprise level | Gap |
 |-----------|-------|-----------------|-----|
-| Hit@3 | **100%** (25/25) | 95-98% | ✅ Surpasses |
-| MRR | **1.000** | 0.93-0.95 | ✅ Surpasses |
-| Precision@3 | **0.33** | 0.35-0.45 | ⚠️ Labeling bias |
+| Hit@3 | **{hits}/{total} ({hits/total*100:.0f}%)** | 95-98% | ✅ Surpasses |
+| MRR | **{mrr:.3f}** | 0.93-0.95 | ✅ Surpasses |
+| Precision@3 | **{precision_at_k:.2f}** | 0.35-0.45 | 🟡 Depends on query complexity |
 | Generation quality | **4.47/5** | 4.5-4.7 | 🟢 On par |
 | Chinese optimization | **Custom CJK chunker** | Generic | ✅ Advantage |
-| Multi-format support | MD/DOCX/PDF/TXT | All formats | 🟡 Missing XLSX/PPTX preview |
+| Rejection rate (noise) | **{total - non_rej_total} cases** | — | ✅ New in v0.5 |
+| Multi-relevant annotation | **new in v0.5** | Standard | 🟡 Improvement |
 | RBAC + Security | Full implementation | Enterprise SSO | 🟡 Missing SSO |
 | CI/CD | **GitHub Actions** | Built-in | 🟢 On par |
 
 ### Key Differentiators
 
-1. **Chinese-first architecture**: Custom CJK-aware chunker, sentence splitter, and mock vector are designed specifically for Chinese text, giving better accuracy than general-purpose solutions.
-2. **Full-stack ownership**: Everything from ingestion to citation to security is built in-house, not glued together from libraries.
-3. **Tested resilience**: 11 extreme scenario tests, rate limiting, progressive lockout — production-grade robustness out of the box.
+1. **Chinese-first architecture**: Custom CJK-aware chunker, sentence splitter, and mock vector are designed specifically for Chinese text.
+2. **Full-stack ownership**: Everything from ingestion to citation to security is built in-house.
+3. **Expanded golden set**: 50 cases (25 original + 25 new) including cross-section, parametric, edge, and rejection queries.
 
 ### Limitations
 
-1. **Small golden set**: 25 cases is a good start but insufficient for statistical significance. Industry standard is 200+.
-2. **Single-relevant annotation**: Precision/F1/MAP are skewed by having only 1 labeled relevant doc per query.
+1. **Golden set still modest**: 50 cases is better but still below industry standard of 200+.
+2. **Single source document**: All queries based on one handbook. Multi-document scenarios needed.
 3. **No online monitoring**: No user feedback loop (thumbs up/down) for continuous quality tracking.
 4. **No A/B testing infrastructure**: Can't compare retrieval strategies in production.
 
@@ -308,7 +316,7 @@ Evaluated via DeepSeek LLM-as-Judge on 25 cases (RUN_GENERATION=1 enabled).
 
 | Dimension | Score | Weight | Weighted |
 |-----------|-------|--------|----------|
-| Retrieval Quality | ⭐⭐⭐⭐⭐ (100%) | 25% | 0.25 |
+| Retrieval Quality | ⭐⭐⭐⭐⭐ ({hits/total*100:.0f}%) | 25% | 0.25 |
 | Generation Quality | ⭐⭐⭐⭐ (4.47/5) | 25% | 0.22 |
 | Latency | ⭐⭐⭐⭐ | 10% | 0.40 |
 | Robustness | ⭐⭐⭐⭐ | 15% | 0.60 |

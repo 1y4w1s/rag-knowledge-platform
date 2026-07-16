@@ -3,6 +3,12 @@
 from typing import Annotated
 from uuid import UUID
 
+from app.core.exceptions import (
+    BadRequestError,
+    ConflictError,
+    ForbiddenError,
+    NotFoundError,
+)
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,7 +60,9 @@ from app.services.rag.persistence import list_chat_messages
 from app.services.rag.thread_persistence import (
     archive_kb_thread,
     create_kb_thread,
+    export_thread_messages,
     get_kb_thread_for_user,
+    hard_delete_message,
     list_kb_threads,
     update_kb_thread,
 )
@@ -83,15 +91,9 @@ async def _get_kb_thread_or_404(
         user_id=current_user.id,
     )
     if thread is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="会话不存在",
-        )
+        raise NotFoundError(detail="会话不存在")
     if thread.status == ThreadStatus.archived:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="会话不存在",
-        )
+        raise NotFoundError(detail="会话不存在")
     return _thread_response(thread)
 
 
@@ -168,10 +170,7 @@ async def patch_kb_thread_api(
         db, kb_id=kb_id, current_user=current_user, department_id=department_id
     )
     if body.title is None and body.status is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="至少提供 title 或 status",
-        )
+        raise BadRequestError(detail="至少提供 title 或 status")
     thread = await update_kb_thread(
         db,
         thread_id=thread_id,
@@ -181,10 +180,7 @@ async def patch_kb_thread_api(
         status=body.status,
     )
     if thread is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="会话不存在",
-        )
+        raise NotFoundError(detail="会话不存在")
     return _thread_response(thread)
 
 
@@ -207,10 +203,7 @@ async def delete_kb_thread_api(
         user_id=current_user.id,
     )
     if existing is None or existing.status == ThreadStatus.archived:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="会话不存在",
-        )
+        raise NotFoundError(detail="会话不存在")
     thread = await archive_kb_thread(
         db,
         thread_id=thread_id,
@@ -218,10 +211,7 @@ async def delete_kb_thread_api(
         user_id=current_user.id,
     )
     if thread is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="会话不存在",
-        )
+        raise NotFoundError(detail="会话不存在")
 
 
 @router.post("/{thread_id}/chat")
@@ -247,10 +237,7 @@ async def post_kb_thread_chat(
     )
 
     if not await try_acquire_thread_generation_lock(thread_id):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=THREAD_GENERATION_BUSY_DETAIL,
-        )
+        raise ConflictError(detail=THREAD_GENERATION_BUSY_DETAIL)
 
     org_scope = None
     visible_kb_ids: frozenset[UUID] | None = None
@@ -320,10 +307,7 @@ async def get_kb_thread_messages(
     """按 thread 拉取库内对话历史。"""
     kb = await db.get(KnowledgeBase, kb_id)
     if kb is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="知识库不存在",
-        )
+        raise NotFoundError(detail="知识库不存在")
 
     _assert_kb_ownership(kb, current_user)
     _assert_kb_action_allowed(current_user, KbAction.read)
@@ -347,10 +331,7 @@ async def get_kb_thread_messages(
         thread_id=thread_id,
     )
     if not kb_visible and not rows:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权访问该资料库",
-        )
+        raise ForbiddenError(detail="无权访问该资料库")
 
     async def _kb_visible(
         _payload: HistoryCitationPayload, _raw: dict
@@ -367,3 +348,43 @@ async def get_kb_thread_messages(
         kb_id=kb_id,
     )
     return ChatMessagesListResponse(messages=messages)
+
+
+@router.delete("/{thread_id}/messages/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_kb_thread_message(
+    thread_id: UUID,
+    message_id: UUID,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    kb_id: UUID,
+) -> None:
+    """永久删除单条对话消息。"""
+    deleted = await hard_delete_message(db, message_id=message_id, user_id=current_user.id)
+    if not deleted:
+        raise NotFoundError(detail="消息不存在")
+
+
+@router.get("/{thread_id}/export")
+async def export_kb_thread(
+    thread_id: UUID,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    kb_id: UUID,
+) -> dict:
+    """导出 thread 全部对话为 JSON 格式。"""
+    messages = await export_thread_messages(db, thread_id, user_id=current_user.id)
+    if messages is None:
+        raise NotFoundError(detail="对话不存在")
+    return {
+        "thread_id": str(thread_id),
+        "kb_id": str(kb_id),
+        "messages": [
+            {
+                "role": m.role.value,
+                "content": m.content,
+                "citations": m.citations,
+                "created_at": m.created_at.isoformat() if m.created_at else None,
+            }
+            for m in messages
+        ],
+    }

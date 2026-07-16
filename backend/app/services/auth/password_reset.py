@@ -55,7 +55,8 @@ async def send_password_reset_email(
     token = _generate_reset_token(user.id)
 
     if not settings.resend_api_key:
-        return f"密码重置功能未配置。请联系管理员重置。Token(dev): {token}"
+        logger.warning("RESEND_API_KEY 未配置，密码重置邮件未发送")
+        return "如果该邮箱已注册，您将收到密码重置邮件"
 
     reset_url = f"{settings.forgot_password_reset_url}?token={token}"
 

@@ -1,7 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { Check, Copy, RefreshCw } from "lucide-react";
 
 import { ApprovalCard } from "@/components/chat/ApprovalCard";
-import { EmptyStateV44, CHAT_SCENE, PATHS } from "@/components/ui/EmptyState";
+import { EmptyStateV44, CHAT_SCENE } from "@/components/ui/EmptyState";
 import { CitationChip } from "@/components/chat/CitationChip";
 import { CitationPreview } from "@/components/chat/CitationPreview";
 import {
@@ -50,6 +52,8 @@ interface ChatMessageListProps {
   approvalError?: string | null;
   /** 是否已有历史会话：用于区分「首次对话」与「返回用户开新对话」的空态文案 */
   hasThreads?: boolean;
+  /** 重新生成回答 */
+  onRegenerate?: (messageIndex: number) => void;
 }
 
 export function ChatMessageList({
@@ -62,34 +66,40 @@ export function ChatMessageList({
   resolvingApprovalId,
   approvalError,
   hasThreads = false,
+  onRegenerate,
 }: ChatMessageListProps) {
   const isWorkspace = citationMode === "workspace";
   const navigate = useNavigate();
+  const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+
+  async function copyText(text: string, idx: number) {
+    try { await navigator.clipboard.writeText(text); } catch { /* noop */ }
+    setCopiedIdx(idx);
+    setTimeout(() => setCopiedIdx(null), 1800);
+  }
 
   if (messages.length === 0) {
-    // 有历史会话的返回用户，不应再看到「第一次对话」；用中性文案区分。
-    const returningScene = hasThreads
-      ? {
-          ...CHAT_SCENE,
-          eyebrow: "已有对话 · 选一个继续，或开始新的",
-          title: (
-            <>
-              开始一次<em>新的对话</em>
-            </>
-          ),
-          desc: (
-            <>
-              从左侧选择一个历史会话继续，或直接提问——答案仍会带出处、留在这里。
-            </>
-          ),
-          ctaPrimary: { label: "开始新对话", iconPath: PATHS.message },
-        }
-      : CHAT_SCENE;
+    // 有历史会话的返回用户：简洁空态，不显示插画
+    if (hasThreads) {
+      return (
+        <div className="absolute inset-x-0 bottom-0 top-0 flex items-center justify-center px-7">
+          <div className="text-center">
+            <p className="font-[var(--serif)] text-[1.125rem] font-semibold text-[var(--text)]">
+              选择一个会话继续
+            </p>
+            <p className="mt-2 max-w-sm text-[0.875rem] leading-relaxed text-[var(--mut)]">
+              从左侧选择一个历史会话，或直接输入问题开始新的对话
+            </p>
+          </div>
+        </div>
+      );
+    }
 
+    // 第一次使用的用户（无历史会话）：保留插画引导
     return (
       <EmptyStateV44
         scene={{
-          ...returningScene,
+          ...CHAT_SCENE,
           ctaSecondary: {
             ...CHAT_SCENE.ctaSecondary,
             onClick: () => navigate("/knowledge-bases"),
@@ -107,8 +117,16 @@ export function ChatMessageList({
           {group.items.map(({ message, index: messageIndex }) => {
             if (message.role === "user") {
               return (
-                <div key={`user-${messageIndex}`} className="chat-user-msg">
+                <div key={`user-${messageIndex}`} className="chat-user-msg group relative">
                   {message.content}
+                  <button
+                    className="msg-action-btn absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => { e.stopPropagation(); void copyText(message.content, messageIndex); }}
+                    title="复制"
+                    aria-label="复制消息"
+                  >
+                    {copiedIdx === messageIndex ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                  </button>
                   <time
                     className="chat-msg-time chat-msg-time-user"
                     dateTime={message.createdAt}
@@ -138,7 +156,7 @@ export function ChatMessageList({
                 {message.streaming &&
                   !message.content &&
                   message.citations.length === 0 && (
-                    <p className="chat-retrieving text-sm text-muted">
+                    <p className="chat-retrieving">
                       {isWorkspace ? "正在检索资料库…" : "正在检索资料库…"}
                     </p>
                   )}
@@ -249,6 +267,29 @@ export function ChatMessageList({
                   >
                     {formatMessageTime(message.createdAt)}
                   </time>
+                )}
+
+                {!message.streaming && (
+                  <div className="flex items-center justify-end gap-1 mt-2">
+                    <button
+                      className="msg-action-btn"
+                      onClick={() => void copyText(message.content, messageIndex)}
+                      title="复制"
+                      aria-label="复制回复"
+                    >
+                      {copiedIdx === messageIndex ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+                    </button>
+                    {onRegenerate && (
+                      <button
+                        className="msg-action-btn"
+                        onClick={() => onRegenerate(messageIndex)}
+                        title="重新生成"
+                        aria-label="重新生成回答"
+                      >
+                        <RefreshCw className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             );

@@ -1,4 +1,4 @@
-# Zhian (知岸) - pull Docker base images (China mirrors + retry)
+# 睿阁 (Ruige) - pull Docker base images (China mirrors + retry)
 # Run from repo root: .\scripts\docker-pull.ps1
 # Then: docker compose up -d --build
 
@@ -60,7 +60,7 @@ function Pull-ImageWithFallback {
     return $false
 }
 
-Write-Host "Zhian (知岸) Docker image pre-pull" -ForegroundColor Cyan
+Write-Host "睿阁 (Ruige) Docker image pre-pull" -ForegroundColor Cyan
 Write-Host "Tip: apply scripts/docker-engine.example.json in Docker Desktop -> Engine"
 
 docker version *> $null

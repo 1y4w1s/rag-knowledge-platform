@@ -1,4 +1,4 @@
-"""chat_threads 落库与按 scope 解析活跃 thread（G2-0.3 · G2-1.1 CRUD）。"""
+﻿"""chat_threads 落库与按 scope 解析活跃 thread（G2-0.3 · G2-1.1 CRUD）。"""
 
 from __future__ import annotations
 
@@ -611,3 +611,71 @@ async def archive_kb_thread(
         thread_kind=ThreadKind.knowledge_base,
         kb_id=kb_id,
     )
+
+async def hard_delete_message(
+    db: AsyncSession,
+    message_id: UUID,
+    *,
+    user_id: UUID,
+) -> bool:
+    """永久删除单条消息。返回 False 表示消息不存在或不属于该用户。"""
+    from sqlalchemy import select
+    from app.models.chat_message import ChatMessage
+    stmt = select(ChatMessage).where(
+        ChatMessage.id == message_id,
+        ChatMessage.user_id == user_id,
+    )
+    result = await db.execute(stmt)
+    msg = result.scalar_one_or_none()
+    if msg is None:
+        from app.core.exceptions import NotFoundError
+        raise NotFoundError(detail="消息不存在")
+    await db.delete(msg)
+    await db.flush()
+    return True
+
+
+async def export_thread_messages(
+    db: AsyncSession,
+    thread_id: UUID,
+    *,
+    user_id: UUID,
+) -> list | None:
+    """导出某 thread 的全部消息（用于 export 端点）。"""
+    from app.models.chat_message import ChatMessage
+    from sqlalchemy import select
+    thread = await db.get(ChatThread, thread_id)
+    if thread is None or thread.user_id != user_id:
+        return None
+    stmt = (
+        select(ChatMessage)
+        .where(ChatMessage.thread_id == thread_id)
+        .order_by(ChatMessage.created_at.asc())
+    )
+    result = await db.execute(stmt)
+    return list(result.scalars().all())
+
+
+async def get_thread_or_404(
+    db: AsyncSession,
+    thread_id: UUID,
+    *,
+    thread_kind: ThreadKind,
+    user_id: UUID,
+    kb_id: UUID | None = None,
+) -> ChatThread:
+    """按 thread_id + 归属校验获取 thread，不存在则抛 NotFoundError。"""
+    from sqlalchemy import select
+    from app.core.exceptions import NotFoundError
+    stmt = select(ChatThread).where(
+        ChatThread.id == thread_id,
+        ChatThread.user_id == user_id,
+        ChatThread.thread_kind == thread_kind,
+    )
+    if kb_id is not None:
+        stmt = stmt.where(ChatThread.kb_id == kb_id)
+    result = await db.execute(stmt)
+    thread = result.scalar_one_or_none()
+    if thread is None:
+        raise NotFoundError(detail="对话不存在")
+    return thread

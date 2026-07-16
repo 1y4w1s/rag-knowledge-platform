@@ -105,7 +105,7 @@ export function DocumentAdvancedFilter({
       {open ? (
         <div
           id="document-advanced-filter-panel"
-          className="absolute left-0 top-[calc(100%+0.5rem)] z-20 w-[min(22rem,calc(100vw-2rem))] rounded-xl border border-[var(--line2)] bg-white p-4 shadow-md"
+          className="absolute left-0 top-[calc(100%+0.5rem)] z-20 w-[min(22rem,calc(100vw-2rem))] rounded-2xl border border-[var(--line2)] bg-[var(--bg)] p-4 shadow-[var(--card-shadow)]"
         >
           <div className="space-y-4">
             <fieldset>

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
+import logging
 import time
 import uuid
 from collections.abc import AsyncIterator
@@ -14,6 +16,7 @@ from app.services.rag.generation import (
     build_messages,
     compress_history,
     contextualize_query,
+    decompose_query,
     expand_queries,
     rewrite_query,
     stream_deepseek_tokens,
@@ -28,16 +31,42 @@ from app.services.rag.persistence import (
 from app.services.rag.relevance import filter_relevant_chunks
 from app.services.rag.dedup import dedup_and_compress
 from app.services.rag.retrieval import (
+    RetrievedChunk,
     chunk_to_citation,
     retrieve_chunks,
     retrieve_workspace_chunks,
     workspace_chunk_to_citation,
 )
+from app.services.rag.safety_filter import input_safety_check, output_safety_check
+from app.core.config import settings
+from app.core.degradation import (
+    assess_degradation,
+    degradation_label,
+    degradation_message,
+)
 from app.services.workspace.scope import WorkspaceScope
+
+logger = logging.getLogger(__name__)
 
 
 def _sse_event(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+
+async def _timed_retrieve_chunks(db: AsyncSession, *, kb_id: UUID, query: str, visible_kb_ids: frozenset[UUID] | None = None, hide_admin_only: bool = False, top_k: int = 5) -> list:
+    """retrieve_chunks 的超时包装。"""
+    return await asyncio.wait_for(
+        retrieve_chunks(db, kb_id=kb_id, query=query, top_k=top_k, visible_kb_ids=visible_kb_ids, hide_admin_only=hide_admin_only),
+        timeout=settings.retrieval_timeout_seconds,
+    )
+
+
+async def _timed_retrieve_workspace_chunks(db: AsyncSession, *, query: str, scope: object, org_scope: object | None = None, hide_admin_only: bool = False, top_k: int = 5) -> list:
+    """retrieve_workspace_chunks 的超时包装。"""
+    return await asyncio.wait_for(
+        retrieve_workspace_chunks(db, query=query, scope=scope, org_scope=org_scope, top_k=top_k, hide_admin_only=hide_admin_only),
+        timeout=settings.retrieval_timeout_seconds,
+    )
 
 
 async def stream_chat_events(
@@ -64,11 +93,45 @@ async def stream_chat_events(
                 for msg in history_rows
             ]
 
+    # 1.5 输入安全过滤
+    is_safe, block_reply = input_safety_check(message)
+    if not is_safe:
+        token_stream = stream_no_context_reply(block_reply)
+        async for text in token_stream:
+            if text:
+                yield _sse_event("token", {"text": text})
+        message_id = uuid.uuid4()
+        await save_chat_turn(
+            db, kb_id=kb_id, user_id=user_id,
+            user_content=message, assistant_content=block_reply,
+            citations=[], assistant_message_id=message_id,
+            retrieval_duration_ms=0, thread_id=thread_id,
+        )
+        yield _sse_event("done", {"message_id": str(message_id), "citations": []})
+        return
+
+    # 1.75 降级评估：检查外部服务健康状况
+    deg_level = assess_degradation()
+    if deg_level >= 4:  # ALL_DOWN
+        msg = degradation_message(deg_level)
+        for char in msg:
+            yield _sse_event("token", {"text": char})
+        message_id = uuid.uuid4()
+        await save_chat_turn(
+            db, kb_id=kb_id, user_id=user_id,
+            user_content=message, assistant_content=msg,
+            citations=[], assistant_message_id=message_id,
+            retrieval_duration_ms=0, thread_id=thread_id,
+        )
+        yield _sse_event("done", {"message_id": str(message_id), "citations": []})
+        return
+    logger.debug("降级等级: %s (L%d)", degradation_label(deg_level), int(deg_level))
+
     # 2. 将最新问题改写为独立检索查询（带历史上下文）
     retrieval_query = await contextualize_query(message, history) if history else message
 
     t0 = time.perf_counter()
-    raw_chunks = await retrieve_chunks(
+    raw_chunks = await _timed_retrieve_chunks(
         db,
         kb_id=kb_id,
         query=retrieval_query,
@@ -76,6 +139,26 @@ async def stream_chat_events(
         hide_admin_only=hide_admin_only,
     )
     retrieval_duration_ms = int((time.perf_counter() - t0) * 1000)
+
+    # 2.5 跨段 Query Rewrite：复合问题拆分子查询多路召回
+    sub_queries = await decompose_query(retrieval_query)
+    if len(sub_queries) > 1:
+        seen_ids: set[uuid.UUID] = set()
+        merged: list[RetrievedChunk] = []
+        for sq in sub_queries:
+            if sq.lower().strip() == retrieval_query.lower().strip():
+                continue
+            sq_chunks = await _timed_retrieve_chunks(
+                db, kb_id=kb_id, query=sq,
+                visible_kb_ids=visible_kb_ids, hide_admin_only=hide_admin_only,
+            )
+            for c in sq_chunks:
+                if c.chunk_id not in seen_ids:
+                    seen_ids.add(c.chunk_id)
+                    merged.append(c)
+        if merged:
+            raw_chunks = raw_chunks + merged
+
     chunks = filter_relevant_chunks(raw_chunks, retrieval_query)
     chunks = dedup_and_compress(chunks)
     citations = [chunk_to_citation(c) for c in chunks]
@@ -90,7 +173,7 @@ async def stream_chat_events(
     if not chunks:
         rewritten = await rewrite_query(retrieval_query)
         if rewritten:
-            raw_chunks = await retrieve_chunks(
+            raw_chunks = await _timed_retrieve_chunks(
                 db,
                 kb_id=kb_id,
                 query=rewritten,
@@ -118,6 +201,10 @@ async def stream_chat_events(
             yield _sse_event("token", {"text": text})
 
     assistant_content = "".join(token_parts)
+    # 输出安全审计（已发送的 token 无法撤回，但可记录告警）
+    safe_out, reasons = output_safety_check(assistant_content)
+    if not safe_out:
+        logger.warning("LLM 输出安全违规: reasons=%s", reasons)
     message_id = uuid.uuid4()
     await save_chat_turn(
         db,
@@ -157,7 +244,7 @@ async def stream_workspace_chat_events(
     seen_chunk_ids: set[UUID] = set()
     t0 = time.perf_counter()
     for eq in expanded:
-        raw = await retrieve_workspace_chunks(
+        raw = await _timed_retrieve_workspace_chunks(
             db, query=eq, scope=scope,
             org_scope=org_scope, hide_admin_only=hide_admin_only,
         )
@@ -187,7 +274,7 @@ async def stream_workspace_chat_events(
     if not chunks:
         rewritten = await rewrite_query(message)
         if rewritten:
-            raw_chunks = await retrieve_workspace_chunks(
+            raw_chunks = await _timed_retrieve_workspace_chunks(
                 db,
                 query=rewritten,
                 scope=scope,
@@ -217,6 +304,9 @@ async def stream_workspace_chat_events(
             yield _sse_event("token", {"text": text})
 
     assistant_content = "".join(token_parts)
+    safe_out, reasons = output_safety_check(assistant_content)
+    if not safe_out:
+        logger.warning("LLM 输出安全违规（workspace chat）: reasons=%s", reasons)
     message_id = uuid.uuid4()
     await save_workspace_chat_turn(
         db,

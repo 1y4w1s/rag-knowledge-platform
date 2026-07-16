@@ -120,7 +120,27 @@ async def run_generate_faq_draft(
     kb = await db.get(KnowledgeBase, resolved)
     kb_name = kb.name if kb is not None else ""
 
-    # 5) 组装草稿（全文存 payload_json；出参仅摘要）
+    # 5) 幂等检查：同一 run_id + filename 已有 pending 审批 → 直接返回
+    existing_stmt = select(AgentApproval).where(
+        AgentApproval.run_id == run_id,
+        AgentApproval.filename == filename,
+        AgentApproval.status == ApprovalStatus.pending,
+    )
+    existing = (await db.execute(existing_stmt)).scalar_one_or_none()
+    if existing is not None:
+        return GenerateFaqDraftToolResult(
+            ok=True,
+            data=GenerateFaqDraftOutput(
+                approval_id=existing.id,
+                filename=filename,
+                kb_name="",
+                draft_chars=len(existing.payload_json.get("markdown", "")) if existing.payload_json else 0,
+                citation_count=0,
+            ),
+            summary="FAQ 草稿已存在（幂等返回）",
+        )
+
+    # 6) 组装草稿（全文存 payload_json；出参仅摘要）
     draft = _compose_faq_draft(title=title, filename=filename, chunks=chunks)
 
     approval = AgentApproval(

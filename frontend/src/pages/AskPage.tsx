@@ -315,12 +315,12 @@ export function AskPage() {
       }
     >
       {!teamBusinessAllowed && (
-        <div className="px-6 pt-4">
+        <div className="px-7 pt-4">
           <UnassignedDepartmentBanner />
         </div>
       )}
       {kbCheckError && (
-        <div className="px-6 pt-4">
+        <div className="px-7 pt-4">
           <AlertBanner
             action={
               <Button

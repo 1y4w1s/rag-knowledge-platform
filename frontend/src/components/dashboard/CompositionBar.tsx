@@ -20,8 +20,8 @@ export function CompositionBar({
   return (
     <div className="rounded-2xl border border-[var(--line2)] bg-[var(--surf)] p-5 shadow-[var(--top-hi),var(--card-shadow)] transition-colors hover:border-[var(--line)]">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <span className="text-[13px] text-[var(--mut)] tracking-wide">知识构成</span>
-        <span className="rounded-[6px] border border-[var(--line2)] px-[7px] py-[2px] text-[10px] text-[var(--mut)] tracking-wider">
+        <span className="text-[13px] text-[var(--mut)]">知识构成</span>
+        <span className="rounded-[6px] border border-[var(--line2)] px-2 py-[3px] text-xs text-[var(--mut)]">
           格式分布
         </span>
       </div>
@@ -32,8 +32,8 @@ export function CompositionBar({
           <div key={name} className="flex items-center gap-3 py-[9px] text-[13px]">
             <span className="w-[84px] shrink-0 text-[var(--mut)]">{name}</span>
             <div className="h-[9px] flex-1 overflow-hidden rounded-full bg-[var(--surf2)]">
-              <i
-                className="block h-full rounded-full bg-[var(--ink)]"
+              <div
+                className="block h-full rounded-full bg-[var(--ink-strong)]"
                 style={{ width: `${percent}%` }}
               />
             </div>
@@ -46,17 +46,17 @@ export function CompositionBar({
 
       {/* 底部汇总 */}
       {(totalValue || chunkCount) && (
-        <div className="mt-4 flex gap-6 border-t border-[var(--line2)] pt-4">
+        <div className="mt-[18px] flex gap-[22px] border-t border-[var(--line2)] pt-4">
           {totalValue && (
             <div>
               <div className="font-[var(--serif)] text-2xl font-semibold">{totalValue}</div>
-              <div className="mt-1 text-[11px] text-[var(--mut)]">{totalLabel}</div>
+              <div className="mt-[3px] text-xs text-[var(--mut)]">{totalLabel}</div>
             </div>
           )}
           {chunkCount && (
             <div>
               <div className="font-[var(--serif)] text-2xl font-semibold">{chunkCount}</div>
-              <div className="mt-1 text-[11px] text-[var(--mut)]">切片颗粒</div>
+              <div className="mt-[3px] text-xs text-[var(--mut)]">切片颗粒</div>
             </div>
           )}
         </div>

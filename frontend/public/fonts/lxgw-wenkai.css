@@ -1,0 +1,15 @@
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url('/fonts/lxgw-wenkai-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'LXGW WenKai';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url('/fonts/lxgw-wenkai-700.woff2') format('woff2');
+}

@@ -1,10 +1,11 @@
-"""运维内部路由（Plan-RAG R2-4）：全库重嵌入，不对普通用户暴露。"""
+﻿"""运维内部路由（Plan-RAG R2-4）：全库重嵌入，不对普通用户暴露。"""
 
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Header, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Header
 
 from app.core.config import settings
+from app.core.exceptions import ForbiddenError, NotFoundError
 from app.services.ingestion.re_embed import count_stale_chunks, re_embed_all_chunks
 
 router = APIRouter(prefix="/internal", tags=["internal"])
@@ -12,9 +13,9 @@ router = APIRouter(prefix="/internal", tags=["internal"])
 
 def _require_re_embed_token(x_re_embed_token: str) -> None:
     if not settings.re_embed_token:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="未启用")
+        raise NotFoundError(detail="未启用")
     if x_re_embed_token != settings.re_embed_token:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="密钥无效")
+        raise ForbiddenError(detail="密钥无效")
 
 
 @router.post("/re-embed")

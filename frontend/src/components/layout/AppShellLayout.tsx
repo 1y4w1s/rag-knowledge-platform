@@ -21,6 +21,16 @@ export interface ShellRouteHandle {
   trailing?: React.ReactNode;
 }
 
+/** 已有 SectionTitle / h2 自带标题区的路由前缀 —— 这些页不再显示面包屑，避免与页面标题重复 */
+const HIDE_BREADCRUMB_PREFIXES = [
+  "/knowledge-bases",
+  "/settings",
+  "/organization",
+  "/admin",
+  "/chat",
+  "/ask",
+];
+
 function AppShellContent() {
   const matches = useMatches();
   const location = useLocation();
@@ -35,6 +45,9 @@ function AppShellContent() {
     | undefined;
 
   const { theme, toggleTheme } = useTheme();
+  const hideBreadcrumb =
+    location.pathname === "/dashboard" ||
+    HIDE_BREADCRUMB_PREFIXES.some((p) => location.pathname.startsWith(p));
 
   useEffect(() => {
     close();
@@ -57,9 +70,18 @@ function AppShellContent() {
         <AppTopbar
           theme={theme}
           onToggleTheme={toggleTheme}
-          breadcrumb={override ?? handle?.breadcrumb ?? <>睿阁</>}
-          trailing={handle?.trailing}
         />
+        {/* 面包屑 + trailing：预览顶栏里没有这些元素，单独一行渲染在顶栏与内容之间。已有 SectionTitle/h2 的页面（黑名单）不显示，避免双标题 */}
+        {!hideBreadcrumb && (override ?? handle?.breadcrumb ?? handle?.trailing) && (
+          <div className="flex shrink-0 items-center gap-2 border-b border-[var(--line2)] bg-[var(--shell-glass)]/60 px-5 py-2 text-sm text-muted">
+            <span className="truncate">
+              <span className="mx-1 text-[var(--line2)]">/</span>
+              {override ?? handle?.breadcrumb ?? <>睿阁</>}
+            </span>
+            <div className="flex-1" />
+            {handle?.trailing}
+          </div>
+        )}
         <main id="main" tabIndex={-1} className="min-h-0 flex-1 overflow-auto p-6">
           {showUnassignedBanner && <UnassignedDepartmentBanner />}
           <Outlet />

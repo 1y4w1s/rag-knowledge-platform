@@ -1,4 +1,4 @@
-"""注册 / 登录业务逻辑（Wave 1.1 + 4.2.2 username）。"""
+﻿"""注册 / 登录业务逻辑（Wave 1.1 + 4.2.2 username）。"""
 
 import re
 from time import monotonic
@@ -17,9 +17,12 @@ from app.schemas.auth import LoginResponse, RegisterResponse, UserPublic
 from app.services.audit.log import write_audit_log
 from app.services.auth.jwt import create_access_token
 from app.services.auth.login_rate_limit import (
+    _lockout_remaining,
+    _rate_limit_key,
     clear_login_failures,
     is_ip_login_rate_limited,
     is_login_rate_limited,
+    record_lockout_strike,
     record_login_failure,
 )
 from app.services.auth.org_context import (
@@ -214,30 +217,36 @@ async def login_user(
 
         # IP 维度限流：同 IP 20 次/5min → 429
         if is_ip_login_rate_limited(ip):
-            await write_audit_log(
-                db,
-                action="auth.ip_rate_limited",
-                metadata={"identifier": identifier.strip()},
-                ip=ip,
-            )
-            await db.commit()
+            try:
+                await write_audit_log(
+                    db,
+                    action="auth.ip_rate_limited",
+                    metadata={"identifier": identifier.strip()},
+                    ip=ip,
+                )
+                await db.commit()
+            except Exception:
+                pass  # 审计失败不阻断限流
             raise RateLimitError("当前 IP 登录失败次数过多，请稍后重试")
 
         # identifier 维度限流：5 次/15min → 429
         if is_login_rate_limited(ip, identifier):
             lockout_key = _rate_limit_key(ip, identifier)
             record_lockout_strike(lockout_key)
-            remaining = _lockout_remaining(lockout_key)
+            remaining = _lockout_remaining(lockout_key, now=monotonic())
             mins = remaining // 60
             secs = remaining % 60
             msg = f"登录失败次数过多，请 {mins} 分 {secs} 秒后再试" if mins else f"登录失败次数过多，请 {secs} 秒后再试"
-            await write_audit_log(
-                db,
-                action="auth.login_rate_limited",
-                metadata={"identifier": identifier.strip(), "lockout_seconds": remaining},
-                ip=ip,
-            )
-            await db.commit()
+            try:
+                await write_audit_log(
+                    db,
+                    action="auth.login_rate_limited",
+                    metadata={"identifier": identifier.strip(), "lockout_seconds": remaining},
+                    ip=ip,
+                )
+                await db.commit()
+            except Exception:
+                pass  # 审计失败不阻断限流
             raise RateLimitError(msg)
         record_login_failure(ip, identifier)
         await write_audit_log(

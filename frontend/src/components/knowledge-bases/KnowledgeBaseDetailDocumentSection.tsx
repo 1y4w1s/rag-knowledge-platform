@@ -12,6 +12,7 @@ import {
 import { DocumentTable } from "@/components/knowledge-bases/DocumentTable";
 import { EmptyStateV44, KBDETAIL_SCENE } from "@/components/ui/EmptyState";
 import { MemberReadOnlyHint } from "@/components/knowledge-bases/MemberReadOnlyHint";
+import { SectionTitle } from "@/components/common/SectionTitle";
 import { AlertBanner } from "@/components/ui/AlertBanner";
 import { Button } from "@/components/ui/button";
 import { TrashDialog } from "@/components/knowledge-bases/TrashDialog";
@@ -50,6 +51,7 @@ type KnowledgeBaseDetailDocumentSectionProps = {
   onUpload: (files: File[]) => void;
   onRequestDelete: (doc: Document) => void;
   onRetry: (docId: string) => Promise<void>;
+  onVisibilityToast: (message: string) => void;
 };
 
 export function KnowledgeBaseDetailDocumentSection({
@@ -79,18 +81,28 @@ export function KnowledgeBaseDetailDocumentSection({
   onUpload,
   onRequestDelete,
   onRetry,
+  onVisibilityToast,
 }: KnowledgeBaseDetailDocumentSectionProps) {
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const { isOrgAdmin, user } = useAuth();
   const canChangeVisibility = isOrgAdmin || user?.is_owner === true;
   const [trashOpen, setTrashOpen] = useState(false);
+  const [pendingVisibilityId, setPendingVisibilityId] = useState<string | null>(null);
 
   async function handleVisibilityChange(docId: string, visibility: "everyone" | "admin_only") {
+    setPendingVisibilityId(docId);
     try {
       await updateDocumentVisibility(kbId, docId, visibility);
+      onVisibilityToast(
+        visibility === "admin_only" ? "已改为仅管理员可见" : "已改为全员可见",
+      );
       onRefresh();
-    } catch {
-      // error handled by parent
+    } catch (err) {
+      onVisibilityToast(
+        err instanceof Error ? err.message : "可见性修改失败",
+      );
+    } finally {
+      setPendingVisibilityId(null);
     }
   }
   function handleUploadInputChange(event: ChangeEvent<HTMLInputElement>) {
@@ -146,6 +158,23 @@ export function KnowledgeBaseDetailDocumentSection({
         </>
       ) : (
         <>
+          <SectionTitle
+            label="文档"
+            en="DOCUMENTS"
+            count={total}
+            trailing={
+              uploadAllowed ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setTrashOpen(true)}
+                >
+                  回收站
+                </Button>
+              ) : undefined
+            }
+          />
           <DocumentListToolbar
             pathname={pathname}
             search={search}
@@ -177,6 +206,7 @@ export function KnowledgeBaseDetailDocumentSection({
                 documents={displayDocuments}
                 canManage={uploadAllowed}
                 canChangeVisibility={canChangeVisibility}
+                pendingVisibilityId={pendingVisibilityId}
                 deletingDocId={deletingDocId}
                 onRequestDelete={onRequestDelete}
                 onRetry={onRetry}
@@ -190,15 +220,6 @@ export function KnowledgeBaseDetailDocumentSection({
                   pageSize={DOCUMENT_PAGE_SIZE}
                   onPageChange={onPageChange}
                 />
-              )}
-              {uploadAllowed && (
-                <button
-                  type="button"
-                  className="mt-3 text-xs text-muted-foreground underline hover:text-foreground"
-                  onClick={() => setTrashOpen(true)}
-                >
-                  回收站
-                </button>
               )}
             </>
           )}

@@ -17,6 +17,7 @@ import { AlertBanner } from "@/components/ui/AlertBanner";
 import { Button } from "@/components/ui/button";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { useAuth } from "@/lib/auth-context";
+import { SectionTitle } from "@/components/common/SectionTitle";
 import {
   canWriteKnowledgeBase,
   isTeamMemberReadOnly,
@@ -45,7 +46,7 @@ function KbGridSkeleton() {
       {[1, 2].map((i) => (
         <div
           key={i}
-          className="h-[120px] animate-pulse rounded-xl border border-[var(--line2)] bg-white/60"
+          className="h-[120px] animate-pulse rounded-2xl border border-[var(--line2)] bg-[var(--surf2)]"
         />
       ))}
     </div>
@@ -232,108 +233,102 @@ export function KnowledgeBasesPage() {
     }
   }
 
+  const createButton = canCreateKb ? (
+    <Button type="button" size="sm" variant="brand" onClick={() => setDialogOpen(true)}>
+      + 新建资料库
+    </Button>
+  ) : isMemberReadOnly ? (
+    <MemberWriteBlockedButton size="sm" onBlocked={notifyMemberWriteBlocked}>
+      + 新建资料库
+    </MemberWriteBlockedButton>
+  ) : null;
+
   return (
-    <div>
-      <header className="mb-[18px] flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="font-serif text-[1.05rem] font-semibold tracking-[0.02em] text-foreground">
-            资料库
-          </h2>
-          <p className="mt-1 text-[0.78rem] text-muted">
-            整理文档集合，供 AI 带引用回答
-          </p>
-        </div>
-        {canCreateKb ? (
-          <Button type="button" size="sm" variant="brand" onClick={() => setDialogOpen(true)}>
-            + 新建资料库
-          </Button>
-        ) : isMemberReadOnly ? (
-          <MemberWriteBlockedButton size="sm" onBlocked={notifyMemberWriteBlocked}>
-            + 新建资料库
-          </MemberWriteBlockedButton>
-        ) : null}
-      </header>
+    <div className="max-w-[1180px] mx-auto px-7 pb-16 pt-7">
+      <section aria-label="资料库列表">
+        <SectionTitle label="资料库" en="KNOWLEDGE BASES" trailing={createButton} />
 
-      {error && (
-        <AlertBanner
-          className="mb-4"
-          action={
-            <Button type="button" variant="outline" size="sm" onClick={loadList}>
-              重试
-            </Button>
-          }
-        >
-          {error}
-        </AlertBanner>
-      )}
+        {error && (
+          <AlertBanner
+            className="mb-4"
+            action={
+              <Button type="button" variant="outline" size="sm" onClick={loadList}>
+                重试
+              </Button>
+            }
+          >
+            {error}
+          </AlertBanner>
+        )}
 
-      {isMemberReadOnly && total > 0 && <MemberReadOnlyHint />}
+        {isMemberReadOnly && total > 0 && <MemberReadOnlyHint />}
 
-      {loading ? (
-        <KbGridSkeleton />
-      ) : !hasListContext ? (
-        <EmptyStateV44
-          scene={{
-            ...KBS_SCENE,
-            ctaPrimary: {
-              label: canCreateKb ? "新建第一个资料库" : "联系管理员建库",
-              iconPath: PATHS.plus,
-              onClick: canCreateKb
-                ? () => setDialogOpen(true)
-                : notifyMemberWriteBlocked,
-            },
-            ctaSecondary: {
-              label: "查看概览",
-              iconPath: PATHS.doc,
-              onClick: () => navigate("/dashboard"),
-            },
-          }}
-        />
-      ) : (
-        <>
-          <KbListSearchBar
-            pathname={pathname}
-            search={search}
-            query={listQuery}
-            sortMode={sortMode}
-            resultCount={total}
+        {loading ? (
+          <KbGridSkeleton />
+        ) : !hasListContext ? (
+          <EmptyStateV44
+            scene={{
+              ...KBS_SCENE,
+              ctaPrimary: {
+                label: canCreateKb ? "新建第一个资料库" : "联系管理员建库",
+                iconPath: PATHS.plus,
+                onClick: canCreateKb
+                  ? () => setDialogOpen(true)
+                  : notifyMemberWriteBlocked,
+              },
+              ctaSecondary: {
+                label: "查看概览",
+                iconPath: PATHS.doc,
+                onClick: () => navigate("/dashboard"),
+              },
+            }}
           />
-
-          {listQuery && total === 0 ? (
-            <KbListSearchEmptyPanel
+        ) : (
+          <>
+            <KbListSearchBar
+              pathname={pathname}
+              search={search}
               query={listQuery}
-              clearTo={clearSearchTo}
+              sortMode={sortMode}
+              resultCount={total}
             />
-          ) : (
-            <>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {items.map((kb) => (
-                  <KnowledgeBaseCard
-                    key={kb.id}
-                    kb={kb}
-                    canEdit={canEditKb}
-                    canDelete={canDeleteKb}
-                    deleting={deletingId === kb.id}
-                    onEdit={handleEditClick}
-                    onDelete={handleDeleteClick}
-                    onMemberWriteBlocked={
-                      isMemberReadOnly ? notifyMemberWriteBlocked : undefined
-                    }
-                  />
-                ))}
-              </div>
-              <DocumentListPagination
-                page={page}
-                pageCount={pageCount}
-                total={total}
-                pageSize={KB_LIST_PAGE_SIZE}
-                itemUnit="个资料库"
-                onPageChange={goToPage}
+
+            {listQuery && total === 0 ? (
+              <KbListSearchEmptyPanel
+                query={listQuery}
+                clearTo={clearSearchTo}
               />
-            </>
-          )}
-        </>
-      )}
+            ) : (
+              <>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {items.map((kb) => (
+                    <KnowledgeBaseCard
+                      key={kb.id}
+                      kb={kb}
+                      canEdit={canEditKb}
+                      canDelete={canDeleteKb}
+                      deleting={deletingId === kb.id}
+                      onEdit={handleEditClick}
+                      onDelete={handleDeleteClick}
+                      onMemberWriteBlocked={
+                        isMemberReadOnly ? notifyMemberWriteBlocked : undefined
+                      }
+                    />
+                  ))}
+                </div>
+                <DocumentListPagination
+                  page={page}
+                  pageCount={pageCount}
+                  total={total}
+                  pageSize={KB_LIST_PAGE_SIZE}
+                  itemUnit="个资料库"
+                  onPageChange={goToPage}
+                />
+              </>
+            )}
+          </>
+        )}
+      </section>
 
       <EditKnowledgeBaseDialog
         kb={editTarget}

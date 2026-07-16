@@ -40,8 +40,8 @@ export function DocumentListPagination({
   }
 
   return (
-    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-      <p className="text-sm text-muted-foreground">
+    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-[var(--line2)] pt-4">
+      <p className="text-sm text-[var(--mut)]">
         第 {start}–{end} 条，共 {total} {itemUnit}
       </p>
       <div className="flex flex-wrap items-center gap-2">
@@ -54,7 +54,7 @@ export function DocumentListPagination({
         >
           上一页
         </Button>
-        <span className="min-w-[4.5rem] text-center text-sm text-muted-foreground">
+        <span className="min-w-[4.5rem] text-center text-sm text-[var(--mut)]">
           {page} / {pageCount}
         </span>
         <Button
@@ -74,7 +74,7 @@ export function DocumentListPagination({
               submitJump();
             }}
           >
-            <label htmlFor="list-page-jump" className="text-sm text-muted-foreground">
+            <label htmlFor="list-page-jump" className="text-sm text-[var(--mut)]">
               跳至
             </label>
             <input
@@ -87,9 +87,9 @@ export function DocumentListPagination({
               onChange={(event) => setJumpDraft(event.target.value)}
               placeholder={String(page)}
               aria-label={`跳转到第几页，共 ${pageCount} 页`}
-              className="h-8 w-16 rounded-md border border-[var(--line2)] bg-white px-2 text-center text-sm text-foreground outline-none transition-colors focus:border-[var(--action)] focus:ring-1 focus:ring-[var(--action)]"
+              className="h-8 w-16 rounded-[8px] border border-[var(--line2)] bg-[var(--surf)] px-2 text-center text-sm text-foreground outline-none transition-colors focus:border-[var(--action)] focus:ring-1 focus:ring-[var(--action)]"
             />
-            <span className="text-sm text-muted-foreground">页</span>
+            <span className="text-sm text-[var(--mut)]">页</span>
             <Button type="submit" variant="outline" size="sm">
               跳转
             </Button>

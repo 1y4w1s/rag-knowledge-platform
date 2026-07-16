@@ -1,4 +1,6 @@
-"""Wave 3.5 golden_qa Hit@3：标准问题 Top-3 内须命中预期 chunk/章节。"""
+"""Wave 3.5 golden_qa Hit@3：标准问题 Top-3 内须命中预期 chunk/章节。
+v0.5：支持多相关文档标注 + 拒答测试。
+"""
 
 from __future__ import annotations
 
@@ -27,6 +29,9 @@ from tests.golden_qa_loader import (
     GOLDEN_QA_CASES,
     GoldenQACase,
     HIT_K,
+    chunk_matches,
+    hit_at_k,
+    reciprocal_rank,
 )
 
 _CJK = re.compile(r"[\u4e00-\u9fff]")
@@ -138,35 +143,6 @@ def _make_golden_pdf(path: Path) -> None:
     c.save()
 
 
-def _chunk_matches(case: GoldenQACase, chunk: RetrievedChunk) -> bool:
-    if case.section_title is not None:
-        if chunk.section_title != case.section_title:
-            return False
-    if case.heading_path_contains is not None:
-        if case.heading_path_contains not in (chunk.heading_path or ""):
-            return False
-    if case.content_contains is not None:
-        if case.content_contains.lower() not in chunk.content.lower():
-            return False
-    if case.page_number is not None:
-        if chunk.page_number != case.page_number:
-            return False
-    return True
-
-
-def hit_at_k(chunks: list[RetrievedChunk], case: GoldenQACase, k: int = HIT_K) -> bool:
-    """Top-K 内至少一条命中 golden 期望即 Pass（Hit@K）。"""
-    return any(_chunk_matches(case, chunk) for chunk in chunks[:k])
-
-
-def reciprocal_rank(chunks: list[RetrievedChunk], case: GoldenQACase, k: int = HIT_K) -> float:
-    """计算 MRR 贡献：第一个匹配 chunk 的倒数排名；无匹配返回 0。"""
-    for rank, chunk in enumerate(chunks[:k], start=1):
-        if _chunk_matches(case, chunk):
-            return 1.0 / rank
-    return 0.0
-
-
 @pytest.fixture
 def upload_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
@@ -182,7 +158,11 @@ async def test_golden_qa_hit_at_3(
     tmp_path: Path,
     case: GoldenQACase,
 ) -> None:
-    """golden_qa.json 各题：hybrid 检索 Top-3 内须命中预期 chunk。"""
+    """golden_qa.json 各题：hybrid 检索 Top-3 内须命中预期 chunk。
+
+    正常 case：至少 min_match 个相关 chunk 在 Top-3 内。
+    拒答 case：Top-3 内无一匹配（无相关结果）。
+    """
     headers, user = await register_and_login(prefix=f"golden-{case.case_id.lower()}")
     kb = await _create_kb(client, headers, user, name=f"Hit@3 {case.case_id}")
     kb_id = UUID(kb["id"])
@@ -220,10 +200,23 @@ async def test_golden_qa_hit_at_3(
         )
 
     assert chunks, f"{case.case_id} 检索无结果"
-    assert hit_at_k(chunks, case, k=HIT_K), (
-        f"{case.case_id} Hit@{HIT_K} 未命中；Top-{HIT_K}="
-        f"{[(c.section_title, c.page_number, c.content[:40]) for c in chunks[:HIT_K]]}"
-    )
+
+    passed = hit_at_k(chunks, case, k=HIT_K)
+
+    if case.expect_rejection:
+        # 拒答 case：期望无一匹配
+        match_details = [(c.section_title, c.page_number, c.content[:60]) for c in chunks[:HIT_K] if chunk_matches(case, c)]
+        assert passed, (
+            f"{case.case_id} 拒答失败：Top-3 内存在匹配结果 "
+            f"{match_details}"
+        )
+    else:
+        assert passed, (
+            f"{case.case_id} Hit@{HIT_K} 未命中{'（需 ≥{} 个匹配）'.format(case.min_match) if case.min_match > 1 else ''}；"
+            f"Top-{HIT_K}="
+            f"{[(c.section_title, c.page_number, c.content[:40]) for c in chunks[:HIT_K]]}"
+        )
+
     rr = reciprocal_rank(chunks, case, k=HIT_K)
     if rr < 1.0:
         print(f"  {case.case_id}: RR={rr:.3f}")

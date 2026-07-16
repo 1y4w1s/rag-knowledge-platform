@@ -283,6 +283,18 @@ export async function fetchDocumentPreview(
   return { blob, contentType };
 }
 
+/**
+ * 构造 PDF / 文本预览的 iframe 直链。
+ * 不走 blob URL —— Chrome 对 blob: 协议默认 X-Frame-Options: DENY，iframe 嵌入会被拒。
+ * 走同源相对路径（Vite dev proxy → 后端），用 query `token=` 携带 JWT 让后端鉴权。
+ * 仅对 PDF preview 端点生效（后端 middleware 已为此放宽）。
+ */
+export function buildDocumentPreviewUrl(kbId: string, docId: string): string {
+  const token = getAccessToken() ?? "";
+  const qs = token ? `?token=${encodeURIComponent(token)}` : "";
+  return `${API_BASE}/knowledge-bases/${kbId}/documents/${docId}/preview${qs}`;
+}
+
 export function isPdfPreview(fileType: string, contentType: string): boolean {
   return fileType === "pdf" || contentType.includes("application/pdf");
 }
@@ -293,6 +305,10 @@ export function isTextPreview(fileType: string, contentType: string): boolean {
     fileType === "md" ||
     contentType.startsWith("text/")
   );
+}
+
+export function isImagePreview(fileType: string): boolean {
+  return fileType === "png" || fileType === "jpg" || fileType === "jpeg";
 }
 
 // ── 文档可见性 ─────────────────────────────────────

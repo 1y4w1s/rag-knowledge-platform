@@ -12,7 +12,7 @@ import {
 } from "@/components/layout/AppShellLayout";
 import { OrgAdminGuard } from "@/components/layout/OrgAdminGuard";
 import { ResourceGuard } from "@/components/guards/ResourceGuard";
-import { WorkspaceGuard } from "@/components/guards/WorkspaceGuard";
+import { RequireTeamWorkspace } from "@/components/common/RequireTeamWorkspace";
 
 // 路由级懒加载：每个页面拆为独立 chunk，首屏只下载当前路由所需代码。
 // 页面均为命名导出，故用 .then(m => ({ default: m.X })) 适配 React.lazy。
@@ -157,42 +157,44 @@ const appRoutes: RouteObject[] = [
   }),
   shellPage(
     "organization/members",
-    <WorkspaceGuard>
-      <MembersPage />
-    </WorkspaceGuard>,
+    <RequireTeamWorkspace feature="成员管理">
+      <OrgAdminGuard>
+        <MembersPage />
+      </OrgAdminGuard>
+    </RequireTeamWorkspace>,
     {
       breadcrumb: <>成员管理</>,
     },
   ),
   shellPage(
     "organization/departments",
-    <WorkspaceGuard>
+    <RequireTeamWorkspace feature="组织与部门管理">
       <OrgAdminGuard>
         <OrgDepartmentsPage />
       </OrgAdminGuard>
-    </WorkspaceGuard>,
+    </RequireTeamWorkspace>,
     {
       breadcrumb: <>组织与部门</>,
     },
   ),
   shellPage(
     "organization/settings",
-    <WorkspaceGuard>
+    <RequireTeamWorkspace feature="团队设置">
       <OrgAdminGuard>
         <OrganizationSettingsPage />
       </OrgAdminGuard>
-    </WorkspaceGuard>,
+    </RequireTeamWorkspace>,
     {
       breadcrumb: <>团队设置</>,
     },
   ),
   shellPage(
     "admin/audit",
-    <WorkspaceGuard>
+    <RequireTeamWorkspace feature="操作审计">
       <OrgAdminGuard>
         <AdminAuditPage />
       </OrgAdminGuard>
-    </WorkspaceGuard>,
+    </RequireTeamWorkspace>,
     {
       breadcrumb: <>操作审计</>,
     },

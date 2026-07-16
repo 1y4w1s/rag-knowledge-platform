@@ -1,4 +1,4 @@
-# 知岸 — 生产覆盖层（EW-B2 + EW-B4 web）
+# 睿阁 — 生产覆盖层（EW-B2 + EW-B4 web）
 #
 # 在 docker-compose.yml 基础上增加 uploads 持久化卷、nginx 前端与资源说明。
 # 用法：
@@ -34,12 +34,18 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
       pull: false
-    image: zhiku-web:nginx
-    container_name: zhiku-web
+    image: ruige-web:nginx
+    container_name: ruige-web
     restart: unless-stopped
     ports:
       # 内网 HTTP 入口；Windows 若 80 被占可改左侧为 "8080:80" 并同步 CORS_ORIGINS
       - "80:80"
+      # HTTPS（可选）：运行 scripts/gen-certs.ps1 生成证书后取消注释
+      # - "443:443"
+    volumes:
+      # HTTPS 证书挂载（可选）
+      # - ./docker/nginx/certs:/etc/nginx/certs:ro
+      # - ./docker/nginx/ssl.conf:/etc/nginx/conf.d/ssl.conf:ro
     depends_on:
       - api
     deploy:

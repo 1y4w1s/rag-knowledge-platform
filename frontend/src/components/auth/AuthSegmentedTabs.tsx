@@ -15,7 +15,7 @@ interface AuthSegmentedTabsProps {
 export function AuthSegmentedTabs({ active, onChange }: AuthSegmentedTabsProps) {
   return (
     <div
-      className="mb-5 flex gap-1 rounded-[10px] bg-[var(--auth-tab-bg)] p-1"
+      className="mb-5 flex gap-1 rounded-[8px] bg-[var(--auth-tab-bg)] p-1"
       role="tablist"
       aria-label="认证方式"
     >

@@ -19,6 +19,7 @@ from app.schemas.org_unit import (
 from app.services.org.units import (
     create_child_org_unit,
     delete_org_unit,
+    ensure_org_root_unit,
     get_org_unit,
     list_org_units,
     list_picker_org_units,
@@ -90,6 +91,20 @@ async def post_org_unit(
         parent_id=body.parent_id,
         acting_user_id=admin.id,
         ip=get_client_ip(request),
+    )
+
+
+@router.post("/root", response_model=OrgUnitResponse)
+async def post_org_unit_root(
+    admin: OrgAdmin,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> OrgUnitResponse:
+    """确保根部门存在（懒初始化）；若已存在则直接返回。"""
+    assert admin.org_id is not None
+    return await ensure_org_root_unit(
+        db,
+        org_id=admin.org_id,
+        org_name=admin.nickname or admin.email.split("@")[0],
     )
 
 

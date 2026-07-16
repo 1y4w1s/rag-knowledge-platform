@@ -235,7 +235,7 @@ export function LoginAuthForm() {
 
             <div className="mb-6">
 
-              <h2 className="font-serif text-xl font-semibold tracking-[0.02em] text-[var(--auth-text)]">
+              <h2 className="font-serif text-xl font-semibold text-[var(--auth-text)]">
 
                 欢迎回来
 

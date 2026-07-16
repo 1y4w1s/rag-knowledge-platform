@@ -2,6 +2,7 @@
 
 from uuid import UUID
 
+from app.core.exceptions import BadRequestError, ForbiddenError
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -26,8 +27,7 @@ def assert_team_business_allowed(
     if current_user.org_role != OrgRole.member:
         return
     if not current_user.unit_ids:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
+        raise ForbiddenError(
             detail="尚未分配部门，无法使用团队对话",
         )
 
@@ -42,8 +42,7 @@ async def assert_has_visible_knowledge_bases(
     """可见库为空时拒问（H5-A · T-ask 前置）。"""
     if org_scope is not None:
         if not org_scope.visible_kb_ids:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
+            raise BadRequestError(
                 detail="无可用资料库",
             )
         return
@@ -54,8 +53,7 @@ async def assert_has_visible_knowledge_bases(
         .where(KnowledgeBase.owner_user_id == current_user.id)
     )
     if not count:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
+        raise BadRequestError(
             detail="无可用资料库",
         )
 

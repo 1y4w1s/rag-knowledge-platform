@@ -6,7 +6,7 @@ import { formatOrgLabel } from "@/lib/format-org-label";
 import { useOrganizationName } from "@/lib/use-organization-name";
 import { useWorkspace } from "@/lib/workspace-context";
 
-export function WorkspaceSwitcher() {
+export function WorkspaceSwitcher({ compact }: { compact?: boolean }) {
   const { user } = useAuth();
   const { workspace, setWorkspace } = useWorkspace();
   const { name: orgFullName, loading: orgNameLoading } = useOrganizationName();
@@ -63,6 +63,7 @@ export function WorkspaceSwitcher() {
   }
 
   if (!hasTeam) {
+    if (compact) return null;
     return (
       <div className="ws-seg ws-seg-solo" ref={segRef}>
         <button
@@ -72,6 +73,27 @@ export function WorkspaceSwitcher() {
           onClick={switchToPersonal}
         >
           我的空间
+        </button>
+      </div>
+    );
+  }
+
+  if (compact) {
+    return (
+      <div className="scope-toggle" ref={segRef}>
+        <button
+          type="button"
+          className={isPersonal ? "on" : undefined}
+          onClick={switchToPersonal}
+        >
+          个人
+        </button>
+        <button
+          type="button"
+          className={isTeamActive ? "on" : undefined}
+          onClick={switchToTeam}
+        >
+          {teamLabel}
         </button>
       </div>
     );

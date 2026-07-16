@@ -30,31 +30,24 @@ export function KnowledgeBaseDetailHeader({
   onChatBlocked,
 }: KnowledgeBaseDetailHeaderProps) {
   return (
-    <header className="mb-[18px] flex flex-wrap items-center justify-between gap-3">
-      <div>
-        <h2 className="font-serif text-[1.05rem] font-semibold tracking-[0.02em] text-foreground">
+    <header className="mb-7 border-b border-[var(--line2)] pb-5 flex flex-wrap items-start justify-between gap-4">
+      <div className="min-w-0 flex-1">
+        <Link
+          to="/knowledge-bases"
+          className="inline-flex items-center gap-1 text-[0.72rem] text-muted hover:text-foreground transition-colors"
+        >
+          <span aria-hidden>←</span> 返回资料库
+        </Link>
+        <h1 className="mt-2 font-serif text-[1.5rem] font-semibold text-foreground leading-tight">
           {kb.name}
-        </h2>
+        </h1>
         {kb.description ? (
-          <p className="mt-1 text-[0.78rem] text-muted">{kb.description}</p>
+          <p className="mt-1.5 text-[0.82rem] text-muted">{kb.description}</p>
         ) : (
-          <p className="mt-1 text-[0.78rem] text-muted">管理文档与入库状态</p>
+          <p className="mt-1.5 text-[0.82rem] text-muted">管理文档与入库状态</p>
         )}
       </div>
-      <div className="flex flex-wrap items-center gap-2">
-        {uploadAllowed ? (
-          <Button type="button" variant="outline" size="sm" onClick={onEdit}>
-            编辑
-          </Button>
-        ) : (
-          <MemberWriteBlockedButton
-            variant="outline"
-            size="sm"
-            onBlocked={onMemberWriteBlocked}
-          >
-            编辑
-          </MemberWriteBlockedButton>
-        )}
+      <div className="flex flex-wrap items-center gap-2 shrink-0">
         {uploadAllowed ? (
           <DocumentUploadButton uploading={uploading} onFilesSelected={onUpload} />
         ) : (
@@ -67,9 +60,22 @@ export function KnowledgeBaseDetailHeader({
             上传文档
           </MemberWriteBlockedButton>
         )}
+        {uploadAllowed ? (
+          <Button type="button" variant="ghost" size="sm" onClick={onEdit}>
+            编辑
+          </Button>
+        ) : (
+          <MemberWriteBlockedButton
+            variant="ghost"
+            size="sm"
+            onBlocked={onMemberWriteBlocked}
+          >
+            编辑
+          </MemberWriteBlockedButton>
+        )}
         {chatAllowed ? (
-          <Button asChild size="sm">
-            <Link to={`/knowledge-bases/${kbId}/chat`}>开始对话</Link>
+          <Button asChild size="sm" variant="brand">
+            <Link to={`/knowledge-bases/${kbId}/chat`}>开始对话 →</Link>
           </Button>
         ) : (
           <Button

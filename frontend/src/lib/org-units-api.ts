@@ -102,6 +102,16 @@ export async function deleteOrgUnit(unitId: string): Promise<void> {
   if (!res.ok) throw new Error(await parseOrgUnitsError(res));
 }
 
+/** 创建或返回根部门（幂等）。 */
+export async function ensureOrgUnitRoot(): Promise<OrgUnit> {
+  const res = await fetch(`${API_BASE}/org-units/root`, {
+    method: "POST",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error(await parseOrgUnitsError(res));
+  return (await res.json()) as OrgUnit;
+}
+
 export async function fetchUnitMembers(unitId: string): Promise<OrgUnitMember[]> {
   const res = await fetch(`${API_BASE}/org-units/${unitId}/members`, {
     headers: authHeaders(),

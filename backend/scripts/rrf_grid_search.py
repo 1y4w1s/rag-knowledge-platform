@@ -21,7 +21,7 @@ from app.services.ingestion import embedder
 from app.services.ingestion.embedder import EMBEDDING_DIM
 from app.services.rag.retrieval import retrieve_chunks
 from app.services.rag.types import RetrievedChunk
-from tests.golden_qa_loader import GOLDEN_QA_CASES, HIT_K, GoldenQACase
+from tests.golden_qa_loader import GOLDEN_QA_CASES, HIT_K, GoldenQACase, chunk_matches
 
 _CJK = re.compile(r"[\u4e00-\u9fff]")
 _LATIN = re.compile(r"[a-z0-9]+")
@@ -43,18 +43,6 @@ def _lexical_mock_vector(text: str) -> list[float]:
 embedder._mock_vector = _lexical_mock_vector
 
 
-def _chunk_matches(case: GoldenQACase, chunk: RetrievedChunk) -> bool:
-    if case.section_title and chunk.section_title != case.section_title:
-        return False
-    if case.heading_path_contains and (
-        not chunk.heading_path or case.heading_path_contains not in chunk.heading_path
-    ):
-        return False
-    if case.content_contains and case.content_contains.lower() not in (chunk.content or "").lower():
-        return False
-    if case.page_number is not None and chunk.page_number != case.page_number:
-        return False
-    return True
 
 
 async def run_golden(kb_id: uuid.UUID, v_w: float, f_w: float) -> tuple[float, float, int]:
@@ -68,7 +56,7 @@ async def run_golden(kb_id: uuid.UUID, v_w: float, f_w: float) -> tuple[float, f
             chunks = await retrieve_chunks(db, kb_id=kb_id, query=case.query, top_k=HIT_K)
             passed = False
             for rank, chunk in enumerate(chunks[:HIT_K], start=1):
-                if _chunk_matches(case, chunk):
+                if chunk_matches(case, chunk):
                     passed = True
                     results.append(1.0 / rank)
                     break

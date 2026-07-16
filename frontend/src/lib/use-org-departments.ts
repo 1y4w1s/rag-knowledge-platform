@@ -10,6 +10,7 @@ import {
   addUnitMember,
   createOrgUnit,
   deleteOrgUnit,
+  ensureOrgUnitRoot,
   fetchOrgUnits,
   fetchUnitMembers,
   removeUnitMember,
@@ -109,14 +110,30 @@ export function useOrgDepartments() {
     void loadMembers(selectedId);
   }, [selectedId, loadMembers]);
 
-  function openCreateTopLevel() {
-    if (!root) return;
-    setCreateDialog({
-      open: true,
-      parentId: root.unit.id,
-      title: "新建一级部门",
-      description: "一级部门将挂在公司根节点下。",
-    });
+  async function openCreateTopLevel() {
+    if (root) {
+      setCreateDialog({
+        open: true,
+        parentId: root.unit.id,
+        title: "新建一级部门",
+        description: "一级部门将挂在公司根节点下。",
+      });
+      return;
+    }
+    // 根节点不存在时先创建
+    try {
+      const newRoot = await ensureOrgUnitRoot();
+      const items = await reloadUnits();
+      const tree = buildDepartmentTree(items);
+      setCreateDialog({
+        open: true,
+        parentId: newRoot.id,
+        title: "新建一级部门",
+        description: "一级部门将挂在公司根节点下。",
+      });
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "创建根部门失败");
+    }
   }
 
   function openCreateChild() {

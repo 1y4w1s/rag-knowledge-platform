@@ -62,6 +62,34 @@ export async function changeAccountPassword(
   return data.message ?? "密码已更新，请重新登录";
 }
 
+/** PATCH /settings/profile 请求体（Wave 5.3 暴露给前端的可编辑字段） */
+export interface UpdateProfilePayload {
+  nickname?: string | null;
+  username?: string;
+}
+
+/**
+ * 更新账号基础信息（昵称 / 用户名）。
+ * 后端 schema：nickname 0–64 字符、username 3–32 字母数字下划线。
+ */
+export async function updateAccountProfile(
+  payload: UpdateProfilePayload,
+): Promise<AccountSettings> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/settings/profile`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(await parseSettingsError(res));
+  return (await res.json()) as AccountSettings;
+}
+
 export interface JoinTeamResult {
   message: string;
   account: AccountSettings;

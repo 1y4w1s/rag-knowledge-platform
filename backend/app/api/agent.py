@@ -15,6 +15,7 @@ from __future__ import annotations
 from typing import Annotated, Union
 from uuid import UUID
 
+from app.core.exceptions import ValidationError
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -95,8 +96,7 @@ async def resolve_approval(
             return CancelApprovalResponse(ok=True)
 
         # 未知 action → 422（G4-3.3：422 守卫降级为「未知 action 才 422」）。
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        raise ValidationError(
             detail="action 仅支持 adopt 或 cancel",
         )
     except HTTPException as exc:

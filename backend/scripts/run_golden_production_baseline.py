@@ -41,12 +41,12 @@ from tests.golden_qa_loader import (  # noqa: E402
     GOLDEN_QA_CASES,
     GoldenQACase,
     HIT_K,
+    hit_at_k,
 )
 from tests.test_retrieval_golden import (  # noqa: E402
     _ingest_fixture,
     _make_golden_docx,
     _make_golden_pdf,
-    hit_at_k,
 )
 
 

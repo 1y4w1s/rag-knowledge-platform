@@ -37,15 +37,10 @@ import { useWorkspace } from "@/lib/workspace-context";
 
 
 export function KnowledgeBaseDetailPage() {
-
   const { id } = useParams<{ id: string }>();
-
   const { user } = useAuth();
-
   const { workspace } = useWorkspace();
-
   const page = useKbDetailPage(id);
-
   const [grantUnits, setGrantUnits] = useState<OrgUnit[] | null>(null);
 
   useEffect(() => {
@@ -187,9 +182,7 @@ export function KnowledgeBaseDetailPage() {
 
 
   return (
-
-    <div>
-
+    <div className="max-w-[1180px] mx-auto px-7 pb-16 pt-7">
       <KnowledgeBaseDetailHeader
 
         kb={page.kb}
@@ -297,6 +290,8 @@ export function KnowledgeBaseDetailPage() {
           await page.handleRetryDocument(docId);
 
         }}
+
+        onVisibilityToast={(message) => page.showToast(message)}
 
       />
 

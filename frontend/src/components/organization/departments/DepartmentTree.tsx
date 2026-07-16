@@ -38,13 +38,13 @@ function TreeNode({
     <li>
       <div
         className="flex items-center gap-1"
-        style={{ paddingLeft: depth * 12 }}
+        style={{ paddingLeft: depth * 18 }}
       >
         {hasChildren ? (
           <button
             type="button"
             aria-label={collapsed ? "展开" : "折叠"}
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted hover:bg-[#EFEBE6] hover:text-foreground"
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded text-muted hover:bg-[color:color-mix(in_srgb,var(--ubg)_80%,transparent)] hover:text-foreground"
             onClick={() => onToggle(node.unit.id)}
           >
               <ChevronRight
@@ -60,9 +60,9 @@ function TreeNode({
         <button
           type="button"
           className={cn(
-            "flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors",
+            "relative flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm transition-colors",
             selected
-              ? "bg-[#EFEBE6] font-medium text-foreground"
+              ? "bg-[#EFEBE6] font-medium text-foreground before:absolute before:left-0 before:top-1/4 before:h-1/2 before:w-[3px] before:rounded-r-full before:bg-[var(--action)]"
               : "text-foreground hover:bg-[rgba(245,242,237,0.65)]",
           )}
           onClick={() => onSelect(node.unit.id)}
@@ -114,7 +114,7 @@ export function DepartmentTree({
 
   if (!root) {
     return (
-      <p className="px-3 py-6 text-sm text-muted">暂无部门树，请先新建一级部门。</p>
+      <p className="px-3 py-6 text-sm text-muted">暂无部门，请先新建一级部门。</p>
     );
   }
 

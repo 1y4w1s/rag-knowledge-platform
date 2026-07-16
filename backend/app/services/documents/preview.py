@@ -39,12 +39,19 @@ _CONTENT_TYPES: dict[str, str] = {
     "pptx": (
         "application/vnd.openxmlformats-officedocument.presentationml.presentation"
     ),
+    "png": "image/png",
+    "jpg": "image/jpeg",
+    "jpeg": "image/jpeg",
 }
 
 
 def media_type_for_file_type(file_type: str) -> str:
     """按 documents.file_type 返回预览 Content-Type。"""
     return _CONTENT_TYPES.get(file_type, "application/octet-stream")
+
+
+# 浏览器可内嵌预览的类型（PDF + 图片）→ Content-Disposition: inline
+_INLINE_TYPES: frozenset[str] = frozenset({"pdf", "png", "jpg", "jpeg", "txt", "md"})
 
 
 async def get_document_preview(
@@ -72,7 +79,7 @@ async def get_document_preview(
     ):
         raise NotFoundError("文档不存在")
 
-    if doc.status != DocumentStatus.completed:
+    if doc.status not in (DocumentStatus.completed, DocumentStatus.failed):
         raise ConflictError("文档尚未入库完成，暂不可预览")
 
     file_path = Path(doc.storage_path)
@@ -83,6 +90,16 @@ async def get_document_preview(
         text = _extract_text(file_path, doc.file_type)
         if text is not None:
             return PlainTextResponse(text)
+
+    # PDF / 图片 → 浏览器内嵌显示，不下载
+    if doc.file_type in _INLINE_TYPES:
+        return FileResponse(
+            path=file_path,
+            media_type=media_type_for_file_type(doc.file_type),
+            headers={
+                "Content-Disposition": f'inline; filename="{doc.filename}"'
+            },
+        )
 
     return FileResponse(
         path=file_path,

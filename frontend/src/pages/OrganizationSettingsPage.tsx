@@ -4,14 +4,22 @@ import {
   SettingsFormCard,
   SettingsReadonlyField,
 } from "@/components/settings/SettingsFormCard";
+import { RequireTeamWorkspace } from "@/components/common/RequireTeamWorkspace";
 import { AlertBanner } from "@/components/ui/AlertBanner";
+import { SectionTitle } from "@/components/common/SectionTitle";
 import { Button } from "@/components/ui/button";
 import {
   fetchOrganizationSettings,
   formatCreatedAt,
   updateOrganizationName,
+  dissolveOrganization,
   type OrganizationSettings,
 } from "@/lib/organization-api";
+import { DissolveOrgDialog } from "@/components/organization/DissolveOrgDialog";
+import { useWorkspace } from "@/lib/workspace-context";
+import { setStoredWorkspace } from "@/lib/workspace-storage";
+import { useNavigate } from "react-router-dom";
+import { triggerOrgNameRefresh } from "@/lib/use-organization-name";
 
 export function OrganizationSettingsPage() {
   const [settings, setSettings] = useState<OrganizationSettings | null>(null);
@@ -21,6 +29,12 @@ export function OrganizationSettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [dissolveOpen, setDissolveOpen] = useState(false);
+  const [dissolving, setDissolving] = useState(false);
+  const [dissolveError, setDissolveError] = useState<string | null>(null);
+
+  const navigate = useNavigate();
+  const { setWorkspace } = useWorkspace();
 
   const loadSettings = useCallback(async () => {
     setLoading(true);
@@ -72,6 +86,7 @@ export function OrganizationSettingsPage() {
       setSettings(updated);
       setNameDraft(updated.name);
       setSaved(true);
+      triggerOrgNameRefresh();
     } catch (err) {
       setSaveError(err instanceof Error ? err.message : "保存失败");
     } finally {
@@ -111,15 +126,15 @@ export function OrganizationSettingsPage() {
   }
 
   return (
-    <div className="max-w-[440px] space-y-4">
-      <h2 className="font-serif text-xl font-semibold tracking-[0.02em] text-foreground">
-        团队设置
-      </h2>
+    <RequireTeamWorkspace feature="团队设置">
+    <div className="max-w-[1180px] mx-auto px-7 pb-16 pt-7">
+      <SectionTitle label="团队设置" en="TEAM SETTINGS" />
+      <div className="max-w-[440px] space-y-4">
       {saveError ? (
         <AlertBanner onDismiss={() => setSaveError(null)}>{saveError}</AlertBanner>
       ) : null}
       {saved ? (
-        <p className="rounded-[10px] border border-[var(--line2)] bg-[rgba(245,242,237,0.65)] px-4 py-2.5 text-sm text-muted">
+        <p className="rounded-[10px] border border-[var(--line2)] bg-[color:color-mix(in_srgb,var(--ubg)_65%,transparent)] px-4 py-2.5 text-sm text-muted">
           团队名称已更新
         </p>
       ) : null}
@@ -156,7 +171,49 @@ export function OrganizationSettingsPage() {
         </form>
       </SettingsFormCard>
 
-      <p className="text-[0.78rem] text-muted">解散团队 · MVP 不做（Wave 2）</p>
+      <div className="pt-4 border-t border-[var(--line2)]">
+        <h3 className="font-serif text-base font-semibold text-[var(--bad)]">危险操作</h3>
+        <p className="mt-1.5 text-sm text-muted">
+          解散团队将永久删除所有资料库、文档和成员记录，不可恢复。
+        </p>
+        {dissolveError ? (
+          <AlertBanner onDismiss={() => setDissolveError(null)}>{dissolveError}</AlertBanner>
+        ) : null}
+        <Button
+          type="button"
+          size="sm"
+          className="mt-3 bg-[var(--bad)] text-white hover:bg-[var(--bad)]/80"
+          onClick={() => setDissolveOpen(true)}
+        >
+          解散团队
+        </Button>
+      </div>
+
+      </div>
+
+      <DissolveOrgDialog
+        orgName={settings.name}
+        open={dissolveOpen}
+        onOpenChange={setDissolveOpen}
+        dissolving={dissolving}
+        onConfirm={async (confirmName: string) => {
+          setDissolving(true);
+          setDissolveError(null);
+          try {
+            await dissolveOrganization(confirmName);
+            setDissolveOpen(false);
+            setStoredWorkspace("personal");
+            setWorkspace("personal");
+            navigate("/dashboard", { replace: true });
+          } catch (err) {
+            setDissolveError(err instanceof Error ? err.message : "解散失败");
+            setDissolveOpen(false);
+          } finally {
+            setDissolving(false);
+          }
+        }}
+      />
     </div>
+    </RequireTeamWorkspace>
   );
 }

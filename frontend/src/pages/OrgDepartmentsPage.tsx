@@ -4,6 +4,8 @@ import { AddUnitMemberDialog } from "@/components/organization/departments/AddUn
 import { CreateDepartmentDialog } from "@/components/organization/departments/CreateDepartmentDialog";
 import { DepartmentDetailPanel } from "@/components/organization/departments/DepartmentDetailPanel";
 import { DepartmentTree } from "@/components/organization/departments/DepartmentTree";
+import { RequireTeamWorkspace } from "@/components/common/RequireTeamWorkspace";
+import { SectionTitle } from "@/components/common/SectionTitle";
 import { AlertBanner } from "@/components/ui/AlertBanner";
 import { Button } from "@/components/ui/button";
 import { useOrgDepartments } from "@/lib/use-org-departments";
@@ -51,30 +53,31 @@ export function OrgDepartmentsPage() {
     );
   }
 
+  const isSubSelected = !!state.selectedUnit && !state.isRootSelected;
+  const createBtnLabel = isSubSelected ? "+ 新建子部门" : "+ 新建一级部门";
+  const createBtnOnClick = isSubSelected ? state.openCreateChild : state.openCreateTopLevel;
+
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="font-serif text-xl font-semibold tracking-[0.02em] text-foreground">
-            组织与部门
-          </h2>
-          <p className="mt-1 text-sm text-muted">
-            搭建部门树，并把公司成员分配到各部门。
-          </p>
-        </div>
-        <Button
-          type="button"
-          size="sm"
-          disabled={!state.root || state.creating}
-          onClick={state.openCreateTopLevel}
-        >
-          + 新建一级部门
-        </Button>
-      </div>
+    <RequireTeamWorkspace feature="组织与部门管理">
+    <div className="max-w-[1180px] mx-auto px-7 pb-16 pt-7 space-y-4">
+      <SectionTitle
+        label="组织与部门"
+        en="DEPARTMENTS"
+        trailing={
+          <Button
+            type="button"
+            size="sm"
+            disabled={state.creating}
+            onClick={createBtnOnClick}
+          >
+            {createBtnLabel}
+          </Button>
+        }
+      />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
         <section className="rounded-xl border border-[var(--line2)] bg-white/80 p-3">
-          <h3 className="mb-2 px-1 text-xs font-medium uppercase tracking-wide text-muted">
+          <h3 className="mb-2 px-1 text-xs font-medium text-muted">
             部门树
           </h3>
           <DepartmentTree
@@ -99,7 +102,6 @@ export function OrgDepartmentsPage() {
             updatingUserId={state.updatingUserId}
             removingUserId={state.removingUserId}
             onDismissError={() => state.setActionError(null)}
-            onCreateChild={state.openCreateChild}
             onAddMember={() => state.setAddMemberOpen(true)}
             onRename={state.handleRename}
             onDelete={state.handleDelete}
@@ -130,5 +132,6 @@ export function OrgDepartmentsPage() {
         onSubmit={state.handleAddMember}
       />
     </div>
+    </RequireTeamWorkspace>
   );
 }

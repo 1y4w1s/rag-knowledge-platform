@@ -3,6 +3,11 @@
 from typing import Annotated
 from uuid import UUID
 
+from app.core.exceptions import (
+    BadRequestError,
+    ConflictError,
+    NotFoundError,
+)
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -54,7 +59,10 @@ from app.services.rag.persistence import (
 from app.services.rag.thread_persistence import (
     archive_workspace_thread,
     create_workspace_thread,
+    export_thread_messages,
+    get_thread_or_404,
     get_workspace_thread_for_user,
+    hard_delete_message,
     list_workspace_threads,
     update_workspace_thread,
 )
@@ -95,15 +103,9 @@ async def _get_thread_or_404(
         department_id=department_id,
     )
     if thread is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="会话不存在",
-        )
+        raise NotFoundError(detail="会话不存在")
     if thread.status == ThreadStatus.archived:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="会话不存在",
-        )
+        raise NotFoundError(detail="会话不存在")
     return _thread_response(thread)
 
 
@@ -161,10 +163,7 @@ async def patch_ask_thread(
     """改 title 或归档 thread。"""
     scope = await _resolve_ask_scope(db, current_user, workspace, department_id)
     if body.title is None and body.status is None:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="至少提供 title 或 status",
-        )
+        raise BadRequestError(detail="至少提供 title 或 status")
     thread = await update_workspace_thread(
         db,
         thread_id=thread_id,
@@ -176,10 +175,7 @@ async def patch_ask_thread(
         status=body.status,
     )
     if thread is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="会话不存在",
-        )
+        raise NotFoundError(detail="会话不存在")
     return _thread_response(thread)
 
 
@@ -202,10 +198,7 @@ async def delete_ask_thread(
         department_id=department_id,
     )
     if existing is None or existing.status == ThreadStatus.archived:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="会话不存在",
-        )
+        raise NotFoundError(detail="会话不存在")
     thread = await archive_workspace_thread(
         db,
         thread_id=thread_id,
@@ -215,10 +208,7 @@ async def delete_ask_thread(
         department_id=department_id,
     )
     if thread is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="会话不存在",
-        )
+        raise NotFoundError(detail="会话不存在")
 
 
 @router.post("/{thread_id}/chat")
@@ -250,8 +240,7 @@ async def post_ask_thread_chat(
     )
 
     if not await try_acquire_thread_generation_lock(thread_id):
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
+        raise ConflictError(
             detail=THREAD_GENERATION_BUSY_DETAIL,
         )
 
@@ -362,3 +351,40 @@ async def get_ask_thread_messages(
         include_approval=True,
     )
     return ChatMessagesListResponse(messages=messages)
+
+
+@router.delete("/{thread_id}/messages/{message_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_ask_thread_message(
+    thread_id: UUID,
+    message_id: UUID,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    """永久删除单条对话消息。"""
+    deleted = await hard_delete_message(db, message_id=message_id, user_id=current_user.id)
+    if not deleted:
+        raise NotFoundError(detail="消息不存在")
+
+
+@router.get("/{thread_id}/export")
+async def export_ask_thread(
+    thread_id: UUID,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> dict:
+    """导出 thread 全部对话为 JSON 格式。"""
+    messages = await export_thread_messages(db, thread_id, user_id=current_user.id)
+    if messages is None:
+        raise NotFoundError(detail="对话不存在")
+    return {
+        "thread_id": str(thread_id),
+        "messages": [
+            {
+                "role": m.role.value,
+                "content": m.content,
+                "citations": m.citations,
+                "created_at": m.created_at.isoformat() if m.created_at else None,
+            }
+            for m in messages
+        ],
+    }

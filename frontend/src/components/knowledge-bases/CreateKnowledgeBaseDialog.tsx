@@ -156,12 +156,12 @@ export function CreateKnowledgeBaseDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative z-10 w-full max-w-md rounded-xl border border-[var(--line2)] bg-white p-6 shadow-md"
+        className="relative z-10 w-full max-w-md rounded-2xl border border-[var(--line2)] bg-[var(--bg)] p-6 shadow-[var(--card-shadow)]"
         onClick={(e) => e.stopPropagation()}
       >
         <h2
           id={titleId}
-          className="font-serif text-lg font-semibold tracking-[0.02em] text-foreground"
+          className="font-serif text-lg font-semibold text-foreground"
         >
           新建资料库
         </h2>
@@ -191,7 +191,7 @@ export function CreateKnowledgeBaseDialog({
               rows={3}
               placeholder="简要说明该资料库用途"
               onChange={(e) => setDescription(e.target.value)}
-              className="flex w-full resize-none rounded-md border border-zinc-200 bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              className="flex w-full resize-none rounded-md border border-line2 bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
             />
           </div>
 
@@ -243,7 +243,7 @@ export function CreateKnowledgeBaseDialog({
                       value={specificUnitId}
                       disabled={unitsLoading || unitOptions.length === 0}
                       onChange={(e) => setSpecificUnitId(e.target.value)}
-                      className="mt-2 flex w-full rounded-md border border-zinc-200 bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      className="mt-2 flex w-full rounded-md border border-line2 bg-surface px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     >
                       {unitOptions.map((option) => (
                         <option key={option.unitId} value={option.unitId}>

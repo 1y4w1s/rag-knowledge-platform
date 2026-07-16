@@ -55,14 +55,14 @@ export function TrashDialog({ kbId, open, onOpenChange, onRefresh }: TrashDialog
       onClick={() => onOpenChange(false)}
     >
       <div
-        className="max-h-[70vh] w-full max-w-lg overflow-y-auto rounded-xl bg-background p-6 shadow-xl"
+        className="max-h-[70vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-[var(--bg)] p-6 shadow-[var(--card-shadow)]"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
           <h3 className="font-serif text-lg font-semibold">回收站</h3>
           <button
             type="button"
-            className="text-sm text-muted-foreground hover:text-foreground"
+            className="text-sm text-[var(--mut)] hover:text-foreground"
             onClick={() => onOpenChange(false)}
           >
             关闭
@@ -70,20 +70,20 @@ export function TrashDialog({ kbId, open, onOpenChange, onRefresh }: TrashDialog
         </div>
 
         {loading ? (
-          <p className="text-sm text-muted-foreground">加载中…</p>
+          <p className="text-sm text-[var(--mut)]">加载中…</p>
         ) : items.length === 0 ? (
-          <p className="text-sm text-muted-foreground">回收站为空</p>
+          <p className="text-sm text-[var(--mut)]">回收站为空</p>
         ) : (
           <div className="space-y-2">
             {items.map((doc) => (
               <div
                 key={doc.id}
-                className="flex items-center justify-between rounded-md border border-border px-3 py-2"
+                className="flex items-center justify-between rounded-[8px] border border-[var(--line2)] px-3 py-2"
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{doc.filename}</p>
                   {doc.deleted_at && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-[var(--mut)]">
                       删除于 {new Date(doc.deleted_at).toLocaleDateString("zh-CN")}
                     </p>
                   )}
@@ -101,7 +101,7 @@ export function TrashDialog({ kbId, open, onOpenChange, onRefresh }: TrashDialog
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="text-red-600 hover:bg-red-50"
+                    className="text-[var(--bad)] hover:bg-[var(--bad)]/10"
                     onClick={() => void handlePermanentDelete(doc.id)}
                   >
                     永久删除

@@ -7,12 +7,12 @@ import { defineConfig } from "vitest/config";
 // 出现 "Invalid hook call / Cannot read properties of null (reading 'useState')"。
 // 生产模式保持严格同源策略，保证 Lighthouse D8 安全分。
 const DEV_CSP =
-  "default-src 'self'; img-src 'self' data: https:; font-src 'self' https: data:; " +
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+  "default-src 'self'; img-src 'self' data: https:; font-src 'self' data:; " +
+  "style-src 'self' 'unsafe-inline'; " +
   "script-src 'self' 'unsafe-inline'; connect-src 'self' ws:; frame-src 'self'";
 const PROD_CSP =
-  "default-src 'self'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; " +
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
+  "default-src 'self'; img-src 'self' data: https:; font-src 'self'; " +
+  "style-src 'self' 'unsafe-inline'; " +
   "script-src 'self'; connect-src 'self'; frame-src 'self'";
 
 export default defineConfig(({ command }) => {

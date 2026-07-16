@@ -11,6 +11,7 @@ from app.core.request_ip import get_client_ip
 from app.core.deps import CurrentUser, require_org_role, require_owner
 from app.models.enums import OrgRole
 from app.schemas.organization import (
+    DissolveOrgRequest,
     OrganizationInviteCreate,
     OrganizationInviteResponse,
     OrganizationMemberCreate,
@@ -22,6 +23,7 @@ from app.schemas.organization import (
     OrganizationSettingsResponse,
     OrganizationSettingsUpdate,
 )
+from app.services.organization.dissolve import dissolve_organization
 from app.services.organization.invites import create_organization_invite
 from app.services.organization.members import (
     add_organization_member,
@@ -163,4 +165,23 @@ async def post_transfer_ownership(
     return OrganizationOwnershipTransferResponse(
         previous_owner=previous_owner,
         new_owner=new_owner,
+    )
+
+
+@router.post(
+    "/dissolve",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def post_dissolve_organization(
+    body: DissolveOrgRequest,
+    owner: OrgOwner,
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> None:
+    """解散团队（Owner 专属）。"""
+    assert owner.org_id is not None
+    await dissolve_organization(
+        db,
+        org_id=owner.org_id,
+        confirm_name=body.confirm_name,
+        acting_user_id=owner.id,
     )

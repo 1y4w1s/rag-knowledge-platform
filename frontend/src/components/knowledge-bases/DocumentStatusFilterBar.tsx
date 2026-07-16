@@ -19,8 +19,8 @@ interface DocumentStatusFilterBarProps {
 }
 
 const FILTER_DOT_CLASS: Record<DocumentStatusFilter, string> = {
-  processing: "bg-[#CB6B3D]",
-  failed: "bg-[#B85A2E]",
+  processing: "bg-[var(--action)]",
+  failed: "bg-[var(--bad)]",
 };
 
 const FILTER_PILL_CLASS: Record<DocumentStatusFilter, string> = {

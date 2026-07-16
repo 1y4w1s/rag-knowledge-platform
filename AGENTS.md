@@ -92,7 +92,7 @@
 | 开发清单 | ✅ `002-plan.md`（MVP + **Wave 6.1～6.4 ✅** 2026-07-07） |
 | 驾驶舱 | ✅ `docs/cockpit.html`（与 002-plan Wave 6 对齐；§8 ①15min 计时仍须用户亲手） |
 | 代码基线 | Wave 0～5、workspace、Plan-11/2.x 权限 UX、RAG Wave 3、对话 Wave 5.2 |
-| UI | ✅ `DESIGN.md` + preview token；企业态仍要过 AGENTS UI 硬约束 |
+| UI | ✅ `DESIGN.md`（唯一设计权威）；企业态仍要过 AGENTS UI 硬约束 |
 
 ## UI/UX 硬约束（2026-07-04 起）
 
@@ -102,7 +102,7 @@
 
 | 检查 | 标准 |
 |------|------|
-| **依据** | `DESIGN.md` + `design-preview.html`；禁止未落地顶栏 ⌘K 等与壳冲突 |
+| **依据** | `DESIGN.md`（唯一设计权威）；禁止未落地顶栏 ⌘K 等与壳冲突 |
 | **层级** | 顶栏 = 导航；筛选/搜索进内容区 |
 | **反模板** | 禁止万能居中空态、cold zinc 系统红、emoji 风插画 |
 | **气质** | L5 暖白 + E6 暖褐 + F4 衬线；全站同一套 token |

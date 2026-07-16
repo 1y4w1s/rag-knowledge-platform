@@ -1,4 +1,4 @@
-"""FastAPI 依赖：CurrentUser 与 RBAC（Wave 1.2+）。
+﻿"""FastAPI 依赖：CurrentUser 与 RBAC（Wave 1.2+）。
 
 Wave 2.1：``require_kb_access`` 基于 knowledge_bases 表做 kb_id 二次校验（TECH-5 / SA-1）。
 ORG-1.2：团队库叠加 OrgScope（部门子树 + 公共库 + grant）。
@@ -8,7 +8,8 @@ from enum import Enum
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import Depends, HTTPException, Query, Request, status
+from app.core.exceptions import ForbiddenError, NotFoundError, UnauthorizedError
+from fastapi import Depends, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -59,16 +60,10 @@ async def get_current_user(
         if raw_token:
             claims = await authenticate_api_key(db, raw_token)
     if claims is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="未提供认证凭据",
-        )
+        raise UnauthorizedError(detail="未提供认证凭据")
     user = await db.get(User, claims.user_id)
     if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="用户不存在",
-        )
+        raise UnauthorizedError(detail="用户不存在")
 
     org_id, org_role, is_owner = await resolve_org_context(db, user)
     primary_unit_id, unit_ids = await resolve_user_units(db, user.id)
@@ -92,10 +87,7 @@ async def get_current_user(
 def assert_resource_owner(current_user: CurrentUser, owner_user_id: UUID) -> None:
     """SA-1 骨架：资源须属于当前用户（Wave 2 换为 kb_id 隔离）。"""
     if current_user.id != owner_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权访问该资源",
-        )
+        raise ForbiddenError(detail="无权访问该资源")
 
 
 def _assert_kb_ownership(kb: KnowledgeBase, current_user: CurrentUser) -> None:
@@ -107,17 +99,11 @@ def _assert_kb_ownership(kb: KnowledgeBase, current_user: CurrentUser) -> None:
         return
 
     if current_user.account_type == AccountType.personal:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权访问该知识库",
-        )
+        raise ForbiddenError(detail="无权访问该知识库")
 
     assert current_user.org_id is not None
     if kb.owner_org_id != current_user.org_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="无权访问该知识库",
-        )
+        raise ForbiddenError(detail="无权访问该知识库")
 
 
 def _assert_kb_action_allowed(current_user: CurrentUser, action: KbAction) -> None:
@@ -128,10 +114,7 @@ def _assert_kb_action_allowed(current_user: CurrentUser, action: KbAction) -> No
         current_user.account_type == AccountType.enterprise
         and current_user.org_role == OrgRole.member
     ):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="权限不足",
-        )
+        raise ForbiddenError(detail="权限不足")
 
 
 async def require_kb_access(
@@ -145,10 +128,7 @@ async def require_kb_access(
     """知识库权限二次校验：归属 + OrgScope + 角色动作矩阵。"""
     kb = await db.get(KnowledgeBase, kb_id)
     if kb is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="知识库不存在",
-        )
+        raise NotFoundError(detail="知识库不存在")
 
     _assert_kb_ownership(kb, current_user)
 
@@ -160,10 +140,7 @@ async def require_kb_access(
             department_id=department_id,
         )
         if action in (KbAction.write, KbAction.admin) and not scope.is_kb_writable(kb.id):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="权限不足",
-            )
+            raise ForbiddenError(detail="权限不足")
 
     _assert_kb_action_allowed(current_user, action)
     return kb
@@ -176,15 +153,9 @@ def require_org_role(*roles: OrgRole):
         current_user: Annotated[CurrentUser, Depends(get_current_user)],
     ) -> CurrentUser:
         if current_user.account_type != AccountType.enterprise:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="需要团队账号",
-            )
+            raise ForbiddenError(detail="需要团队账号")
         if current_user.org_role not in roles:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="权限不足",
-            )
+            raise ForbiddenError(detail="权限不足")
         return current_user
 
     return _checker
@@ -197,15 +168,9 @@ def require_owner():
         current_user: Annotated[CurrentUser, Depends(get_current_user)],
     ) -> CurrentUser:
         if current_user.account_type != AccountType.enterprise:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="需要团队账号",
-            )
+            raise ForbiddenError(detail="需要团队账号")
         if not current_user.is_owner:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="仅团队所有者可执行此操作",
-            )
+            raise ForbiddenError(detail="仅团队所有者可执行此操作")
         return current_user
 
     return _checker

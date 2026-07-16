@@ -10,12 +10,12 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "rounded-full bg-primary text-primary-foreground hover:bg-primary/90",
-        auth: "rounded-[10px] bg-[var(--auth-action)] text-white hover:bg-[var(--auth-action-hover)] focus-visible:ring-[var(--auth-action)]/30",
-        brand: "rounded-[10px] bg-[var(--action)] text-white hover:bg-[var(--action-hover)] focus-visible:ring-[var(--action)]/30",
+        auth: "rounded-[8px] bg-[var(--auth-action)] text-white hover:bg-[var(--auth-action-hover)] focus-visible:ring-[var(--auth-action)]/30",
+        brand: "rounded-[8px] bg-[var(--action)] text-white hover:bg-[var(--action-hover)] focus-visible:ring-[var(--action)]/30",
         brandGrad:
-          "btn-shine rounded-[10px] bg-[image:var(--brand-grad)] text-white shadow-[0_6px_18px_rgba(203,107,61,0.35)] transition-[box-shadow,transform] hover:shadow-[0_10px_26px_rgba(203,107,61,0.45)] hover:-translate-y-px focus-visible:ring-[var(--action)]/40",
+          "btn-shine rounded-[8px] bg-[image:var(--brand-grad)] text-white shadow-[0_6px_18px_rgba(203,107,61,0.35)] transition-[box-shadow,transform] hover:shadow-[0_10px_26px_rgba(203,107,61,0.45)] hover:-translate-y-px focus-visible:ring-[var(--action)]/40",
         authOutline:
-          "rounded-[10px] border border-[var(--auth-line)] bg-transparent text-[var(--auth-muted)] hover:border-[color:rgb(203_107_61/0.4)] hover:text-[var(--auth-text)]",
+          "rounded-[8px] border border-[var(--auth-line)] bg-transparent text-[var(--auth-muted)] hover:border-[color:rgb(203_107_61/0.4)] hover:text-[var(--auth-text)]",
         outline:
           "rounded-full border border-border bg-transparent text-foreground hover:bg-nav-on",
         ghost: "rounded-lg hover:bg-nav-on hover:text-foreground",

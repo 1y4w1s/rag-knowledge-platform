@@ -1,387 +1,121 @@
-# 知岸 UI 设计规范（DESIGN.md）
+# 睿阁 · 前端设计系统（DESIGN.md）
 
-> **版本**：v0.1  
-> **状态**：✅ **Wave 4.0 设计规范全部确认** · ✅ **Wave 4.1 前端壳已落地**（2026-07-03）  
-> **下一步**：Wave 5.4 成员/组织（Wave 5.3 ✅ 账号设置改密已落地）
-> **依据**：`docs/PRD.md` §5、`docs/tasks/003-feasibility.md` §4、`docs/tasks/002-plan.md` Wave 4  
-> **技术栈**：React + Vite + **shadcn/ui** + Tailwind CSS  
-> **最后更新**：2026-07-03（登录页赤陶橙配色落地）
+> **版本**：v1.0（概览页落地验证版）
+> **状态**：✅ 概览页（Dashboard / Knowledge Cockpit）已落地，构建零错误
+> **来源**：本规范提炼自**当前真实代码** —— `frontend/src/index.css` 的 token 定义 + `DashboardPage` 及 `components/dashboard/*`。是本仓库后续页面重做的**对齐基线**。
+> **说明**：本文档**取代**早期 `docs/DESIGN.md` 中「知岸 / 暖白 + 220px 侧栏」旧规范；品牌、配色、壳结构均已演进为下方系统。登录 / 对话 / 知识库等页须在本系统上重做对齐（尚无独立落地规范）。
 
 ---
 
-## 确认进度
+## 0. 设计定位
 
-| 节 | 主题 | 状态 |
-|----|------|------|
-| DESIGN-1 | 定位与原则 | ✅ **L5 暖白 · 知岸品牌**（2026-07-03） |
-| DESIGN-2 | 配色与字体 | ✅ **暖白 + E6 暖褐 + F4 衬线**（2026-07-03） |
-| DESIGN-3 | 全局布局壳 | ✅ **220px 侧栏 · 9 页统一壳**（2026-07-03） |
-| DESIGN-4 | 登录 / 注册页 | ✅ **L5 MiMo Hero 结构**（2026-07-03） |
-| DESIGN-5 | Dashboard 与知识库页 | ✅ **卡片网格 + 文档表**（2026-07-03） |
-| DESIGN-6 | 对话页与引用区 | ✅ **统一壳 + chip 溯源 + 空/加载/错态**（2026-07-09 G2-3.3） |
-| DESIGN-7 | 组件与 shadcn 约定 | ✅ **胶囊按钮 + F4 字体 token**（2026-07-03） |
-
-> **全部节 ✅** — 可开工 **Wave 4.1**（侧栏 + 9 路由占位）。
-
-**可视化预览**：用浏览器打开 [`docs/design-preview.html`](design-preview.html)
-
-| 模式 | 说明 |
-|------|------|
-| **全站 9 页**（默认） | L5 暖白 + E6 暖褐 · PRD 全部主路由 |
-| **字体对照** | F1 / F3 / F4 AURORA 衬线 / F5 霞鹜文楷 |
-
-**9 页 Tab**：登录 → 概览 → 知识库 → 库详情 → 文档预览 → 对话 → 账号 → 成员 → 组织
+**「知识驾驶舱 / Knowledge Cockpit」** —— 暖陶土（terracotta）品牌色 + 衬线大数字，把 RAG 平台的「入库 → 可信 → 活跃 → 动态」做成一屏可扫读的运营仪表盘。亮色干净中性、暗色暖棕，双主题一致。
 
 ---
 
-## DESIGN-1 定位与原则 ✅
+## 1. 设计 Token（明暗双主题，定义在 `index.css` 的 `:root`）
 
-> **定稿（2026-07-03）**：**L5 MiMo 暖白** · 品牌 **知岸** · 引用溯源为差异化招牌
+### 1.1 颜色
 
-**这节定什么**：知岸长什么样、和别的项目怎么区分、答辩演示时给人什么印象。
+| Token | Light | Dark | 用途 |
+|-------|-------|------|------|
+| `--bg` | `#FAFAFA` | `#16120f` | 页面底 |
+| `--surf` | `#F5F5F0` | `#1f1813` | 卡片底 |
+| `--surf2` | `#f7f4f0` | `#261e17` | 卡片内嵌 / 悬浮底 / 进度槽 |
+| `--text` | `#1a1512` | `#ECE6DF` | 正文 / 主数字 |
+| `--mut` | `#6B6560` | `#9b8f86` | 次要文案、标签 |
+| `--line` | `rgba(140,100,64,.20)` | `rgba(203,107,61,.14)` | 悬停加深描边 |
+| `--line2` | `rgba(140,100,64,.14)` | `rgba(236,230,223,.10)` | 卡片边框 / 分隔线 |
+| `--action` | `#cb6b3d` | `#e07a45` | 主行动色（terracotta） |
+| `--brand-grad` | `135° #e8824e→#cf6a3a→#b14e26` | 同 | 品牌渐变（按钮 / 强调） |
+| `--ok` | `#4c7c5e` | `#83a58e` | 成功 / 健康 |
+| `--warn` | `#8a7218` | `#d8c074` | 处理中 / 待关注 |
+| `--info` | `#3f72b0` | `#6f97c4` | 信息 |
+| `--que` | `#5b6b7c` | `#8b97a6` | 排队 |
+| `--bad` | `#a8453a` | `#c06a5e` | 失败 / 异常 |
+| `--trend` | `rgba(184,90,45,.12)` | `rgba(212,118,74,.18)` | 活跃度浅格 |
+| `--trend-peak` | `rgba(184,90,45,.40)` | `rgba(224,122,69,.58)` | 活跃度深格 |
 
-### 产品气质
+### 1.2 字体
 
-| 维度 | 选择 | 大白话 |
-|------|------|--------|
-| 整体风格 | **企业 SaaS · 暖白知识工作台** | 像正经后台 + MiMo 式留白；不像社交 App |
-| 信息密度 | **中等偏高** | Dashboard、文档列表要一眼看到数字和状态；对话页留白多一些 |
-| 差异化重点 | **引用溯源可读** | 引用卡片比聊天泡泡更重要；配色不能抢引用区注意力 |
-| 与 Signal 关系 | **技术可借鉴，视觉必须独立** | 不同主色、不同侧栏宽度、不同登录页结构 |
+- **展示型数字 / 标题**：Noto Serif SC（思源宋体），`--serif`
+- **正文 / 标签**：Noto Sans SC，`--sans`
+- 数字一律 `tabular-nums`
 
-### 三参考图组合（来自 003-feasibility）
+### 1.3 圆角 / 阴影 / 过渡
 
-| 参考 | 用在哪 | 不用在哪 |
-|------|--------|----------|
-| **AURORA**（白底 + 海军蓝） | 登录/注册结构、企业组织入口 | 全站背景 |
-| **智联 CRM**（玻璃拟态 + 大图） | 登录页**可选**氛围背景 | 主应用内页（影响 PDF/引用阅读） |
-| **蓝企鹅家政**（侧栏 SaaS + 卡片网格） | 登录后：侧栏、知识库列表、面包屑 | 登录页 |
-
-### 定稿组合（L5 · 2026-07-03）
-
-| 区域 | 定稿 | 参考 |
-|------|------|------|
-| **登录** | L5 MiMo Hero · 大 wordmark + hero-desc + segmented Tab | [MiMo Code](https://mimo.mi.com/) |
-| **主应用** | **220px** 暖白侧栏 + 顶栏面包屑 + 半透明白卡片 | preview ②～⑨ |
-| **对话** | 与同站同壳 · 消息下引用 chip + 可展开预览 | preview ⑥ |
-
-> 早期草案（AURORA 海军蓝 / 240px 侧栏）已弃，Implement 以 **DESIGN-2 token + preview** 为准。
-
-### 硬约束（PRD / plan 不可改）
-
-- 9 主路由 + 全局侧栏，**不砍页**
-- MVP 界面 **中文**（UI i18n → P1）
-- 企业版：成员管理、组织设置 **仅 admin 可见**
-- 组件库：**shadcn/ui**（与 TECH-6、002-plan 一致）
-
-### 不做
-
-- ❌ 全站玻璃拟态 / 重背景图（抢引用阅读）
-- ❌ 暗色模式默认（P1 可加；MVP 浅色）
-- ❌ 复制 Signal 配色与布局
-- ❌ **单字「智」+ 色块方块 Logo**（模板感强，显 Low；见下 W1～W3 替代）
-
-### 品牌与 Wordmark ✅ 已确认（2026-07-03）
-
-> **更名**：产品中文名 **知岸**（原「智库」）；答辩全称 **基于 RAG 的知岸系统设计与实现**（PRD §1 已同步）。  
-> **无英文副标**；代码目录仍为 `rag-knowledge-platform`。
-
-**命名气质**：像语雀——两字、有意象（知识到岸有依据），不直译「知识库系统」，不张扬。
-
-| 项 | 定稿 |
-|----|------|
-| **登录页** | **L5 MiMo Hero**（见 DESIGN-4 ✅） |
-| **侧栏** | **W1**：纯 Wordmark「知岸」，**全站统一 220px**（含对话页） |
-| **W3 标记** | 仅 favicon / 小图标场景；**对话页不再用图标轨** |
-| **对话顶栏** | 与同站：`对话 / {知识库名}` 面包屑 + 工具条（切换库 · 新建对话 · 引用溯源） |
-
-#### Wordmark 规格（W1 / W2 共用主标）
-
-| 项 | 值 |
-|----|-----|
-| 字体 | **Noto Serif SC**（标题/wordmark）· **Noto Sans SC**（正文）· Inter 数字 |
-| 字重 | 标题 600～700 · 正文 400～500 |
-| 字距 | 标题 `0.02em` · 正文默认 |
-| 颜色 | `#18181B` |
-| 登录主标字号 | **`2.5rem`（40px）/ 700** · Noto Serif SC |
-| 侧栏字号 | `0.9375rem`（15px）· Noto Serif SC / 600 |
-| 登录说明 | 一段 **hero-desc**（见 DESIGN-4），不用双层 tagline |
-
-#### W3 标记（favicon / 小图标）
-
-- 竖条 `3×20px` + 圆点 `6px`，色 `#6E6560`；象征引用锚点/页码  
-- **禁止**：单字色块、emoji、AI 大脑图标
-
-#### 品牌出现频率
-
-| 位置 | 规则 |
-|------|------|
-| 浏览器标题 | `知岸` 或 `知岸 · {知识库名}` |
-| 登录 | 知岸 + hero-desc 说明段 |
-| 侧栏 | Wordmark 一次 · **220px 全站含对话** |
-| 对话区 | 面包屑 + 工具条；引用 chip 在消息下 |
-| 输入占位 | 「提问…」/「向知识库提问…」，不用「向知岸提问…」 |
+- 卡片 `rounded-2xl`(16px)；小徽章 `rounded-[6px]`
+- 投影：`--card-shadow`（柔和）+ 顶部高光 `--top-hi`（inset）；hover 抬升 `--card-shadow-lift`
+- 过渡：`--transition`（.35s，覆盖 `background-color / border-color / color / box-shadow / transform`）
 
 ---
 
-## DESIGN-2 配色与字体 ✅
+## 2. 页面布局结构
 
-> **定稿（2026-07-03）**：A 暖白 · E6 暖褐 · **F4 AURORA 衬线字体**
-
-### DESIGN-2-① 背景与中性色 ✅（2026-07-03）
-
-> **定稿：方案 A · L5 暖白**（MiMo 系米白底 + 暖灰边框，preview 全站 9 页已用此套）
-
-| Token | 色值 | 用途 |
-|-------|------|------|
-| `--bg` | `#FAFAF8` | 页面底（登录 + 主界面 + 对话） |
-| `--wash` | radial `rgba(245,240,235,0.65→transparent)` | 顶区暖晕（登录 Hero + `.app-shell`） |
-| `--surf` | `#FFFFFF` | 卡片、输入框 |
-| `--surf-glass` | `rgba(255,255,255,0.72)` + blur | 侧栏、顶栏 |
-| `--text` | `#18181B` | 正文、wordmark |
-| `--mut` | `#71717A` | 次要文案 |
-| `--mut-warm` | `#52525B` | hero-desc、说明段 |
-| `--line` / `--line2` | `#EFEAE4` / `#E8E4DF` | 分隔线、边框 |
-| `--ubg` | `#F5F2ED` | 用户消息泡 |
-| `--nav-on` | `#F5F2ED` | 侧栏选中 |
-
-**不做（相对 B/C/D）**：冷灰 `#F4F4F5` 全站底 · Kimi 纯白无边框 · 企业蓝灰底。
-
-### DESIGN-2-② 强调色 ✅（2026-07-03）
-
-> **定稿：E6 暖褐** — 褐灰引用 + 贴 `#F5F2ED` / `#E8E4DF` 主色；主钮仍黑 `#18181B`。
-
-| Token | 色值 | 用途 |
-|-------|------|------|
-| `--pri` | `#18181B` | 主按钮、登录 Tab 选中 |
-| `--acc` | `#6E6560` | 引用 chip 序号圆点、W3 标记、链接强调 |
-| `--acc-text` | `#524A44` | 引用 chip 文案 |
-| `--acc-bg` | `#EFEBE6` | 引用 chip 底、「引用溯源」pill |
-| `--status-ok-bg` | `#E5EBE3` | 文档状态「完成」（与引用色分离） |
-| `--status-ok-text` | `#4A5D47` | 完成状态文案 |
-
-备选曾见 preview 字体对照 Tab；Implement 以 **E6 暖褐** 为准。
-
-备选对照曾见 preview **字体对照** Tab；Implement 以 **F4** 为准。
-
-### DESIGN-2-③ 字体 ✅（2026-07-03）
-
-> **定稿：F4 AURORA 衬线** — 标题 **Noto Serif SC**（思源宋体）+ 正文 **Noto Sans SC**
-
-| 用途 | 字体 | 规格 |
-|------|------|------|
-| **登录 Hero「知岸」** | Noto Serif SC | `2.5rem` / 700 · `letter-spacing: 0.02em` |
-| **页面 h2 / 知识库卡片名** | Noto Serif SC | `1.05rem`～`0.9rem` / 600 |
-| **侧栏 wordmark** | Noto Serif SC | `0.9375rem` / 600 |
-| **正文、表单、表格、对话** | Noto Sans SC | `0.875rem` · line-height 1.55～1.75 |
-| **英文/数字** | Inter（fallback） | 与 sans 栈同排 |
-| **小字/标签** | Noto Sans SC | `0.75rem`～`0.8125rem` |
-
-**不做**：全站宋体长文 · 对话气泡内大段 serif · 表格全文 serif（难读）。
-
-### 组件风格 ✅
-
-| 组件 | 规则 |
-|------|------|
-| 主按钮 | 黑底 `#18181B` · **胶囊** `border-radius: 9999px` |
-| 次按钮 | 描边 `#E8E4DF` · 胶囊 |
-| 输入框（对话） | 白底 · 暖边框 · **胶囊形容器** |
-| 卡片/列表 | 半透明白 `rgba(255,255,255,0.85)` · 暖边框 · 轻阴影 |
-| 引用 chip | **E6 暖褐** `--acc` / `--acc-bg` |
-| 字体 | 标题 `font-serif` · 正文 `font-sans`（见 DESIGN-2-③） |
-
-### 不做
-
-- ❌ 应用内改深海军侧栏（与 L5 暖白冲突）  
-- ❌ 冷灰 `#F4F4F5` 全站底（已弃）  
-- ❌ 暗色模式 MVP  
+- **容器**：`max-w-[1180px]`，`px-7 pb-16 pt-7`，水平居中。
+- **纵向分节**，每节 `<section aria-label>` + `SectionTitle`（左 4px brand 竖条 → 衬线中文标题 17px / 600 → 大写英文小标 11px → 右侧 1px hr）。
+- **节序**：`KPI Ribbon → 入库态势 → 可信与性能 → 活跃度 → 最近对话与动态 → 数据口径 footer`。
+- **栅格**：KPI `grid-cols-2 lg:grid-cols-4`（等宽）；双栏 `md:grid-cols-2`；非对称 `md:grid-cols-[1.4fr_1fr]`；统一 `gap-3 / gap-4`。
+- **三态**：loading 骨架屏（pulse）/ error（AlertBanner + 重试）/ empty（EmptyStateV44 引导去知识库）。
+- **Footer 数据口径**：maxHeight 动画展开 + `aria-expanded` / `aria-controls`。
 
 ---
 
-## DESIGN-3 全局布局壳 ✅
+## 3. 数据展示范式
 
-> **定稿（2026-07-03）** — preview **全站 9 页** 已统一
+| 模块 | 组件 | 展示手法 |
+|------|------|----------|
+| KPI | `VitalCard` | 衬线 32px **bold** 数字 + `CountUp` + 左侧语义色带(3px) + 4% tint(hover→8%)；整卡可 `Link` 跳转 |
+| 入库态势 | `IngestionPanel` | 左右分栏 `1.7fr_1px_1fr`：四态管道条(flex 占比，**白字保对比度**) + 图例 + mini 指标；右=存储健康键值表(zeroOk✓) |
+| 可信 | `RagProofCard` | 46px ok 色大数字 + gauge 进度条 + 评估日期 |
+| 性能 | `PerfTable` | 键值表：延迟 / 样本数 / 引用覆盖率 / P95 |
+| 活跃度 | `ActivityChart` | 7 日日历格 heatmap + hover/focus tooltip(完整日期+次数) + 量化图例(低→高) + 7 日合计 |
+| 构成 | `CompositionBar` | 格式分布进度条 + 底部汇总 |
+| 动态 | `FeedList` ×2 | 图标块 + 标题/meta + 相对时间；`recent` 项左侧 brand 高亮条；空态虚线图标 |
 
-| 项 | 定稿（预览） |
-|----|-------------|
-| **登录后壳** | 左 **220px** 侧栏（wordmark + 导航）+ 顶栏面包屑 + 暖白内容区 |
-| **对话页** | **与概览/知识库同壳**（不再单独 56px 图标轨） |
-| **对话工具条** | 引用溯源 · 切换知识库 · 新建对话 |
-| **个人版** | 隐藏成员、组织设置 nav |
-| **引用** | 消息下方 chip + 可展开预览 |
-
----
-
-## DESIGN-4 登录 / 注册页 ✅
-
-> **定稿（2026-07-03）**：**L5 MiMo Hero 结构** · **2026-07-03 晚** 配色升级为 **人文暖白 + 赤陶橙**（仅登录/注册页，应用内仍 L5 黑灰主色）
-
-### 赤陶橙登录页规格（Implement 按此）
-
-| 项 | 值 |
-|----|-----|
-| **背景** | `#FDFBF9` + 暖杏 radial 渐变（`.auth-page` · 非纯白） |
-| **主卡片** | `#FFFCFA` · **560×640px** min · 暖色多层阴影 |
-| **正文** | `#332B2B`（杜绝纯黑） |
-| **次要文案** | `#7A6E6A` |
-| **边框/分隔** | `#EDE4DC` |
-| **主行动色** | `#CB6B3D`（按钮、聚焦环、步骤圆点、单选选中） |
-| **Hover 主色** | `#B85A2E` |
-| **账号类型选中底** | `#FFF1EA` · Hover `scale(1.01)` |
-| **Tab 容器底** | `#F5EDE8` |
-| **主标** | 「知岸」`2.25rem` / **700** / Noto Serif SC |
-| **hero-desc** | 居中 · max-width ~420px · `--auth-muted` |
-| **Tab** | 登录 / 注册 · **注册 2 步**（① 账号凭证 ② 选择与完成） |
-| **步骤条** | **细线 + 赤陶橙圆点**（非粗进度条） |
-| **密码框** | 内置显示/隐藏小眼睛（登录 + 注册） |
-| **密码强度** | 注册步骤 1 · 弱红 `#E05252` / 中橙 `#E8943A` / 强绿 `#5BA86E` |
-| **按钮** | 主按钮 `#CB6B3D` · 圆角 10px · 次按钮描边 `--auth-line` |
-
-**CSS 作用域**：token 定义在 `.auth-page`（`index.css`），**不修改**全局 `--pri` / 应用内主按钮。
-
-**预览文件**：[`docs/auth-warm-orange-preview.html`](auth-warm-orange-preview.html)（定稿对照）
-
-### 不做
-
-- ❌ 登录页单字色块 Logo  
-- ❌ 英文副标  
-- ❌ 全站改赤陶橙主色（仅 auth 页）
-
-> **应用内**：与 L5 **同系暖白 + E6 暖褐引用**（见 DESIGN-2 ✅）；登录页单独赤陶橙行动色。
-
-### 备选（preview 仍保留对照）
-
-L1 标准卡片 · L2 MiMo 暖白 · L3 Kimi 极简 · L4 企业分栏 · **旧 L5 黑灰主按钮**（`design-preview.html` 登录 Tab）
+**通用约定**：数字一律 `--serif` + `tabular-nums` + bold/semibold；缺失值统一 `—`；右上角小徽章 `rounded-[6px] border px-2 py-[3px]` 标口径（如「实时四态」「按日分桶」）；趋势按日分桶、构成按格式聚合（真实后端聚合）。
 
 ---
 
-## DESIGN-5 Dashboard 与知识库页 ✅
+## 4. 交互模式
 
-> **定稿（2026-07-03）** — preview **② 概览 · ③ 知识库 · ④ 库详情 · ⑤ 文档预览**  
-> **概览 v4.3.2（2026-07-03）** — `docs/dashboard-warm-white-preview.html` · **Implement 以此为准**（v4.3.1 归档）
-
-### ② 概览 · v4.3.1 信息架构
-
-| 区域 | 职责 | 规则 |
-|------|------|------|
-| **顶栏** | breadcrumb + **搜索 input**（⌘K） | 内容区不重复 h2 |
-| **Zone A** | 欢迎 + **主/次 CTA** + 芯片 + **快捷提问** | 主按钮赤陶橙；**资料库 `<select>`** 可切换；空态 input disabled |
-| **Banner** | 条件状态条 | **文件名** + 白话摘要；整理中 **indeterminate** 进度；**独占**异常详情 |
-| **Health** | 系统探活 | **仅企业版管理员**；白话「服务 / 资料索引 / 问答模型」 |
-| **Zone B** | 四统计卡 + **环比** | delta 仅「较上周/较上月 +N」；**不用**状态解释当 delta |
-| **Zone B′** | **最近动态** | **统计下方整行**；`activities.length === 0` **不渲染**；最多 5 条、`max-height` 内滚动 |
-| **Zone C** | RAG 可观测 | 可折叠；用户文案「质量报告」；**不对用户露** golden_qa |
-| **Zone D** | 资料库列表 | `showKb` 就绪态必 true；卡内 **独立按钮**（非嵌套假链）；**无**与 Banner 重复 note |
-
-**术语**：侧栏与内容区统一 **「资料库」**（路由仍为 `/knowledge-bases`）。
-
-**去重原则**：整理中/失败 → Banner 详述；动态只保留**其他**操作；KB 卡仅文件数 + 状态点。
-
-**账号类型**：企业版 **成员数仅在 org-chip**；不增第五统计卡；侧栏 admin 项正常 opacity。
-
-**Banner 暖色 token**（对齐 `#CB6B3D` / `#FFF1EA`，不用系统黄/绿/红）：
-
-| 类型 | 背景 | 边框 | 文字 |
-|------|------|------|------|
-| 整理中 | `#FFF1EA` | `#E8C4B0` | `#8B4513` |
-| 就绪 | `#F5F2ED` | `#D4CCC4` | `#524A44` |
-| 失败 | `#FFF5F0` | `#E8B4A0` | `#9A4A2E` |
-
-**就绪 Banner dismiss spec**：`localStorage` key `dashboard-ready-banner-dismissed`；全部就绪且无异时常显一次；用户点 × 后隐藏；若再出现 processing/failed 则重置显示逻辑。
-
-**CTA → 路由表**（v4.3，Implement 对照 `frontend/src/routes/index.tsx`）：
-
-| 入口 | 目标路由 | 状态 |
-|------|----------|------|
-| 顶栏搜索 / ⌘K | `/search?q=` 或命令面板 | 🟡 Wave 5+ |
-| 快捷提问 Enter | `/knowledge-bases/:recentId/chat?q=` | 🟡 |
-| 快捷芯片 · 上传/建库/对话 | `/knowledge-bases/:recentId` 等 | 🟡 Wave 4.4 |
-| Banner · 查看进度 / 去处理 | `?status=processing` / `failed` | 🟡 |
-| 动态项 · 查看/继续/去处理 | 预览 / 对话 / 库详情 | 🟡 |
-| RAG · 评估报告 | drawer 或 `/admin/evaluation` | 🟡 Wave 5+ |
-| 查看全部资料库 | `/knowledge-bases` | ✅ |
-
-**API 扩展（🟡 Implement 时）**：`recent_kb_id`、`recent_activities[]`、`rag_evaluated_at`、`GET /dashboard/health`、`member_count` / `org_name`。
-
-### ③～⑤ 资料库相关页
-
-| 页 | 布局要点 |
-|----|----------|
-| **③ 资料库列表** | `page-hd` 标题 + 「+ 新建资料库」主按钮 · **kb-grid** 卡片（名称 / 文档数 / 进入·删除） |
-| **④ 库详情** | 面包屑 `资料库 / {名}` · 上传 + 开始对话 · **data-table**（文件名 / 格式 / 状态 badge） |
-| **⑤ 文档预览** | 面包屑到文件名 · 左侧 PDF/文本预览区 · 右侧元信息（页码、大小） |
-
-| 状态 badge | 色 |
-|------------|-----|
-| 完成 | 暖褐 `#A68B6B` 点 / 列表内 badge |
-| 处理中 | 赤陶橙 `#CB6B3D` |
-| 失败 | 深赤陶 `#B85A2E` + 「重试」 |
+- **主题切换**（顶栏太阳图标）：`localStorage > 系统偏好(prefers-color-scheme)`；用户未手动选时跟随系统；切换用 **View Transitions API** 平滑动画（不支持则降级）。
+- **悬停反馈**：卡片 hover 上浮 `-translate-y-0.5` + 边框加深 + 阴影抬升；feed 行 hover 背景变 `--surf2`。
+- **焦点可见**：全局 `:focus-visible { outline: 2px solid var(--brand) }`；活动格 `ring-2 action`。
+- **跳转联动**：KPI 整卡跳对应页；活动格点击跳 `/ask?date=YYYY-MM-DD`（为按日筛选留接口）。
+- **可访问性**：语义 `section` / `footer`、`aria-label`、tooltip `pointer-events-none`、`prefers-reduced-motion` 全局守卫（动画时长压到 ~0）。
 
 ---
 
-## DESIGN-6 对话页与引用区 ✅
+## 5. 视觉风格方向
 
-> **定稿（2026-07-03）** — preview **⑥ 对话** · **G2-3.3 空/加载/错态统一（2026-07-09）**
-
-| 项 | 规格 |
-|----|------|
-| **壳** | 与全站同：220px 侧栏 + 顶栏 `对话 / {资料库名}` · 桌面 **260px 历史侧栏**（G2） |
-| **工具条** | 引用溯源 pill · 切换资料库 · + 新建对话 |
-| **消息** | 用户泡 `#F5F2ED` · AI 块白底 · max-width ~680px 居中 · **按日 pill + 相对时间**（G2-3.2） |
-| **引用 chip** | 暖褐 `#6E6560` · 序号圆点 · 文档名 + 章节页码 |
-| **引用预览** | chip 下方可展开块 · 「查看原文 →」链到预览页 |
-| **输入** | 底部 sticky · 胶囊容器 + 圆形发送钮（G2-3.2 UX-1） |
-| **空态** | `ChatEmptyPanel` · 虚线卡片壳（对齐 `KbResultEmptyPanel`）· 消息区 / 无库 / 侧栏「暂无会话」共用 |
-| **加载** | `ChatLoadingPanel` · `Loader2` + 文案 · 首屏 `ChatPageShellSkeleton` · 历史 / 侧栏列表同组件 |
-| **错态** | `AlertBanner` 暖色 token · 列表 / 历史 / 流式 / 无库检查均带 **重试**（可重试时）· 非系统红 |
-
-**组件 SSOT**：`frontend/src/components/chat/ChatEmptyPanel.tsx` · `ChatLoadingPanel.tsx` · `ChatPageShellSkeleton.tsx` · `ThreadListPanel.tsx` · `AskPage.tsx` / `ChatPage.tsx`。
-
-Wave 5 细调：SSE 流式打字、多轮 thread、chip 点击跳预览（布局已定，交互后补）。
+- **暖陶土品牌**（terracotta），主色 `#cf6a3a` / action `#cb6b3d`(暗 `#e07a45`)，渐变 `--brand-grad`；语义 ok/warn/info/que/bad 用于状态。
+- **「数字衬线、文字无衬线」对比美学**：展示型数字用衬线，正文/标签用无衬线。
+- **卡片**：`rounded-2xl`(16px) + 1px 描边(`--line2`) + 顶部高光(`--top-hi`) + 柔和投影(`--card-shadow`)。
+- **明暗双主题**：亮色=干净中性浅灰、无纸纹、中性灰阴影；暗色=暖棕黑、暖棕投影 `rgba(12,8,6,.55)`。
 
 ---
 
-## DESIGN-7 组件与 shadcn 约定 ✅
+## 6. 硬约束（红线，重做必须遵守）
 
-> **定稿（2026-07-03）** — shadcn/ui + Tailwind · token 对齐 DESIGN-2
-
-| 预览类 / 场景 | shadcn 组件 | 定制 |
-|---------------|-------------|------|
-| 主/次按钮 `btn-sm-pri/out` | `Button` | `rounded-full` · pri=`bg-zinc-900` |
-| 登录 segmented Tab | `Tabs` | 灰底滑块 · 圆角容器 |
-| 表单输入 | `Input` + `Label` | 圆角 10px · 暖边框 · **Noto Sans SC** |
-| 统计 / kb 卡片 | `Card` | `bg-white/85` · 暖边框 · 标题 `font-serif` |
-| 文档列表 | `Table` | 行 hover · 状态用 `Badge` · 正文 sans |
-| 侧栏 nav | 自研 `AppSidebar` | 220px · wordmark **Noto Serif SC** |
-| 引用 chip | 自研 `CitationChip` | E6 暖褐 · 非 shadcn 默认 |
-| 对话输入 | `Input` 包在 flex 容器 | 外层 `rounded-full` + shadow |
-| 成员/组织表单 | `Card` + `Input` + `Button` | 与 preview ⑦⑧⑨ 一致 |
-
-**Tailwind 扩展**：
-
-```js
-fontFamily: {
-  sans: ['"Noto Sans SC"', 'Inter', 'PingFang SC', 'sans-serif'],
-  serif: ['"Noto Serif SC"', 'Songti SC', 'serif'],
-},
-// + DESIGN-2 CSS 变量 --bg、--line2、--acc 等
-```
-
-**不做**：深海军侧栏主题 · shadcn 默认 zinc 冷灰全站 · 暗色 mode MVP · 全站 serif 正文。
+1. 容器 `1180px` / `px-7`；每节带 `SectionTitle` + `aria-label`。
+2. 颜色全走 token（`var(--*)`），禁止硬编码（token 定义处除外）；明暗双主题必须全覆盖。
+3. WCAG AA：管道白字、mut 对比度达标；全局焦点环；`prefers-reduced-motion` 守卫。
+4. 数字 `tabular-nums` + 衬线；缺失值 `—`；loading/error/empty 三态齐备。
+5. 数据来自真实 API `GET /api/v1/dashboard/stats`，Tier-1 主轴**无需改后端**即可上线；中文文案优先。
 
 ---
 
-## DESIGN-8 动效与高级感增强（v8 · 2026-07-14）✅
+## 7. 排版规则（中文 letter-spacing 红线）
 
-> **目标**：在不改变 DESIGN-1/2 锁定的品牌（暖白 · 暖褐 · 赤陶 · 衬线）前提下，吸收 godly / shader gradient / motion 类站点手法，把视觉质感拉到一线产品水准。全部动效尊重 `prefers-reduced-motion`（全局守卫已覆盖）。
+- **中文正文与标签：禁止 letter-spacing**（含 Tailwind `tracking-wide` 等）。中文字形为全宽等身，加字距会破坏均匀节奏、显得松散，与「干净」定位冲突。
+- **拉丁大写英文小标**（如 `SectionTitle` 的 `en` 副标）：**可保留** `tracking-[2px]`，用于提升大写拉丁可读性 —— 这是唯一允许的 letter-spacing 场景。
+- **展示型数字**：使用 `tabular-nums`，**不加** letter-spacing（保持等宽节奏）。
+- 字号底线：中文不小于 12px。
 
-| 手法 | 实现 | 用在哪 |
-|------|------|--------|
-| **Living aurora（呼吸光晕）** | `.hero-aurora`（`index.css` v8）`aurora-drift` 20s 缓动，复用 `--glow-a/b/c` | 概览 Hero 卡背景 |
-| **滚动入场** | `Reveal` 组件（IntersectionObserver）+ `.reveal/.reveal-up/.reveal-scale/.reveal-left/.in-view` | 概览各区块（文档搜索/ZoneA/Banner/运维·RAG 指标） |
-| **KPI 数字递增** | `CountUp` 组件（easeOutCubic rAF） | StatCard 数值、Hero 资料库/提问数 |
-| **主按钮高光扫过** | `.btn-shine`（::after 白色斜向渐变扫光） | `Button` `brandGrad` 变体全局生效；Hero CTA |
-| 缓动令牌 | `--ease-out` / `--ease-spring` / `--rv-dur` | 统一过渡曲线 |
+---
 
-**硬约束不变**：品牌色板、字体、220px 侧栏、赤陶仅 auth 页、引用 chip 暖褐 — 均不改。新增仅为**叠加动效层**，不引入新依赖（纯 CSS + 原生 IntersectionObserver / rAF）。
+## 8. 已知预留位（非阻断，重做时按此处理）
 
+- 活跃度目前仅近 7 日；更长区间需扩展 `ActivityChart` 并约定粒度。
+- `CompositionBar` / `PerfTable` 的「引用覆盖率 / P95 / 体积」后端尚未返回，显示 `—`，按预留位保留。

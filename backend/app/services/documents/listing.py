@@ -96,6 +96,7 @@ async def list_documents(
         uploaded_to=uploaded_to,
     )
     # visibility 过滤不能走 apply_document_list_filters，单独加
+    stmt = stmt.where(Document.deleted_at.is_(None))
     if (
         current_user.account_type.value == "enterprise"
         and current_user.org_role == "member"

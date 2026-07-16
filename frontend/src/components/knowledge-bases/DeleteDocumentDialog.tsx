@@ -44,12 +44,12 @@ export function DeleteDocumentDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative z-10 w-full max-w-md rounded-xl border border-[var(--line2)] bg-white p-6 shadow-md"
+        className="relative z-10 w-full max-w-md rounded-2xl border border-[var(--line2)] bg-[var(--bg)] p-6 shadow-[var(--card-shadow)]"
         onClick={(e) => e.stopPropagation()}
       >
         <h2
           id={titleId}
-          className="font-serif text-lg font-semibold tracking-[0.02em] text-foreground"
+          className="font-serif text-lg font-semibold text-foreground"
         >
           删除文档
         </h2>
@@ -72,7 +72,7 @@ export function DeleteDocumentDialog({
             size="sm"
             disabled={deleting}
             onClick={onConfirm}
-            className="bg-[#B85A2E] text-white hover:bg-[#9A4A2E]"
+            className="bg-[var(--bad)] text-white hover:bg-[var(--bad)]/80"
           >
             {deleting ? "删除中…" : "确认删除"}
           </Button>

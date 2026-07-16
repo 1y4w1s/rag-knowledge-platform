@@ -22,7 +22,7 @@ export function AlertBanner({
     <div
       role="alert"
       className={cn(
-        "alert-warm-err flex flex-wrap items-center justify-between gap-3 rounded-[10px] border px-4 py-3 text-sm",
+        "alert-warm-err flex flex-wrap items-center justify-between gap-3 rounded-[8px] border px-4 py-3 text-sm",
         className,
       )}
     >

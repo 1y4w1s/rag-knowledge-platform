@@ -17,13 +17,13 @@ jobs:
       postgres:
         image: pgvector/pgvector:pg16
         env:
-          POSTGRES_USER: zhiku
+          POSTGRES_USER: ruige
           POSTGRES_PASSWORD: changeme
-          POSTGRES_DB: zhiku
+          POSTGRES_DB: ruige
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready -U zhiku
+          --health-cmd pg_isready -U ruige
           --health-interval 5s
           --health-timeout 5s
           --health-retries 5
@@ -40,13 +40,24 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install pytest pytest-asyncio httpx docx reportlab python-jose resend
+          pip install 'pytest>=8.3,<9' 'pytest-asyncio>=0.24,<0.25' httpx docx reportlab python-jose resend ruff
+
+      - name: Lint with ruff
+        run: |
+          ruff check . --output-format=github
+        continue-on-error: true
 
       - name: Apply migrations
         run: |
           alembic upgrade head
         env:
-          DATABASE_URL: postgresql+asyncpg://zhiku:changeme@localhost:5432/zhiku
+          DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
+
+      - name: Test migration rollback
+        run: |
+          alembic downgrade -1 && alembic upgrade head
+        env:
+          DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
 
       - name: Run unit tests
         run: |
@@ -56,4 +67,33 @@ jobs:
         run: |
           python -m pytest tests/test_retrieval_golden.py -v --tb=short
         env:
-          DATABASE_URL: postgresql+asyncpg://zhiku:changeme@localhost:5432/zhiku
+          DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Lint backend
+        run: ruff check backend/ --output-format=github
+        continue-on-error: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check frontend builds
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build

@@ -1,8 +1,10 @@
 """认证路由：注册 / 登录 / 当前用户（Wave 1.1 + 1.2）。"""
 
+from collections import defaultdict
+from time import monotonic
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -81,12 +83,32 @@ async def me(
 @router.post("/forgot-password", response_model=ForgotPasswordResponse)
 async def forgot_password(
     body: ForgotPasswordRequest,
+    request: Request,
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> ForgotPasswordResponse:
+    ip = get_client_ip(request) or "unknown"
+    _check_forgot_password_rate_limit(ip)
     msg = await send_password_reset_email(
         db, identifier=body.identifier,
     )
     return ForgotPasswordResponse(message=msg)
+
+
+# ── 忘记密码 IP 限流（防止枚举攻击） ─────────────────────────────
+_forgot_password_calls: dict[str, list[float]] = defaultdict(list)
+_FORGOT_PASSWORD_MAX = 3
+_FORGOT_PASSWORD_WINDOW = 300  # 5 分钟
+
+
+def _check_forgot_password_rate_limit(ip: str) -> None:
+    now = monotonic()
+    window_start = now - _FORGOT_PASSWORD_WINDOW
+    timestamps = _forgot_password_calls.get(ip, [])
+    timestamps = [t for t in timestamps if t > window_start]
+    if len(timestamps) >= _FORGOT_PASSWORD_MAX:
+        raise HTTPException(status_code=429, detail="请求过于频繁，请 5 分钟后再试")
+    timestamps.append(now)
+    _forgot_password_calls[ip] = timestamps
 
 
 @router.post("/reset-password", response_model=ResetPasswordResponse)

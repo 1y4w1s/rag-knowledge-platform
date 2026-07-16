@@ -34,6 +34,13 @@ export function DocumentRowActions({
 
     return (
       <span className="inline-flex items-center gap-1 text-[0.78rem] text-muted">
+        <Link
+          to={previewPath}
+          className="hover:text-[var(--action)] hover:underline"
+        >
+          预览
+        </Link>
+        <span aria-hidden>·</span>
         <button
           type="button"
           disabled={busy === "retry"}
@@ -55,7 +62,7 @@ export function DocumentRowActions({
         <button
           type="button"
           disabled={deleting}
-          className="hover:text-[#B85A2E] hover:underline disabled:opacity-60"
+          className="hover:text-[var(--bad)] hover:underline disabled:opacity-60"
           onClick={() => onRequestDelete(doc)}
         >
           {deleting ? "删除中…" : "删除"}
@@ -88,7 +95,7 @@ export function DocumentRowActions({
         <button
           type="button"
           disabled={deleting}
-          className="hover:text-[#B85A2E] hover:underline disabled:opacity-60"
+          className="hover:text-[var(--bad)] hover:underline disabled:opacity-60"
           onClick={() => onRequestDelete(doc)}
         >
           {deleting ? "删除中…" : "删除"}

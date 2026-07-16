@@ -23,9 +23,9 @@ from app.services.rag.types import RetrievedChunk
 from app.services.search.documents import kb_scope_clause
 from app.services.workspace.scope import WorkspaceScope
 
-VECTOR_RECALL = 20
-FTS_RECALL = 20
-LLM_TOP_K = 5
+VECTOR_RECALL = settings.vector_recall_k
+FTS_RECALL = settings.fts_recall_k
+LLM_TOP_K = settings.llm_top_k
 TS_CONFIG = "simple"
 
 logger = logging.getLogger(__name__)
@@ -277,6 +277,35 @@ async def retrieve_chunks(
         )
 
     reranked = await rerank_chunks(query, candidates, top_k=top_k)
+
+    # 跨段 Query Rewrite：仅对可能含多知识点的复合问题使用
+    if len(reranked) > 0 and settings.rerank_enabled:
+        _needs_decompose = any(m in query for m in ["和", "与", "以及", "还是", "或", "同时", "如果"])
+        _multi_q = query.count("？") > 1 or query.count("?") > 1
+        if _needs_decompose or _multi_q or len(query) > 15:
+            try:
+                from app.services.rag.generation import decompose_query
+                sub_queries = await decompose_query(query)
+                if len(sub_queries) > 1:
+                    seen_ids: set[UUID] = set(c.chunk_id for c in reranked)
+                    extra: list[RetrievedChunk] = []
+                    for sq in sub_queries:
+                        if sq.lower().strip() == query.lower().strip():
+                            continue
+                        sq_chunks = await retrieve_chunks(
+                            db, kb_id=kb_id, query=sq, top_k=top_k,
+                            visible_kb_ids=visible_kb_ids, hide_admin_only=hide_admin_only,
+                        )
+                        for c in sq_chunks:
+                            if c.chunk_id not in seen_ids:
+                                seen_ids.add(c.chunk_id)
+                                extra.append(c)
+                    if extra:
+                        reranked = reranked + extra
+                        reranked = await rerank_chunks(query, reranked, top_k=top_k)
+            except Exception:
+                logger.warning("decompose_query failed for '%s'", query[:50])
+
     return _enforce_kb_scope(
         reranked,
         kb_id=kb_id,

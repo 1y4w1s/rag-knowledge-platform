@@ -1,7 +1,5 @@
-# Eval-Ops M10 · 从 backup-prod.ps1 产出恢复 PostgreSQL + uploads 卷
-# 用法：.\scripts\restore-prod.ps1 -BackupDir backups\m10-20260708-223000
-# 可选：-SkipHealthCheck（仅恢复、不探活）
-
+# Eval-Ops M10 · �?backup-prod.ps1 产出恢复 PostgreSQL + uploads �?# 用法�?\scripts\restore-prod.ps1 -BackupDir backups\m10-20260708-223000
+# 可选：-SkipHealthCheck（仅恢复、不探活�?
 param(
     [Parameter(Mandatory = $true)]
     [string]$BackupDir,
@@ -47,7 +45,7 @@ function Resolve-BackupRoot([string]$Dir) {
     if ($Dir -match '[<>|"?*]') {
         Write-Fail @"
 BackupDir contains invalid characters (e.g. < >).
-Do NOT copy the placeholder literally — use the folder name printed by backup-prod.ps1.
+Do NOT copy the placeholder literally �?use the folder name printed by backup-prod.ps1.
 
 Example:
   .\scripts\restore-prod.ps1 -BackupDir backups\m10-20260708-drill
@@ -64,7 +62,7 @@ $(Get-ChildItem -Directory (Join-Path $Root 'backups') -ErrorAction SilentlyCont
 }
 
 $backupRoot = Resolve-BackupRoot $BackupDir
-$dumpPath = Join-Path $backupRoot "zhiku.dump"
+$dumpPath = Join-Path $backupRoot "ruige.dump"
 $uploadsTar = Join-Path $backupRoot "uploads.tar.gz"
 
 if (-not (Test-Path $dumpPath)) {
@@ -85,14 +83,14 @@ if ((Invoke-DockerCompose @("stop", "api", "web")) -ne 0) { Write-Fail "compose 
 Write-Step "pg_restore from $dumpPath"
 $pgContainer = (docker compose @Compose ps -q postgres 2>$null).Trim()
 if (-not $pgContainer) { Write-Fail "postgres container id not found" }
-if ((Invoke-Docker -DockerArgs @("cp", $dumpPath, "${pgContainer}:/tmp/zhiku.dump")) -ne 0) {
+if ((Invoke-Docker -DockerArgs @("cp", $dumpPath, "${pgContainer}:/tmp/ruige.dump")) -ne 0) {
     Write-Fail "docker cp dump failed"
 }
-$restoreExit = Invoke-DockerCompose @("exec", "-T", "postgres", "pg_restore", "-U", "zhiku", "-d", "zhiku", "--clean", "--if-exists", "--no-owner", "--no-privileges", "/tmp/zhiku.dump")
-Invoke-DockerCompose @("exec", "-T", "postgres", "rm", "-f", "/tmp/zhiku.dump") | Out-Null
+$restoreExit = Invoke-DockerCompose @("exec", "-T", "postgres", "pg_restore", "-U", "zhiku", "-d", "zhiku", "--clean", "--if-exists", "--no-owner", "--no-privileges", "/tmp/ruige.dump")
+Invoke-DockerCompose @("exec", "-T", "postgres", "rm", "-f", "/tmp/ruige.dump") | Out-Null
 if ($restoreExit -gt 1) { Write-Fail "pg_restore failed (exit $restoreExit)" }
 
-Write-Step "extract uploads → volume $UploadsVolume"
+Write-Step "extract uploads �?volume $UploadsVolume"
 $backupUnix = ($backupRoot -replace '\\', '/')
 if ((Invoke-Docker -DockerArgs @(
         "run", "--rm",
@@ -131,5 +129,5 @@ if ($resp.status -ne "ok" -or $resp.database -ne "ok") {
     Write-Fail "health not ok: $($resp | ConvertTo-Json -Compress)"
 }
 
-Write-Pass "restore complete — health ok"
+Write-Pass "restore complete �?health ok"
 Write-Host ($resp | ConvertTo-Json -Compress)
