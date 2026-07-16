@@ -1,4 +1,4 @@
-"""从 docs/golden_agent_qa.json 加载 G3 Agent golden 验收集（G3-4.2 SSOT）。"""
+﻿"""从 docs/golden_agent_qa.json 加载 G3 Agent golden 验收集（G3-4.2 SSOT）。"""
 
 from __future__ import annotations
 
@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-GOLDEN_AGENT_QA_JSON = REPO_ROOT / "docs" / "design-reviews" / "golden_agent_qa.json"
+REPO_ROOT = Path(__file__).resolve().parents[0]
+GOLDEN_AGENT_QA_JSON = REPO_ROOT / "golden_agent_qa.json"
 
 AgentCategory = Literal["multi_step", "refusal", "forbidden_kb"]
 AgentScope = Literal["kb", "workspace"]
