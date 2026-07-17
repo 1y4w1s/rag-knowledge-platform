@@ -27,7 +27,7 @@ async def _register_org_admin(
 ) -> tuple[dict[str, str], dict]:
     email = unique_email(prefix)
     username = unique_username(prefix)
-    password = "password123"
+    password = "Test123!@"
     reg = await client.post(
         "/api/v1/auth/register",
         json={
@@ -74,7 +74,7 @@ async def _create_org_member(
         id=uuid.uuid4(),
         email=unique_email(prefix),
         username=unique_username(prefix),
-        password_hash=hash_password("password123"),
+        password_hash=hash_password("Test123!@"),
         account_type=AccountType.enterprise,
     )
     db.add(user)
@@ -310,7 +310,7 @@ async def test_unit_member_e6_unassigned_has_no_unit_memberships(
 
     login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": member.email, "password": "password123"},
+        json={"identifier": member.email, "password": "Test123!@"},
     )
     assert login.status_code == 200
     login_user = login.json()["user"]

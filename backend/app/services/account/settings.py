@@ -105,7 +105,7 @@ async def join_team_with_invite(
     await db.commit()
     await db.refresh(user)
 
-    org_id, org_role, is_owner = await resolve_org_context(db, user)
+    org_id, org_role, is_owner, _custom_role_id, _custom_role_is_admin = await resolve_org_context(db, user)
     account = await get_account_settings(
         db,
         CurrentUser(

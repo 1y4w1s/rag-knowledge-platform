@@ -17,7 +17,7 @@ async def _create_org_member_and_login(
     client: AsyncClient,
     *,
     org_id: str,
-    password: str = "password123",
+    password: str = "Test123!@",
 ) -> tuple[dict[str, str], dict]:
     """在已有组织下创建 member 用户并登录（成员管理 API 在后续 Wave）。"""
     email = unique_email("member")

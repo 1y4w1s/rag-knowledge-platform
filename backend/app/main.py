@@ -28,6 +28,7 @@ from app.api.ask_threads import router as ask_threads_router
 from app.api.kb_threads import router as kb_threads_router
 from app.api.audit import router as audit_router
 from app.api.auth import router as auth_router
+from app.api.batch import router as batch_router
 from app.api.api_keys import router as api_keys_router
 from app.api.chat import router as chat_router
 from app.api.dashboard import router as dashboard_router
@@ -40,10 +41,15 @@ from app.api.metrics import router as metrics_router
 from app.api.org_unit_members import router as org_unit_members_router
 from app.api.org_units import router as org_units_router
 from app.api.organization import router as organization_router
+from app.api.roles import router as roles_router
 from app.api.search import router as search_router
 from app.api.settings import router as settings_router
+from app.api.tasks import router as tasks_router
+from app.api.versions import router as versions_router
+from app.api.webhooks import router as webhooks_router
 from app.core.config import settings
 from app.core.logging import get_trace_id, setup_logging, set_trace_id, set_user_id
+from app.core.otel import setup_otel
 import logging
 from app.core.security import JWTAuthMiddleware
 from app.core.exception_handlers import EXCEPTION_HANDLERS
@@ -79,6 +85,7 @@ app = FastAPI(
 )
 
 setup_logging()
+setup_otel(app)
 
 logger = logging.getLogger(__name__)
 
@@ -151,6 +158,11 @@ app.include_router(kb_threads_router, prefix="/api/v1")
 app.include_router(agent_router, prefix="/api/v1")
 app.include_router(ask_router, prefix="/api/v1")
 app.include_router(ask_threads_router, prefix="/api/v1")
+app.include_router(roles_router, prefix="/api/v1")
 app.include_router(search_router, prefix="/api/v1")
 app.include_router(settings_router, prefix="/api/v1")
 app.include_router(api_keys_router, prefix="/api/v1")
+app.include_router(batch_router, prefix="/api/v1")
+app.include_router(tasks_router, prefix="/api/v1")
+app.include_router(versions_router, prefix="/api/v1")
+app.include_router(webhooks_router, prefix="/api/v1")

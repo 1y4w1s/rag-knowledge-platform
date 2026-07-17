@@ -17,6 +17,8 @@ import logging
 import uuid
 from contextvars import ContextVar
 
+from app.core.config import settings
+
 _current_trace_id: ContextVar[str] = ContextVar("trace_id", default="")
 _current_user_id: ContextVar[str] = ContextVar("user_id", default="")
 
@@ -70,7 +72,7 @@ class _StructuredFormatter(logging.Formatter):
 
 
 def setup_logging() -> None:
-    """替换根 logger 的 handler 为结构化 JSON 格式。"""
+    """替换根 logger 的 handler 为结构化 JSON 格式 + 可选 Loki 推送。"""
     handler = logging.StreamHandler()
     handler.setFormatter(_StructuredFormatter())
     root = logging.getLogger()
@@ -81,3 +83,22 @@ def setup_logging() -> None:
     # 第三方库保持 WARNING 级别
     for lib in ("httpx", "urllib3", "alembic", "sqlalchemy"):
         logging.getLogger(lib).setLevel(logging.WARNING)
+
+    # Loki 推送（仅当配置了 loki_url）
+    loki_url = getattr(settings, "loki_url", "")
+    if loki_url:
+        try:
+            from logging_loki import LokiHandler
+
+            loki_handler = LokiHandler(
+                url=f"{loki_url.rstrip('/')}/loki/api/v1/push",
+                tags={"service": settings.loki_service_name},
+                version="1",
+            )
+            loki_handler.setLevel(logging.INFO)  # INFO+ 推 Loki（生产可改 WARNING）
+            root.addHandler(loki_handler)
+            logger = logging.getLogger(__name__)
+            logger.info("Loki 日志推送已启用: %s", loki_url)
+        except Exception as exc:
+            logger = logging.getLogger(__name__)
+            logger.warning("Loki 初始化失败（不影响本地日志）: %s", exc)

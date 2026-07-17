@@ -1,5 +1,5 @@
-# Eval-Ops M10 · 生产栈备份：PostgreSQL dump + uploads 命名�?# 前置：docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-# 用法�?\scripts\backup-prod.ps1
+# Eval-Ops M10 · 生产栈备份：PostgreSQL dump + uploads 命名�?# 前置：docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# 用法�?\scripts\backup-prod.ps1
 #       .\scripts\backup-prod.ps1 -OutDir backups\manual-20260708
 
 param(
@@ -35,11 +35,11 @@ function Test-DockerVolume([string]$Name) {
 
 $pgRunning = docker compose @Compose ps --status running --services postgres 2>$null
 if (-not $pgRunning) {
-    Write-Fail "postgres not running �?start prod stack first (see docs/DEPLOY.md §3.3)"
+    Write-Fail "postgres not running �?start prod stack first (see docs/DEPLOY.md §3.3)"
 }
 
 if (-not (Test-DockerVolume $UploadsVolume)) {
-    Write-Fail "uploads volume missing: $UploadsVolume �?use prod compose (docker-compose.prod.yml)"
+    Write-Fail "uploads volume missing: $UploadsVolume �?use prod compose (docker-compose.prod.yml)"
 }
 
 $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
@@ -54,7 +54,7 @@ $dumpPath = Join-Path $dest "ruige.dump"
 $uploadsTar = Join-Path $dest "uploads.tar.gz"
 $manifestPath = Join-Path $dest "manifest.json"
 
-Write-Step "pg_dump �?$dumpPath"
+Write-Step "pg_dump �?$dumpPath"
 $pgContainer = docker compose @Compose ps -q postgres
 if (-not $pgContainer) { Write-Fail "postgres container id not found" }
 docker compose @Compose exec -T postgres pg_dump -U ruige -Fc -f /tmp/ruige.dump zhiku
@@ -63,9 +63,9 @@ docker cp "${pgContainer}:/tmp/ruige.dump" $dumpPath
 if ($LASTEXITCODE -ne 0) { Write-Fail "docker cp dump failed" }
 docker compose @Compose exec -T postgres rm -f /tmp/ruige.dump | Out-Null
 $dumpSize = (Get-Item $dumpPath).Length
-if ($dumpSize -lt 100) { Write-Fail "dump file too small ($dumpSize bytes) �?check postgres logs" }
+if ($dumpSize -lt 100) { Write-Fail "dump file too small ($dumpSize bytes) �?check postgres logs" }
 
-Write-Step "uploads volume �?$uploadsTar"
+Write-Step "uploads volume �?$uploadsTar"
 $destUnix = ($dest -replace '\\', '/')
 docker run --rm `
     -v "${UploadsVolume}:/data:ro" `
@@ -89,7 +89,7 @@ $manifest = @{
 } | ConvertTo-Json -Depth 3
 Set-Content -Path $manifestPath -Value $manifest -Encoding UTF8
 
-Write-Pass "backup complete �?$dest"
+Write-Pass "backup complete �?$dest"
 Write-Host "  ruige.dump      $dumpSize bytes"
 Write-Host "  uploads.tar.gz  $uploadsSize bytes"
 Write-Host "  manifest.json"

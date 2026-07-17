@@ -28,6 +28,11 @@ class OrganizationMember(Base):
         Enum(OrgRole, name="org_role", native_enum=True), nullable=False
     )
     is_owner: Mapped[bool] = mapped_column(default=False, nullable=False)
+    custom_role_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("custom_roles.id", ondelete="SET NULL"),
+        nullable=True,
+    )
     joined_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

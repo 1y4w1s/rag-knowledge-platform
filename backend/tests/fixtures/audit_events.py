@@ -44,7 +44,7 @@ async def _register_org_admin(
 ) -> tuple[dict[str, str], dict]:
     email = unique_email(prefix)
     username = unique_username(prefix)
-    password = "password123"
+    password = "Test123!@"
     reg = await client.post(
         "/api/v1/auth/register",
         json={
@@ -75,7 +75,7 @@ async def _create_org_roster_member(
             id=uuid.uuid4(),
             email=unique_email(prefix),
             username=unique_username(prefix),
-            password_hash=hash_password("password123"),
+            password_hash=hash_password("Test123!@"),
             account_type=AccountType.enterprise,
         )
         db.add(user)

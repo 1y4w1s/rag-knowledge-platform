@@ -18,7 +18,7 @@ async def test_register_personal(client: AsyncClient) -> None:
         json={
             "email": email,
             "username": username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "personal",
         },
     )
@@ -42,7 +42,7 @@ async def test_register_with_optional_nickname(client: AsyncClient) -> None:
             "email": email,
             "username": username,
             "nickname": "小知",
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "personal",
         },
     )
@@ -59,7 +59,7 @@ async def test_register_enterprise(client: AsyncClient) -> None:
         json={
             "email": email,
             "username": username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "enterprise",
             "org_name": "测试科技有限公司",
         },
@@ -78,7 +78,7 @@ async def test_register_enterprise_requires_org_name(client: AsyncClient) -> Non
         json={
             "email": unique_email("no-org"),
             "username": unique_username("no-org"),
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "enterprise",
         },
     )
@@ -93,7 +93,7 @@ async def test_register_duplicate_email(client: AsyncClient) -> None:
     payload = {
         "email": email,
         "username": username_a,
-        "password": "password123",
+        "password": "Test123!@",
         "account_type": "personal",
     }
     first = await client.post("/api/v1/auth/register", json=payload)
@@ -113,7 +113,7 @@ async def test_register_duplicate_username(client: AsyncClient) -> None:
         json={
             "email": unique_email("dupuser-a"),
             "username": username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "personal",
         },
     )
@@ -123,7 +123,7 @@ async def test_register_duplicate_username(client: AsyncClient) -> None:
         json={
             "email": unique_email("dupuser-b"),
             "username": username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "personal",
         },
     )
@@ -135,7 +135,7 @@ async def test_register_duplicate_username(client: AsyncClient) -> None:
 async def test_login_returns_jwt(client: AsyncClient) -> None:
     email = unique_email("login")
     username = unique_username("login")
-    password = "password123"
+    password = "Test123!@"
     reg = await client.post(
         "/api/v1/auth/register",
         json={
@@ -167,7 +167,7 @@ async def test_login_returns_jwt(client: AsyncClient) -> None:
 async def test_login_with_username(client: AsyncClient) -> None:
     email = unique_email("login-user")
     username = unique_username("loginuser")
-    password = "password123"
+    password = "Test123!@"
     reg = await client.post(
         "/api/v1/auth/register",
         json={
@@ -191,7 +191,7 @@ async def test_login_with_username(client: AsyncClient) -> None:
 async def test_login_enterprise_jwt_has_org_claims(client: AsyncClient) -> None:
     email = unique_email("ent-login")
     username = unique_username("entlogin")
-    password = "password123"
+    password = "Test123!@"
     reg = await client.post(
         "/api/v1/auth/register",
         json={
@@ -226,7 +226,7 @@ async def test_login_wrong_password(client: AsyncClient) -> None:
         json={
             "email": email,
             "username": username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "personal",
         },
     )

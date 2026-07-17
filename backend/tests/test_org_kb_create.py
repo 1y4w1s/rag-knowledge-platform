@@ -24,7 +24,7 @@ async def test_unit_admin_create_kb_attached_to_department(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """S1：研发 unit_admin 建库挂研发部；研发 Member 可见，市场 Member 不可见。"""
-    password = "password123"
+    password = "Test123!@"
     rd_admin_headers, _ = await _login_user(client, org_iso.rd_admin.email, password)
 
     create_resp = await client.post(
@@ -70,7 +70,7 @@ async def test_company_admin_create_public_kb(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """S2：公司 Admin 建公司公共库；各部门 Member 均可见。"""
-    password = "password123"
+    password = "Test123!@"
     owner_headers, _ = await _login_user(client, org_iso.owner.email, password)
 
     create_resp = await client.post(
@@ -101,7 +101,7 @@ async def test_unit_admin_cannot_create_public_kb(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """E8：部门 Admin 不能建公司公共库。"""
-    password = "password123"
+    password = "Test123!@"
     headers, _ = await _login_user(client, org_iso.rd_admin.email, password)
 
     resp = await client.post(
@@ -119,7 +119,7 @@ async def test_unit_admin_cannot_attach_sibling_department(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """E2：部门 Admin 不能把库挂到兄弟部门。"""
-    password = "password123"
+    password = "Test123!@"
     headers, _ = await _login_user(client, org_iso.rd_admin.email, password)
 
     resp = await client.post(
@@ -137,7 +137,7 @@ async def test_org_member_cannot_create_kb(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """E1：普通 Member 建库 403。"""
-    password = "password123"
+    password = "Test123!@"
     headers, _ = await _login_user(client, org_iso.rd_member.email, password)
 
     resp = await client.post(

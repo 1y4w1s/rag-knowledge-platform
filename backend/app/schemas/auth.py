@@ -42,6 +42,8 @@ class UserPublic(BaseModel):
     primary_unit_id: UUID | None = None
     unit_ids: list[UUID] = Field(default_factory=list)
     unit_admin_unit_ids: list[UUID] = Field(default_factory=list)
+    custom_role_id: UUID | None = None
+    custom_role_is_admin: bool = False
 
 
 class InviteValidateRequest(BaseModel):

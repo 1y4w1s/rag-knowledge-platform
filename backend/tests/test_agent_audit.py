@@ -65,7 +65,7 @@ def _make_scope(visible: set[UUID]) -> AgentToolScope:
 async def _login(client: AsyncClient, user) -> dict[str, str]:
     login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": user.email, "password": "password123"},
+        json={"identifier": user.email, "password": "Test123!@"},
     )
     assert login.status_code == 200, login.text
     return {"Authorization": f"Bearer {login.json()['access_token']}"}

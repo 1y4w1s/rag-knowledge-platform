@@ -1,0 +1,13 @@
+# Grafana 仪表盘 provisioning — 自动导入预置面板
+apiVersion: 1
+
+providers:
+  - name: "睿阁"
+    orgId: 1
+    folder: "睿阁"
+    type: file
+    disableDeletion: true
+    editable: true
+    updateIntervalSeconds: 30
+    options:
+      path: /var/lib/grafana/dashboards

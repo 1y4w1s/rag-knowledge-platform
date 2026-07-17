@@ -16,16 +16,26 @@ from app.models.user import User
 async def resolve_org_context(
     db: AsyncSession,
     user: User,
-) -> tuple[UUID | None, OrgRole | None, bool]:
+) -> tuple[UUID | None, OrgRole | None, bool, UUID | None, bool]:
     if user.account_type != AccountType.enterprise:
-        return None, None, False
+        return None, None, False, None, False
 
     membership = await db.scalar(
         select(OrganizationMember).where(OrganizationMember.user_id == user.id)
     )
     if membership is None:
         raise ServiceError("团队账号缺少团队成员记录")
-    return membership.org_id, membership.role, membership.is_owner
+
+    custom_role_id = None
+    custom_role_is_admin = False
+    if membership.custom_role_id:
+        from app.models.custom_role import CustomRole
+        role = await db.get(CustomRole, membership.custom_role_id)
+        if role:
+            custom_role_id = role.id
+            custom_role_is_admin = role.is_admin_level
+
+    return membership.org_id, membership.role, membership.is_owner, custom_role_id, custom_role_is_admin
 
 
 async def resolve_user_units(

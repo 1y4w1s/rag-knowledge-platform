@@ -26,7 +26,7 @@ async def test_api_chat_sibling_department_kb_returns_403(
     async with SessionLocal() as db:
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     resp = await client.post(
         f"/api/v1/knowledge-bases/{org_iso.mkt_kb_id}/chat",

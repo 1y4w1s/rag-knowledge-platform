@@ -77,6 +77,23 @@ class Settings(BaseSettings):
     embedding_cache_max_size: int = 5000
     embedding_cache_ttl_seconds: int = 3600
 
+    # ── 日志 / 可观测性 ──────────────────────────────────────────
+    loki_url: str = ""  # 如 http://loki:3100，留空禁用 Loki 推送
+    loki_service_name: str = "ruige-api"
+
+    # ── Celery 异步任务 ──────────────────────────────────────────
+    celery_broker_url: str = "redis://redis:6379/0"
+    celery_result_backend: str = "redis://redis:6379/0"
+    celery_task_always_eager_local: bool = True  # 本地开发/测试时同步执行（无需 Redis）
+
+    # ── OpenTelemetry 链路追踪 ──────────────────────────────────
+    otlp_endpoint: str = "http://tempo:4318"
+
+    # ── 数据库连接池 ─────────────────────────────────────────────
+    db_pool_size: int = 10
+    db_max_overflow: int = 20
+    db_pool_recycle: int = 3600  # 1 小时回收连接，避免 PGBouncer 断连
+
     # ── 检索配置 ────────────────────────────────────────────────────
     vector_recall_k: int = 20       # 向量召回 Top-N
     fts_recall_k: int = 20          # 全文检索召回 Top-N

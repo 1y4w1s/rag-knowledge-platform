@@ -57,7 +57,7 @@ async def _login_user(client: AsyncClient, email: str, password: str) -> tuple[d
 
 
 async def _build_org_isolation_fixture(db: AsyncSession) -> OrgIsolationFixture:
-    password = "password123"
+    password = "Test123!@"
     org = Organization(id=uuid.uuid4(), name="隔离测试公司")
     db.add(org)
     await db.flush()

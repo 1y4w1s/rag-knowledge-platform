@@ -41,6 +41,60 @@ from app.services.workspace.scope import WorkspaceScope
 VECTOR_RECALL = settings.vector_recall_k
 FTS_RECALL = settings.fts_recall_k
 LLM_TOP_K = settings.llm_top_k
+
+
+def _should_skip_rerank(
+    candidates: list[RetrievedChunk],
+    fts_rows: list,
+    query: str,
+) -> bool:
+    """4 信号置信度评估：是否跳过 Rerank。
+
+    Returns:
+        True → 跳过 Rerank（RRF 顺序直接返回）
+        False → 保留 Rerank
+    """
+    if not candidates:
+        return True
+
+    # 信号 1: 最高向量相似度
+    max_sim = max(c.similarity for c in candidates)
+
+    # 信号 2: 查询长度（短查询靠 FTS 就够）
+    query_len = len(query)
+
+    # 信号 3: FTS 是否有高匹配（首条 FTS rank > 0.1 说明关键词命中）
+    fts_high = fts_rows and fts_rows[0].fts_rank is not None and fts_rows[0].fts_rank > 0.1
+
+    # 信号 4: 仅有 1 个候选 → 不需要重排序
+    only_one = len(candidates) <= 1
+
+    # 决策树
+    if only_one:
+        return True
+    if max_sim > 0.85:
+        return True
+    if max_sim > 0.70 and fts_high:
+        return True
+    if fts_high and query_len < 10:
+        return True
+    return False
+
+
+def _adaptive_top_k(candidates: list[RetrievedChunk], query: str) -> int:
+    """根据置信度自适应调整送入 LLM 的 chunk 数量。"""
+    if not candidates:
+        return 0
+
+    max_sim = max(c.similarity for c in candidates)
+    query_len = len(query)
+
+    if max_sim > 0.85:
+        return 2
+    elif max_sim > 0.70 or query_len > 20:
+        return 3
+    else:
+        return min(len(candidates), 5)
 TS_CONFIG = "simple"
 
 logger = logging.getLogger(__name__)
@@ -302,6 +356,19 @@ async def retrieve_chunks(
         )
 
     reranked = await rerank_chunks(query, candidates, top_k=top_k)
+
+    # 多层条件：置信度高则跳过 Rerank
+    rerank_skipped = False
+    if settings.rerank_enabled and _should_skip_rerank(candidates, fts_rows, query):
+        reranked = candidates[:top_k]
+        rerank_skipped = True
+
+    result = reranked[:top_k]
+
+    # 自适应 chunk 数量
+    adaptive_k = _adaptive_top_k(result, query)
+    if not rerank_skipped and adaptive_k < len(result):
+        result = result[:adaptive_k]
 
     # 跨段 Query Rewrite：仅对可能含多知识点的复合问题使用
     if len(reranked) > 0 and settings.rerank_enabled:

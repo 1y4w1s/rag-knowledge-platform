@@ -113,7 +113,7 @@ async def test_member_and_admin_share_same_upload_limit(
 
     email = unique_email("api-rl-member")
     username = unique_username("apirlmem")
-    password = "password123"
+    password = "Test123!@"
     async with SessionLocal() as db:
         member = User(
             id=uuid.uuid4(),

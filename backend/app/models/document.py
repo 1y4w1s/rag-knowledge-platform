@@ -62,3 +62,6 @@ class Document(Base):
     deleted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None
     )
+    current_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1
+    )

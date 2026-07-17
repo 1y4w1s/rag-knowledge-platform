@@ -51,7 +51,7 @@ class OrgScope:
 
 
 def _is_company_admin(current_user: UserPublic) -> bool:
-    return current_user.is_owner or current_user.org_role == OrgRole.admin
+    return current_user.is_owner or current_user.org_role == OrgRole.admin or current_user.custom_role_is_admin
 
 
 def can_user_adopt_kb(

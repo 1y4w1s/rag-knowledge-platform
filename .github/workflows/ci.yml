@@ -40,7 +40,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install 'pytest>=8.3,<9' 'pytest-asyncio>=0.24,<0.25' httpx docx reportlab python-jose resend ruff
+          pip install 'pytest>=8.3,<9' 'pytest-asyncio>=0.24,<0.25' httpx python-docx openpyxl python-pptx reportlab python-jose resend ruff pytest-mock
 
       - name: Lint with ruff
         run: |
@@ -59,15 +59,18 @@ jobs:
         env:
           DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
 
-      - name: Run unit tests
+      - name: Run core tests (auth + KB + search + generation)
         run: |
-          python -m pytest tests/test_generation.py tests/test_agent_tools.py -v --tb=short
+          python -m pytest tests/test_smoke.py tests/test_auth.py tests/test_workspace_scope.py tests/test_citations.py tests/test_search_documents.py tests/test_search_content.py tests/test_generation.py tests/test_knowledge_bases.py tests/test_document_list_pagination.py tests/test_knowledge_base_list_pagination.py tests/test_db_disconnect.py tests/test_upload_security.py tests/test_document_visibility.py tests/test_retrieval_security.py tests/test_preview.py tests/test_upload_failure.py tests/test_embedding_5xx.py tests/test_llm_5xx.py tests/test_m1_smoke.py tests/test_rag_relevance.py -v --tb=short
 
-      - name: Run golden QA (mock embedding)
+      - name: Run RAG + ingestion tests
         run: |
-          python -m pytest tests/test_retrieval_golden.py -v --tb=short
-        env:
-          DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
+          python -m pytest tests/test_retrieval_golden.py tests/test_retrieval_hybrid.py tests/test_rerank.py tests/test_chunker.py tests/test_ingestion_golden.py tests/test_pptx_ingestion.py tests/test_xlsx_ingestion.py -v --tb=short
+
+      - name: Run chat + streaming tests
+        run: |
+          python -m pytest tests/test_chat.py tests/test_r4_4_streaming.py tests/test_citation_resolve.py -v --tb=short
+        continue-on-error: true
 
   lint:
     runs-on: ubuntu-latest

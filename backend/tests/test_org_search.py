@@ -38,7 +38,7 @@ async def test_api_search_filename_rd_member_excludes_sibling_dept_docs(
         await db.commit()
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     search_resp = await client.get(
         "/api/v1/search/documents",
@@ -77,7 +77,7 @@ async def test_api_search_content_rd_member_excludes_sibling_dept_docs(
         await db.commit()
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     alpha_resp = await client.get(
         "/api/v1/search/documents",

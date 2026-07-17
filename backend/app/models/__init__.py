@@ -8,10 +8,11 @@ from app.models.base import Base
 from app.models.chat_feedback import ChatFeedback
 from app.models.chat_message import ChatMessage
 from app.models.chat_thread import ChatThread
+from app.models.custom_role import CustomRole
 from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
+from app.models.document_version import DocumentVersion
 from app.models.enums import (
-    AccountType,
     AgentMode,
     AgentRunMode,
     AgentRunStatus,
@@ -35,6 +36,7 @@ from app.models.organization import Organization
 from app.models.organization_invite_code import OrganizationInviteCode
 from app.models.organization_member import OrganizationMember
 from app.models.user import User
+from app.models.webhook import Webhook
 
 __all__ = [
     "AgentApproval",
@@ -58,6 +60,7 @@ __all__ = [
     "GranteeType",
     "GrantPermission",
     "User",
+    "Webhook",
     "Organization",
     "OrgUnit",
     "OrgUnitMember",
@@ -67,7 +70,9 @@ __all__ = [
     "KnowledgeBase",
     "Document",
     "DocumentChunk",
+    "DocumentVersion",
     "ChatFeedback",
     "ChatMessage",
     "ChatThread",
+    "CustomRole",
 ]
