@@ -55,7 +55,7 @@ async def test_change_password_success_then_relogin(
     client: AsyncClient,
     register_and_login,
 ) -> None:
-    old_password = "password123"
+    old_password = "Test123!@"
     new_password = "newpass456"
     headers, user = await register_and_login(prefix="acct-pw", password=old_password)
 
@@ -104,7 +104,7 @@ async def test_change_password_too_short(
     resp = await client.patch(
         "/api/v1/settings/account",
         headers=headers,
-        json={"current_password": "password123", "new_password": "short"},
+        json={"current_password": "Test123!@", "new_password": "short"},
     )
     assert resp.status_code == 422
 
@@ -183,7 +183,7 @@ async def test_join_team_already_in_team(
         json={
             "email": member_email,
             "username": member_username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "enterprise",
             "invite_code": code,
         },
@@ -192,7 +192,7 @@ async def test_join_team_already_in_team(
 
     login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": member_email, "password": "password123"},
+        json={"identifier": member_email, "password": "Test123!@"},
     )
     assert login.status_code == 200
     member_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
@@ -225,7 +225,7 @@ async def test_leave_team_member_success(
         json={
             "email": member_email,
             "username": member_username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "enterprise",
             "invite_code": code,
         },
@@ -234,7 +234,7 @@ async def test_leave_team_member_success(
 
     login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": member_email, "password": "password123"},
+        json={"identifier": member_email, "password": "Test123!@"},
     )
     assert login.status_code == 200
     member_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
@@ -279,7 +279,7 @@ async def test_leave_team_loses_team_kb_access(
         json={
             "email": member_email,
             "username": member_username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "enterprise",
             "invite_code": code,
         },
@@ -288,7 +288,7 @@ async def test_leave_team_loses_team_kb_access(
 
     login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": member_email, "password": "password123"},
+        json={"identifier": member_email, "password": "Test123!@"},
     )
     assert login.status_code == 200
     member_headers = {"Authorization": f"Bearer {login.json()['access_token']}"}

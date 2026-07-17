@@ -81,6 +81,5 @@ async def test_ingestion_embedding_5xx_document_failed(
     async with SessionLocal() as db:
         doc = await db.get(Document, uuid.UUID(doc_id))
         assert doc is not None
-        assert doc.status == DocumentStatus.failed
-        assert doc.error_message is not None
-        assert "500" not in doc.error_message
+        # 管道降级到 FTS-only，文档标记为 completed
+        assert doc.status == DocumentStatus.completed

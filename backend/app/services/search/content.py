@@ -58,6 +58,7 @@ async def search_documents_by_content(
     limit: int,
     *,
     org_scope: OrgScope | None = None,
+    hide_admin_only: bool = False,
 ) -> SearchDocumentsResponse:
     """在当前 workspace 内按 chunk 正文搜索，每文档取最佳匹配片段。"""
     effective_limit = min(max(limit, 1), MAX_LIMIT)

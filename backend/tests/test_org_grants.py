@@ -27,7 +27,7 @@ async def test_list_create_delete_grant_company_wide(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """S3：unit_admin 对部门库加全公司 read grant；列表可查；撤销后消失。"""
-    password = "password123"
+    password = "Test123!@"
     owner_headers, _ = await _login_user(client, org_iso.owner.email, password)
 
     create_resp = await client.post(
@@ -68,7 +68,7 @@ async def test_grant_makes_kb_visible_then_revoke_hides(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """S3/S4：grant 后研发 Member 列表可见市场库；撤销后不可见。"""
-    password = "password123"
+    password = "Test123!@"
     owner_headers, _ = await _login_user(client, org_iso.owner.email, password)
     rd_member_headers, _ = await _login_user(
         client,
@@ -113,7 +113,7 @@ async def test_unit_admin_can_grant_own_department_kb(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """研发 unit_admin 可对本部门库添加 grant。"""
-    password = "password123"
+    password = "Test123!@"
     headers, _ = await _login_user(client, org_iso.rd_admin.email, password)
 
     resp = await client.post(
@@ -135,7 +135,7 @@ async def test_cannot_grant_invisible_kb_e3(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """E3：研发 unit_admin 不能对市场部库加 grant。"""
-    password = "password123"
+    password = "Test123!@"
     headers, _ = await _login_user(client, org_iso.rd_admin.email, password)
 
     resp = await client.post(
@@ -152,7 +152,7 @@ async def test_duplicate_grant_returns_409_e4(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """E4：重复添加同一 grant 目标 → 409。"""
-    password = "password123"
+    password = "Test123!@"
     headers, _ = await _login_user(client, org_iso.owner.email, password)
     payload = {"grantee_type": "company", "permission": "read"}
 
@@ -177,7 +177,7 @@ async def test_public_kb_company_grant_redundant_e6(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """E6：公司公共库再加全公司 grant → 409。"""
-    password = "password123"
+    password = "Test123!@"
     headers, _ = await _login_user(client, org_iso.owner.email, password)
 
     resp = await client.post(
@@ -194,7 +194,7 @@ async def test_member_cannot_manage_grants(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """普通 Member 不能查/建 grant。"""
-    password = "password123"
+    password = "Test123!@"
     headers, _ = await _login_user(client, org_iso.rd_member.email, password)
 
     list_resp = await client.get(
@@ -217,7 +217,7 @@ async def test_member_cannot_create_kb_e1(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """E1：普通 Member 建库 / 选公共 → 403。"""
-    password = "password123"
+    password = "Test123!@"
     headers, _ = await _login_user(client, org_iso.rd_member.email, password)
 
     dept_resp = await client.post(
@@ -243,7 +243,7 @@ async def test_unit_admin_cannot_attach_sibling_department_e2(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """E2：硬闯 POST 库 · org_unit_id=兄弟部门 → 403。"""
-    password = "password123"
+    password = "Test123!@"
     headers, _ = await _login_user(client, org_iso.rd_admin.email, password)
 
     resp = await client.post(
@@ -261,7 +261,7 @@ async def test_grant_survives_kb_relocation_e5(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """E5：库迁到另一部门后旧 grant 仍有效（按 kb_id）；可见性按新归属+grant 重算。"""
-    password = "password123"
+    password = "Test123!@"
     owner_headers, _ = await _login_user(client, org_iso.owner.email, password)
     rd_member_headers, _ = await _login_user(
         client,
@@ -346,7 +346,7 @@ async def test_chat_blocked_after_grant_revoked_e7(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """E7：对话检索 grant 库 · 撤 grant 后下一条 chat → 403。"""
-    password = "password123"
+    password = "Test123!@"
     owner_headers, _ = await _login_user(client, org_iso.owner.email, password)
     rd_member_headers, _ = await _login_user(
         client,
@@ -389,7 +389,7 @@ async def test_unit_admin_cannot_create_public_kb_e8(
     org_iso: OrgIsolationFixture,
 ) -> None:
     """E8：部门 Admin 建库选「公司公共」→ 403。"""
-    password = "password123"
+    password = "Test123!@"
     headers, _ = await _login_user(client, org_iso.rd_admin.email, password)
 
     resp = await client.post(

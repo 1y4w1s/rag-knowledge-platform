@@ -52,3 +52,40 @@ async def health() -> dict:
         logger.warning("健康检查降级: %s", json.dumps(payload, ensure_ascii=False))
 
     return payload
+
+
+@router.get("/health/detailed")
+async def health_detailed() -> dict:
+    """详细健康检查：数据库 + API Key 状态 + 磁盘使用。"""
+    db_ok = await check_database()
+
+    # API Key 状态（检查是否已配置，不实际调用 API）
+    from app.core.config import settings
+    api_keys = {
+        "deepseek": bool(settings.deepseek_api_key),
+        "tongyi": bool(settings.tongyi_api_key),
+        "rerank": bool(settings.tongyi_api_key) and settings.rerank_enabled,
+        "embedding": bool(settings.tongyi_api_key),
+    }
+
+    # 磁盘使用
+    import shutil
+    upload_path = settings.upload_dir
+    disk = {}
+    try:
+        usage = shutil.disk_usage(upload_path)
+        disk = {
+            "total_gb": round(usage.total / (1024**3), 1),
+            "used_gb": round(usage.used / (1024**3), 1),
+            "free_gb": round(usage.free / (1024**3), 1),
+            "usage_pct": round(usage.used / usage.total * 100, 1),
+        }
+    except Exception:
+        disk = {"error": "无法获取磁盘信息"}
+
+    return {
+        "status": "ok" if db_ok and all(api_keys.values()) else "degraded",
+        "database": "ok" if db_ok else "error",
+        "api_keys": api_keys,
+        "disk": disk,
+    }

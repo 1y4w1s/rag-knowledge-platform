@@ -108,7 +108,7 @@ async def _seed_foreign_chunk(client: AsyncClient) -> tuple[UUID, UUID]:
 
     email = unique_email("foreign")
     username = unique_username("foreign")
-    password = "password123"
+    password = "Test123!@"
     reg = await client.post(
         "/api/v1/auth/register",
         json={

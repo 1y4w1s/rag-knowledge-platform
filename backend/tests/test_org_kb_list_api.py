@@ -20,7 +20,7 @@ async def test_api_list_rd_member_excludes_sibling_dept_kb(
     async with SessionLocal() as db:
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     list_resp = await client.get(
         "/api/v1/knowledge-bases",
@@ -42,7 +42,7 @@ async def test_api_get_sibling_department_kb_returns_403(
     async with SessionLocal() as db:
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     resp = await client.get(
         f"/api/v1/knowledge-bases/{org_iso.mkt_kb_id}",
@@ -59,7 +59,7 @@ async def test_api_unassigned_member_reads_public_only(
     async with SessionLocal() as db:
         user = await db.get(User, org_iso.unassigned_member.id)
         assert user is not None
-        headers, _ = await _login_user(client, user.email, "password123")
+        headers, _ = await _login_user(client, user.email, "Test123!@")
 
     public_resp = await client.get(
         f"/api/v1/knowledge-bases/{org_iso.public_kb_id}",
@@ -82,7 +82,7 @@ async def test_api_e2_omitted_department_id_uses_primary_dept_scope(
     async with SessionLocal() as db:
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     default_resp = await client.get(
         "/api/v1/knowledge-bases",
@@ -115,7 +115,7 @@ async def test_api_e3_member_forged_department_id_returns_403(
     async with SessionLocal() as db:
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     forged_params = {
         "workspace": str(org_iso.org_id),
@@ -153,7 +153,7 @@ async def test_api_e3_member_department_all_returns_403(
     async with SessionLocal() as db:
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     params = {
         "workspace": str(org_iso.org_id),
@@ -184,7 +184,7 @@ async def test_api_admin_department_all_includes_all_dept_kbs(
     async with SessionLocal() as db:
         owner_user = await db.get(User, org_iso.owner.id)
         assert owner_user is not None
-        headers, _ = await _login_user(client, owner_user.email, "password123")
+        headers, _ = await _login_user(client, owner_user.email, "Test123!@")
 
     list_resp = await client.get(
         "/api/v1/knowledge-bases",

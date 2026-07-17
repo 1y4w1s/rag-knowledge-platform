@@ -167,7 +167,7 @@ async def test_t_ask_2_org_member_handbook_no_ungranted_salary_kb(
 
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     status, events = await _ask(
         client,
@@ -213,7 +213,7 @@ async def test_t_ask_3_org_member_sibling_department_secret_refusal(
 
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     status, events = await _ask(
         client,
@@ -239,7 +239,7 @@ async def test_t_ask_4_unassigned_member_ask_forbidden(
     async with SessionLocal() as db:
         user = await db.get(User, org_iso.unassigned_member.id)
         assert user is not None
-        headers, _ = await _login_user(client, user.email, "password123")
+        headers, _ = await _login_user(client, user.email, "Test123!@")
 
     status, _ = await _ask(
         client,
@@ -303,7 +303,7 @@ async def test_t_ask_6_multi_kb_diverse_kb_names_in_citations(
 
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     status, events = await _ask(
         client,
@@ -417,7 +417,7 @@ async def test_e14_workspace_messages_marks_revoked_grant_inaccessible(
 
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
         await db.execute(delete(KbUnitGrant).where(KbUnitGrant.kb_id == org_iso.mkt_kb_id))
         await db.commit()

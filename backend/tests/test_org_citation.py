@@ -64,7 +64,7 @@ async def test_citation_resolve_after_grant_revoked_returns_inaccessible(
 
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
         await db.execute(delete(KbUnitGrant).where(KbUnitGrant.kb_id == org_iso.mkt_kb_id))
         await db.commit()
@@ -125,7 +125,7 @@ async def test_get_messages_after_grant_revoked_marks_citations_inaccessible(
 
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
         await db.execute(delete(KbUnitGrant).where(KbUnitGrant.kb_id == org_iso.mkt_kb_id))
         await db.commit()
@@ -150,7 +150,7 @@ async def test_get_messages_invisible_kb_without_history_returns_403(
     async with SessionLocal() as db:
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     resp = await client.get(
         f"/api/v1/knowledge-bases/{org_iso.mkt_kb_id}/messages",

@@ -19,7 +19,7 @@ async def _create_org_member_and_login(
     client: AsyncClient,
     *,
     org_id: str,
-    password: str = "password123",
+    password: str = "Test123!@",
 ) -> tuple[dict[str, str], dict]:
     email = unique_email("member")
     username = unique_username("member")
@@ -60,7 +60,7 @@ async def _register_personal_user(client: AsyncClient, *, prefix: str = "invite"
         json={
             "email": email,
             "username": username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "personal",
         },
     )

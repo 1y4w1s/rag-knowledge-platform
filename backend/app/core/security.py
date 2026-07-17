@@ -26,6 +26,8 @@ class TokenClaims:
     account_type: AccountType
     org_id: UUID | None = None
     org_role: OrgRole | None = None
+    custom_role_id: UUID | None = None
+    custom_role_is_admin: bool = False
 
 
 def decode_access_token(token: str) -> TokenClaims:
@@ -52,11 +54,22 @@ def decode_access_token(token: str) -> TokenClaims:
         except (KeyError, ValueError) as exc:
             raise AuthenticationError("无效的认证凭据") from exc
 
+    custom_role_id: UUID | None = None
+    custom_role_is_admin: bool = False
+    if payload.get("custom_role_id"):
+        try:
+            custom_role_id = UUID(payload["custom_role_id"])
+            custom_role_is_admin = payload.get("custom_role_is_admin", False)
+        except (KeyError, ValueError):
+            pass
+
     return TokenClaims(
         user_id=user_id,
         account_type=account_type,
         org_id=org_id,
         org_role=org_role,
+        custom_role_id=custom_role_id,
+        custom_role_is_admin=custom_role_is_admin,
     )
 
 

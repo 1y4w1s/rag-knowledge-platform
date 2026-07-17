@@ -38,6 +38,7 @@ from app.services.rag.retrieval import (
     workspace_chunk_to_citation,
 )
 from app.services.rag.safety_filter import input_safety_check, output_safety_check
+from app.core.otel import get_tracer
 from app.core.config import settings
 from app.core.degradation import (
     assess_degradation,
@@ -47,6 +48,27 @@ from app.core.degradation import (
 from app.services.workspace.scope import WorkspaceScope
 
 logger = logging.getLogger(__name__)
+
+# 问候/闲聊查询（无需检索，直接 LLM）
+_GREETING_PATTERNS = frozenset({
+    "你好", "您好", "嗨", "hello", "hi", "hey",
+    "谢谢", "感谢", "thank",
+    "再见", "拜拜", "bye",
+    "在吗", "在不在",
+    "你是谁", "你叫什么",
+})
+
+
+def _is_greeting(query: str) -> bool:
+    """判断用户输入是否为问候/闲聊（无需检索）。"""
+    q = query.strip().lower()
+    if len(q) <= 2:
+        return True
+    if len(q) <= 4 and q in _GREETING_PATTERNS:
+        return True
+    if q in _GREETING_PATTERNS:
+        return True
+    return False
 
 
 def _sse_event(event: str, data: dict) -> str:
@@ -127,21 +149,41 @@ async def stream_chat_events(
         return
     logger.debug("降级等级: %s (L%d)", degradation_label(deg_level), int(deg_level))
 
+    # 1.9 问候/闲聊查询 → 跳过检索，直接 LLM
+    if _is_greeting(message):
+        token_stream = stream_no_context_reply(message)
+        async for text in token_stream:
+            if text:
+                yield _sse_event("token", {"text": text})
+        message_id = uuid.uuid4()
+        await save_chat_turn(
+            db, kb_id=kb_id, user_id=user_id,
+            user_content=message, assistant_content="".join(token_parts) if 'token_parts' in dir() else "".join([t async for t in stream_no_context_reply(message)])[:100],
+            citations=[], assistant_message_id=message_id,
+            retrieval_duration_ms=0, thread_id=thread_id,
+        )
+        yield _sse_event("done", {"message_id": str(message_id), "citations": []})
+        return
+
     # 2. 将最新问题改写为独立检索查询（带历史上下文）
     retrieval_query = await contextualize_query(message, history) if history else message
 
     t0 = time.perf_counter()
-    raw_chunks = await _timed_retrieve_chunks(
-        db,
-        kb_id=kb_id,
-        query=retrieval_query,
-        visible_kb_ids=visible_kb_ids,
-        hide_admin_only=hide_admin_only,
-    )
+    with get_tracer().start_as_current_span("rag.retrieve") as span:
+        raw_chunks = await _timed_retrieve_chunks(
+            db,
+            kb_id=kb_id,
+            query=retrieval_query,
+            visible_kb_ids=visible_kb_ids,
+            hide_admin_only=hide_admin_only,
+        )
+        span.set_attribute("kb_id", str(kb_id))
+        span.set_attribute("chunk_count", len(raw_chunks))
     retrieval_duration_ms = int((time.perf_counter() - t0) * 1000)
 
     # 2.5 跨段 Query Rewrite：复合问题拆分子查询多路召回
-    sub_queries = await decompose_query(retrieval_query)
+    with get_tracer().start_as_current_span("rag.decompose_query"):
+        sub_queries = await decompose_query(retrieval_query)
     if len(sub_queries) > 1:
         seen_ids: set[uuid.UUID] = set()
         merged: list[RetrievedChunk] = []
@@ -159,15 +201,17 @@ async def stream_chat_events(
         if merged:
             raw_chunks = raw_chunks + merged
 
-    chunks = filter_relevant_chunks(raw_chunks, retrieval_query)
-    chunks = dedup_and_compress(chunks)
+    with get_tracer().start_as_current_span("rag.filter_relevant"):
+        chunks = filter_relevant_chunks(raw_chunks, retrieval_query)
+        chunks = dedup_and_compress(chunks)
     citations = [chunk_to_citation(c) for c in chunks]
 
     for citation in citations:
         yield _sse_event("citation", citation)
 
     # 3. 历史压缩（超过 6 轮时压缩早期对话）
-    compressed = await compress_history(history) if history else None
+    with get_tracer().start_as_current_span("rag.history_compress"):
+        compressed = await compress_history(history) if history else None
 
     # 4. Fast mode tool call：空检索时改写查询重试一次
     if not chunks:
@@ -190,7 +234,8 @@ async def stream_chat_events(
     # 5. 用原始消息构造 prompt（保留对话中的指代和口语表达）
     if chunks:
         messages = build_messages(message, chunks, history=history, compressed_summary=compressed)
-        token_stream = stream_deepseek_tokens(messages)
+        with get_tracer().start_as_current_span("rag.llm_generate"):
+            token_stream = stream_deepseek_tokens(messages)
     else:
         token_stream = stream_no_context_reply(message)
 
@@ -206,17 +251,18 @@ async def stream_chat_events(
     if not safe_out:
         logger.warning("LLM 输出安全违规: reasons=%s", reasons)
     message_id = uuid.uuid4()
-    await save_chat_turn(
-        db,
-        kb_id=kb_id,
-        user_id=user_id,
-        user_content=message,
-        assistant_content=assistant_content,
-        citations=citations,
-        assistant_message_id=message_id,
-        retrieval_duration_ms=retrieval_duration_ms,
-        thread_id=thread_id,
-    )
+    with get_tracer().start_as_current_span("rag.save_turn"):
+        await save_chat_turn(
+            db,
+            kb_id=kb_id,
+            user_id=user_id,
+            user_content=message,
+            assistant_content=assistant_content,
+            citations=citations,
+            assistant_message_id=message_id,
+            retrieval_duration_ms=retrieval_duration_ms,
+            thread_id=thread_id,
+        )
 
     yield _sse_event(
         "done",

@@ -49,6 +49,7 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:-changeme}@postgres:5432/ruige
+      LOKI_URL: http://loki:3100
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
@@ -93,6 +94,54 @@ services:
         max-size: "5m"
         max-file: "1"
 
+  celery-worker:
+    build:
+      context: ./backend
+      pull: false
+    container_name: ruige-celery
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:-changeme}@postgres:5432/ruige
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      CELERY_TASK_ALWAYS_EAGER: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: ["celery", "-A", "app.services.ingestion.celery_app", "worker", "--loglevel=info", "--concurrency=5"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    stop_grace_period: 30s
+    volumes:
+      - uploads_data:/app/uploads
+
+  redis:
+    image: redis:7-alpine
+    container_name: ruige-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
   postgres_data:
   uploads_data:
+  redis_data:

@@ -101,7 +101,7 @@ async def test_register_and_login_still_public_without_token(client: AsyncClient
         json={
             "email": email,
             "username": username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "personal",
         },
     )
@@ -109,6 +109,6 @@ async def test_register_and_login_still_public_without_token(client: AsyncClient
 
     login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": email, "password": "password123"},
+        json={"identifier": email, "password": "Test123!@"},
     )
     assert login.status_code == 200

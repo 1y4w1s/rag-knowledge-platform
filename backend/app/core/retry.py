@@ -118,7 +118,7 @@ class _StreamInterrupted(Exception):
 
 
 async def retry_stream(
-    stream_factory: Callable[[], Awaitable[AsyncIterator[str]]],
+    stream_factory: Callable[[], AsyncIterator[str]],
     max_retries: int = 2,
     base_delay: float = 1.0,
     max_delay: float = 10.0,
@@ -139,7 +139,7 @@ async def retry_stream(
     ever_yielded = False
     for attempt in range(max_retries + 1):
         try:
-            stream = await stream_factory()
+            stream = stream_factory()
             async for token in stream:
                 ever_yielded = True
                 yield token

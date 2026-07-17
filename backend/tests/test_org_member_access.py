@@ -31,7 +31,7 @@ async def test_ac6_member_cannot_delete_kb_after_being_added(
 
     member_login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": invitee["email"], "password": "password123"},
+        json={"identifier": invitee["email"], "password": "Test123!@"},
     )
     member_headers = {"Authorization": f"Bearer {member_login.json()['access_token']}"}
 
@@ -63,7 +63,7 @@ async def test_ac9_admin_removes_member_member_loses_kb_access(
 
     member_login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": invitee["email"], "password": "password123"},
+        json={"identifier": invitee["email"], "password": "Test123!@"},
     )
     member_headers = {"Authorization": f"Bearer {member_login.json()['access_token']}"}
     assert (
@@ -78,7 +78,7 @@ async def test_ac9_admin_removes_member_member_loses_kb_access(
 
     after_login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": invitee["email"], "password": "password123"},
+        json={"identifier": invitee["email"], "password": "Test123!@"},
     )
     assert after_login.status_code == 200
     after_headers = {

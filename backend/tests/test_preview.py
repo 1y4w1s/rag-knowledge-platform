@@ -20,7 +20,7 @@ async def _create_org_member_and_login(
     client: AsyncClient,
     *,
     org_id: str,
-    password: str = "password123",
+    password: str = "Test123!@",
 ) -> tuple[dict[str, str], dict]:
     email = unique_email("preview-member")
     username = unique_username("previewmember")

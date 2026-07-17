@@ -34,7 +34,7 @@ async def test_api_stats_rd_member_excludes_sibling_dept_kb(
         await db.commit()
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     stats_resp = await client.get(
         "/api/v1/dashboard/stats",
@@ -77,7 +77,7 @@ async def test_api_stats_matches_kb_list_for_rd_member(
         await db.commit()
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        headers, _ = await _login_user(client, rd_user.email, "password123")
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     list_resp = await client.get(
         "/api/v1/knowledge-bases",
@@ -144,8 +144,8 @@ async def test_api_stats_ops_metrics_department_scoped(
         assert owner_user is not None
         rd_user = await db.get(User, org_iso.rd_member.id)
         assert rd_user is not None
-        owner_headers, _ = await _login_user(client, owner_user.email, "password123")
-        rd_headers, _ = await _login_user(client, rd_user.email, "password123")
+        owner_headers, _ = await _login_user(client, owner_user.email, "Test123!@")
+        rd_headers, _ = await _login_user(client, rd_user.email, "Test123!@")
 
     ws = str(org_iso.org_id)
     mkt_stats = await client.get(

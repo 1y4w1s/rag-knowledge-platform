@@ -39,7 +39,7 @@ async def test_owner_promotes_member_to_admin(
 
     member_login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": member_user["email"], "password": "password123"},
+        json={"identifier": member_user["email"], "password": "Test123!@"},
     )
     assert member_login.status_code == 200
     assert member_login.json()["user"]["org_role"] == "admin"
@@ -108,7 +108,7 @@ async def test_owner_demotes_admin_to_member(
 
     member_login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": member_user["email"], "password": "password123"},
+        json={"identifier": member_user["email"], "password": "Test123!@"},
     )
     assert member_login.status_code == 200
     assert member_login.json()["user"]["org_role"] == "member"
@@ -207,7 +207,7 @@ async def test_owner_cannot_patch_new_owner_role_after_transfer(
 
     former_owner_login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": owner_user["email"], "password": "password123"},
+        json={"identifier": owner_user["email"], "password": "Test123!@"},
     )
     former_owner_headers = {
         "Authorization": f"Bearer {former_owner_login.json()['access_token']}"
@@ -280,7 +280,7 @@ async def test_owner_transfers_ownership_to_member(
 
     member_login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": member_user["email"], "password": "password123"},
+        json={"identifier": member_user["email"], "password": "Test123!@"},
     )
     assert member_login.status_code == 200
     assert member_login.json()["user"]["is_owner"] is True

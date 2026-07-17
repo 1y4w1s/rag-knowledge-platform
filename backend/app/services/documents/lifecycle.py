@@ -9,11 +9,13 @@ from app.core.exceptions import NotFoundError, ConflictError, ValidationError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.deps import CurrentUser, KbAction, require_kb_access
 from app.models.document import Document
 from app.models.enums import DocumentStatus
 from app.schemas.document import DocumentResponse
 from app.services.ingestion.pipeline import process_document_ingestion
+from app.services.ingestion.tasks import ingest_document_task
 from app.services.audit.log import write_audit_log
 from app.services.storage.cleaner import remove_document_tree
 
@@ -68,10 +70,14 @@ async def delete_document(
         ip=ip,
     )
 
-    # 软删：设置 deleted_at，保留磁盘文件和 chunk
+    # 软删 + 磁盘清盘
     from datetime import datetime, timezone
     doc.deleted_at = datetime.now(timezone.utc)
     await db.commit()
+
+    # 磁盘清盘（失败不阻塞 DB 删除）
+    from app.services.storage.cleaner import remove_document_tree
+    remove_document_tree(kb_id=kb_id, doc_id=doc_id, storage_path=storage_path)
 
 
 async def permanently_delete_document(
@@ -149,5 +155,8 @@ async def retry_document(
     await db.commit()
     await db.refresh(doc)
 
-    background_tasks.add_task(process_document_ingestion, doc.id)
+    if settings.celery_task_always_eager_local:
+        background_tasks.add_task(process_document_ingestion, doc.id)
+    else:
+        ingest_document_task.delay(str(doc.id))
     return DocumentResponse.model_validate(doc)

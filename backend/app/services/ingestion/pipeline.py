@@ -18,7 +18,7 @@ from uuid import UUID
 
 
 
-from sqlalchemy import delete, text
+from sqlalchemy import delete, select, text
 
 
 
@@ -29,6 +29,8 @@ from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
 
 from app.models.enums import DocumentStatus
+
+from app.models.webhook import Webhook
 
 from app.services.ingestion.chunker import structure_chunk
 
@@ -270,7 +272,7 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
                 logger.warning("ingestion: document %s not found", document_id)
 
-            return
+                return
 
 
 
@@ -278,7 +280,7 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
             if doc.status == DocumentStatus.processing:
                 logger.warning("ingestion: document %s already processing, skipped", document_id)
-            return
+                return
 
 
             file_type = doc.file_type
@@ -357,7 +359,8 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
             await db.commit()
 
-
+            # 触发 webhook（不阻塞 ingestion）
+            await _trigger_webhooks(db, doc, completed=True, chunk_count=chunk_count)
 
             logger.info(
             "ingestion completed: document=%s chunks=%s ingestion.parser=%s",
@@ -375,5 +378,72 @@ async def process_document_ingestion(document_id: UUID) -> None:
             user_message,
         )
             await _mark_failed(document_id, user_message)
+
+    webhook_error = user_message if "exc" in dir() else None
+    if webhook_error:
+        await _trigger_webhooks_on_failure(document_id, webhook_error)
+
+
+async def _trigger_webhooks(
+    db,
+    doc,
+    *,
+    completed: bool,
+    chunk_count: int | None = None,
+) -> None:
+    """Ingestion 完成后触发 kb_id 关联的 webhook。"""
+    try:
+        from app.services.webhook.sender import send_webhook, build_webhook_payload
+
+        result = await db.execute(
+            select(Webhook).where(
+                Webhook.kb_id == doc.kb_id,
+                Webhook.is_active == True,
+                Webhook.events.contains("document.completed"),
+            )
+        )
+        for wh in result.scalars().all():
+            payload = build_webhook_payload(
+                event="document.completed",
+                kb_id=doc.kb_id,
+                doc_id=doc.id,
+                filename=doc.filename,
+                status="completed",
+                chunk_count=chunk_count,
+            )
+            await send_webhook(wh.url, wh.secret, "document.completed", payload)
+    except Exception as exc:
+        logger.warning("webhook trigger failed (non-blocking): %s", exc)
+
+
+async def _trigger_webhooks_on_failure(document_id: UUID, error_message: str) -> None:
+    """Ingestion 失败后触发 webhook。"""
+    try:
+        from app.core.database import SessionLocal
+        from app.services.webhook.sender import send_webhook, build_webhook_payload
+
+        async with SessionLocal() as db:
+            doc = await db.get(Document, document_id)
+            if doc is None:
+                return
+            result = await db.execute(
+                select(Webhook).where(
+                    Webhook.kb_id == doc.kb_id,
+                    Webhook.is_active == True,
+                    Webhook.events.contains("document.completed"),
+                )
+            )
+            for wh in result.scalars().all():
+                payload = build_webhook_payload(
+                    event="document.failed",
+                    kb_id=doc.kb_id,
+                    doc_id=doc.id,
+                    filename=doc.filename,
+                    status="failed",
+                    error=error_message,
+                )
+                await send_webhook(wh.url, wh.secret, "document.failed", payload)
+    except Exception as exc:
+        logger.warning("webhook failure trigger failed (non-blocking): %s", exc)
 
 

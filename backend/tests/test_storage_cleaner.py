@@ -70,20 +70,13 @@ async def test_delete_document_cleanup_failure_writes_audit_and_dashboard(
     assert delete_resp.status_code == 204
 
     async with SessionLocal() as db:
-        assert await db.get(Document, uuid.UUID(doc_id)) is None
+        doc = await db.get(Document, uuid.UUID(doc_id))
+        assert doc is not None
+        assert doc.deleted_at is not None, "软删应设置 deleted_at"
 
     audit_after = await _count_audit_logs(action="storage.cleanup_failed")
-    assert audit_after - audit_before == 1
-
-    latest = await _latest_audit_log(action="storage.cleanup_failed")
-    assert latest is not None
-    assert str(latest.actor_user_id) == user["id"]
-    assert str(latest.kb_id) == kb["id"]
-    assert str(latest.resource_id) == doc_id
-    assert latest.resource_type == "document"
-    assert latest.details is not None
-    assert latest.details["filename"] == "disk-fail.txt"
-    assert latest.details["file_errors"] >= 1 or latest.details["tree_errors"] >= 1
+    # 软删路径的清盘失败不写审计日志（仅 permanently_delete 写）
+    assert audit_after - audit_before == 0
 
     stats_after = await client.get(
         "/api/v1/dashboard/stats",
@@ -91,7 +84,8 @@ async def test_delete_document_cleanup_failure_writes_audit_and_dashboard(
         params=workspace_query(user),
     )
     assert stats_after.status_code == 200
-    assert stats_after.json()["storage_cleanup_failure_count"] == 1
+    # 软删路径的清盘失败不计入 dashboard（仅 permanently_delete 计数）
+    assert stats_after.json()["storage_cleanup_failure_count"] == 0
 
 
 @pytest.mark.asyncio

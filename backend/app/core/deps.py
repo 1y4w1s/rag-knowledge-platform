@@ -65,7 +65,7 @@ async def get_current_user(
     if user is None:
         raise UnauthorizedError(detail="用户不存在")
 
-    org_id, org_role, is_owner = await resolve_org_context(db, user)
+    org_id, org_role, is_owner, custom_role_id, custom_role_is_admin = await resolve_org_context(db, user)
     primary_unit_id, unit_ids = await resolve_user_units(db, user.id)
     unit_admin_unit_ids = await resolve_unit_admin_unit_ids(db, user.id)
 
@@ -78,6 +78,8 @@ async def get_current_user(
         org_id=org_id,
         org_role=org_role,
         is_owner=is_owner,
+        custom_role_id=custom_role_id,
+        custom_role_is_admin=custom_role_is_admin,
         primary_unit_id=primary_unit_id,
         unit_ids=unit_ids,
         unit_admin_unit_ids=unit_admin_unit_ids,
@@ -106,15 +108,33 @@ def _assert_kb_ownership(kb: KnowledgeBase, current_user: CurrentUser) -> None:
         raise ForbiddenError(detail="无权访问该知识库")
 
 
-def _assert_kb_action_allowed(current_user: CurrentUser, action: KbAction) -> None:
-    """TECH-5 §5.3：企业 member 仅 read。"""
+async def _assert_kb_action_allowed(
+    current_user: CurrentUser,
+    action: KbAction,
+    *,
+    db: AsyncSession,
+    kb_id: UUID,
+) -> None:
+    """TECH-5 §5.3：企业 member 仅 read（除非有 custom_role 覆盖）。"""
     if action == KbAction.read:
         return
-    if (
-        current_user.account_type == AccountType.enterprise
-        and current_user.org_role == OrgRole.member
-    ):
-        raise ForbiddenError(detail="权限不足")
+    if current_user.account_type != AccountType.enterprise:
+        return
+    if current_user.org_role != OrgRole.member:
+        return
+
+    # 检查是否有 custom_role 覆盖
+    if current_user.custom_role_id:
+        from app.models.custom_role import CustomRole
+        role = await db.get(CustomRole, current_user.custom_role_id)
+        if role and role.is_admin_level:
+            return  # admin 级角色 → 放行
+        if role and role.permissions:
+            kb_perm = role.permissions.get(str(kb_id)) or role.permissions.get("*")
+            if kb_perm in ("write", "admin"):
+                return
+
+    raise ForbiddenError(detail="权限不足")
 
 
 async def require_kb_access(
@@ -142,7 +162,7 @@ async def require_kb_access(
         if action in (KbAction.write, KbAction.admin) and not scope.is_kb_writable(kb.id):
             raise ForbiddenError(detail="权限不足")
 
-    _assert_kb_action_allowed(current_user, action)
+    await _assert_kb_action_allowed(current_user, action, db=db, kb_id=kb_id)
     return kb
 
 

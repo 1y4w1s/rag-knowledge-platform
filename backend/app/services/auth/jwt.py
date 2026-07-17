@@ -19,6 +19,8 @@ def create_access_token(
     account_type: AccountType,
     org_id: UUID | None = None,
     org_role: OrgRole | None = None,
+    custom_role_id: UUID | None = None,
+    custom_role_is_admin: bool = False,
 ) -> str:
     now = datetime.now(UTC)
     payload: dict[str, Any] = {
@@ -32,5 +34,8 @@ def create_access_token(
             raise ValueError("enterprise user requires org_id and org_role")
         payload["org_id"] = str(org_id)
         payload["org_role"] = org_role.value
+        if custom_role_id:
+            payload["custom_role_id"] = str(custom_role_id)
+            payload["custom_role_is_admin"] = custom_role_is_admin
 
     return jwt.encode(payload, settings.jwt_secret, algorithm=JWT_ALGORITHM)

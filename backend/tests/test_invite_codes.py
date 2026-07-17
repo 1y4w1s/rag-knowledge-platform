@@ -71,7 +71,7 @@ async def test_register_member_with_invite(
         json={
             "email": email,
             "username": username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "enterprise",
             "invite_code": code,
         },
@@ -101,7 +101,7 @@ async def test_same_invite_code_two_members(
             json={
                 "email": unique_email(f"multi-{idx}"),
                 "username": unique_username(f"multi{idx}"),
-                "password": "password123",
+                "password": "Test123!@",
                 "account_type": "enterprise",
                 "invite_code": code,
             },
@@ -133,7 +133,7 @@ async def test_register_member_rejects_revoked_invite(
         json={
             "email": email,
             "username": username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "enterprise",
             "invite_code": code,
         },

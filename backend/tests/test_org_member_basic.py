@@ -39,7 +39,7 @@ async def test_team_creator_register_has_is_owner(client: AsyncClient) -> None:
         json={
             "email": email,
             "username": username,
-            "password": "password123",
+            "password": "Test123!@",
             "account_type": "enterprise",
             "org_name": "Owner 创建团队",
         },
@@ -120,7 +120,7 @@ async def test_ac5_admin_adds_member_by_email_member_can_access_kb(
 
     member_login = await client.post(
         "/api/v1/auth/login",
-        json={"identifier": invitee["email"], "password": "password123"},
+        json={"identifier": invitee["email"], "password": "Test123!@"},
     )
     assert member_login.status_code == 200
     member_user = member_login.json()["user"]

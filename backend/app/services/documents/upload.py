@@ -21,9 +21,7 @@ from app.services.documents.content_hash import (
     sha256_hex,
 )
 from app.services.ingestion.pipeline import process_document_ingestion
-
-# 并发控制：最多 5 个文档同时处理
-_INGESTION_SEMAPHORE = asyncio.Semaphore(5)
+from app.services.ingestion.tasks import ingest_document_task
 
 ALLOWED_EXTENSIONS: frozenset[str] = frozenset({".pdf", ".txt", ".md", ".docx", ".xlsx", ".pptx", ".png", ".jpg", ".jpeg"})
 
@@ -157,38 +155,54 @@ async def upload_documents(
         replacing = existing_doc_id is not None
 
         if replacing:
-            # 覆盖模式：加载旧文档，跳过内容去重
+            # 覆盖模式：保存旧版本，更新当前文档
             existing_doc = await db.get(Document, existing_doc_id)
             if existing_doc is None:
-                # 理论上不会发生，但防御性处理
                 raise ValidationError(detail="内部错误：待覆盖文档不存在")
             if existing_doc.status == DocumentStatus.processing:
                 raise ConflictError(
                     detail=f"文件「{display_name}」正在处理中，请稍后重试",
                 )
-            # 先记审计日志，再删旧文档
+
+            # 1. 保存旧版本记录
+            from app.models.document_version import DocumentVersion
+            old_version = DocumentVersion(
+                document_id=existing_doc_id,
+                version_number=existing_doc.current_version,
+                storage_path=existing_doc.storage_path,
+                file_size=existing_doc.file_size,
+                content_sha256=existing_doc.content_sha256,
+                uploaded_by=existing_doc.uploaded_by,
+            )
+            db.add(old_version)
+
+            # 2. 审计日志
             await write_audit_log(
                 db,
-                action="document.replaced",
+                action="document.version.create",
                 actor_user_id=current_user.id,
                 resource_type="document",
                 resource_id=existing_doc_id,
                 kb_id=kb_id,
                 metadata={
                     "filename": display_name,
-                    "previous_doc_id": str(existing_doc_id),
+                    "version": existing_doc.current_version,
                     "previous_size": existing_doc.file_size,
                     "new_size": len(content),
-                    "new_content_hash": content_hash,
                 },
                 ip=ip,
             )
-            # 硬删旧文档（CASCADE 自动清理 document_chunks）
-            storage_path = existing_doc.storage_path
-            await db.delete(existing_doc)
-            await db.flush()
-            from app.services.storage.cleaner import remove_document_tree
-            remove_document_tree(kb_id=kb_id, doc_id=existing_doc_id, storage_path=storage_path)
+
+            # 3. 复用 doc_id，更新字段
+            doc_id = existing_doc_id
+            existing_doc.current_version += 1
+            existing_doc.status = DocumentStatus.queued
+            existing_doc.error_message = None
+            existing_doc.chunk_count = None
+            existing_doc.processing_started_at = None
+            existing_doc.processing_completed_at = None
+            existing_doc.file_size = len(content)
+            existing_doc.content_sha256 = content_hash
         else:
             await assert_content_unique_in_kb(
                 db,
@@ -196,18 +210,26 @@ async def upload_documents(
                 content_sha256=content_hash,
             )
 
-        doc_id = uuid.uuid4()
-        storage_dir = _storage_dir(kb_id, doc_id)
-        storage_dir.mkdir(parents=True, exist_ok=True)
+        if replacing:
+            doc_id = existing_doc_id
+            storage_dir = _storage_dir(kb_id, doc_id)
+        else:
+            doc_id = uuid.uuid4()
+            storage_dir = _storage_dir(kb_id, doc_id)
+            storage_dir.mkdir(parents=True, exist_ok=True)
 
         stored_name = f"{uuid.uuid4()}.{file_type}"
         storage_path = storage_dir / stored_name
         storage_path.write_bytes(content)
 
-        doc = Document(
-            id=doc_id,
-            kb_id=kb_id,
-            filename=display_name,
+        if replacing:
+            existing_doc.storage_path = str(storage_path)
+            doc = existing_doc
+        else:
+            doc = Document(
+                id=doc_id,
+                kb_id=kb_id,
+                filename=display_name,
             file_type=file_type,
             file_size=len(content),
             content_sha256=content_hash,
@@ -218,6 +240,8 @@ async def upload_documents(
         )
         db.add(doc)
         await db.flush()
+        if replacing:
+            await db.refresh(doc)
 
         if not replacing:
             await write_audit_log(
@@ -231,8 +255,10 @@ async def upload_documents(
                 ip=ip,
             )
 
-        async with _INGESTION_SEMAPHORE:
+        if settings.celery_task_always_eager_local:
             background_tasks.add_task(process_document_ingestion, doc.id)
+        else:
+            ingest_document_task.delay(str(doc.id))
         created.append(DocumentResponse.model_validate(doc))
 
     await db.commit()

@@ -260,7 +260,7 @@ async def login_user(
 
     clear_login_failures(ip, identifier)
 
-    org_id, org_role, is_owner = await resolve_org_context(db, user)
+    org_id, org_role, is_owner, custom_role_id, custom_role_is_admin = await resolve_org_context(db, user)
     primary_unit_id, unit_ids = await resolve_user_units(db, user.id)
     unit_admin_unit_ids = await resolve_unit_admin_unit_ids(db, user.id)
 
@@ -269,6 +269,8 @@ async def login_user(
         account_type=user.account_type,
         org_id=org_id,
         org_role=org_role,
+        custom_role_id=custom_role_id,
+        custom_role_is_admin=custom_role_is_admin,
     )
 
     await write_audit_log(
