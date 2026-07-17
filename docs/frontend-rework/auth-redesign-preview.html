@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>睿阁 · 认证改版预览 v4（v2 气质 + 现网逻辑）</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    /*
+      v4 合成方向（你口头反馈的翻译）：
+      - 气质：v2 —— 安静、居中、无卖点介绍、无厚重「认证大卡片」压迫感
+      - 逻辑：现网 —— /login 同卡 Tab；/forgot-password；/reset-password；注册三步
+      - 品牌：真 RuigeLogo 飞檐塔阁（非临时图标）
+    */
+    :root {
+      --action: #cb6b3d;
+      --brand-grad: linear-gradient(135deg, #e8824e 0%, #cf6a3a 52%, #b14e26 100%);
+      --bg: #fafafa;
+      --text: #1a1512;
+      --mut: #6b6560;
+      --line: rgba(140, 100, 64, 0.2);
+      --line2: rgba(140, 100, 64, 0.14);
+      --tab-bg: #f5ede8;
+      --ok: #4c7c5e;
+      --serif: "Noto Serif SC", "Songti SC", serif;
+      --sans: "Noto Sans SC", "PingFang SC", sans-serif;
+      --t: 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background:
+        radial-gradient(55% 40% at 50% 0%, rgba(232, 130, 78, 0.12), transparent 70%),
+        var(--bg);
+      overflow-x: clip;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; }
+
+    .preview-bar {
+      position: sticky; top: 0; z-index: 50;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+      padding: 10px 16px;
+      background: rgba(250, 250, 250, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line2);
+    }
+    .preview-bar strong { font-family: var(--serif); font-size: 14px; font-weight: 700; }
+    .preview-bar .hint { font-size: 12px; color: var(--mut); flex: 1 1 140px; min-width: 0; }
+    .seg {
+      display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px;
+      background: #f5f5f0; border-radius: 10px; border: 1px solid var(--line2);
+    }
+    .seg button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] {
+      background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    /* v2：无厚卡片，窄栏居中漂浮 */
+    .stage {
+      min-height: calc(100vh - 53px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px 64px;
+    }
+    .form {
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .route { display: none; }
+    .route.active { display: block; }
+
+    /* 真 Logo lockup */
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 32px;
+      color: var(--action);
+    }
+    .brand svg { display: block; flex-shrink: 0; }
+    .brand-word {
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: 0.04em;
+      color: var(--text);
+    }
+
+    /* 现网：登录/注册同页 Tab（轻量，不像厚 segmented 盒子） */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 28px;
+      padding: 4px;
+      border-radius: 10px;
+      background: var(--tab-bg);
+    }
+    .tabs button {
+      flex: 1;
+      border: 0;
+      border-radius: 8px;
+      padding: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--mut);
+      transition: background var(--t), color var(--t), box-shadow var(--t);
+    }
+    .tabs button[aria-selected="true"] {
+      background: #fff;
+      color: var(--text);
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+    .title {
+      margin: 0;
+      font-family: var(--serif);
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .sub {
+      margin: 8px 0 0;
+      font-size: 13px;
+      line-height: 1.55;
+      color: var(--mut);
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 28px;
+    }
+    .stack[hidden], [hidden] { display: none !important; }
+
+    .field { display: flex; flex-direction: column; gap: 7px; }
+    .field label {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+    .field-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .text-link {
+      font-size: 12px;
+      color: var(--mut);
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+    }
+    .text-link:hover { color: var(--action); }
+
+    .input-wrap { position: relative; }
+    .input {
+      width: 100%;
+      height: 44px;
+      padding: 0 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color var(--t), box-shadow var(--t);
+    }
+    .input::placeholder { color: #a39a94; }
+    .input:focus {
+      border-color: var(--action);
+      box-shadow: 0 0 0 3px rgba(203, 107, 61, 0.14);
+    }
+    .input.has-icon { padding-right: 42px; }
+    .eye {
+      position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+      width: 34px; height: 34px; border: 0; border-radius: 6px;
+      background: transparent; color: var(--mut); cursor: pointer;
+      display: grid; place-items: center;
+    }
+    .eye:hover { background: #f7f4f0; color: var(--action); }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 100%; height: 44px; border: 0; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: transform var(--t), box-shadow var(--t), opacity var(--t);
+    }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary {
+      color: #fff;
+      background-image: var(--brand-grad);
+      box-shadow: 0 4px 14px rgba(203, 107, 61, 0.28);
+      margin-top: 4px;
+    }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); }
+    .btn-ghost {
+      background: transparent; color: var(--mut); height: auto;
+      margin-top: 4px; font-weight: 500; font-size: 13px;
+    }
+    .btn-ghost:hover { color: var(--text); }
+
+    .steps {
+      display: flex; gap: 6px; margin-top: 18px; margin-bottom: -8px;
+    }
+    .steps span {
+      flex: 1; height: 2px; border-radius: 99px; background: var(--line2);
+    }
+    .steps span.on { background: var(--action); }
+
+    .choice {
+      display: flex; gap: 12px; align-items: flex-start; width: 100%;
+      text-align: left; padding: 12px 14px; border-radius: 10px;
+      border: 1px solid var(--line2); background: #fff; cursor: pointer;
+      transition: border-color var(--t), box-shadow var(--t);
+    }
+    .choice:hover { border-color: var(--line); }
+    .choice[aria-pressed="true"] {
+      border-color: color-mix(in srgb, var(--action) 50%, var(--line2));
+      box-shadow: 0 0 0 3px rgba(203, 107, 61, 0.1);
+      background: #fff1ea;
+    }
+    .choice .mark {
+      width: 16px; height: 16px; margin-top: 2px; border-radius: 50%;
+      border: 1.5px solid var(--line); flex-shrink: 0;
+    }
+    .choice[aria-pressed="true"] .mark {
+      border-color: var(--action); background: var(--action);
+      box-shadow: inset 0 0 0 3px #fff;
+    }
+    .choice strong { display: block; font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+    .choice small { font-size: 12px; color: var(--mut); line-height: 1.45; }
+
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    .success { text-align: center; }
+    .success-icon {
+      width: 44px; height: 44px; margin: 0 auto 16px; border-radius: 50%;
+      display: grid; place-items: center;
+      background: color-mix(in srgb, var(--ok) 12%, transparent);
+      color: var(--ok);
+    }
+
+    .theme-fab {
+      position: fixed; right: 20px; bottom: 20px;
+      width: 42px; height: 42px; border-radius: 999px;
+      border: 1px solid var(--line2);
+      background: #fffcfa;
+      box-shadow: 0 8px 28px rgba(140, 80, 50, 0.1);
+      color: var(--text);
+      cursor: pointer;
+      display: grid; place-items: center;
+    }
+
+    @media (max-width: 480px) {
+      .row-2 { grid-template-columns: 1fr; }
+      .title { font-size: 22px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-bar">
+    <strong>认证改版 v4</strong>
+    <span class="hint">v2 安静气质 + 现网路由/Tab/三步注册 + 真飞檐 Logo</span>
+    <div class="seg" role="tablist" aria-label="模拟路由">
+      <button type="button" data-route="login" aria-pressed="true">/login</button>
+      <button type="button" data-route="forgot" aria-pressed="false">/forgot-password</button>
+      <button type="button" data-route="forgot-sent" aria-pressed="false">忘记·已发送</button>
+      <button type="button" data-route="reset" aria-pressed="false">/reset-password</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="form">
+
+      <!-- /login：同卡登录/注册 -->
+      <div class="route active" data-route-panel="login">
+        <header class="brand" role="img" aria-label="睿阁">
+          <!-- RuigeLogo.tsx 原样 -->
+          <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <path d="M24 4 L27 9 L21 9 Z" fill="currentColor" />
+            <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+            <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+            <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd" />
+          </svg>
+          <span class="brand-word">睿阁</span>
+        </header>
+
+        <div class="tabs" role="tablist" aria-label="认证方式">
+          <button type="button" role="tab" data-tab="login" aria-selected="true">登录</button>
+          <button type="button" role="tab" data-tab="register" aria-selected="false">注册</button>
+        </div>
+
+        <section class="panel active" data-panel="login" aria-label="登录">
+          <h1 class="title">欢迎回来</h1>
+          <p class="sub">使用邮箱或用户名登录。</p>
+          <form class="stack" onsubmit="return false">
+            <div class="field">
+              <label for="login-id">邮箱或用户名</label>
+              <input class="input" id="login-id" autocomplete="username" placeholder="name@company.com 或 zhangsan" />
+            </div>
+            <div class="field">
+              <div class="field-row">
+                <label for="login-pw">密码</label>
+                <button type="button" class="text-link" data-route="forgot">忘记密码？</button>
+              </div>
+              <div class="input-wrap">
+                <input class="input has-icon" id="login-pw" type="password" autocomplete="current-password" placeholder="至少 8 位" />
+                <button type="button" class="eye" aria-label="显示密码" data-toggle="#login-pw">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary">登录</button>
+          </form>
+        </section>
+
+        <section class="panel" data-panel="register" aria-label="注册">
+          <h1 class="title" id="reg-title">你打算怎么用？</h1>
+          <p class="sub" id="reg-sub">个人或团队，二选一即可。</p>
+          <div class="steps" aria-hidden="true">
+            <span class="on" id="s1"></span>
+            <span id="s2"></span>
+            <span id="s3"></span>
+          </div>
+
+          <div id="reg-step-1" class="stack">
+            <button type="button" class="choice" data-usage="personal" aria-pressed="false">
+              <span class="mark"></span>
+              <span><strong>个人</strong><small>资料库在「我的空间」</small></span>
+            </button>
+            <button type="button" class="choice" data-usage="team" aria-pressed="false">
+              <span class="mark"></span>
+              <span><strong>团队</strong><small>创建或加入团队空间</small></span>
+            </button>
+            <button type="button" class="btn btn-primary" id="reg-next-1" disabled>继续</button>
+          </div>
+
+          <div id="reg-step-2" class="stack" hidden>
+            <button type="button" class="choice" data-role="creator" aria-pressed="false">
+              <span class="mark"></span>
+              <span><strong>创建团队</strong><small>你将成为 Owner</small></span>
+            </button>
+            <button type="button" class="choice" data-role="member" aria-pressed="false">
+              <span class="mark"></span>
+              <span><strong>加入团队</strong><small>使用邀请码</small></span>
+            </button>
+            <div class="field" id="org-field" hidden>
+              <label for="org-name">团队名称</label>
+              <input class="input" id="org-name" placeholder="例如：知岸演示公司" />
+            </div>
+            <div class="field" id="invite-field" hidden>
+              <label for="invite">邀请码</label>
+              <input class="input" id="invite" placeholder="至少 4 位" />
+            </div>
+            <button type="button" class="btn btn-primary" id="reg-next-2" disabled>继续</button>
+            <button type="button" class="btn btn-ghost" data-reg-back="1">返回</button>
+          </div>
+
+          <form id="reg-step-3" class="stack" hidden onsubmit="return false">
+            <div class="row-2">
+              <div class="field">
+                <label for="reg-user">用户名</label>
+                <input class="input" id="reg-user" placeholder="zhangsan" />
+              </div>
+              <div class="field">
+                <label for="reg-mail">邮箱</label>
+                <input class="input" id="reg-mail" type="email" placeholder="name@company.com" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="reg-pw">密码</label>
+              <input class="input" id="reg-pw" type="password" placeholder="至少 8 位" />
+            </div>
+            <div class="field">
+              <label for="reg-pw2">确认密码</label>
+              <input class="input" id="reg-pw2" type="password" placeholder="再输入一次" />
+            </div>
+            <button type="submit" class="btn btn-primary">创建账号</button>
+            <button type="button" class="btn btn-ghost" data-reg-back="2">返回</button>
+          </form>
+        </section>
+      </div>
+
+      <!-- /forgot-password -->
+      <div class="route" data-route-panel="forgot">
+        <header class="brand" role="img" aria-label="睿阁">
+          <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <path d="M24 4 L27 9 L21 9 Z" fill="currentColor" />
+            <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+            <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+            <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd" />
+          </svg>
+          <span class="brand-word">睿阁</span>
+        </header>
+        <h1 class="title">重置密码</h1>
+        <p class="sub">输入注册邮箱，我们会发送重置链接。</p>
+        <form class="stack" id="forgot-form" onsubmit="return false">
+          <div class="field">
+            <label for="forgot-mail">邮箱</label>
+            <input class="input" id="forgot-mail" type="email" placeholder="name@company.com" />
+          </div>
+          <button type="submit" class="btn btn-primary">发送重置邮件</button>
+          <button type="button" class="btn btn-ghost" data-route="login">返回登录</button>
+        </form>
+      </div>
+
+      <!-- 忘记·已发送 -->
+      <div class="route" data-route-panel="forgot-sent">
+        <header class="brand" role="img" aria-label="睿阁" style="justify-content:center">
+          <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <path d="M24 4 L27 9 L21 9 Z" fill="currentColor" />
+            <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+            <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+            <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd" />
+          </svg>
+          <span class="brand-word">睿阁</span>
+        </header>
+        <div class="success">
+          <div class="success-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2 11 13"/><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+          </div>
+          <h1 class="title">邮件已发送</h1>
+          <p class="sub">若该邮箱已注册，请查收重置链接（含垃圾箱）。</p>
+          <button type="button" class="btn btn-primary" style="margin-top:28px" data-route="login">返回登录</button>
+        </div>
+      </div>
+
+      <!-- /reset-password -->
+      <div class="route" data-route-panel="reset">
+        <header class="brand" role="img" aria-label="睿阁">
+          <svg width="36" height="36" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <path d="M24 4 L27 9 L21 9 Z" fill="currentColor" />
+            <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+            <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+            <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd" />
+          </svg>
+          <span class="brand-word">睿阁</span>
+        </header>
+        <h1 class="title">设置新密码</h1>
+        <p class="sub">请输入新密码（至少 8 位）。</p>
+        <form class="stack" onsubmit="return false">
+          <div class="field">
+            <label for="new-pw">新密码</label>
+            <input class="input" id="new-pw" type="password" placeholder="至少 8 位" />
+          </div>
+          <div class="field">
+            <label for="new-pw2">确认密码</label>
+            <input class="input" id="new-pw2" type="password" placeholder="再次输入新密码" />
+          </div>
+          <button type="submit" class="btn btn-primary">重置密码</button>
+        </form>
+      </div>
+
+    </div>
+  </div>
+
+  <button type="button" class="theme-fab" aria-label="切换主题（预览占位）" title="主题 FAB">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+
+  <script>
+    function goRoute(name) {
+      document.querySelectorAll("[data-route-panel]").forEach((el) => {
+        el.classList.toggle("active", el.dataset.routePanel === name);
+      });
+      document.querySelectorAll(".preview-bar [data-route]").forEach((btn) => {
+        btn.setAttribute("aria-pressed", String(btn.dataset.route === name));
+      });
+      if (name === "login") setTab("login");
+    }
+    document.querySelectorAll("[data-route]").forEach((el) => {
+      el.addEventListener("click", () => goRoute(el.dataset.route));
+    });
+
+    function setTab(name) {
+      document.querySelectorAll(".tabs [data-tab]").forEach((btn) => {
+        btn.setAttribute("aria-selected", String(btn.dataset.tab === name));
+      });
+      document.querySelectorAll("[data-panel]").forEach((p) => {
+        p.classList.toggle("active", p.dataset.panel === name);
+      });
+      if (name === "register") setRegStep(1);
+    }
+    document.querySelectorAll(".tabs [data-tab]").forEach((btn) => {
+      btn.addEventListener("click", () => setTab(btn.dataset.tab));
+    });
+
+    document.querySelectorAll("[data-toggle]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const input = document.querySelector(btn.dataset.toggle);
+        if (!input) return;
+        input.type = input.type === "password" ? "text" : "password";
+      });
+    });
+
+    let usage = null;
+    let role = null;
+    function setRegStep(n) {
+      document.getElementById("reg-step-1").hidden = n !== 1;
+      document.getElementById("reg-step-2").hidden = n !== 2;
+      document.getElementById("reg-step-3").hidden = n !== 3;
+      document.getElementById("s1").classList.toggle("on", n >= 1);
+      document.getElementById("s2").classList.toggle("on", n >= 2);
+      document.getElementById("s3").classList.toggle("on", n >= 3);
+      const copy = {
+        1: ["你打算怎么用？", "个人或团队，二选一即可。"],
+        2: ["团队身份", "创建新团队，或用邀请码加入。"],
+        3: ["创建账号", "填写登录凭证。"],
+      };
+      document.getElementById("reg-title").textContent = copy[n][0];
+      document.getElementById("reg-sub").textContent = copy[n][1];
+    }
+    document.querySelectorAll("[data-usage]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        usage = btn.dataset.usage;
+        document.querySelectorAll("[data-usage]").forEach((b) =>
+          b.setAttribute("aria-pressed", String(b === btn))
+        );
+        document.getElementById("reg-next-1").disabled = false;
+      });
+    });
+    document.getElementById("reg-next-1").addEventListener("click", () => {
+      setRegStep(usage === "personal" ? 3 : 2);
+    });
+    document.querySelectorAll("[data-role]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        role = btn.dataset.role;
+        document.querySelectorAll("[data-role]").forEach((b) =>
+          b.setAttribute("aria-pressed", String(b === btn))
+        );
+        document.getElementById("org-field").hidden = role !== "creator";
+        document.getElementById("invite-field").hidden = role !== "member";
+        document.getElementById("reg-next-2").disabled = false;
+      });
+    });
+    document.getElementById("reg-next-2").addEventListener("click", () => setRegStep(3));
+    document.querySelectorAll("[data-reg-back]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const back = Number(btn.dataset.regBack);
+        if (back === 1 || (back === 2 && usage === "personal")) setRegStep(1);
+        else setRegStep(back);
+      });
+    });
+    document.getElementById("forgot-form").addEventListener("submit", () => goRoute("forgot-sent"));
+  </script>
+</body>
+</html>

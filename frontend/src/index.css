@@ -62,9 +62,13 @@
     --brand-grad: linear-gradient(135deg, #e8824e 0%, #cf6a3a 52%, #b14e26 100%);
     --brand-grad-soft: linear-gradient(135deg, rgba(232, 130, 78, 0.18), rgba(177, 78, 38, 0.1));
     --action-2: #e07a45;
-    --glow-a: radial-gradient(60% 50% at 16% 6%, rgba(232, 130, 78, 0.22) 0%, rgba(232, 130, 78, 0) 70%);
-    --glow-b: radial-gradient(55% 45% at 90% 10%, rgba(196, 140, 96, 0.16) 0%, rgba(196, 140, 96, 0) 72%);
-    --glow-c: radial-gradient(50% 40% at 72% 96%, rgba(203, 107, 61, 0.12) 0%, rgba(203, 107, 61, 0) 70%);
+    --glow-a: radial-gradient(
+      55% 40% at 50% 0%,
+      rgba(232, 130, 78, 0.1) 0%,
+      transparent 70%
+    );
+    --glow-b: transparent;
+    --glow-c: transparent;
     /* 厚重暖色多层阴影，用于抬升关键表面与 hover（premium depth） */
     --shadow-xl: 0 1px 2px rgba(203, 107, 61, 0.06), 0 10px 28px rgba(140, 80, 50, 0.12), 0 28px 64px rgba(120, 70, 45, 0.16);
     --glass-border: rgba(255, 255, 255, 0.65);
@@ -130,9 +134,13 @@
     --surf-shell: rgba(30, 23, 18, 0.78);
     --brand-grad: linear-gradient(135deg, #e8824e 0%, #cf6a3a 52%, #b14e26 100%);
     --brand-grad-soft: linear-gradient(135deg, rgba(232, 130, 78, 0.22), rgba(177, 78, 38, 0.14));
-    --glow-a: radial-gradient(60% 50% at 16% 6%, rgba(232, 130, 78, 0.16) 0%, rgba(232, 130, 78, 0) 70%);
-    --glow-b: radial-gradient(55% 45% at 90% 10%, rgba(196, 140, 96, 0.12) 0%, rgba(196, 140, 96, 0) 72%);
-    --glow-c: radial-gradient(50% 40% at 72% 96%, rgba(203, 107, 61, 0.1) 0%, rgba(203, 107, 61, 0) 70%);
+    --glow-a: radial-gradient(
+      55% 40% at 50% 0%,
+      rgba(232, 130, 78, 0.08) 0%,
+      transparent 70%
+    );
+    --glow-b: transparent;
+    --glow-c: transparent;
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 24px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 1px 2px rgba(0, 0, 0, 0.3), 0 14px 36px rgba(0, 0, 0, 0.5);
@@ -211,21 +219,21 @@
   .app-shell {
     @apply relative min-h-screen bg-background;
     background-image: var(--wash);
-    /* === 打磨版 dashboard-bold-preview · light · shell 玻璃色 === */
-    --shell-glass: rgba(251, 245, 234, 0.80);
-    --shell-border: rgba(140, 100, 64, 0.17);
-    --shell-topbar-border: rgba(140, 100, 64, 0.17);
-    --shell-shadow: 0 1px 0 rgba(255, 253, 246, 0.85), 0 1px 14px rgba(120, 70, 45, 0.08);
-    --shell-bg: #FAFAFA;
+    /* 壳 v4：更安静的玻璃表面（对齐认证页洗淡） */
+    --shell-glass: rgba(250, 250, 250, 0.78);
+    --shell-border: rgba(140, 100, 64, 0.12);
+    --shell-topbar-border: rgba(140, 100, 64, 0.12);
+    --shell-shadow: none;
+    --shell-bg: #fafafa;
     --content-bg: #16120f;
   }
 
   /* === 预览 dashboard-bold-preview.html · dark · shell 玻璃色 === */
   .app-shell[data-theme="dark"] {
-    --shell-glass: rgba(31, 24, 19, 0.72);
-    --shell-border: rgba(236, 230, 223, 0.10);
-    --shell-topbar-border: rgba(236, 230, 223, 0.10);
-    --shell-shadow: 0 1px 0 rgba(255, 255, 255, 0.04), 0 1px 14px rgba(0, 0, 0, 0.35);
+    --shell-glass: rgba(22, 18, 15, 0.78);
+    --shell-border: rgba(236, 230, 223, 0.1);
+    --shell-topbar-border: rgba(236, 230, 223, 0.1);
+    --shell-shadow: none;
     --shell-bg: #16120f;
     --content-bg: #fbf5ea;
     --nav-on: #2a211b;
@@ -491,17 +499,20 @@
     pointer-events: none;
   }
 
-  /* 登录/注册页 · 人文暖白 + 赤陶橙（仅 .auth-page 内生效，不影响应用内 L5） */
+  /* 登录/注册页 · v4 安静气质（仅 .auth-page 内生效，不影响应用内 L5） */
   .auth-page {
-    --auth-bg: #fdfbf9;
-    --auth-wash: radial-gradient(60% 50% at 15% 0%, rgba(232, 130, 78, 0.22) 0%, rgba(232, 130, 78, 0) 70%),
-      radial-gradient(55% 45% at 90% 8%, rgba(196, 140, 96, 0.16) 0%, rgba(196, 140, 96, 0) 72%),
-      radial-gradient(50% 40% at 75% 100%, rgba(203, 107, 61, 0.1) 0%, rgba(203, 107, 61, 0) 70%);
+    --auth-bg: #fafafa;
+    --auth-wash: radial-gradient(
+      55% 40% at 50% 0%,
+      rgba(232, 130, 78, 0.12),
+      transparent 70%
+    );
     --auth-card: #fffcfa;
     --auth-card-border: rgba(255, 240, 230, 0.95);
-    --auth-text: #332b2b;
-    --auth-muted: #7a6e6a;
-    --auth-line: #ede4dc;
+    --auth-field-bg: #ffffff;
+    --auth-text: #1a1512;
+    --auth-muted: #6b6560;
+    --auth-line: rgba(140, 100, 64, 0.2);
     --auth-action: #cb6b3d;
     --auth-action-hover: #b85a2e;
     --auth-selected: #fff1ea;
@@ -518,12 +529,14 @@
      靠 CSS 变量级联覆盖认证子组件复用的 auth/全局 token，无需改动子组件。 */
   .auth-page[data-theme="dark"] {
     --auth-bg: #14100d;
-    --auth-wash:
-      radial-gradient(60% 50% at 15% 0%, rgba(232, 130, 78, 0.18) 0%, rgba(232, 130, 78, 0) 70%),
-      radial-gradient(55% 45% at 90% 8%, rgba(196, 140, 96, 0.13) 0%, rgba(196, 140, 96, 0) 72%),
-      radial-gradient(50% 40% at 75% 100%, rgba(203, 107, 61, 0.1) 0%, rgba(203, 107, 61, 0) 70%);
+    --auth-wash: radial-gradient(
+      55% 40% at 50% 0%,
+      rgba(232, 130, 78, 0.14),
+      transparent 70%
+    );
     --auth-card: #211a14;
     --auth-card-border: rgba(203, 107, 61, 0.22);
+    --auth-field-bg: #2a211a;
     --auth-text: #f2e8de;
     --auth-muted: #a1917f;
     --auth-line: rgba(242, 232, 222, 0.14);
@@ -601,7 +614,7 @@
 
   .auth-page .auth-input:focus-visible {
     border-color: var(--auth-action);
-    --tw-ring-color: rgb(203 107 61 / 0.15);
+    --tw-ring-color: rgb(203 107 61 / 0.14);
   }
 
   /* WS-1-2 · 注册三步步骤条 + 软提示（preview-register-workspace） */
@@ -2300,8 +2313,8 @@
   padding: 16px 0;
   background: var(--shell-glass);
   border-right: 1px solid var(--shell-border);
-  backdrop-filter: blur(18px) saturate(120%);
-  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   overflow-y: auto;
   scrollbar-width: none;
 }

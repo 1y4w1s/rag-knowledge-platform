@@ -1,0 +1,9 @@
+{
+  "recall_at_3": 89.4,
+  "answer_rate": 100.0,
+  "total": 47,
+  "hit": 42,
+  "answered": 47,
+  "timestamp": "2026-07-17",
+  "notes": "Baseline: 42/47 Recall@3, 47/47 answer rate. GQ-36~40 are correct rejections (no context). 3 misses are cross-section complex queries."
+}

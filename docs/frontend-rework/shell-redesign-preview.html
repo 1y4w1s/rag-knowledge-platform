@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>睿阁 · 壳改版预览（侧栏 + 顶栏）</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    /*
+      壳预览 · 贴合现网逻辑 + v4 安静气质
+      保留：64px 图标轨 · 导航路由语义 · 顶栏工作区切换 · 主题 · 移动抽屉结构
+      改：顶栏去掉「企业知识工作台」· 减弱玻璃/底部分光 · 氛围更淡 · 侧栏微调
+    */
+    :root {
+      --bg: #fafafa;
+      --surf: #f5f5f0;
+      --text: #1a1512;
+      --mut: #6b6560;
+      --line2: rgba(140, 100, 64, 0.14);
+      --action: #cb6b3d;
+      --brand-grad: linear-gradient(135deg, #e8824e, #cf6a3a 52%, #b14e26);
+      --nav-on: rgba(203, 107, 61, 0.08);
+      --serif: "Noto Serif SC", "Songti SC", serif;
+      --sans: "Noto Sans SC", "PingFang SC", sans-serif;
+      --shell-border: rgba(140, 100, 64, 0.12);
+      --t: 0.2s ease;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, a { font: inherit; }
+
+    .preview-bar {
+      position: relative; z-index: 80;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+      padding: 10px 16px;
+      background: rgba(250, 250, 250, 0.94);
+      border-bottom: 1px solid var(--line2);
+      backdrop-filter: blur(10px);
+    }
+    .preview-bar strong { font-family: var(--serif); font-size: 14px; font-weight: 700; }
+    .preview-bar .hint { font-size: 12px; color: var(--mut); flex: 1 1 160px; min-width: 0; }
+    .seg {
+      display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px;
+      background: var(--surf); border-radius: 10px; border: 1px solid var(--line2);
+    }
+    .seg button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] {
+      background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .frame {
+      position: relative;
+      height: calc(100vh - 53px);
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* 氛围：比现网更淡（对齐认证 v4） */
+    .aurora {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(55% 40% at 50% 0%, rgba(232, 130, 78, 0.1), transparent 70%);
+    }
+    .frame.variant-current .aurora {
+      background:
+        radial-gradient(40% 35% at 12% 8%, rgba(232, 130, 78, 0.2), transparent 65%),
+        radial-gradient(35% 30% at 88% 0%, rgba(196, 140, 96, 0.14), transparent 70%),
+        radial-gradient(45% 35% at 70% 100%, rgba(203, 107, 61, 0.08), transparent 70%);
+    }
+
+    /* ── Sidebar rail ── */
+    .rail {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center;
+      width: 64px; flex: 0 0 64px;
+      padding: 16px 0;
+      background: rgba(250, 250, 250, 0.72);
+      border-right: 1px solid var(--shell-border);
+      backdrop-filter: blur(12px);
+    }
+    .frame.variant-current .rail {
+      background: rgba(251, 245, 234, 0.8);
+      backdrop-filter: blur(18px) saturate(120%);
+      border-right-color: rgba(140, 100, 64, 0.17);
+    }
+
+    .rail-mark {
+      display: flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; margin-bottom: 4px;
+      color: var(--action); text-decoration: none;
+    }
+    .rail-sep {
+      width: 26px; height: 1px; background: var(--line2); margin: 10px 0;
+    }
+    .rail-nav {
+      display: flex; flex-direction: column; gap: 6px;
+      width: 100%; align-items: center; padding: 4px 0;
+    }
+    .rail-item {
+      position: relative;
+      width: 44px; height: 44px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--mut); text-decoration: none;
+      transition: background var(--t), color var(--t);
+    }
+    .rail-item:hover { background: var(--nav-on); color: var(--text); }
+    .rail-item.active { background: var(--nav-on); color: var(--action); }
+    .rail-item.active::before {
+      content: "";
+      position: absolute; left: -10px; top: 9px; bottom: 9px; width: 3px;
+      border-radius: 0 3px 3px 0; background: var(--action);
+    }
+    .rail-item svg { width: 21px; height: 21px; }
+    .rail-label {
+      display: none; position: absolute; left: 54px; top: 50%;
+      transform: translateY(-50%); white-space: nowrap;
+      background: var(--surf); border: 1px solid var(--line2); color: var(--text);
+      font-size: 12px; padding: 6px 11px; border-radius: 9px;
+      opacity: 0; pointer-events: none; z-index: 30;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      transition: opacity 0.12s;
+    }
+    .rail-item:hover .rail-label { opacity: 1; display: block; }
+    .rail-spacer { flex: 1; }
+    .rail-bottom {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      width: 100%; padding-top: 8px;
+    }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 999px;
+      background: color-mix(in srgb, var(--action) 18%, #fff);
+      color: var(--action); font-size: 12px; font-weight: 700;
+      display: grid; place-items: center;
+    }
+
+    /* ── Main column ── */
+    .main-col {
+      position: relative; z-index: 1;
+      flex: 1; min-width: 0; display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* 顶栏 */
+    .topbar {
+      position: relative; z-index: 40;
+      display: flex; align-items: center; gap: 12px;
+      height: 56px; flex-shrink: 0;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--shell-border);
+      background: rgba(250, 250, 250, 0.78);
+      backdrop-filter: blur(10px);
+    }
+    /* 现网：更重的玻璃 + 底部分光 */
+    .frame.variant-current .topbar {
+      background: rgba(251, 245, 234, 0.8);
+      backdrop-filter: blur(20px) saturate(140%);
+      box-shadow: 0 1px 0 rgba(255, 253, 246, 0.85), 0 1px 14px rgba(120, 70, 45, 0.08);
+      border-bottom-color: rgba(140, 100, 64, 0.17);
+    }
+    .frame.variant-current .topbar::after {
+      content: "";
+      position: absolute; inset: auto 0 0 0; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(203, 107, 61, 0.35), transparent);
+    }
+    /* 改版：无底部分光、无重阴影 */
+    .frame.variant-quiet .topbar::after { display: none; }
+
+    .brand {
+      display: flex; align-items: center; gap: 12px;
+      text-decoration: none; color: inherit; flex-shrink: 0;
+    }
+    .brand svg { color: var(--action); display: block; }
+    .brand-text { display: flex; flex-direction: column; gap: 2px; }
+    .brand-name {
+      font-family: var(--serif); font-size: 20px; font-weight: 700; line-height: 1;
+    }
+    .brand-sub {
+      font-size: 12px; color: var(--mut); line-height: 1;
+    }
+    .frame.variant-quiet .brand-sub { display: none; }
+
+    .topbar-spacer { flex: 1; }
+
+    .scope {
+      display: inline-flex; padding: 3px; gap: 2px;
+      border-radius: 999px; background: var(--surf); border: 1px solid var(--line2);
+    }
+    .scope button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 500; cursor: pointer;
+    }
+    .scope button.on {
+      background: #fff; color: var(--action); font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .sun {
+      width: 34px; height: 34px; border-radius: 999px; border: 0;
+      background: transparent; color: var(--mut); cursor: pointer;
+      display: grid; place-items: center;
+    }
+    .sun:hover { background: var(--nav-on); color: var(--text); }
+
+    .content {
+      flex: 1; overflow: auto; padding: 24px 28px;
+    }
+    .content-card {
+      max-width: 960px;
+      border: 1px dashed var(--line2);
+      border-radius: 16px;
+      padding: 28px;
+      background: rgba(255,255,255,0.5);
+      color: var(--mut); font-size: 13px; line-height: 1.7;
+    }
+    .content-card h1 {
+      margin: 0 0 8px;
+      font-family: var(--serif); font-size: 22px; font-weight: 700; color: var(--text);
+    }
+    .content-card ul { margin: 12px 0 0; padding-left: 1.2em; }
+    .diff {
+      margin-top: 16px; padding: 12px 14px; border-radius: 10px;
+      background: #fff1ea; border: 1px solid rgba(203, 107, 61, 0.2);
+      color: var(--text); font-size: 12px;
+    }
+    .frame.variant-current .diff { display: none; }
+
+    .note-pill {
+      display: inline-block; margin-top: 4px; padding: 2px 8px; border-radius: 6px;
+      background: var(--nav-on); color: var(--action); font-size: 11px; font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+      .rail-item .rail-label { display: none !important; }
+      .brand-name { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-bar">
+    <strong>壳改版预览</strong>
+    <span class="hint">逻辑贴合现网 · 气质对齐认证 v4 · 真飞檐 Logo</span>
+    <div class="seg" role="tablist" aria-label="对照">
+      <button type="button" data-variant="quiet" aria-pressed="true">改版提案</button>
+      <button type="button" data-variant="current" aria-pressed="false">现网气质（对照）</button>
+    </div>
+  </div>
+
+  <div class="frame variant-quiet" id="frame">
+    <div class="aurora" aria-hidden="true"></div>
+
+    <aside class="rail" aria-label="主导航">
+      <a class="rail-mark" href="#/" aria-label="睿阁 · 概览">
+        <!-- RuigeLogo.tsx -->
+        <svg width="30" height="30" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <path d="M24 4 L27 9 L21 9 Z" fill="currentColor" />
+          <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+          <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+          <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+          <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+          <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+          <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+          <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd" />
+        </svg>
+      </a>
+      <div class="rail-sep"></div>
+
+      <nav class="rail-nav">
+        <a class="rail-item active" href="#/" title="概览">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span class="rail-label">概览</span>
+        </a>
+        <a class="rail-item" href="#/" title="资料库">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          <span class="rail-label">资料库</span>
+        </a>
+        <a class="rail-item" href="#/" title="对话">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span class="rail-label">对话</span>
+        </a>
+        <a class="rail-item" href="#/" title="组织与部门">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>
+          <span class="rail-label">组织与部门</span>
+        </a>
+        <a class="rail-item" href="#/" title="成员管理">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="rail-label">成员管理</span>
+        </a>
+        <a class="rail-item" href="#/" title="操作审计">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14h6"/><path d="M9 18h6"/><path d="M9 10h6"/></svg>
+          <span class="rail-label">操作审计</span>
+        </a>
+      </nav>
+
+      <div class="rail-spacer"></div>
+
+      <div class="rail-bottom">
+        <a class="rail-item" href="#/" title="账号设置">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg>
+          <span class="rail-label">账号设置</span>
+        </a>
+        <div class="avatar" title="演示管理员" aria-hidden="true">管</div>
+      </div>
+    </aside>
+
+    <div class="main-col">
+      <header class="topbar">
+        <a class="brand" href="#/" aria-label="睿阁 · 概览">
+          <svg width="34" height="34" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <path d="M24 4 L27 9 L21 9 Z" fill="currentColor" />
+            <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+            <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+            <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
+            <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd" />
+          </svg>
+          <span class="brand-text">
+            <span class="brand-name">睿阁</span>
+            <span class="brand-sub">企业知识工作台</span>
+          </span>
+        </a>
+
+        <div class="topbar-spacer"></div>
+
+        <div class="scope" role="group" aria-label="工作区">
+          <button type="button">个人</button>
+          <button type="button" class="on">团队</button>
+        </div>
+
+        <button type="button" class="sun" aria-label="切换主题（预览占位）">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19" />
+          </svg>
+        </button>
+      </header>
+
+      <main class="content">
+        <div class="content-card">
+          <h1>概览内容区（占位）</h1>
+          <p>这里只示意壳；Dashboard 本页不在本预览改造范围内。</p>
+          <div class="diff">
+            <strong>改版相对现网</strong>
+            <ul>
+              <li>顶栏去掉「企业知识工作台」副标</li>
+              <li>去掉顶栏底部分光条与重阴影</li>
+              <li>玻璃/模糊略减；氛围光更淡</li>
+              <li>侧栏结构、导航项、工作区切换、主题按钮 —— 逻辑不变</li>
+            </ul>
+            <span class="note-pill">真 Logo · 64px 图标轨 · Admin 导航示意</span>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const frame = document.getElementById("frame");
+    document.querySelectorAll("[data-variant]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const v = btn.dataset.variant;
+        frame.classList.toggle("variant-quiet", v === "quiet");
+        frame.classList.toggle("variant-current", v === "current");
+        document.querySelectorAll("[data-variant]").forEach((b) => {
+          b.setAttribute("aria-pressed", String(b === btn));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

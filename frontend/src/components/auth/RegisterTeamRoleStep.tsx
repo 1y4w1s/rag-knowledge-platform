@@ -38,10 +38,10 @@ export function RegisterTeamRoleStep({
   return (
     <>
       <div className="mb-3 shrink-0">
-        <h2 className="font-serif text-xl font-semibold tracking-[0.02em] text-[var(--auth-text)]">
+        <h2 className="font-serif text-2xl font-bold text-[var(--auth-text)]">
           团队里你的角色
         </h2>
-        <p className="mt-1.5 text-sm leading-relaxed text-[var(--auth-muted)]">
+        <p className="mt-2 text-[13px] leading-relaxed text-[var(--auth-muted)]">
           {teamRoleStepSubtitle(teamRole)}
         </p>
       </div>

@@ -1,97 +1,54 @@
-# Eval-Ops M10 · 生产栈备份：PostgreSQL dump + uploads 命名�?# 前置：docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-# 用法�?\scripts\backup-prod.ps1
-#       .\scripts\backup-prod.ps1 -OutDir backups\manual-20260708
+# 睿阁 — 备份与恢复脚本
+# 用法：.\scripts\backup-prod.ps1
+# 恢复：.\scripts\restore-prod.ps1 -BackupFile backups\ruige-20260717.sql
 
 param(
-    [string]$OutDir = ""
+    [string]$BackupDir = ".\backups",
+    [int]$RetentionDays = 30
 )
 
-$ErrorActionPreference = "Stop"
-$Root = Split-Path -Parent $PSScriptRoot
-Set-Location $Root
+$timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
+$backupPath = Join-Path $BackupDir "ruige-$timestamp.sql"
+$uploadBackup = Join-Path $BackupDir "uploads-$timestamp.tar.gz"
 
-$Compose = @("-f", "docker-compose.yml", "-f", "docker-compose.prod.yml")
-$ProjectName = Split-Path $Root -Leaf
-$PostgresVolume = "${ProjectName}_postgres_data"
-$UploadsVolume = "${ProjectName}_uploads_data"
+# 确保备份目录存在
+New-Item -ItemType Directory -Force -Path $BackupDir | Out-Null
 
-function Write-Step([string]$Message) {
-    Write-Host "[backup] $Message" -ForegroundColor Cyan
-}
+Write-Host "=== 睿阁 备份开始 ===" -ForegroundColor Cyan
+Write-Host "时间: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+Write-Host "备份目录: $BackupDir"
 
-function Write-Pass([string]$Message) {
-    Write-Host "[backup] OK: $Message" -ForegroundColor Green
-}
-
-function Write-Fail([string]$Message) {
-    Write-Host "[backup] FAIL: $Message" -ForegroundColor Red
+# 1. PostgreSQL 备份
+Write-Host "`n[1/3] 备份 PostgreSQL..." -ForegroundColor Yellow
+docker exec ruige-postgres pg_dump -U ruige -d ruige -F c -f /tmp/ruige_backup.dump
+if ($LASTEXITCODE -eq 0) {
+    docker cp ruige-postgres:/tmp/ruige_backup.dump $backupPath
+    docker exec ruige-postgres rm /tmp/ruige_backup.dump
+    Write-Host "  ✅ 数据库备份完成: $backupPath" -ForegroundColor Green
+} else {
+    Write-Host "  ❌ 数据库备份失败" -ForegroundColor Red
     exit 1
 }
 
-function Test-DockerVolume([string]$Name) {
-    $found = docker volume inspect $Name 2>$null
-    return $LASTEXITCODE -eq 0
-}
-
-$pgRunning = docker compose @Compose ps --status running --services postgres 2>$null
-if (-not $pgRunning) {
-    Write-Fail "postgres not running �?start prod stack first (see docs/DEPLOY.md §3.3)"
-}
-
-if (-not (Test-DockerVolume $UploadsVolume)) {
-    Write-Fail "uploads volume missing: $UploadsVolume �?use prod compose (docker-compose.prod.yml)"
-}
-
-$stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-if ($OutDir) {
-    $dest = Join-Path $Root $OutDir
+# 2. Uploads 文件备份
+Write-Host "[2/3] 备份上传文件..."
+$uploadsVolume = "rag-knowledge-platform_uploads_data"
+docker run --rm -v ${uploadsVolume}:/data -v ${BackupDir}:/backup alpine tar czf /backup/uploads-$timestamp.tar.gz -C /data .
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "  ✅ 文件备份完成: $uploadBackup" -ForegroundColor Green
 } else {
-    $dest = Join-Path $Root "backups\m10-$stamp"
+    Write-Host "  ⚠️  文件备份失败（可能无文件）" -ForegroundColor Yellow
 }
-New-Item -ItemType Directory -Force -Path $dest | Out-Null
 
-$dumpPath = Join-Path $dest "ruige.dump"
-$uploadsTar = Join-Path $dest "uploads.tar.gz"
-$manifestPath = Join-Path $dest "manifest.json"
+# 3. 清理旧备份
+Write-Host "[3/3] 清理 $RetentionDays 天前的旧备份..."
+$cutoff = (Get-Date).AddDays(-$RetentionDays)
+Get-ChildItem -Path $BackupDir -Filter "ruige-*.sql" | Where-Object { $_.CreationTime -lt $cutoff } | Remove-Item -Force
+Get-ChildItem -Path $BackupDir -Filter "uploads-*.tar.gz" | Where-Object { $_.CreationTime -lt $cutoff } | Remove-Item -Force
+Write-Host "  ✅ 清理完成"
 
-Write-Step "pg_dump �?$dumpPath"
-$pgContainer = docker compose @Compose ps -q postgres
-if (-not $pgContainer) { Write-Fail "postgres container id not found" }
-docker compose @Compose exec -T postgres pg_dump -U ruige -Fc -f /tmp/ruige.dump zhiku
-if ($LASTEXITCODE -ne 0) { Write-Fail "pg_dump failed" }
-docker cp "${pgContainer}:/tmp/ruige.dump" $dumpPath
-if ($LASTEXITCODE -ne 0) { Write-Fail "docker cp dump failed" }
-docker compose @Compose exec -T postgres rm -f /tmp/ruige.dump | Out-Null
-$dumpSize = (Get-Item $dumpPath).Length
-if ($dumpSize -lt 100) { Write-Fail "dump file too small ($dumpSize bytes) �?check postgres logs" }
-
-Write-Step "uploads volume �?$uploadsTar"
-$destUnix = ($dest -replace '\\', '/')
-docker run --rm `
-    -v "${UploadsVolume}:/data:ro" `
-    -v "${destUnix}:/backup" `
-    alpine:3.20 `
-    tar czf /backup/uploads.tar.gz -C /data .
-if ($LASTEXITCODE -ne 0) { Write-Fail "uploads tar failed" }
-
-$uploadsSize = (Get-Item $uploadsTar).Length
-$manifest = @{
-    created_at   = (Get-Date -Format "o")
-    project      = $ProjectName
-    postgres_vol = $PostgresVolume
-    uploads_vol  = $UploadsVolume
-    dump_file    = "ruige.dump"
-    uploads_file = "uploads.tar.gz"
-    dump_bytes   = $dumpSize
-    uploads_bytes = $uploadsSize
-    compose      = "docker-compose.yml + docker-compose.prod.yml"
-    pg_dump_fmt  = "custom (-Fc)"
-} | ConvertTo-Json -Depth 3
-Set-Content -Path $manifestPath -Value $manifest -Encoding UTF8
-
-Write-Pass "backup complete �?$dest"
-Write-Host "  ruige.dump      $dumpSize bytes"
-Write-Host "  uploads.tar.gz  $uploadsSize bytes"
-Write-Host "  manifest.json"
-Write-Host ""
-Write-Host "Restore: .\scripts\restore-prod.ps1 -BackupDir `"$dest`""
+# 摘要
+$dbSize = (Get-Item $backupPath).Length / 1MB
+Write-Host "`n=== 备份完成 ===" -ForegroundColor Cyan
+Write-Host "数据库备份: $([math]::Round($dbSize, 2)) MB"
+Write-Host "保留天数: $RetentionDays 天"
