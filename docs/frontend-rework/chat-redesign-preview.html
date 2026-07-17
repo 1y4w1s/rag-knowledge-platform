@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>睿阁 · 对话页改版预览</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    /*
+      对话预览 · 贴合现网逻辑 + v4 安静气质
+      保留：会话轨 · 工具栏 · 模式切换 · 引用 chip/预览 · 发送 onSend(string)
+      改：减厚卡片 · 抬高输入权重 · 引用层级更清晰 · 少硬边框堆叠
+    */
+    :root {
+      --bg: #fafafa;
+      --surf: #f5f5f0;
+      --surf2: #f7f4f0;
+      --text: #1a1512;
+      --mut: #6b6560;
+      --line2: rgba(140, 100, 64, 0.14);
+      --action: #cb6b3d;
+      --ok: #4c7c5e;
+      --serif: "Noto Serif SC", serif;
+      --sans: "Noto Sans SC", "PingFang SC", sans-serif;
+      --t: 0.2s ease;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; }
+
+    .preview-bar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+      padding: 10px 16px; border-bottom: 1px solid var(--line2);
+      background: rgba(250,250,250,0.94); z-index: 50; position: relative;
+    }
+    .preview-bar strong { font-family: var(--serif); font-size: 14px; font-weight: 700; }
+    .preview-bar .hint { font-size: 12px; color: var(--mut); flex: 1 1 140px; min-width: 0; }
+    .seg {
+      display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px;
+      background: var(--surf); border-radius: 10px; border: 1px solid var(--line2);
+    }
+    .seg button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] {
+      background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .frame {
+      display: flex; height: calc(100vh - 53px);
+      background: radial-gradient(55% 40% at 50% 0%, rgba(232,130,78,0.08), transparent 70%), var(--bg);
+    }
+
+    /* mini shell rail */
+    .rail {
+      width: 64px; flex: 0 0 64px; border-right: 1px solid var(--line2);
+      display: flex; flex-direction: column; align-items: center; padding: 16px 0; gap: 8px;
+      background: rgba(250,250,250,0.72);
+    }
+    .rail .mark { color: var(--action); }
+    .rail .dot {
+      width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center;
+      color: var(--mut);
+    }
+    .rail .dot.on { background: rgba(203,107,61,0.08); color: var(--action); }
+
+    .col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .top {
+      height: 56px; flex-shrink: 0; display: flex; align-items: center; gap: 12px;
+      padding: 0 20px; border-bottom: 1px solid var(--line2);
+      background: rgba(250,250,250,0.78); backdrop-filter: blur(10px);
+    }
+    .top .name { font-family: var(--serif); font-weight: 700; font-size: 20px; }
+
+    /* chat layout */
+    .chat {
+      flex: 1; min-height: 0; display: flex;
+    }
+
+    .threads {
+      width: 240px; flex-shrink: 0; border-right: 1px solid var(--line2);
+      display: flex; flex-direction: column; background: rgba(255,255,255,0.35);
+    }
+    .frame.variant-current .threads { background: var(--surf); }
+    .threads-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 14px 10px; font-size: 13px; font-weight: 600;
+    }
+    .threads-head button {
+      border: 0; background: transparent; color: var(--action);
+      font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .thread {
+      margin: 0 8px 4px; padding: 10px 12px; border-radius: 10px;
+      border: 0; background: transparent; text-align: left; cursor: pointer; width: calc(100% - 16px);
+    }
+    .thread:hover { background: rgba(203,107,61,0.06); }
+    .thread.on { background: rgba(203,107,61,0.1); }
+    .thread strong { display: block; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+    .thread small { font-size: 11px; color: var(--mut); }
+
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+    .toolbar {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 10px 20px; border-bottom: 1px solid var(--line2);
+      font-size: 12px;
+    }
+    .pill {
+      border-radius: 999px; padding: 4px 10px; background: var(--surf2);
+      color: var(--mut); font-weight: 500; font-size: 11px;
+    }
+    .kb-select {
+      border: 1px solid var(--line2); border-radius: 8px; background: #fff;
+      padding: 6px 10px; font-size: 12px; color: var(--text); max-width: 180px;
+    }
+    .toolbar .spacer { flex: 1; }
+    .ghost {
+      border: 1px solid var(--line2); background: #fff; border-radius: 8px;
+      padding: 6px 10px; font-size: 12px; color: var(--mut); cursor: pointer;
+    }
+
+    .modes {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 8px 20px; border-bottom: 1px solid var(--line2);
+    }
+    .mode-seg {
+      display: inline-flex; gap: 2px; padding: 3px; border-radius: 8px;
+      background: var(--surf); border: 1px solid var(--line2);
+    }
+    .mode-seg button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500; cursor: pointer;
+    }
+    .mode-seg button.on {
+      background: var(--action); color: #fff; font-weight: 600;
+    }
+    .budget {
+      font-size: 11px; color: var(--mut);
+      border: 1px solid var(--line2); border-radius: 999px; padding: 4px 10px;
+    }
+
+    .scroll {
+      flex: 1; overflow: auto; padding: 20px;
+    }
+    .inner { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+    .day {
+      align-self: center; font-size: 11px; color: var(--mut);
+      padding: 4px 10px; border-radius: 999px; background: var(--surf2);
+    }
+
+    .user {
+      align-self: flex-end; max-width: 78%;
+      padding: 12px 14px; border-radius: 14px 14px 4px 14px;
+      background: color-mix(in srgb, var(--action) 12%, #fff);
+      font-size: 14px; line-height: 1.55;
+    }
+    .frame.variant-current .user {
+      background: #fff1ea; border: 1px solid rgba(203,107,61,0.15);
+    }
+
+    /* 现网：厚助理卡片 */
+    .assistant {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 1px solid var(--line2);
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(140,80,50,0.04), 0 8px 24px rgba(140,80,50,0.06);
+    }
+    /* 改版：轻边、少阴影 */
+    .frame.variant-quiet .assistant {
+      border-color: transparent;
+      background: rgba(255,255,255,0.72);
+      box-shadow: none;
+      padding: 4px 2px 8px;
+    }
+    .assistant .body { font-size: 14px; line-height: 1.7; margin: 0 0 12px; }
+    .cites { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .cite {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid var(--line2); background: #fff;
+      border-radius: 999px; padding: 4px 10px; font-size: 12px; color: var(--mut); cursor: pointer;
+    }
+    .cite.on {
+      border-color: color-mix(in srgb, var(--action) 45%, var(--line2));
+      background: #fff1ea; color: var(--action); font-weight: 600;
+    }
+    .cite .n {
+      width: 16px; height: 16px; border-radius: 50%;
+      background: var(--surf2); color: var(--text);
+      display: grid; place-items: center; font-size: 10px; font-weight: 700;
+    }
+    .cite.on .n { background: var(--action); color: #fff; }
+
+    .preview {
+      border: 1px solid var(--line2); border-radius: 12px;
+      background: var(--surf2); padding: 12px 14px; margin-bottom: 8px;
+    }
+    .frame.variant-quiet .preview {
+      background: #fff; border-color: rgba(203,107,61,0.16);
+    }
+    .preview .meta { font-size: 12px; font-weight: 600; margin-bottom: 6px; }
+    .preview .ex { font-size: 13px; line-height: 1.6; color: var(--mut); margin: 0; }
+    .preview a { font-size: 12px; color: var(--action); font-weight: 600; text-decoration: none; }
+    .hint { font-size: 11px; color: var(--mut); }
+
+    /* composer */
+    .composer {
+      flex-shrink: 0; padding: 12px 20px 18px;
+      border-top: 1px solid var(--line2);
+      background: rgba(250,250,250,0.9);
+    }
+    .box {
+      max-width: 760px; margin: 0 auto;
+      display: flex; align-items: center; gap: 8px;
+      border: 1px solid var(--line2); border-radius: 12px;
+      background: #fff; padding: 6px 6px 6px 14px;
+      transition: border-color var(--t), box-shadow var(--t);
+    }
+    .frame.variant-current .box {
+      border-radius: 999px; padding: 4px 4px 4px 16px;
+    }
+    .box:focus-within {
+      border-color: var(--action);
+      box-shadow: 0 0 0 3px rgba(203,107,61,0.12);
+    }
+    .box input {
+      flex: 1; border: 0; outline: none; background: transparent;
+      height: 40px; font-size: 14px; color: var(--text);
+    }
+    .frame.variant-quiet .box input { height: 44px; }
+    .box input::placeholder { color: #a39a94; }
+    .send {
+      width: 40px; height: 40px; border-radius: 10px; border: 0;
+      background-image: linear-gradient(135deg, #e8824e, #b14e26);
+      color: #fff; display: grid; place-items: center; cursor: pointer;
+      box-shadow: 0 4px 12px rgba(203,107,61,0.28);
+    }
+    .frame.variant-current .send { border-radius: 999px; width: 36px; height: 36px; box-shadow: none; }
+
+    .note {
+      max-width: 760px; margin: 10px auto 0; font-size: 11px; color: var(--mut); line-height: 1.5;
+    }
+    .frame.variant-current .note-quiet { display: none; }
+    .frame.variant-quiet .note-current { display: none; }
+
+    @media (max-width: 900px) {
+      .threads { display: none; }
+      .rail { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-bar">
+    <strong>对话改版预览</strong>
+    <span class="hint">逻辑：会话 / 引用 / 模式 / 发送不变 · 气质对齐认证+壳 v4</span>
+    <div class="seg">
+      <button type="button" data-v="quiet" aria-pressed="true">改版提案</button>
+      <button type="button" data-v="current" aria-pressed="false">现网气质（对照）</button>
+      <button type="button" data-page="ask" aria-pressed="true">/ask 跨库</button>
+      <button type="button" data-page="chat" aria-pressed="false">库内 chat</button>
+    </div>
+  </div>
+
+  <div class="frame variant-quiet" id="frame">
+    <aside class="rail" aria-hidden="true">
+      <svg class="mark" width="28" height="28" viewBox="0 0 48 48" fill="none">
+        <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+        <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+        <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+      </svg>
+      <div class="dot">▣</div>
+      <div class="dot">☰</div>
+      <div class="dot on">💬</div>
+    </aside>
+
+    <div class="col">
+      <header class="top">
+        <span class="name">睿阁</span>
+      </header>
+
+      <div class="chat">
+        <aside class="threads" aria-label="会话列表">
+          <div class="threads-head">
+            <span>会话</span>
+            <button type="button">新建</button>
+          </div>
+          <button type="button" class="thread on">
+            <strong>报销流程怎么走？</strong>
+            <small>今天 · 2 条</small>
+          </button>
+          <button type="button" class="thread">
+            <strong>入职材料清单</strong>
+            <small>昨天</small>
+          </button>
+        </aside>
+
+        <div class="main">
+          <div class="toolbar">
+            <button type="button" class="ghost" title="历史会话">历史</button>
+            <span class="pill" id="scope-pill">跨库对话 · 引用溯源</span>
+            <select class="kb-select" id="kb-select" hidden>
+              <option>演示资料库</option>
+              <option>人事制度</option>
+            </select>
+            <div class="spacer"></div>
+            <button type="button" class="ghost">新对话</button>
+          </div>
+
+          <div class="modes">
+            <div class="mode-seg" role="group" aria-label="模式">
+              <button type="button" class="on">快速</button>
+              <button type="button">精准</button>
+              <button type="button">编辑</button>
+            </div>
+            <span class="budget">步骤 0/8</span>
+          </div>
+
+          <div class="scroll">
+            <div class="inner">
+              <div class="day">今天</div>
+
+              <div class="user">差旅报销需要哪些材料？审批要几天？</div>
+
+              <div class="assistant">
+                <p class="body">根据资料库，差旅报销需提交：行程单、发票原件、审批单。一般在材料齐全后 3～5 个工作日内完成审批。</p>
+                <div class="cites">
+                  <button type="button" class="cite on"><span class="n">1</span>财务制度 · §3.2</button>
+                  <button type="button" class="cite"><span class="n">2</span>报销 FAQ · 第 2 页</button>
+                </div>
+                <div class="preview">
+                  <div class="meta">财务制度.pdf · §3.2 差旅报销</div>
+                  <p class="ex">「员工应于返回后 7 日内提交报销申请，须附行程证明与合法发票……审批时限为 3～5 个工作日。」</p>
+                  <a href="#">查看原文</a>
+                </div>
+                <div class="hint">点击编号可展开/收起引用片段</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="composer">
+            <form class="box" onsubmit="return false">
+              <input id="q" type="text" placeholder="输入问题，答案将附带引用来源…" aria-label="向资料库提问" />
+              <button type="submit" class="send" aria-label="发送">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4 20-7z"/></svg>
+              </button>
+            </form>
+            <p class="note note-quiet">改版：助理区去厚卡片阴影 · 输入框更高更清晰 · 引用预览用白底轻边 · 结构/SSE/引用逻辑不变</p>
+            <p class="note note-current">现网：助理消息为带边框阴影的卡片 · 输入偏矮圆角胶囊 · 引用预览叠在灰底块上</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const frame = document.getElementById("frame");
+    const kbSelect = document.getElementById("kb-select");
+    const scopePill = document.getElementById("scope-pill");
+
+    document.querySelectorAll("[data-v]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const v = btn.dataset.v;
+        frame.classList.toggle("variant-quiet", v === "quiet");
+        frame.classList.toggle("variant-current", v === "current");
+        document.querySelectorAll("[data-v]").forEach((b) =>
+          b.setAttribute("aria-pressed", String(b === btn))
+        );
+      });
+    });
+
+    document.querySelectorAll("[data-page]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const p = btn.dataset.page;
+        const isChat = p === "chat";
+        kbSelect.hidden = !isChat;
+        scopePill.textContent = isChat ? "当前资料库 · 引用溯源" : "跨库对话 · 引用溯源";
+        document.querySelectorAll("[data-page]").forEach((b) =>
+          b.setAttribute("aria-pressed", String(b === btn))
+        );
+      });
+    });
+  </script>
+</body>
+</html>
