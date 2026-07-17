@@ -370,6 +370,30 @@ async def retrieve_chunks(
     if not rerank_skipped and adaptive_k < len(result):
         result = result[:adaptive_k]
 
+    # 低置信度 → expand_queries 多路召回补偿
+    if result and max(c.similarity for c in result) < 0.6:
+        try:
+            from app.services.rag.generation import expand_queries
+            expanded = await expand_queries(query)
+            if len(expanded) > 1:
+                all_vec_ids = {c.chunk_id for c in result}
+                for eq in expanded[1:]:  # skip the original query (index 0)
+                    if eq.lower().strip() == query.lower().strip():
+                        continue
+                    eq_vec = (await embed_texts([eq]))[0]
+                    eq_rows = await _vector_recall(db, kb_id=kb_id, query_vec=eq_vec,
+                        limit=VECTOR_RECALL, visible_kb_ids=visible_kb_ids, hide_admin_only=hide_admin_only)
+                    for row in eq_rows:
+                        if row.chunk.id not in all_vec_ids:
+                            all_vec_ids.add(row.chunk.id)
+                            merged = _merge_recall_rows(eq_rows, [])
+                            for c in merged:
+                                if c.chunk_id not in {x.chunk_id for x in result}:
+                                    result.append(c)
+                result = result[:top_k]
+        except Exception:
+            pass  # expand 失败不阻塞
+
     # 跨段 Query Rewrite：仅对可能含多知识点的复合问题使用
     if len(reranked) > 0 and settings.rerank_enabled:
         _needs_decompose = any(m in query for m in ["和", "与", "以及", "还是", "或", "同时", "如果"])

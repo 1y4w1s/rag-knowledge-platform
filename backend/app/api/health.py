@@ -54,6 +54,26 @@ async def health() -> dict:
     return payload
 
 
+@router.get("/health/live")
+async def health_live() -> dict:
+    """Liveness 探针：进程是否存活（Docker healthcheck 用）。"""
+    return {"status": "ok"}
+
+
+@router.get("/health/ready")
+async def health_ready() -> dict:
+    """Readiness 探针：数据库 + API Key 是否就绪。"""
+    db_ok = await check_database()
+    from app.core.config import settings
+    keys_ok = bool(settings.deepseek_api_key) and bool(settings.tongyi_api_key)
+    ready = db_ok and keys_ok
+    return {
+        "status": "ok" if ready else "degraded",
+        "database": "ok" if db_ok else "error",
+        "api_keys_ok": keys_ok,
+    }
+
+
 @router.get("/health/detailed")
 async def health_detailed() -> dict:
     """详细健康检查：数据库 + API Key 状态 + 磁盘使用。"""

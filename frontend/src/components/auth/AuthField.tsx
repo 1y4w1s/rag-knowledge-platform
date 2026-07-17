@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 interface AuthFieldProps {
   id: string;
   label: ReactNode;
+  /** 标签行右侧附加（如「忘记密码？」），不放入 <label> 以免嵌套可聚焦元素 */
+  labelAccessory?: ReactNode;
   type?: React.ComponentProps<"input">["type"];
   value: string;
   onChange: (value: string) => void;
@@ -25,6 +27,7 @@ interface AuthFieldProps {
 export function AuthField({
   id,
   label,
+  labelAccessory,
   type = "text",
   value,
   onChange,
@@ -47,9 +50,15 @@ export function AuthField({
 
   return (
     <div>
-      <Label htmlFor={id} className="text-[var(--auth-muted)]">
-        {label}
-      </Label>
+      <div className="mb-1.5 flex w-full items-baseline justify-between gap-2">
+        <Label
+          htmlFor={id}
+          className="text-[13px] font-medium text-[var(--auth-text)]"
+        >
+          {label}
+        </Label>
+        {labelAccessory}
+      </div>
       <div className={cn(isPasswordField && showPasswordToggle && "relative")}>
         <Input
           id={id}
@@ -64,7 +73,7 @@ export function AuthField({
             error ? `${id}-error` : hint ? `${id}-hint` : undefined
           }
           className={cn(
-            "auth-input rounded-[8px] border-[var(--auth-line)] bg-[var(--auth-card)] text-[var(--auth-text)] placeholder:text-[color:#B5A8A2]",
+            "auth-input h-11 rounded-[8px] border-[var(--auth-line)] bg-[var(--auth-field-bg)] text-[var(--auth-text)] placeholder:text-[color:#B5A8A2]",
             error && "border-[var(--status-err-border)] focus-visible:ring-[var(--status-err-border)]",
             isPasswordField && showPasswordToggle && "pr-10",
           )}

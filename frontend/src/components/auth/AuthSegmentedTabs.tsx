@@ -15,7 +15,7 @@ interface AuthSegmentedTabsProps {
 export function AuthSegmentedTabs({ active, onChange }: AuthSegmentedTabsProps) {
   return (
     <div
-      className="mb-5 flex gap-1 rounded-[8px] bg-[var(--auth-tab-bg)] p-1"
+      className="mb-7 flex gap-1 rounded-[10px] bg-[var(--auth-tab-bg)] p-1"
       role="tablist"
       aria-label="认证方式"
     >
@@ -27,7 +27,7 @@ export function AuthSegmentedTabs({ active, onChange }: AuthSegmentedTabsProps) 
           aria-selected={active === id}
           onClick={() => onChange(id)}
           className={cn(
-            "flex-1 rounded-sm px-2 py-2 text-[0.82rem] transition-colors",
+            "flex-1 rounded-lg px-2 py-2 text-[13px] transition-colors",
             active === id
               ? "bg-[var(--auth-card)] font-semibold text-[var(--auth-text)] shadow-sm"
               : "text-[var(--auth-muted)] hover:text-[var(--auth-text)]",
