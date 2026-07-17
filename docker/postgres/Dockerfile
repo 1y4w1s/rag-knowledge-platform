@@ -11,3 +11,4 @@ RUN set -eux; \
     rm -rf /var/lib/apt/lists/*
 
 COPY init/ /docker-entrypoint-initdb.d/
+COPY postgresql.conf /etc/postgresql/16/main/postgresql.conf

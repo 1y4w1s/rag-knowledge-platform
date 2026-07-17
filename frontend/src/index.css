@@ -1212,7 +1212,7 @@
 
   /* G2-3.3 · 对话空/加载态 — 对齐 kb-result-empty 虚线卡片壳 */
   .chat-state-empty {
-    @apply flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--line2)] bg-[var(--surf-shell)] text-center shadow-[var(--card-shadow)];
+    @apply flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--line2)] bg-[var(--surf-shell)] text-center shadow-none;
   }
 
   .chat-state-empty-default {
@@ -1289,7 +1289,7 @@
   }
 
   .thread-list-item-active {
-    @apply bg-[var(--surf2)];
+    @apply bg-[color-mix(in_srgb,var(--action)_10%,transparent)];
   }
 
   .thread-list-item-active::before {
@@ -1334,7 +1334,7 @@
   }
 
   .chat-kb-select {
-    @apply max-w-[120px] truncate rounded-full border border-[var(--line2)] bg-[var(--surf)] px-2 py-1.5 text-[0.75rem] text-[var(--text)] outline-none sm:max-w-[180px] sm:px-3;
+    @apply max-w-[120px] truncate rounded-[8px] border border-[var(--line2)] bg-[var(--surf)] px-2 py-1.5 text-[0.75rem] text-[var(--text)] outline-none sm:max-w-[180px] sm:px-3;
   }
 
   .chat-scroll {
@@ -1369,13 +1369,14 @@
   }
 
   .chat-user-msg {
-    @apply mb-4 ml-auto max-w-[78%] rounded-[14px_14px_4px_14px] bg-[var(--nav-active-bg)] px-4 py-3 text-[0.9375rem] text-[var(--text)];
+    @apply mb-4 ml-auto max-w-[78%] rounded-[14px_14px_4px_14px] bg-[color-mix(in_srgb,var(--action)_12%,var(--surf))] px-3.5 py-3 text-[0.875rem] leading-[1.55] text-[var(--text)];
     animation: msg-in 0.25s ease-out both;
   }
 
+  /* 对话改版 · 助理区去厚卡片阴影，轻铺底 */
   .chat-assistant-block {
-    @apply mb-4 w-full rounded-[14px_14px_14px_4px] border border-[var(--line2)] bg-[var(--surf)] p-5;
-    box-shadow: var(--top-hi), var(--card-shadow);
+    @apply mb-4 w-full rounded-[14px] border-0 bg-[color-mix(in_srgb,var(--surf)_72%,transparent)] px-0.5 pb-2 pt-1;
+    box-shadow: none;
     animation: msg-in 0.3s ease-out both;
   }
 
@@ -1418,15 +1419,19 @@
   }
 
   .cite-chip {
-    @apply inline-flex items-center gap-1.5 rounded-full bg-[var(--acc-bg)] px-3 py-1.5 pl-2 text-[0.75rem] font-medium text-[var(--acc-text)] transition-all duration-200 hover:bg-[var(--surf2)] hover:shadow-[var(--shadow-sm)];
+    @apply inline-flex items-center gap-1.5 rounded-full border border-[var(--line2)] bg-[var(--surf)] px-2.5 py-1 pl-1.5 text-[0.75rem] font-medium text-[var(--mut)] transition-colors duration-200 hover:bg-[color-mix(in_srgb,var(--action)_6%,var(--surf))];
   }
 
   .cite-chip-active {
-    @apply bg-[var(--surf2)] shadow-[var(--card-shadow)] ring-1 ring-[var(--action)];
+    @apply border-[color-mix(in_srgb,var(--action)_45%,var(--line2))] bg-[var(--nav-active-bg)] font-semibold text-[var(--action)] shadow-none ring-0;
   }
 
   .cite-chip-num {
-    @apply flex h-[18px] w-[18px] items-center justify-center rounded-full bg-[var(--action)] text-[0.62rem] font-bold text-white;
+    @apply flex h-4 w-4 items-center justify-center rounded-full bg-[var(--surf2)] text-[0.625rem] font-bold text-[var(--text)];
+  }
+
+  .cite-chip-active .cite-chip-num {
+    @apply bg-[var(--action)] text-white;
   }
 
   .cite-chip-inaccessible {
@@ -1438,7 +1443,7 @@
   }
 
   .cite-preview {
-    @apply mt-2.5 overflow-hidden rounded-2xl border border-[var(--line2)] bg-[var(--surf-shell)] p-4 text-[0.8125rem] leading-[1.7] text-[var(--text)];
+    @apply mt-2.5 overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--action)_16%,var(--line2))] bg-[var(--surf)] p-3.5 text-[0.8125rem] leading-[1.6] text-[var(--text)];
     animation: cite-expand 0.2s ease-out;
   }
   @keyframes cite-expand {
@@ -1523,15 +1528,15 @@
   }
 
   .chat-input-wrap {
-    @apply shrink-0 border-t border-[var(--line)] bg-[var(--surf)] px-7 py-3.5;
+    @apply shrink-0 border-t border-[var(--line2)] bg-[color-mix(in_srgb,var(--bg)_90%,transparent)] px-7 pb-[18px] pt-3;
   }
 
   .chat-input-box {
-    @apply mx-auto flex max-w-[820px] items-center gap-2.5 rounded-[8px] border border-[var(--line2)] bg-[var(--surf)] px-3 py-2.5 shadow-[var(--card-shadow)];
+    @apply mx-auto flex max-w-[820px] items-center gap-2 rounded-[12px] border border-[var(--line2)] bg-[var(--surf)] py-1.5 pl-3.5 pr-1.5 shadow-none transition-[border-color,box-shadow] duration-200;
   }
 
   .chat-input-box input {
-    @apply flex-1 border-0 bg-transparent text-[0.875rem] text-[var(--text)] outline-none placeholder:text-[var(--mut)];
+    @apply h-11 flex-1 border-0 bg-transparent text-[0.875rem] text-[var(--text)] outline-none placeholder:text-[color-mix(in_srgb,var(--mut)_70%,transparent)];
   }
 
   .chat-input-box input:focus-visible {
@@ -1541,11 +1546,13 @@
 
   .chat-input-box:has(input:focus-visible) {
     border-color: var(--action);
-    box-shadow: var(--card-shadow), 0 0 0 2px var(--ring-action);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--action) 18%, transparent);
   }
 
   .chat-send-btn {
-    @apply flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full border-0 bg-[var(--action)] text-white transition-colors hover:bg-[var(--action-hover)] disabled:cursor-not-allowed disabled:opacity-40;
+    @apply flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border-0 text-white transition-[opacity,filter] duration-200 hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-40;
+    background-image: linear-gradient(135deg, #e8824e, #b14e26);
+    box-shadow: 0 4px 12px rgba(203, 107, 61, 0.28);
   }
 
   /* WS-2-1 · workspace segmented + org popover (preview-shell-v2) */
