@@ -52,12 +52,14 @@ jobs:
           alembic upgrade head
         env:
           DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
+          JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
 
       - name: Test migration rollback
         run: |
           alembic downgrade -1 && alembic upgrade head
         env:
           DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
+          JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
 
       - name: Run core tests (auth + KB + search + generation)
         run: |
