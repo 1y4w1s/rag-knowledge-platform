@@ -26,7 +26,6 @@ from app.services.rag.relevance import filter_relevant_chunks, should_refuse_ans
 from app.services.rag.retrieval import chunk_to_citation, retrieve_chunks, retrieve_workspace_chunks
 from app.services.rag.safety_filter import output_safety_check
 from app.services.rag.thread_persistence import (
-    ensure_thread,
     list_thread_messages,
 )
 from app.core.config import settings
@@ -166,8 +165,6 @@ class ChatEngine:
 
     async def _save(self, content: str) -> None:
         """保存对话记录。"""
-        if self.thread_id:
-            await ensure_thread(self.db, thread_id=self.thread_id, user_id=self.user_id)
         await save_chat_turn(
             self.db,
             kb_id=self.kb_id,
