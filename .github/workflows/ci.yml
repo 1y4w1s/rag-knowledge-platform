@@ -12,6 +12,9 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    env:
+      DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
+      JWT_SECRET: 1362b8353e8306574369454872b0fb2a
 
     services:
       postgres:
@@ -50,18 +53,12 @@ jobs:
       - name: Apply migrations
         run: |
           alembic upgrade head
-        env:
-          DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
-          JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
 
       - name: Test migration rollback
         run: |
           alembic downgrade -1 && alembic upgrade head
-        env:
-          DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
-          JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
 
-      - name: Run core tests (auth + KB + search + generation)
+      - name: Run core tests
         run: |
           python -m pytest tests/test_smoke.py tests/test_auth.py tests/test_workspace_scope.py tests/test_citations.py tests/test_search_documents.py tests/test_search_content.py tests/test_generation.py tests/test_knowledge_bases.py tests/test_document_list_pagination.py tests/test_knowledge_base_list_pagination.py tests/test_db_disconnect.py tests/test_upload_security.py tests/test_document_visibility.py tests/test_retrieval_security.py tests/test_preview.py tests/test_upload_failure.py tests/test_embedding_5xx.py tests/test_llm_5xx.py tests/test_m1_smoke.py tests/test_rag_relevance.py -v --tb=short
 
