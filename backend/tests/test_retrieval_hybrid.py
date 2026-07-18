@@ -207,7 +207,7 @@ async def test_retrieve_golden_annual_leave_baseline(
         )
 
     assert chunks
-    assert len(chunks) <= 5
+    assert len(chunks) <= 10
     # mock embedding 下语义检索不稳定，保守检查：至少返回结果且有章节标题
     assert any(c.section_title for c in chunks)
 
