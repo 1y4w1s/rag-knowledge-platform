@@ -86,6 +86,7 @@ jobs:
       - name: Run alembic migrations
         env:
           DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
+          JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
         run: |
           cd backend
           alembic upgrade head
@@ -100,6 +101,7 @@ jobs:
       - name: Run retrieval benchmark
         env:
           DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
+          JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
           RAG_RATE_LIMIT_MODE: ${{ inputs.mode || 'bypass' }}
           RAG_REAL_EMBEDDING: ${{ inputs.mock_embedding == 'true' && '0' || '1' }}
           DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
