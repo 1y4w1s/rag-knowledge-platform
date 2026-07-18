@@ -12,6 +12,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.services.rag.engine import ChatEngine
 from app.services.rag.generation import (
     build_messages,
     compress_history,
@@ -101,12 +102,10 @@ async def stream_chat_events(
     thread_id: UUID | None = None,
     hide_admin_only: bool = False,
 ) -> AsyncIterator[str]:
-    """生成 SSE 帧：citation → token → done；无依据走拒绝分支；结束后落库。
-
-    多轮上下文整合：先加载历史，将最新问题改写为独立检索查询后再检索。
-    """
-    # 1. 加载对话历史（多轮上下文记忆）
-    history = None
+    """生成 SSE 帧：citation → token → done；无依据走拒绝分支；结束后落库。"""
+    engine = ChatEngine(db, user_id=user_id, message=message, kb_id=kb_id, thread_id=thread_id)
+    async for event in engine.stream():
+        yield _sse_event(event["event"], event.get("data", {}))
     if thread_id is not None:
         history_rows = await list_thread_messages(db, thread_id=thread_id, user_id=user_id)
         if history_rows:
@@ -285,7 +284,21 @@ async def stream_workspace_chat_events(
     hide_admin_only: bool = False,
 ) -> AsyncIterator[str]:
     """工作区对话：跨库检索 → gate → SSE（含 kb_name）→ workspace 落库。"""
-    expanded = await expand_queries(message)
+    engine = ChatEngine(db, user_id=user_id, message=message, thread_id=thread_id,
+                        scope=scope, org_scope=org_scope)
+    async for event in engine.stream():
+        yield _sse_event(event["event"], event.get("data", {}))
+    retrieval_query = message
+    if thread_id is not None:
+        history_rows = await list_thread_messages(db, thread_id=thread_id, user_id=user_id)
+        if history_rows:
+            history = [
+                {"role": msg.role.value, "content": msg.content}
+                for msg in history_rows
+            ]
+            retrieval_query = await contextualize_query(message, history) if history else message
+
+    expanded = await expand_queries(retrieval_query)
     all_chunks: list[RetrievedChunk] = []
     seen_chunk_ids: set[UUID] = set()
     t0 = time.perf_counter()
@@ -299,7 +312,7 @@ async def stream_workspace_chat_events(
                 seen_chunk_ids.add(c.chunk_id)
                 all_chunks.append(c)
     retrieval_duration_ms = int((time.perf_counter() - t0) * 1000)
-    chunks = filter_relevant_chunks(all_chunks, message)
+    chunks = filter_relevant_chunks(all_chunks, retrieval_query)
     chunks = dedup_and_compress(chunks)
     citations = [workspace_chunk_to_citation(c) for c in chunks]
 
@@ -307,18 +320,9 @@ async def stream_workspace_chat_events(
         yield _sse_event("citation", citation)
 
     # 加载对话历史（多轮上下文记忆）
-    history = None
-    if thread_id is not None:
-        history_rows = await list_thread_messages(db, thread_id=thread_id, user_id=user_id)
-        if history_rows:
-            history = [
-                {"role": msg.role.value, "content": msg.content}
-                for msg in history_rows
-            ]
-
     # Fast mode tool call：空检索时改写查询重试一次
     if not chunks:
-        rewritten = await rewrite_query(message)
+        rewritten = await rewrite_query(retrieval_query)
         if rewritten:
             raw_chunks = await _timed_retrieve_workspace_chunks(
                 db,
@@ -333,8 +337,6 @@ async def stream_workspace_chat_events(
                 citations = [workspace_chunk_to_citation(c) for c in chunks]
                 for citation in citations:
                     yield _sse_event("citation", citation)
-
-    compressed = await compress_history(history) if history else None
 
     if chunks:
         compressed = await compress_history(history) if history else None
@@ -351,6 +353,20 @@ async def stream_workspace_chat_events(
 
     assistant_content = "".join(token_parts)
     safe_out, reasons = output_safety_check(assistant_content)
+
+    # 自验证：检查生成内容是否与检索片段一致（配置开关）
+    if settings.self_verify_enabled and chunks:
+        try:
+            from app.services.rag.generation import verify_answer
+            verified, corrected = await verify_answer(assistant_content, chunks, message)
+            if not verified and corrected:
+                logger.info("自验证修正: case_id=%s", message[:30])
+                assistant_content = corrected
+                # 重发修正后的 content 覆盖
+                yield _sse_event("correction", {"text": corrected})
+        except Exception as e:
+            logger.warning("自验证异常: %s", e)
+
     if not safe_out:
         logger.warning("LLM 输出安全违规（workspace chat）: reasons=%s", reasons)
     message_id = uuid.uuid4()
