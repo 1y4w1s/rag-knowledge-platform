@@ -25,9 +25,7 @@ from app.services.rag.persistence import save_chat_turn
 from app.services.rag.relevance import filter_relevant_chunks, should_refuse_answer
 from app.services.rag.retrieval import chunk_to_citation, retrieve_chunks, retrieve_workspace_chunks
 from app.services.rag.safety_filter import output_safety_check
-from app.services.rag.thread_persistence import (
-    list_thread_messages,
-)
+from app.services.rag.persistence import list_thread_messages, save_chat_turn
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
