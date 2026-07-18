@@ -1,0 +1,124 @@
+# RAG 回归检测 CI
+#
+# 当 PR 修改了 RAG/ingestion 核心代码时自动运行。
+# 跑 Golden QA 50 题子集（mock 嵌入，零费用，~30 秒），
+# 对比基线 docs/baseline.json，结果写 PR comment。
+#
+# 手动触发全量：workflow_dispatch
+
+name: RAG Regression
+
+on:
+  pull_request:
+    paths:
+      - 'backend/app/services/rag/**'
+      - 'backend/app/services/ingestion/**'
+      - 'backend/app/services/search/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
+jobs:
+  regression:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: raguser
+          POSTGRES_PASSWORD: ragpass
+          POSTGRES_DB: ragknowledge
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready -h localhost -U ruige
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
+        run: |
+          cd backend
+          alembic upgrade head
+
+      - name: Run regression check
+        id: check
+        env:
+          DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
+          RAG_REAL_EMBEDDING: '0'
+        continue-on-error: true
+        run: |
+          python scripts/regression_ci.py --sample 50 2>&1 | tee /tmp/regression_output.txt
+
+      - name: Parse results
+        id: parse
+        run: |
+          json_result=$(python3 -c "
+import json, re
+with open('/tmp/regression_output.txt') as f:
+    text = f.read()
+m = re.search(r'JSON_START\n(.*?)\nJSON_END', text, re.DOTALL)
+if m:
+    print(m.group(1))
+else:
+    print(json.dumps({'status':'UNKNOWN','exit_code':1,'failures':['JSON parse failed']}))
+          ")
+          echo "result<<EOF" >> $GITHUB_OUTPUT
+          echo "$json_result" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const result = JSON.parse('${{ steps.parse.outputs.result }}');
+            let body = `## RAG 回归检测\n\n`;
+            body += `**状态**: ${result.status}\n\n`;
+            if (result.status === 'PASS') {
+              body += `✅ 所有指标在阈值内\n\n`;
+            } else if (result.status === 'WARN') {
+              body += `⚠️ 指标有下降但未超阈值\n\n`;
+            } else if (result.status === 'FAIL') {
+              body += `❌ 指标超阈值：\n${result.failures.map(f => `- ${f}`).join('\n')}\n\n`;
+            } else {
+              body += `❓ 无法解析检测结果\n\n`;
+            }
+            body += `| 指标 | 当前 | 基线 | 差值 |\n`;
+            body += `|------|------|------|------|\n`;
+            if (result.current) {
+              const ch = (result.current.hit_at_k * 100).toFixed(1);
+              const bh = (result.baseline.hit_at_k * 100).toFixed(1);
+              const dh = (result.diff.hit_at_k * 100).toFixed(1);
+              body += `| Hit@3 | ${ch}% | ${bh}% | ${dh}% |\n`;
+              body += `| MRR | ${result.current.mrr.toFixed(4)} | ${result.baseline.mrr.toFixed(4)} | ${result.diff.mrr.toFixed(4)} |\n`;
+            }
+            body += `\n_全量评测需手动触发 workflow_dispatch_`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });
