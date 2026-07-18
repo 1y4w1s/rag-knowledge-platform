@@ -95,9 +95,10 @@ class Settings(BaseSettings):
     db_pool_recycle: int = 3600  # 1 小时回收连接，避免 PGBouncer 断连
 
     # ── 检索配置 ────────────────────────────────────────────────────
-    vector_recall_k: int = 20       # 向量召回 Top-N
-    fts_recall_k: int = 20          # 全文检索召回 Top-N
-    llm_top_k: int = 5              # 最终送 LLM 的片段数
+    vector_recall_k: int = 30       # 向量召回 Top-N（2026-07-18 从 20 调升到 30）
+    fts_recall_k: int = 30          # 全文检索召回 Top-N（同步调升）
+    llm_top_k: int = 8              # 最终送 LLM 的片段数（2026-07-18 从 5 调升到 8）
+    self_verify_enabled: bool = False  # 生成后自动验证（额外 DeepSeek 调用）
 
     circuit_breaker_failure_threshold: int = 5
     circuit_breaker_recovery_timeout: float = 30.0
