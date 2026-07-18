@@ -13,7 +13,7 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.enums import MessageRole
-from app.services.rag.citations import workspace_chunk_to_citation
+from app.services.rag.citations import resolve_citation
 from app.services.rag.dedup import dedup_and_compress
 from app.services.rag.generation import (
     build_messages,
@@ -118,7 +118,12 @@ class ChatEngine:
         return dedup_and_compress(all_chunks)
 
     def _make_citations(self) -> list[dict]:
-        fn = chunk_to_citation if not self._is_workspace() else workspace_chunk_to_citation
+        if not self._is_workspace():
+            from app.services.rag.retrieval import chunk_to_citation
+            fn = chunk_to_citation
+        else:
+            from app.services.rag.retrieval import workspace_chunk_to_citation
+            fn = workspace_chunk_to_citation
         return [fn(c) for c in self.chunks]
 
     async def _generate(self) -> AsyncIterator[dict]:
