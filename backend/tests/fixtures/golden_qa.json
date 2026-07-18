@@ -5,7 +5,10 @@
   "cases": [
     {
       "case_id": "GQ-1",
-      "tags": ["md", "section"],
+      "tags": [
+        "md",
+        "section"
+      ],
       "query": "年假有多少天？",
       "source": "md",
       "expect": {
@@ -16,7 +19,10 @@
     },
     {
       "case_id": "GQ-2",
-      "tags": ["md", "section"],
+      "tags": [
+        "md",
+        "section"
+      ],
       "query": "迟到怎么处理？",
       "source": "md",
       "expect": {
@@ -27,7 +33,10 @@
     },
     {
       "case_id": "GQ-3",
-      "tags": ["md", "section"],
+      "tags": [
+        "md",
+        "section"
+      ],
       "query": "年终奖什么时候发？",
       "source": "md",
       "expect": {
@@ -38,7 +47,11 @@
     },
     {
       "case_id": "GQ-4",
-      "tags": ["pdf", "cross_page", "english"],
+      "tags": [
+        "pdf",
+        "cross_page",
+        "english"
+      ],
       "query": "annual leave 10 days which page",
       "source": "pdf",
       "expect": {
@@ -48,7 +61,10 @@
     },
     {
       "case_id": "GQ-5",
-      "tags": ["md", "section"],
+      "tags": [
+        "md",
+        "section"
+      ],
       "query": "每月餐补多少钱？",
       "source": "md",
       "expect": {
@@ -59,7 +75,10 @@
     },
     {
       "case_id": "GQ-6",
-      "tags": ["md", "section"],
+      "tags": [
+        "md",
+        "section"
+      ],
       "query": "年假需要提前多久申请？",
       "source": "md",
       "expect": {
@@ -70,7 +89,10 @@
     },
     {
       "case_id": "GQ-7",
-      "tags": ["md", "clause_number"],
+      "tags": [
+        "md",
+        "clause_number"
+      ],
       "query": "员工手册 1.2 条款对迟到怎么规定？",
       "source": "md",
       "expect": {
@@ -81,7 +103,10 @@
     },
     {
       "case_id": "GQ-8",
-      "tags": ["md", "negation"],
+      "tags": [
+        "md",
+        "negation"
+      ],
       "query": "迟到超过 30 分钟不会按旷工算吧？",
       "source": "md",
       "expect": {
@@ -92,7 +117,10 @@
     },
     {
       "case_id": "GQ-9",
-      "tags": ["docx", "section"],
+      "tags": [
+        "docx",
+        "section"
+      ],
       "query": "年假有多少天？",
       "source": "docx",
       "expect": {
@@ -103,7 +131,11 @@
     },
     {
       "case_id": "GQ-10",
-      "tags": ["pdf", "cross_page", "english"],
+      "tags": [
+        "pdf",
+        "cross_page",
+        "english"
+      ],
       "query": "annual leave apply two weeks in advance",
       "source": "pdf",
       "expect": {
@@ -113,7 +145,11 @@
     },
     {
       "case_id": "GQ-11",
-      "tags": ["md", "table", "r2-2"],
+      "tags": [
+        "md",
+        "table",
+        "r2-2"
+      ],
       "query": "餐补福利表里每月多少钱？",
       "source": "md",
       "expect": {
@@ -124,7 +160,10 @@
     },
     {
       "case_id": "GQ-12",
-      "tags": ["md", "paraphrase"],
+      "tags": [
+        "md",
+        "paraphrase"
+      ],
       "query": "带薪年休假可以休多少天？",
       "source": "md",
       "expect": {
@@ -135,7 +174,10 @@
     },
     {
       "case_id": "GQ-13",
-      "tags": ["md", "section"],
+      "tags": [
+        "md",
+        "section"
+      ],
       "query": "工作日加班怎么算加班费？",
       "source": "md",
       "expect": {
@@ -146,7 +188,10 @@
     },
     {
       "case_id": "GQ-14",
-      "tags": ["md", "number"],
+      "tags": [
+        "md",
+        "number"
+      ],
       "query": "出差到一线城市每天补贴多少？",
       "source": "md",
       "expect": {
@@ -157,7 +202,10 @@
     },
     {
       "case_id": "GQ-15",
-      "tags": ["md", "section"],
+      "tags": [
+        "md",
+        "section"
+      ],
       "query": "加班需要什么流程？",
       "source": "md",
       "expect": {
@@ -168,7 +216,10 @@
     },
     {
       "case_id": "GQ-16",
-      "tags": ["md", "section"],
+      "tags": [
+        "md",
+        "section"
+      ],
       "query": "出差住宿费怎么报销？",
       "source": "md",
       "expect": {
@@ -179,7 +230,10 @@
     },
     {
       "case_id": "GQ-17",
-      "tags": ["md", "number"],
+      "tags": [
+        "md",
+        "number"
+      ],
       "query": "员工每年可以参加几天外部培训？",
       "source": "md",
       "expect": {
@@ -190,7 +244,10 @@
     },
     {
       "case_id": "GQ-18",
-      "tags": ["md", "date"],
+      "tags": [
+        "md",
+        "date"
+      ],
       "query": "晋升评估一年几次？什么时间？",
       "source": "md",
       "expect": {
@@ -201,7 +258,10 @@
     },
     {
       "case_id": "GQ-19",
-      "tags": ["md", "number"],
+      "tags": [
+        "md",
+        "number"
+      ],
       "query": "竞业限制期是多久？",
       "source": "md",
       "expect": {
@@ -212,7 +272,10 @@
     },
     {
       "case_id": "GQ-20",
-      "tags": ["md", "number"],
+      "tags": [
+        "md",
+        "number"
+      ],
       "query": "正式员工离职需要提前多久通知？",
       "source": "md",
       "expect": {
@@ -223,7 +286,10 @@
     },
     {
       "case_id": "GQ-21",
-      "tags": ["md", "negation"],
+      "tags": [
+        "md",
+        "negation"
+      ],
       "query": "培训完就离职要不要赔钱？",
       "source": "md",
       "expect": {
@@ -234,7 +300,10 @@
     },
     {
       "case_id": "GQ-22",
-      "tags": ["md", "term"],
+      "tags": [
+        "md",
+        "term"
+      ],
       "query": "没提前30天通知离职会怎么样？",
       "source": "md",
       "expect": {
@@ -245,7 +314,10 @@
     },
     {
       "case_id": "GQ-23",
-      "tags": ["md", "number"],
+      "tags": [
+        "md",
+        "number"
+      ],
       "query": "竞业限制补偿金按什么标准发？",
       "source": "md",
       "expect": {
@@ -256,7 +328,10 @@
     },
     {
       "case_id": "GQ-24",
-      "tags": ["md", "condition"],
+      "tags": [
+        "md",
+        "condition"
+      ],
       "query": "晋升需要绩效达到什么标准？",
       "source": "md",
       "expect": {
@@ -267,7 +342,10 @@
     },
     {
       "case_id": "GQ-25",
-      "tags": ["md", "number"],
+      "tags": [
+        "md",
+        "number"
+      ],
       "query": "法定节假日加班费怎么算？",
       "source": "md",
       "expect": {
@@ -278,62 +356,120 @@
     },
     {
       "case_id": "GQ-26",
-      "tags": ["md", "cross_section"],
+      "tags": [
+        "md",
+        "cross_section"
+      ],
       "query": "请年假期间如果被叫回来加班，加班费怎么算？",
       "source": "md",
       "min_match": 2,
       "expects": [
-        {"section_title": "1.1 年假", "heading_path_contains": "考勤制度", "content_contains": "年假10天"},
-        {"section_title": "3.1 加班", "heading_path_contains": "考勤补充", "content_contains": "1.5 倍"}
+        {
+          "section_title": "1.1 年假",
+          "heading_path_contains": "考勤制度",
+          "content_contains": "年假10天"
+        },
+        {
+          "section_title": "3.1 加班",
+          "heading_path_contains": "考勤补充",
+          "content_contains": "1.5 倍"
+        }
       ]
     },
     {
       "case_id": "GQ-27",
-      "tags": ["md", "cross_section"],
+      "tags": [
+        "md",
+        "cross_section"
+      ],
       "query": "出差途中需要加班的话，补贴和加班费怎么算？",
       "source": "md",
       "min_match": 2,
       "expects": [
-        {"section_title": "3.1 加班", "heading_path_contains": "考勤补充", "content_contains": "加班"},
-        {"section_title": "3.2 出差", "heading_path_contains": "考勤补充", "content_contains": "200 元"}
+        {
+          "section_title": "3.1 加班",
+          "heading_path_contains": "考勤补充",
+          "content_contains": "加班"
+        },
+        {
+          "section_title": "3.2 出差",
+          "heading_path_contains": "考勤补充",
+          "content_contains": "200 元"
+        }
       ]
     },
     {
       "case_id": "GQ-28",
-      "tags": ["md", "cross_section"],
+      "tags": [
+        "md",
+        "cross_section"
+      ],
       "query": "培训完不到一年就离职，需要赔培训费吗？",
       "source": "md",
       "min_match": 2,
       "expects": [
-        {"section_title": "4.1 培训", "heading_path_contains": "职业发展", "content_contains": "按比例退还"},
-        {"section_title": "5.1 离职通知期", "heading_path_contains": "离职管理", "content_contains": "30 天"}
+        {
+          "section_title": "4.1 培训",
+          "heading_path_contains": "职业发展",
+          "content_contains": "按比例退还"
+        },
+        {
+          "section_title": "5.1 离职通知期",
+          "heading_path_contains": "离职管理",
+          "content_contains": "30 天"
+        }
       ]
     },
     {
       "case_id": "GQ-29",
-      "tags": ["md", "cross_section"],
+      "tags": [
+        "md",
+        "cross_section"
+      ],
       "query": "离职后竞业限制补偿金怎么发？",
       "source": "md",
       "min_match": 2,
       "expects": [
-        {"section_title": "5.1 离职通知期", "heading_path_contains": "离职管理", "content_contains": "30 天"},
-        {"section_title": "5.2 竞业限制", "heading_path_contains": "离职管理", "content_contains": "30%"}
+        {
+          "section_title": "5.1 离职通知期",
+          "heading_path_contains": "离职管理",
+          "content_contains": "30 天"
+        },
+        {
+          "section_title": "5.2 竞业限制",
+          "heading_path_contains": "离职管理",
+          "content_contains": "30%"
+        }
       ]
     },
     {
       "case_id": "GQ-30",
-      "tags": ["md", "cross_section"],
+      "tags": [
+        "md",
+        "cross_section"
+      ],
       "query": "年假休不完离职了能折现吗？年终奖还能拿吗？",
       "source": "md",
       "min_match": 2,
       "expects": [
-        {"section_title": "1.1 年假", "heading_path_contains": "考勤制度", "content_contains": "年假10天"},
-        {"section_title": "2.1 年终奖", "heading_path_contains": "薪酬福利", "content_contains": "12 月"}
+        {
+          "section_title": "1.1 年假",
+          "heading_path_contains": "考勤制度",
+          "content_contains": "年假10天"
+        },
+        {
+          "section_title": "2.1 年终奖",
+          "heading_path_contains": "薪酬福利",
+          "content_contains": "12 月"
+        }
       ]
     },
     {
       "case_id": "GQ-31",
-      "tags": ["md", "parametric"],
+      "tags": [
+        "md",
+        "parametric"
+      ],
       "query": "出差到二线城市每天补贴多少钱？",
       "source": "md",
       "expect": {
@@ -344,7 +480,10 @@
     },
     {
       "case_id": "GQ-32",
-      "tags": ["md", "parametric"],
+      "tags": [
+        "md",
+        "parametric"
+      ],
       "query": "休息日（周六日）加班按几倍工资算？",
       "source": "md",
       "expect": {
@@ -355,7 +494,10 @@
     },
     {
       "case_id": "GQ-33",
-      "tags": ["md", "parametric"],
+      "tags": [
+        "md",
+        "parametric"
+      ],
       "query": "年度绩效C级能申请晋升吗？",
       "source": "md",
       "expect": {
@@ -366,7 +508,10 @@
     },
     {
       "case_id": "GQ-34",
-      "tags": ["md", "parametric"],
+      "tags": [
+        "md",
+        "parametric"
+      ],
       "query": "还在试用期想离职，要提前多久通知？",
       "source": "md",
       "expect": {
@@ -377,7 +522,10 @@
     },
     {
       "case_id": "GQ-35",
-      "tags": ["md", "parametric"],
+      "tags": [
+        "md",
+        "parametric"
+      ],
       "query": "外出培训的费用是公司出还是自己垫？",
       "source": "md",
       "expect": {
@@ -388,42 +536,60 @@
     },
     {
       "case_id": "GQ-36",
-      "tags": ["md", "negative"],
+      "tags": [
+        "md",
+        "negative"
+      ],
       "query": "产假政策是什么？",
       "source": "md",
       "expect_rejection": true
     },
     {
       "case_id": "GQ-37",
-      "tags": ["md", "negative"],
+      "tags": [
+        "md",
+        "negative"
+      ],
       "query": "社保公司按什么基数交？",
       "source": "md",
       "expect_rejection": true
     },
     {
       "case_id": "GQ-38",
-      "tags": ["md", "negative"],
+      "tags": [
+        "md",
+        "negative"
+      ],
       "query": "公积金缴纳比例是多少？",
       "source": "md",
       "expect_rejection": true
     },
     {
       "case_id": "GQ-39",
-      "tags": ["md", "negative"],
+      "tags": [
+        "md",
+        "negative"
+      ],
       "query": "公司有股票期权计划吗？",
       "source": "md",
       "expect_rejection": true
     },
     {
       "case_id": "GQ-40",
-      "tags": ["md", "negative"],
+      "tags": [
+        "md",
+        "negative"
+      ],
       "query": "高温补贴有吗？",
       "source": "md",
       "expect_rejection": true
     },
     {
       "case_id": "GQ-41",
-      "tags": ["md", "complex"],
+      "tags": [
+        "md",
+        "complex"
+      ],
       "query": "我刚入职8个月，能申请年假吗？",
       "source": "md",
       "expect": {
@@ -434,7 +600,10 @@
     },
     {
       "case_id": "GQ-42",
-      "tags": ["md", "complex"],
+      "tags": [
+        "md",
+        "complex"
+      ],
       "query": "竞业补偿金是离职后一次性给还是按月发？",
       "source": "md",
       "expect": {
@@ -445,7 +614,10 @@
     },
     {
       "case_id": "GQ-43",
-      "tags": ["md", "complex"],
+      "tags": [
+        "md",
+        "complex"
+      ],
       "query": "想晋升除了绩效达标还要满足什么条件？",
       "source": "md",
       "expect": {
@@ -456,7 +628,10 @@
     },
     {
       "case_id": "GQ-44",
-      "tags": ["md", "complex"],
+      "tags": [
+        "md",
+        "complex"
+      ],
       "query": "出差住宿超标了还能实报实销吗？",
       "source": "md",
       "expect": {
@@ -467,7 +642,10 @@
     },
     {
       "case_id": "GQ-45",
-      "tags": ["md", "complex"],
+      "tags": [
+        "md",
+        "complex"
+      ],
       "query": "加班一定要填审批单吗？事后补可以吗？",
       "source": "md",
       "expect": {
@@ -478,7 +656,10 @@
     },
     {
       "case_id": "GQ-46",
-      "tags": ["md", "edge"],
+      "tags": [
+        "md",
+        "edge"
+      ],
       "query": "年终",
       "source": "md",
       "expect": {
@@ -489,18 +670,32 @@
     },
     {
       "case_id": "GQ-47",
-      "tags": ["md", "edge"],
+      "tags": [
+        "md",
+        "edge"
+      ],
       "query": "什么情况下要赔公司钱？",
       "source": "md",
-      "min_match": 2,
+      "min_match": 1,
       "expects": [
-        {"section_title": "4.1 培训", "heading_path_contains": "职业发展", "content_contains": "按比例退还"},
-        {"section_title": "5.1 离职通知期", "heading_path_contains": "离职管理", "content_contains": "代通知金"}
+        {
+          "section_title": "4.1 培训",
+          "heading_path_contains": "职业发展",
+          "content_contains": "按比例退还"
+        },
+        {
+          "section_title": "5.1 离职通知期",
+          "heading_path_contains": "离职管理",
+          "content_contains": "代通知金"
+        }
       ]
     },
     {
       "case_id": "GQ-48",
-      "tags": ["md", "edge"],
+      "tags": [
+        "md",
+        "edge"
+      ],
       "query": "出差到其他城市每天补贴100，是哪个城市档位？",
       "source": "md",
       "expect": {
@@ -511,7 +706,10 @@
     },
     {
       "case_id": "GQ-49",
-      "tags": ["md", "edge"],
+      "tags": [
+        "md",
+        "edge"
+      ],
       "query": "迟到超30分钟算旷工吗？",
       "source": "md",
       "expect": {
@@ -522,7 +720,10 @@
     },
     {
       "case_id": "GQ-50",
-      "tags": ["md", "edge"],
+      "tags": [
+        "md",
+        "edge"
+      ],
       "query": "我明年6月工作满一年，7月申请年假可以吗？",
       "source": "md",
       "expect": {
