@@ -58,6 +58,8 @@ jobs:
       - name: Run migrations
         env:
           DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
+          JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
+          DEEPSEEK_API_KEY: skip
         run: |
           cd backend
           alembic upgrade head
@@ -66,6 +68,9 @@ jobs:
         id: check
         env:
           DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
+          JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
+          DEEPSEEK_API_KEY: skip
+          TONGYI_API_KEY: skip
           RAG_REAL_EMBEDDING: '0'
         continue-on-error: true
         run: |
@@ -97,13 +102,13 @@ else:
             let body = `## RAG 回归检测\n\n`;
             body += `**状态**: ${result.status}\n\n`;
             if (result.status === 'PASS') {
-              body += `✅ 所有指标在阈值内\n\n`;
+              body += `\u2705 所有指标在阈值内\n\n`;
             } else if (result.status === 'WARN') {
-              body += `⚠️ 指标有下降但未超阈值\n\n`;
+              body += `\u26a0\ufe0f 指标有下降但未超阈值\n\n`;
             } else if (result.status === 'FAIL') {
-              body += `❌ 指标超阈值：\n${result.failures.map(f => `- ${f}`).join('\n')}\n\n`;
+              body += `\u274c 指标超阈值：\n${result.failures.map(f => `- ${f}`).join('\n')}\n\n`;
             } else {
-              body += `❓ 无法解析检测结果\n\n`;
+              body += `\u2753 无法解析检测结果\n\n`;
             }
             body += `| 指标 | 当前 | 基线 | 差值 |\n`;
             body += `|------|------|------|------|\n`;
