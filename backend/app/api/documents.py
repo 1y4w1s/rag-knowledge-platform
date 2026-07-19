@@ -23,6 +23,7 @@ from app.core.deps import CurrentUser, KbAction, get_current_user, require_kb_ac
 from app.services.auth.api_rate_limit import ApiRateLimitKind, enforce_api_rate_limit
 from app.models.document import Document
 from app.models.enums import DocumentVisibility, DocumentVisibility as DocVisEnum
+from pydantic import BaseModel
 from app.schemas.document import (
     DocumentListResponse,
     DocumentResponse,
