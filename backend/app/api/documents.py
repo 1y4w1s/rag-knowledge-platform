@@ -32,6 +32,7 @@ from app.services.documents.lifecycle import delete_document, retry_document
 from app.services.documents.listing import get_document, list_documents
 from app.services.documents.preview import get_document_preview
 from app.services.documents.upload import upload_documents
+from app.services.rag.cache import clear_query_cache
 
 router = APIRouter(
     prefix="/knowledge-bases/{kb_id}/documents",
@@ -154,7 +155,6 @@ async def post_documents(
         visibility=visibility,
     )
     # 文档上传后清空该 KB 的检索缓存
-    from app.services.rag.cache import clear_query_cache
     await clear_query_cache(kb_id=kb_id)
     return DocumentUploadResponse(documents=docs)
 
