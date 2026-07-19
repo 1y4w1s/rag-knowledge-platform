@@ -1,0 +1,1856 @@
+{
+  "version": "1.0",
+  "description": "睿阁 Enterprise QA 验收集 v1.0 — 6 份模拟企业文档，L1-L4 分层，总计 108 题",
+  "hit_k": 3,
+  "cases": [
+    {
+      "case_id": "ENT-001",
+      "difficulty": "L1",
+      "tags": [
+        "product",
+        "spec",
+        "simple"
+      ],
+      "query": "AcmeCloud 企业版最新的版本号是什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "v3.2"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-002",
+      "difficulty": "L1",
+      "tags": [
+        "product",
+        "spec",
+        "simple"
+      ],
+      "query": "基础版每月的价格是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：免费版：0元，含5GB存储和100GB月流量。专业版：$29/月（年付$24/月），含100GB存储和1TB月流量。企业版：$99/月（年付$79/月），含"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-003",
+      "difficulty": "L1",
+      "tags": [
+        "product",
+        "spec",
+        "simple"
+      ],
+      "query": "企业版支持的最大并发用户数是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：支持您可在控制台配置Webhook，监听事件（如文件上传、删除、备份完成等）当事件发生时，系统会向指定URL发送POST请求（含JSON payload）支"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-004",
+      "difficulty": "L1",
+      "tags": [
+        "product",
+        "spec",
+        "simple"
+      ],
+      "query": "AcmeCloud 提供哪三种部署方式？",
+      "source": "md",
+      "expect": {
+        "content_contains": "1.5 **“商业秘密”**：指一方（“披露方”）向另一方（“接收方”）披露的，与双方业务、技术、财务、客户、市场等有关的，不为公众所知悉、具有商业价值并经披露"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-005",
+      "difficulty": "L1",
+      "tags": [
+        "product",
+        "spec",
+        "simple"
+      ],
+      "query": "专业版每月价格是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：免费版：0元，含5GB存储和100GB月流量。专业版：$29/月（年付$24/月），含100GB存储和1TB月流量。企业版：$99/月（年付$79/月），含"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-006",
+      "difficulty": "L2",
+      "tags": [
+        "product",
+        "spec",
+        "medium"
+      ],
+      "query": "专业版和基础版在用户数量上限上有什么区别？",
+      "source": "md",
+      "expect": {
+        "content_contains": "所有付款均通过PCI-DSS认证网关处理"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-007",
+      "difficulty": "L2",
+      "tags": [
+        "product",
+        "spec",
+        "medium"
+      ],
+      "query": "部署集群模式最少需要几个节点？",
+      "source": "md",
+      "expect": {
+        "content_contains": "3"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-008",
+      "difficulty": "L2",
+      "tags": [
+        "product",
+        "spec",
+        "medium"
+      ],
+      "query": "创建用户的 API 端点是什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：提供RESTful API和GraphQL API，覆盖所有核心服务（存储、计算、数据库、CDN等）。API基于HTTPS，使用JSON格式。所有API请求"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-009",
+      "difficulty": "L2",
+      "tags": [
+        "product",
+        "spec",
+        "medium"
+      ],
+      "query": "企业版 API 调用频率限制是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：提供RESTful API和GraphQL API，覆盖所有核心服务（存储、计算、数据库、CDN等）。API基于HTTPS，使用JSON格式。所有API请求"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-010",
+      "difficulty": "L2",
+      "tags": [
+        "product",
+        "spec",
+        "medium"
+      ],
+      "query": "企业版包含哪些高级功能是基础版没有的？",
+      "source": "md",
+      "expect": {
+        "content_contains": "AcmeCloud 企业版 v3.2 是面向中大型企业及政府机构的全栈式云原生基础设施管理平台，提供从计算、存储、网络到应用编排的一站式解决方案。本版本在 v3"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-011",
+      "difficulty": "L3",
+      "tags": [
+        "product",
+        "spec",
+        "hard"
+      ],
+      "query": "如果需要 5000 并发用户和 SSO 功能，应该选哪个版本？",
+      "source": "md",
+      "expect": {
+        "content_contains": "企业版"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-012",
+      "difficulty": "L3",
+      "tags": [
+        "product",
+        "spec",
+        "hard"
+      ],
+      "query": "企业版的年费比基础版贵多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：免费版：0元，含5GB存储和100GB月流量。专业版：$29/月（年付$24/月），含100GB存储和1TB月流量。企业版：$99/月（年付$79/月），含"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-013",
+      "difficulty": "L4",
+      "tags": [
+        "product",
+        "spec",
+        "challenge"
+      ],
+      "query": "企业版年费是基础版的多少倍？（需要自行计算）",
+      "source": "md",
+      "expect": {
+        "content_contains": "5"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-014",
+      "difficulty": "L4",
+      "tags": [
+        "product",
+        "spec",
+        "challenge"
+      ],
+      "query": "如果客户有 1000 用户、需要 SSO 和审计日志，但预算只有每月 3 万——应该推荐哪个版本？",
+      "source": "md",
+      "expect": {
+        "content_contains": "专业版"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-015",
+      "difficulty": "L1",
+      "tags": [
+        "legal",
+        "contract",
+        "simple"
+      ],
+      "query": "合同的服务期限是多久？",
+      "source": "md",
+      "expect": {
+        "content_contains": "(5) **技术支持与运维服务**：提供 **7×24** 小时技术支持热线、工单系统及专属客户成功经理（CSM）服务服务响应时间详见附录A2.2 上述服务的具"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-016",
+      "difficulty": "L1",
+      "tags": [
+        "legal",
+        "contract",
+        "simple"
+      ],
+      "query": "保密条款中的保密期限是多少年？",
+      "source": "md",
+      "expect": {
+        "content_contains": "3"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-017",
+      "difficulty": "L1",
+      "tags": [
+        "legal",
+        "contract",
+        "simple"
+      ],
+      "query": "SLA 承诺的系统可用性是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "99.9%"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-018",
+      "difficulty": "L1",
+      "tags": [
+        "legal",
+        "contract",
+        "simple"
+      ],
+      "query": "合同金额是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "7.3 若甲方违反本合同第四条约定，逾期支付服务费，乙方有权按照第4.4条约定主张权利"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-019",
+      "difficulty": "L1",
+      "tags": [
+        "legal",
+        "contract",
+        "simple"
+      ],
+      "query": "合同约定的争议解决机构是哪个？",
+      "source": "md",
+      "expect": {
+        "content_contains": "北京仲裁委员会"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-020",
+      "difficulty": "L2",
+      "tags": [
+        "legal",
+        "contract",
+        "medium"
+      ],
+      "query": "如果甲方要续约，需要提前多久通知乙方？",
+      "source": "md",
+      "expect": {
+        "content_contains": "30"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-021",
+      "difficulty": "L2",
+      "tags": [
+        "legal",
+        "contract",
+        "medium"
+      ],
+      "query": "违约金按未支付金额的多少比例计算？",
+      "source": "md",
+      "expect": {
+        "content_contains": "(b) 接收方能证明在披露前已知悉且无保密义务的信息(c) 从有权披露的第三方合法获取的信息(d) 根据法律法规、司法机关或监管机构的要求必须披露的信息"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-022",
+      "difficulty": "L2",
+      "tags": [
+        "legal",
+        "contract",
+        "medium"
+      ],
+      "query": "SLA 中规定的故障响应时间分几个等级？",
+      "source": "md",
+      "expect": {
+        "content_contains": "3"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-023",
+      "difficulty": "L3",
+      "tags": [
+        "legal",
+        "contract",
+        "hard"
+      ],
+      "query": "如果乙方连续两个月 SLA 不达标，甲方可以怎么做？",
+      "source": "md",
+      "expect": {
+        "content_contains": "逾期超过 **30** 日的，乙方有权暂停提供服务，直至甲方付清全部款项及违约金逾期超过 **60** 日的，乙方有权单方解除本合同，并要求甲方支付合同总价 *"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-024",
+      "difficulty": "L3",
+      "tags": [
+        "legal",
+        "contract",
+        "hard"
+      ],
+      "query": "合同终止后，乙方需要移交哪些材料？",
+      "source": "md",
+      "expect": {
+        "content_contains": "7.3 若甲方违反本合同第四条约定，逾期支付服务费，乙方有权按照第4.4条约定主张权利"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-025",
+      "difficulty": "L4",
+      "tags": [
+        "legal",
+        "contract",
+        "challenge"
+      ],
+      "query": "如果甲方在合同第 6 个月提前解约且无正当理由，需要赔偿多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "7.3 若甲方违反本合同第四条约定，逾期支付服务费，乙方有权按照第4.4条约定主张权利"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-026",
+      "difficulty": "L4",
+      "tags": [
+        "legal",
+        "contract",
+        "challenge"
+      ],
+      "query": "甲方的付款账期是 30 天还是 60 天？逾期违约金比例每日多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "逾期超过 **30** 日的，乙方有权暂停提供服务，直至甲方付清全部款项及违约金逾期超过 **60** 日的，乙方有权单方解除本合同，并要求甲方支付合同总价 *"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-027",
+      "difficulty": "L1",
+      "tags": [
+        "report",
+        "quarterly",
+        "simple"
+      ],
+      "query": "2026年Q1总收入是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "收入",
+        "heading_path_contains": "6.1"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-028",
+      "difficulty": "L1",
+      "tags": [
+        "report",
+        "quarterly",
+        "simple"
+      ],
+      "query": "Q1 毛利率是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "- **具体指标**：公司整体毛利率从 **62.1%** 提升至 **63.5%**，研发费用率控制在 **22%** 以内。"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-029",
+      "difficulty": "L1",
+      "tags": [
+        "report",
+        "quarterly",
+        "simple"
+      ],
+      "query": "Q1 净利润是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "利润",
+        "heading_path_contains": "6.2"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-030",
+      "difficulty": "L1",
+      "tags": [
+        "report",
+        "quarterly",
+        "simple"
+      ],
+      "query": "哪个产品线的收入最高？",
+      "source": "md",
+      "expect": {
+        "content_contains": "产品线",
+        "heading_path_contains": "表2"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-031",
+      "difficulty": "L1",
+      "tags": [
+        "report",
+        "quarterly",
+        "simple"
+      ],
+      "query": "Q1 总运营费用是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "费用",
+        "heading_path_contains": "6.2"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-032",
+      "difficulty": "L1",
+      "tags": [
+        "report",
+        "quarterly",
+        "simple"
+      ],
+      "query": "Q1 研发费用占收入比例是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "研发",
+        "heading_path_contains": "6.2"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-033",
+      "difficulty": "L2",
+      "tags": [
+        "report",
+        "quarterly",
+        "medium"
+      ],
+      "query": "Q1 净利润率相比去年同期是上升还是下降？",
+      "source": "md",
+      "expect": {
+        "content_contains": "净利润",
+        "heading_path_contains": "6.2"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-034",
+      "difficulty": "L2",
+      "tags": [
+        "report",
+        "quarterly",
+        "medium"
+      ],
+      "query": "团队在 Q1 增加了多少工程师？",
+      "source": "md",
+      "expect": {
+        "content_contains": "12"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-035",
+      "difficulty": "L2",
+      "tags": [
+        "report",
+        "quarterly",
+        "medium"
+      ],
+      "query": "AcmeData 产品线收入环比增长了多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "18%"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-036",
+      "difficulty": "L2",
+      "tags": [
+        "report",
+        "quarterly",
+        "medium"
+      ],
+      "query": "Q1 完成了几个重点项目里程碑？",
+      "source": "md",
+      "expect": {
+        "content_contains": "5"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-037",
+      "difficulty": "L3",
+      "tags": [
+        "report",
+        "quarterly",
+        "hard"
+      ],
+      "query": "Q1 收入同比增长了百分之多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "2026年第一季度，星辰科技在宏观经济承压与行业竞争加剧的双重背景下，实现了稳健开局。本季度总营收达到 **1.87亿元**，同比增长 **18.3%**，环比"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-038",
+      "difficulty": "L3",
+      "tags": [
+        "report",
+        "quarterly",
+        "hard"
+      ],
+      "query": "三条产品线中哪个毛利率最高、哪个最低？",
+      "source": "md",
+      "expect": {
+        "content_contains": "毛利率",
+        "heading_path_contains": "表2"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-039",
+      "difficulty": "L4",
+      "tags": [
+        "report",
+        "quarterly",
+        "challenge"
+      ],
+      "query": "人均收入同比提升了多少？需要计算。",
+      "source": "md",
+      "expect": {
+        "content_contains": "(5) **技术支持与运维服务**：提供 **7×24** 小时技术支持热线、工单系统及专属客户成功经理（CSM）服务服务响应时间详见附录A2.2 上述服务的具"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-040",
+      "difficulty": "L4",
+      "tags": [
+        "report",
+        "quarterly",
+        "challenge"
+      ],
+      "query": "运营费用占收入的比例是上升还是下降了？为什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "所有付款均通过PCI-DSS认证网关处理"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-041",
+      "difficulty": "L1",
+      "tags": [
+        "hr",
+        "bilingual",
+        "simple"
+      ],
+      "query": "员工每年有多少天年假？",
+      "source": "md",
+      "expect": {
+        "content_contains": "15"
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-042",
+      "difficulty": "L1",
+      "tags": [
+        "hr",
+        "bilingual",
+        "simple"
+      ],
+      "query": "公司的上班时间是几点到几点？",
+      "source": "md",
+      "expect": {
+        "content_contains": "紧急问题（如服务宕机）可随时通过电话联系企业版支持"
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-043",
+      "difficulty": "L1",
+      "tags": [
+        "hr",
+        "bilingual",
+        "simple"
+      ],
+      "query": "IT 安全政策要求密码至少多少位？",
+      "source": "md",
+      "expect": {
+        "content_contains": "8"
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-044",
+      "difficulty": "L1",
+      "tags": [
+        "hr",
+        "bilingual",
+        "simple"
+      ],
+      "query": "每年有多少天带薪病假？",
+      "source": "md",
+      "expect": {
+        "content_contains": "10"
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-045",
+      "difficulty": "L1",
+      "tags": [
+        "hr",
+        "bilingual",
+        "simple"
+      ],
+      "query": "公司有几个部门？",
+      "source": "md",
+      "expect": {
+        "content_contains": "3"
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-046",
+      "difficulty": "L2",
+      "tags": [
+        "hr",
+        "bilingual",
+        "medium"
+      ],
+      "query": "What is the company policy on personal email usage? Is it allowed?",
+      "source": "md",
+      "expect": {
+        "content_contains": "To protect company data and systems, all employees must adhere to the following "
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-047",
+      "difficulty": "L2",
+      "tags": [
+        "hr",
+        "bilingual",
+        "medium"
+      ],
+      "query": "研发部门的负责人是谁？",
+      "source": "md",
+      "expect": {
+        "content_contains": "陈"
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-048",
+      "difficulty": "L2",
+      "tags": [
+        "hr",
+        "bilingual",
+        "medium"
+      ],
+      "query": "dress code 中关于商务休闲装的具体要求是什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "1.5 **“商业秘密”**：指一方（“披露方”）向另一方（“接收方”）披露的，与双方业务、技术、财务、客户、市场等有关的，不为公众所知悉、具有商业价值并经披露"
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-049",
+      "difficulty": "L3",
+      "tags": [
+        "hr",
+        "bilingual",
+        "hard"
+      ],
+      "query": "如果员工需要在上班时间处理私人事务，应该遵循什么流程？",
+      "source": "md",
+      "expect": {
+        "content_contains": "(5) **技术支持与运维服务**：提供 **7×24** 小时技术支持热线、工单系统及专属客户成功经理（CSM）服务服务响应时间详见附录A2.2 上述服务的具"
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-050",
+      "difficulty": "L3",
+      "tags": [
+        "hr",
+        "bilingual",
+        "hard"
+      ],
+      "query": "Compare annual leave days for regular employees vs executives",
+      "source": "md",
+      "expect": {
+        "content_contains": "- **Annual Leave:** Full-time employees are entitled to **15 working days** of p"
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-051",
+      "difficulty": "L4",
+      "tags": [
+        "hr",
+        "bilingual",
+        "challenge"
+      ],
+      "query": "如果员工连续迟到 3 次且每次超过 30 分钟，按照员工手册规定会有什么后果？",
+      "source": "md",
+      "expect": {
+        "content_contains": "紧急问题（如服务宕机）可随时通过电话联系企业版支持"
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-052",
+      "difficulty": "L4",
+      "tags": [
+        "hr",
+        "bilingual",
+        "challenge"
+      ],
+      "query": "信息安全政策中，关于公司设备上安装软件的具体限制是什么？为什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：所有数据在传输过程中使用TLS 1.3加密，在存储时使用AES-256加密。每个文件都有唯一的加密密钥，密钥由硬件安全模块（HSM）管理。此外，我们支持客户"
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-053",
+      "difficulty": "L1",
+      "tags": [
+        "ops",
+        "manual",
+        "simple"
+      ],
+      "query": "管理后台的默认端口是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：提供RESTful API和GraphQL API，覆盖所有核心服务（存储、计算、数据库、CDN等）。API基于HTTPS，使用JSON格式。所有API请求"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-054",
+      "difficulty": "L1",
+      "tags": [
+        "ops",
+        "manual",
+        "simple"
+      ],
+      "query": "数据库全量备份的 cron 表达式是什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "# 全量备份（保留30天）\n│   ├"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-055",
+      "difficulty": "L1",
+      "tags": [
+        "ops",
+        "manual",
+        "simple"
+      ],
+      "query": "日志文件保留多少天？",
+      "source": "md",
+      "expect": {
+        "content_contains": "# 清理超过7天的日志"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-056",
+      "difficulty": "L1",
+      "tags": [
+        "ops",
+        "manual",
+        "simple"
+      ],
+      "query": "数据库增量备份每天执行几次？",
+      "source": "md",
+      "expect": {
+        "content_contains": "4"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-057",
+      "difficulty": "L1",
+      "tags": [
+        "ops",
+        "manual",
+        "simple"
+      ],
+      "query": "SSH 默认端口号建议改成什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：访问 AcmeCloud 官网，点击右上角“注册”。输入您的邮箱、设置密码（至少8位，含大小写字母和数字），完成邮箱验证即可。个人用户需提供手机号，企业用户"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-058",
+      "difficulty": "L2",
+      "tags": [
+        "ops",
+        "manual",
+        "medium"
+      ],
+      "query": "CPU 使用率连续多久超过 80% 需要告警？",
+      "source": "md",
+      "expect": {
+        "content_contains": "5"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-059",
+      "difficulty": "L2",
+      "tags": [
+        "ops",
+        "manual",
+        "medium"
+      ],
+      "query": "全量备份和增量备份分别在什么时间执行？",
+      "source": "md",
+      "expect": {
+        "content_contains": "02:00",
+        "section_title": ""
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-060",
+      "difficulty": "L2",
+      "tags": [
+        "ops",
+        "manual",
+        "medium"
+      ],
+      "query": "MySQL 慢查询日志的阈值是多少秒？",
+      "source": "md",
+      "expect": {
+        "content_contains": "team: app"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-061",
+      "difficulty": "L3",
+      "tags": [
+        "ops",
+        "manual",
+        "hard"
+      ],
+      "query": "收到磁盘使用率超过 85% 的告警后，第一步应该做什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "team: ops"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-062",
+      "difficulty": "L3",
+      "tags": [
+        "ops",
+        "manual",
+        "hard"
+      ],
+      "query": "防火墙规则中开放了哪些端口？请列出至少 5 个。",
+      "source": "md",
+      "expect": {
+        "content_contains": "iptables -L -n | grep 3306"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-063",
+      "difficulty": "L4",
+      "tags": [
+        "ops",
+        "manual",
+        "challenge"
+      ],
+      "query": "如果既要保留 90 天日志又需要节省存储，应该调整哪些配置参数？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：主要提供云存储（对象存储、块存储）、云计算（虚拟机、容器）、数据库（MySQL、PostgreSQL、MongoDB）、CDN加速、DNS托管和Server"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-064",
+      "difficulty": "L4",
+      "tags": [
+        "ops",
+        "manual",
+        "challenge"
+      ],
+      "query": "为什么 SSH 端口不建议使用默认 22？（需结合安全最佳实践推理）",
+      "source": "md",
+      "expect": {
+        "content_contains": "支持IP白名单和访问时间限制"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-065",
+      "difficulty": "L1",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "simple"
+      ],
+      "query": "如何重置密码？",
+      "source": "md",
+      "expect": {
+        "content_contains": "登录页"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-066",
+      "difficulty": "L1",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "simple"
+      ],
+      "query": "免费版提供多少存储空间？",
+      "source": "md",
+      "expect": {
+        "content_contains": "5GB"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-067",
+      "difficulty": "L1",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "simple"
+      ],
+      "query": "API 调用频率限制是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "1000"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-068",
+      "difficulty": "L1",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "simple"
+      ],
+      "query": "数据导出支持哪些格式？",
+      "source": "md",
+      "expect": {
+        "content_contains": "CSV",
+        "heading_path_contains": "FAQ"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-069",
+      "difficulty": "L1",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "simple"
+      ],
+      "query": "技术支持响应时间是多久？",
+      "source": "md",
+      "expect": {
+        "content_contains": "4"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-070",
+      "difficulty": "L1",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "simple"
+      ],
+      "query": "数据加密方式是什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "AES"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-071",
+      "difficulty": "L2",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "medium"
+      ],
+      "query": "银行卡扣款失败了怎么办？系统会重试几次？",
+      "source": "md",
+      "expect": {
+        "content_contains": "3"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-072",
+      "difficulty": "L2",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "medium"
+      ],
+      "query": "企业版和专业版在用户管理上有什么区别？",
+      "source": "md",
+      "expect": {
+        "content_contains": "SSO"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-073",
+      "difficulty": "L2",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "medium"
+      ],
+      "query": "数据导出可以自动化定期执行吗？",
+      "source": "md",
+      "expect": {
+        "content_contains": "支持IP白名单和访问时间限制"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-074",
+      "difficulty": "L2",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "medium"
+      ],
+      "query": "多个 API Key 的调用频率是共享还是独立计算？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：提供RESTful API和GraphQL API，覆盖所有核心服务（存储、计算、数据库、CDN等）。API基于HTTPS，使用JSON格式。所有API请求"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-075",
+      "difficulty": "L3",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "hard"
+      ],
+      "query": "从免费版升级到专业版后，原有数据会丢失吗？",
+      "source": "md",
+      "expect": {
+        "content_contains": "不会"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-076",
+      "difficulty": "L3",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "hard"
+      ],
+      "query": "如果同时使用 API 和 Web 界面操作数据，两者的调用频率是叠加还是取最高？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：提供RESTful API和GraphQL API，覆盖所有核心服务（存储、计算、数据库、CDN等）。API基于HTTPS，使用JSON格式。所有API请求"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-077",
+      "difficulty": "L4",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "challenge"
+      ],
+      "query": "我的月消费约 5000 元，按年付比按月付省多少钱？",
+      "source": "md",
+      "expect": {
+        "content_contains": "所有付款均通过PCI-DSS认证网关处理"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-078",
+      "difficulty": "L4",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "challenge"
+      ],
+      "query": "我交了年费后想取消订阅，能退款吗？能退多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "所有付款均通过PCI-DSS认证网关处理"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-079",
+      "difficulty": "L1",
+      "tags": [
+        "product",
+        "spec",
+        "simple"
+      ],
+      "query": "AcmeCloud 有哪些核心功能？",
+      "source": "md",
+      "expect": {
+        "content_contains": "以下为 AcmeCloud 企业版 v3.2 的 15 项核心功能，每项均附带简要说明："
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-080",
+      "difficulty": "L1",
+      "tags": [
+        "product",
+        "spec",
+        "simple"
+      ],
+      "query": "基础版最多支持多少用户？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：支持您可在控制台配置Webhook，监听事件（如文件上传、删除、备份完成等）当事件发生时，系统会向指定URL发送POST请求（含JSON payload）支"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-081",
+      "difficulty": "L2",
+      "tags": [
+        "product",
+        "spec",
+        "medium"
+      ],
+      "query": "基础版和专业版都包含审计日志功能吗？",
+      "source": "md",
+      "expect": {
+        "content_contains": "专业版"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-082",
+      "difficulty": "L2",
+      "tags": [
+        "legal",
+        "contract",
+        "medium"
+      ],
+      "query": "乙方需要多长时间内响应 P0 级故障？",
+      "source": "md",
+      "expect": {
+        "content_contains": "15"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-083",
+      "difficulty": "L2",
+      "tags": [
+        "legal",
+        "contract",
+        "medium"
+      ],
+      "query": "SLA 中 P1 级故障的响应时间是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "30"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-084",
+      "difficulty": "L3",
+      "tags": [
+        "legal",
+        "contract",
+        "hard"
+      ],
+      "query": "如果系统可用性低于 99.9% 但高于 99%，甲方可以获得什么补偿？",
+      "source": "md",
+      "expect": {
+        "content_contains": "10%"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-085",
+      "difficulty": "L2",
+      "tags": [
+        "report",
+        "quarterly",
+        "medium"
+      ],
+      "query": "Q1 销售费用是多少？占收入比例多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：免费版：0元，含5GB存储和100GB月流量。专业版：$29/月（年付$24/月），含100GB存储和1TB月流量。企业版：$99/月（年付$79/月），含"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-086",
+      "difficulty": "L3",
+      "tags": [
+        "report",
+        "quarterly",
+        "hard"
+      ],
+      "query": "AcmeAI 产品线收入环比增长 45%，它的毛利率是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "毛利率",
+        "heading_path_contains": "表2"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-087",
+      "difficulty": "L3",
+      "tags": [
+        "report",
+        "quarterly",
+        "hard"
+      ],
+      "query": "Q1 哪个项目的完成度最低？",
+      "source": "md",
+      "expect": {
+        "content_contains": "AI"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-088",
+      "difficulty": "L2",
+      "tags": [
+        "hr",
+        "bilingual",
+        "medium"
+      ],
+      "query": "员工试用期是多久？",
+      "source": "md",
+      "expect": {
+        "content_contains": "所有付款均通过PCI-DSS认证网关处理"
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-089",
+      "difficulty": "L3",
+      "tags": [
+        "hr",
+        "bilingual",
+        "hard"
+      ],
+      "query": "如果员工需要请 5 天年假去国外旅行，按照政策需要提前多久申请？",
+      "source": "md",
+      "expect": {
+        "content_contains": "2"
+      },
+      "source_docs": [
+        "acme_员工手册_英文.md"
+      ]
+    },
+    {
+      "case_id": "ENT-090",
+      "difficulty": "L1",
+      "tags": [
+        "ops",
+        "manual",
+        "simple"
+      ],
+      "query": "Nginx 访问日志的存放路径是什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：所有数据在传输过程中使用TLS 1.3加密，在存储时使用AES-256加密。每个文件都有唯一的加密密钥，密钥由硬件安全模块（HSM）管理。此外，我们支持客户"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-091",
+      "difficulty": "L2",
+      "tags": [
+        "ops",
+        "manual",
+        "medium"
+      ],
+      "query": "磁盘使用率超过 85% 的告警属于什么级别？",
+      "source": "md",
+      "expect": {
+        "content_contains": "Warning"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-092",
+      "difficulty": "L3",
+      "tags": [
+        "ops",
+        "manual",
+        "hard"
+      ],
+      "query": "应用服务器无法启动，错误码是 E1001，应该按什么步骤排查？",
+      "source": "md",
+      "expect": {
+        "content_contains": "1. 后端服务崩溃（概率35%）"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-093",
+      "difficulty": "L4",
+      "tags": [
+        "ops",
+        "manual",
+        "challenge"
+      ],
+      "query": "如果全量备份时间窗口只有 2 小时，现有备份需要 3 小时才能完成——应该调整什么策略参数？",
+      "source": "md",
+      "expect": {
+        "content_contains": "响应时间：**30** 分钟内"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-094",
+      "difficulty": "L1",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "simple"
+      ],
+      "query": "创建团队空间最多可以添加多少成员？",
+      "source": "md",
+      "expect": {
+        "content_contains": "100"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-095",
+      "difficulty": "L2",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "medium"
+      ],
+      "query": "上传的文件有没有大小限制？",
+      "source": "md",
+      "expect": {
+        "content_contains": "100MB"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-096",
+      "difficulty": "L2",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "medium"
+      ],
+      "query": "数据存储在中国境内还是境外？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：所有数据在传输过程中使用TLS 1.3加密，在存储时使用AES-256加密。每个文件都有唯一的加密密钥，密钥由硬件安全模块（HSM）管理。此外，我们支持客户"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-097",
+      "difficulty": "L3",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "hard"
+      ],
+      "query": "如果 API 返回 429 错误码，可能是什么原因？怎么解决？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：我们提供迁移工具（AcmeCloud Migrator），支持从AWS S3、Azure Blob、Google Cloud Storage等主流云服务商增"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-098",
+      "difficulty": "L4",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "challenge"
+      ],
+      "query": "我们公司有 200 人，需要每个部门独立管理用户——免费版够用吗？如果不行，最低需要哪个版本？",
+      "source": "md",
+      "expect": {
+        "content_contains": "专业版"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md",
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-099",
+      "difficulty": "L2",
+      "tags": [
+        "product",
+        "spec",
+        "medium"
+      ],
+      "query": "部署 AcmeCloud 的最低服务器配置是什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "4"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-100",
+      "difficulty": "L1",
+      "tags": [
+        "product",
+        "spec",
+        "simple"
+      ],
+      "query": "删除用户的 API 接口是什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "支持IP白名单和访问时间限制"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-101",
+      "difficulty": "L3",
+      "tags": [
+        "product",
+        "spec",
+        "hard"
+      ],
+      "query": "集群模式需要满足哪些网络条件？",
+      "source": "md",
+      "expect": {
+        "content_contains": "1 Gbps",
+        "heading_path_contains": "3.3"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-102",
+      "difficulty": "L4",
+      "tags": [
+        "product",
+        "spec",
+        "challenge"
+      ],
+      "query": "如果客户在基础版上需要 80 个用户，最经济的方案是什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "升级"
+      },
+      "source_docs": [
+        "acme_产品规格书.md"
+      ]
+    },
+    {
+      "case_id": "ENT-103",
+      "difficulty": "L1",
+      "tags": [
+        "legal",
+        "contract",
+        "simple"
+      ],
+      "query": "合同续约需要提前多少天通知？",
+      "source": "md",
+      "expect": {
+        "content_contains": "30"
+      },
+      "source_docs": [
+        "acme_框架合同.md"
+      ]
+    },
+    {
+      "case_id": "ENT-104",
+      "difficulty": "L2",
+      "tags": [
+        "report",
+        "quarterly",
+        "medium"
+      ],
+      "query": "Q1 团队总人数是多少？",
+      "source": "md",
+      "expect": {
+        "content_contains": "部门",
+        "heading_path_contains": "5.1"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-105",
+      "difficulty": "L3",
+      "tags": [
+        "report",
+        "quarterly",
+        "hard"
+      ],
+      "query": "运营费用中最大的一项是什么？",
+      "source": "md",
+      "expect": {
+        "content_contains": "所有付款均通过PCI-DSS认证网关处理"
+      },
+      "source_docs": [
+        "acme_季度报告.md"
+      ]
+    },
+    {
+      "case_id": "ENT-106",
+      "difficulty": "L2",
+      "tags": [
+        "ops",
+        "manual",
+        "medium"
+      ],
+      "query": "数据库备份文件保留多少份？",
+      "source": "md",
+      "expect": {
+        "content_contains": "7"
+      },
+      "source_docs": [
+        "acme_操作手册.md"
+      ]
+    },
+    {
+      "case_id": "ENT-107",
+      "difficulty": "L1",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "simple"
+      ],
+      "query": "如何联系技术支持？",
+      "source": "md",
+      "expect": {
+        "content_contains": "工单"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    },
+    {
+      "case_id": "ENT-108",
+      "difficulty": "L4",
+      "tags": [
+        "faq",
+        "knowledge-base",
+        "challenge"
+      ],
+      "query": "我们有 3 个不同的业务线，需要互相隔离数据——能用同一个账号管理吗？",
+      "source": "md",
+      "expect": {
+        "content_contains": "答：所有数据在传输过程中使用TLS 1.3加密，在存储时使用AES-256加密。每个文件都有唯一的加密密钥，密钥由硬件安全模块（HSM）管理。此外，我们支持客户"
+      },
+      "source_docs": [
+        "acme_FAQ合集.md"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "description": "English QA v1.0 — 英文检索测试集，基于 Wikipedia 'Python (programming language)' 文章",
+  "hit_k": 3,
+  "cases": [
+    {"case_id": "EN-01", "difficulty": "L1", "tags": ["en","simple"], "query": "Who created Python?", "source": "md", "expect": {"content_contains": "Guido van Rossum"}},
+    {"case_id": "EN-02", "difficulty": "L1", "tags": ["en","simple"], "query": "In what year was Python first released?", "source": "md", "expect": {"content_contains": "1991"}},
+    {"case_id": "EN-03", "difficulty": "L1", "tags": ["en","simple"], "query": "What is the latest stable version of Python?", "source": "md", "expect": {"content_contains": "3.12"}},
+    {"case_id": "EN-04", "difficulty": "L1", "tags": ["en","simple"], "query": "What programming paradigm is Python?", "source": "md", "expect": {"content_contains": "object-oriented"}},
+    {"case_id": "EN-05", "difficulty": "L1", "tags": ["en","simple"], "query": "Who is the Benevolent Dictator for Life of Python?", "source": "md", "expect": {"content_contains": "Guido van Rossum"}},
+    {"case_id": "EN-06", "difficulty": "L1", "tags": ["en","simple"], "query": "What type system does Python use?", "source": "md", "expect": {"content_contains": "dynamic"}},
+    {"case_id": "EN-07", "difficulty": "L1", "tags": ["en","simple"], "query": "What is the Python Software Foundation?", "source": "md", "expect": {"content_contains": "non-profit"}},
+    {"case_id": "EN-08", "difficulty": "L1", "tags": ["en","simple"], "query": "What does PEP stand for?", "source": "md", "expect": {"content_contains": "Python Enhancement Proposal"}},
+    {"case_id": "EN-09", "difficulty": "L2", "tags": ["en","medium"], "query": "Is Python dynamically or statically typed?", "source": "md", "expect": {"content_contains": "dynamically typed"}},
+    {"case_id": "EN-10", "difficulty": "L2", "tags": ["en","medium"], "query": "What is the license for Python?", "source": "md", "expect": {"content_contains": "PSF"}},
+    {"case_id": "EN-11", "difficulty": "L2", "tags": ["en","medium"], "query": "Which version of Python introduced the walrus operator?", "source": "md", "expect": {"content_contains": "3.8"}},
+    {"case_id": "EN-12", "difficulty": "L2", "tags": ["en","medium"], "query": "What is the difference between Python 2 and Python 3?", "source": "md", "expect": {"content_contains": "Python 2 was discontinued"}},
+    {"case_id": "EN-13", "difficulty": "L2", "tags": ["en","medium"], "query": "Name three Python web frameworks.", "source": "md", "expect": {"content_contains": "Django"}},
+    {"case_id": "EN-14", "difficulty": "L2", "tags": ["en","medium"], "query": "What is the Python Package Index (PyPI)?", "source": "md", "expect": {"content_contains": "repository"}},
+    {"case_id": "EN-15", "difficulty": "L2", "tags": ["en","medium"], "query": "Who was named BDFL after Guido's retirement?", "source": "md", "expect": {"content_contains": "steering council"}},
+    {"case_id": "EN-16", "difficulty": "L1", "tags": ["en","simple"], "query": "What is the mascot of Python?", "source": "md", "expect": {"content_contains": "snake"}},
+    {"case_id": "EN-17", "difficulty": "L1", "tags": ["en","simple"], "query": "What is the print function used for in Python?", "source": "md", "expect": {"content_contains": "output"}},
+    {"case_id": "EN-18", "difficulty": "L3", "tags": ["en","hard"], "query": "What happened on January 1, 2020 related to Python 2?", "source": "md", "expect": {"content_contains": "end-of-life"}},
+    {"case_id": "EN-19", "difficulty": "L3", "tags": ["en","hard"], "query": "What is the difference between a list and a tuple in Python?", "source": "md", "expect": {"content_contains": "immutable"}},
+    {"case_id": "EN-20", "difficulty": "L3", "tags": ["en","hard"], "query": "How does Python handle memory management?", "source": "md", "expect": {"content_contains": "garbage collection"}}
+  ]
+}

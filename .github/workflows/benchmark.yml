@@ -1,0 +1,138 @@
+# 睿阁 RAG Benchmark CI
+#
+# 手动触发（workflow_dispatch）或每周日凌晨自动运行。
+# 不加入 PR CI——全量评测耗时长且有 API 费用。
+#
+# 用法：
+#   1. 前往 Actions → "RAG Benchmark" → Run workflow
+#   2. 选择数据集、模式、抽样数
+#   3. 查看 benchmark_results/ 下的报告
+
+name: RAG Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      datasets:
+        description: '数据集（逗号分隔, 或 "all"）'
+        required: true
+        default: 'crag'
+        type: string
+      mode:
+        description: '限流模式'
+        required: true
+        default: 'bypass'
+        type: choice
+        options:
+          - bypass
+          - enforce
+      sample:
+        description: '每个数据集抽样数（大规模使用，默认 0=全量）'
+        required: false
+        default: '0'
+        type: string
+      mock_embedding:
+        description: '使用 mock 嵌入（快速验证）'
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
+
+  schedule:
+    # 每周日凌晨 2:00 UTC 跑精选子集
+    - cron: '0 2 * * 0'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  retrieval-benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: raguser
+          POSTGRES_PASSWORD: ragpass
+          POSTGRES_DB: ragknowledge
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -h localhost -U ruige"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install httpx bz2file
+
+      - name: Run alembic migrations
+        env:
+          DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
+          JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
+        run: |
+          cd backend
+          alembic upgrade head
+
+      - name: Download CRAG dataset
+        run: |
+          mkdir -p backend/data/benchmark/crag
+          curl -L -o backend/data/benchmark/crag/crag_task_1_and_2_dev_v4.jsonl.bz2 \
+            "https://github.com/facebookresearch/CRAG/raw/refs/heads/main/data/crag_task_1_and_2_dev_v4.jsonl.bz2?download="
+          echo "CRAG downloaded"
+
+      - name: Run retrieval benchmark
+        env:
+          DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
+          JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
+          RAG_RATE_LIMIT_MODE: ${{ inputs.mode || 'bypass' }}
+          RAG_REAL_EMBEDDING: ${{ inputs.mock_embedding == 'true' && '0' || '1' }}
+          DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+        run: |
+          cd backend
+          SAMPLE_ARG=""
+          if [ "${{ inputs.sample }}" != "0" ] && [ -n "${{ inputs.sample }}" ]; then
+            SAMPLE_ARG="--sample ${{ inputs.sample }}"
+          fi
+          DATASETS="${{ inputs.datasets || 'crag' }}"
+          if [ "$DATASETS" = "all" ]; then
+            DATASETS="crag,liverag,rageval,ragbench,mirage,enterprise"
+          fi
+
+          python -m tests.benchmark.run_retrieval \
+            --datasets "$DATASETS" \
+            --mode "${{ inputs.mode || 'bypass' }}" \
+            $SAMPLE_ARG \
+            --top-k 3 \
+            --output benchmark_results
+
+      - name: Upload benchmark report
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-report
+          path: backend/benchmark_results/
+          retention-days: 30
+
+      - name: Deploy report to GitHub Pages (optional)
+        if: github.ref == 'refs/heads/master'
+        run: |
+          mkdir -p gh-pages
+          cp backend/benchmark_results/retrieval_benchmark.html gh-pages/index.html
+          echo "Benchmark report ready for GitHub Pages"

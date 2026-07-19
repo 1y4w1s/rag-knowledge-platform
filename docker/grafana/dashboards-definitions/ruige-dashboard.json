@@ -1,0 +1,163 @@
+{
+  "__inputs": [],
+  "__requires": [],
+  "title": "睿阁 — 运维监控",
+  "uid": "ruige-ops",
+  "version": 1,
+  "timezone": "browser",
+  "editable": true,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "title": "每分钟请求数",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 0 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service=\"ruige-api\"}[1m]))",
+          "legendFormat": "总请求"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cpm",
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "title": "API 延迟 P50 / P95 / P99",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 0 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "quantile_over_time(0.50, {service=\"ruige-api\"} | regexp \"duration_ms=(?P<duration>\\\\d+)\" | unwrap duration [5m])",
+          "legendFormat": "P50"
+        },
+        {
+          "expr": "quantile_over_time(0.95, {service=\"ruige-api\"} | regexp \"duration_ms=(?P<duration>\\\\d+)\" | unwrap duration [5m])",
+          "legendFormat": "P95"
+        },
+        {
+          "expr": "quantile_over_time(0.99, {service=\"ruige-api\"} | regexp \"duration_ms=(?P<duration>\\\\d+)\" | unwrap duration [5m])",
+          "legendFormat": "P99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "title": "5xx 错误率",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 0 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "sum(count_over_time({service=\"ruige-api\"} |= \"status=5\" [1m])) / sum(count_over_time({service=\"ruige-api\"}[1m])) * 100",
+          "legendFormat": "5xx %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "color": { "mode": "palette-classic" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 1 },
+              { "color": "red", "value": 5 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "最近错误",
+      "type": "logs",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 8 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "{service=\"ruige-api\"} |= \"ERROR\"",
+          "legendFormat": ""
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {}
+      },
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "wrapLogMessage": true
+      }
+    },
+    {
+      "title": "Ingestion 状态",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 0, "y": 18 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "count(count_over_time({service=\"ruige-api\"} |= \"ingestion completed\" [1h]))",
+          "legendFormat": "成功"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "green" }
+        }
+      }
+    },
+    {
+      "title": "Ingestion 失败",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 8, "y": 18 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "count(count_over_time({service=\"ruige-api\"} |= \"ingestion failed\" [1h]))",
+          "legendFormat": "失败"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "red" }
+        }
+      }
+    },
+    {
+      "title": "降级级别",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 8, "x": 16, "y": 18 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "count_over_time({service=\"ruige-api\"} |= \"degradation\" [5m])",
+          "legendFormat": "降级次数"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "orange" }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+# EW-B4 web 镜像构建上下文（context: .）
+.git
+**/.env
+**/.env.*
+backend
+docs
+scripts
+*.md
+frontend/node_modules
+frontend/dist

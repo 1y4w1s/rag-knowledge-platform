@@ -1,0 +1,39 @@
+{
+  "version": "1.0",
+  "description": "真实文档迷你测试集 v1.0 — 3 份真实中文文档，每份 10 题",
+  "hit_k": 3,
+  "cases": [
+    {"case_id": "RD-01", "difficulty": "L1", "tags": ["hr","real","simple"], "query": "年假有多少天？", "source": "md", "expect": {"content_contains": "10 天", "section_title": "1.1"}, "source_docs": ["01_员工手册.md"]},
+    {"case_id": "RD-02", "difficulty": "L1", "tags": ["hr","real","simple"], "query": "迟到怎么处理？", "source": "md", "expect": {"content_contains": "旷工", "section_title": "1.2"}, "source_docs": ["01_员工手册.md"]},
+    {"case_id": "RD-03", "difficulty": "L1", "tags": ["hr","real","simple"], "query": "加班费怎么算？", "source": "md", "expect": {"content_contains": "1.5 倍", "section_title": "3.1"}, "source_docs": ["01_员工手册.md"]},
+    {"case_id": "RD-04", "difficulty": "L2", "tags": ["hr","real","medium"], "query": "绩效不合格的员工会被怎么处理？", "source": "md", "expect": {"content_contains": "改进计划", "section_title": "4.1"}, "source_docs": ["01_员工手册.md"]},
+    {"case_id": "RD-05", "difficulty": "L2", "tags": ["hr","real","medium"], "query": "离职需要提前多久通知？", "source": "md", "expect": {"content_contains": "30 天", "section_title": "5.1"}, "source_docs": ["01_员工手册.md"]},
+    {"case_id": "RD-06", "difficulty": "L1", "tags": ["hr","real","simple"], "query": "员工每年有多少天年假？", "source": "md", "expect": {"content_contains": "10", "section_title": "1.1"}, "source_docs": ["01_员工手册.md"]},
+    {"case_id": "RD-07", "difficulty": "L1", "tags": ["hr","real","simple"], "query": "出差住宿标准是多少？", "source": "md", "expect": {"content_contains": "500", "section_title": "3.2"}, "source_docs": ["01_员工手册.md"]},
+    {"case_id": "RD-08", "difficulty": "L2", "tags": ["hr","real","medium"], "query": "竞业限制的期限是多久？", "source": "md", "expect": {"content_contains": "12 个月", "section_title": "5.3"}, "source_docs": ["01_员工手册.md"]},
+    {"case_id": "RD-09", "difficulty": "L1", "tags": ["hr","real","simple"], "query": "年终奖怎么发？", "source": "md", "expect": {"content_contains": "12 月", "section_title": "2.1"}, "source_docs": ["01_员工手册.md"]},
+    {"case_id": "RD-10", "difficulty": "L2", "tags": ["hr","real","medium"], "query": "病假期间工资如何计算？", "source": "md", "expect": {"content_contains": "60%", "section_title": "3.3"}, "source_docs": ["01_员工手册.md"]},
+
+    {"case_id": "RD-11", "difficulty": "L1", "tags": ["finance","real","simple"], "query": "报销需要在多少天内提交？", "source": "md", "expect": {"content_contains": "30", "section_title": "2.1"}, "source_docs": ["02_报销制度.md"]},
+    {"case_id": "RD-12", "difficulty": "L1", "tags": ["finance","real","simple"], "query": "15000元的报销需要谁来批？", "source": "md", "expect": {"content_contains": "财务总监", "section_title": "2.2"}, "source_docs": ["02_报销制度.md"]},
+    {"case_id": "RD-13", "difficulty": "L1", "tags": ["finance","real","simple"], "query": "差旅住宿标准一线城市是多少？", "source": "md", "expect": {"content_contains": "500 元", "section_title": "3.3"}, "source_docs": ["02_报销制度.md"]},
+    {"case_id": "RD-14", "difficulty": "L1", "tags": ["finance","real","simple"], "query": "出差补贴一线城市每天多少？", "source": "md", "expect": {"content_contains": "200 元/天", "section_title": "3.1"}, "source_docs": ["02_报销制度.md"]},
+    {"case_id": "RD-15", "difficulty": "L2", "tags": ["finance","real","medium"], "query": "招待客户的人均标准是多少？", "source": "md", "expect": {"content_contains": "200 元/人", "section_title": "4.1"}, "source_docs": ["02_报销制度.md"]},
+    {"case_id": "RD-16", "difficulty": "L1", "tags": ["finance","real","simple"], "query": "超过500元的发票需要什么？", "source": "md", "expect": {"content_contains": "查验真伪", "section_title": "2.3"}, "source_docs": ["02_报销制度.md"]},
+    {"case_id": "RD-17", "difficulty": "L2", "tags": ["finance","real","medium"], "query": "两人同性出差住宿有什么规定？", "source": "md", "expect": {"content_contains": "合住", "section_title": "3.3"}, "source_docs": ["02_报销制度.md"]},
+    {"case_id": "RD-18", "difficulty": "L2", "tags": ["finance","real","medium"], "query": "报销超过60天还能报吗？", "source": "md", "expect": {"content_contains": "CFO", "section_title": "2.1"}, "source_docs": ["02_报销制度.md"]},
+    {"case_id": "RD-19", "difficulty": "L1", "tags": ["finance","real","simple"], "query": "每月统一报销日是几号？", "source": "md", "expect": {"content_contains": "1 日和 15 日", "section_title": "2.4"}, "source_docs": ["02_报销制度.md"]},
+    {"case_id": "RD-20", "difficulty": "L2", "tags": ["finance","real","medium"], "query": "单张发票金额超过多少需要附真伪截图？", "source": "md", "expect": {"content_contains": "500", "section_title": "2.3"}, "source_docs": ["02_报销制度.md"]},
+
+    {"case_id": "RD-21", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "睿阁平台支持哪些文档格式？", "source": "md", "expect": {"content_contains": "PDF"}, "source_docs": ["03_README_REF.md"]},
+    {"case_id": "RD-22", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "嵌入模型用的是哪个？", "source": "md", "expect": {"content_contains": "BGE", "section_title": "技术栈"}, "source_docs": ["03_README_REF.md"]},
+    {"case_id": "RD-23", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "数据库用的是哪个？", "source": "md", "expect": {"content_contains": "PostgreSQL", "section_title": "技术栈"}, "source_docs": ["03_README_REF.md"]},
+    {"case_id": "RD-24", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "对话模型用的是哪个？", "source": "md", "expect": {"content_contains": "DeepSeek", "section_title": "技术栈"}, "source_docs": ["03_README_REF.md"]},
+    {"case_id": "RD-25", "difficulty": "L2", "tags": ["tech","real","medium"], "query": "Hybrid 检索包含哪两种方式？", "source": "md", "expect": {"content_contains": "pgvector"}, "source_docs": ["03_README_REF.md"]},
+    {"case_id": "RD-26", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "用户登录方式是什么？", "source": "md", "expect": {"content_contains": "JWT", "section_title": "认证与安全"}, "source_docs": ["03_README_REF.md"]},
+    {"case_id": "RD-27", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "平台是否支持版本管理？", "source": "md", "expect": {"content_contains": "版本管理", "section_title": "核心功能"}, "source_docs": ["03_README_REF.md"]},
+    {"case_id": "RD-28", "difficulty": "L2", "tags": ["tech","real","medium"], "query": "评测结果显示 Golden QA 的 Hit@3 是多少？", "source": "md", "expect": {"content_contains": "95.6%"}, "source_docs": ["03_README_REF.md"]},
+    {"case_id": "RD-29", "difficulty": "L2", "tags": ["tech","real","medium"], "query": "系统使用什么切片策略？", "source": "md", "expect": {"content_contains": "结构优先"}, "source_docs": ["03_README_REF.md"]},
+    {"case_id": "RD-30", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "产品对外叫什么名字？", "source": "md", "expect": {"content_contains": "睿阁"}, "source_docs": ["03_README_REF.md"]}
+  ]
+}

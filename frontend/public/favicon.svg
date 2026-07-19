@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- 睿阁 favicon：简化飞檐塔阁 + 拱门，赤陶色 -->
+  <rect x="0" y="0" width="48" height="48" rx="10" fill="#CB6B3D"/>
+  <!-- 宝顶 -->
+  <path d="M24 5 L26.5 9 L21.5 9 Z" fill="#FFF"/>
+  <!-- 顶层飞檐 -->
+  <path d="M16 14 Q24 11 32 14" stroke="#FFF" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M16 14 l-1.5 -1.5 M32 14 l1.5 -1.5" stroke="#FFF" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <!-- 顶层立柱 -->
+  <line x1="20.5" y1="15" x2="20.5" y2="21" stroke="#FFF" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="27.5" y1="15" x2="27.5" y2="21" stroke="#FFF" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- 中层飞檐 -->
+  <path d="M13 23 Q24 20 35 23" stroke="#FFF" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <path d="M13 23 l-2 -1.5 M35 23 l2 -1.5" stroke="#FFF" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+  <!-- 基座 + 拱门 -->
+  <path d="M15 24 L33 24 L35.5 38 L12.5 38 Z M21 38 L21 31.5 Q24 29 27 31.5 L27 38 Z" fill="#FFF" fill-rule="evenodd"/>
+</svg>

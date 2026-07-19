@@ -1,0 +1,18 @@
+# Docker Desktop → Settings → Docker Engine
+# 整段复制替换 JSON，Apply and restart
+# 说明：不要用 docker.xuanyuan.me 直链拉镜像（易 429）；用 registry-mirrors + scripts/docker-pull.ps1
+
+{
+  "builder": {
+    "gc": {
+      "defaultKeepStorage": "20GB",
+      "enabled": true
+    }
+  },
+  "experimental": false,
+  "max-concurrent-downloads": 3,
+  "registry-mirrors": [
+    "https://docker.m.daocloud.io",
+    "https://docker.1ms.run"
+  ]
+}
