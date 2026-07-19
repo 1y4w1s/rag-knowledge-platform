@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>睿阁 · 文档预览改版预览</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    /*
+      文档预览页 · 壳锁定 quiet
+      一等公民：PDF / TXT / MD / DOCX（DOCX=抽文本）
+      A 档降级：XLSX / PPTX — 不装表格预览；说明可对话 + 下载原文件
+      对照仅内容区
+    */
+    :root {
+      --bg: #fafafa;
+      --surf: #f5f5f0;
+      --surf2: #f7f4f0;
+      --text: #1a1512;
+      --mut: #6b6560;
+      --line2: rgba(140, 100, 64, 0.14);
+      --action: #cb6b3d;
+      --nav-on: rgba(203, 107, 61, 0.08);
+      --ok: #4c7c5e;
+      --ok-bg: #e8f0eb;
+      --serif: "Noto Serif SC", "Songti SC", serif;
+      --sans: "Noto Sans SC", "PingFang SC", sans-serif;
+      --shell-border: rgba(140, 100, 64, 0.12);
+      --paper: #fdfbf7;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--sans); color: var(--text); background: var(--bg);
+      overflow: hidden; -webkit-font-smoothing: antialiased;
+    }
+    button, a { font: inherit; }
+
+    .preview-bar {
+      position: relative; z-index: 80;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+      padding: 10px 16px; background: rgba(250,250,250,0.94);
+      border-bottom: 1px solid var(--line2);
+    }
+    .preview-bar strong { font-family: var(--serif); font-size: 14px; font-weight: 700; }
+    .preview-bar .hint { font-size: 12px; color: var(--mut); flex: 1 1 140px; min-width: 0; }
+    .lock {
+      font-size: 11px; color: var(--action); font-weight: 600;
+      padding: 4px 8px; border-radius: 6px; background: var(--nav-on);
+    }
+    .seg {
+      display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px;
+      background: var(--surf); border-radius: 10px; border: 1px solid var(--line2);
+    }
+    .seg button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] {
+      background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .frame {
+      position: relative; height: calc(100vh - 53px); display: flex; overflow: hidden;
+    }
+    .aurora {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(55% 40% at 50% 0%, rgba(232,130,78,0.1), transparent 70%);
+    }
+
+    /* 壳锁定 */
+    .rail {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center;
+      width: 64px; flex: 0 0 64px; padding: 16px 0;
+      background: rgba(250,250,250,0.72);
+      border-right: 1px solid var(--shell-border);
+      backdrop-filter: blur(12px);
+    }
+    .rail-mark { color: var(--action); margin-bottom: 4px; }
+    .rail-sep { width: 26px; height: 1px; background: var(--line2); margin: 10px 0; }
+    .rail-nav { display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100%; }
+    .rail-item {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: grid; place-items: center; color: var(--mut); position: relative;
+    }
+    .rail-item.active { background: var(--nav-on); color: var(--action); }
+    .rail-item.active::before {
+      content: ""; position: absolute; left: -10px; top: 9px; bottom: 9px; width: 3px;
+      border-radius: 0 3px 3px 0; background: var(--action);
+    }
+    .rail-item svg { width: 21px; height: 21px; }
+    .rail-spacer { flex: 1; }
+    .rail-bottom { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 999px;
+      background: color-mix(in srgb, var(--action) 18%, #fff);
+      color: var(--action); font-size: 12px; font-weight: 700;
+      display: grid; place-items: center;
+    }
+    .main-col { position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      display: flex; align-items: center; gap: 12px; height: 56px; flex-shrink: 0;
+      padding: 0 20px; border-bottom: 1px solid var(--shell-border);
+      background: rgba(250,250,250,0.78); backdrop-filter: blur(10px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
+    .brand svg { color: var(--action); }
+    .brand-name { font-family: var(--serif); font-size: 20px; font-weight: 700; }
+    .topbar-spacer { flex: 1; }
+    .scope {
+      display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px;
+      background: var(--surf); border: 1px solid var(--line2);
+    }
+    .scope button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 5px 12px; border-radius: 999px; font-size: 12px; cursor: pointer;
+    }
+    .scope button.on { background: #fff; color: var(--action); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .sun {
+      width: 34px; height: 34px; border: 0; border-radius: 999px;
+      background: transparent; color: var(--mut); display: grid; place-items: center;
+    }
+
+    /* 内容：预览壳（full-bleed 示意） */
+    .doc-shell {
+      flex: 1; min-height: 0; display: flex; flex-direction: column;
+      margin: 0; /* 现网 full-bleed 顶满；此处在壳内 */
+    }
+
+    .ptool {
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+      padding: 10px 20px; border-bottom: 1px solid var(--line2);
+      background: rgba(255,255,255,0.55); font-size: 13px;
+    }
+    .content-quiet .ptool { background: transparent; }
+    .ptool .back { color: var(--mut); text-decoration: none; font-weight: 500; }
+    .ptool .back:hover { color: var(--action); }
+    .ptool .sep { color: var(--mut); }
+    .ptool .kb { color: var(--mut); }
+    .ptool .fname {
+      margin-left: auto; max-width: 42%; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; font-weight: 600; font-size: 13px;
+    }
+    .ptool .fmt {
+      flex-shrink: 0; font-size: 11px; font-weight: 600; color: var(--mut);
+      padding: 3px 8px; border-radius: 6px; background: var(--surf2);
+    }
+    .content-current .ptool .fmt { display: none; }
+
+    .psplit { flex: 1; min-height: 0; display: flex; }
+    .pmain {
+      flex: 1; min-width: 0; overflow: auto;
+      background: color-mix(in srgb, var(--surf) 55%, transparent);
+      padding: 24px;
+    }
+    .content-quiet .pmain { background: transparent; padding: 20px 24px; }
+
+    /* PDF */
+    .pdf-frame {
+      height: calc(100% - 8px); min-height: 420px; border: 1px solid var(--line2);
+      border-radius: 8px; background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--mut); font-size: 13px;
+    }
+    .content-quiet .pdf-frame { border-radius: 0; border-left: 0; border-right: 0; }
+    .page-hint {
+      display: inline-flex; margin-bottom: 10px;
+      padding: 4px 10px; border-radius: 999px; font-size: 11px; font-weight: 600;
+      background: #fff1ea; color: var(--action);
+    }
+    .content-quiet .page-hint {
+      background: transparent; border-radius: 0; padding-left: 0;
+      border-left: 3px solid var(--action); padding-left: 10px;
+    }
+
+    /* TXT / MD / DOCX text cards */
+    .text-card {
+      max-width: 760px; margin: 0 auto;
+      border: 1px solid var(--line2); border-radius: 14px;
+      background: var(--paper); padding: 32px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06);
+      font-size: 14px; line-height: 1.8; white-space: pre-wrap;
+    }
+    .content-quiet .text-card {
+      box-shadow: none; border-radius: 0; border: 0;
+      background: transparent; padding: 8px 4px 32px;
+    }
+    .md-card {
+      max-width: 760px; margin: 0 auto;
+      border: 1px solid var(--line2); border-radius: 14px;
+      background: #fff; padding: 32px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .content-quiet .md-card {
+      box-shadow: none; border: 0; border-radius: 0; background: transparent; padding: 8px 4px 32px;
+    }
+    .md-card h2 { margin: 0 0 12px; font-family: var(--serif); font-size: 22px; }
+    .md-card p { margin: 0 0 12px; font-size: 14px; line-height: 1.75; color: var(--text); }
+    .md-card ul { margin: 0; padding-left: 1.2em; color: var(--mut); font-size: 14px; line-height: 1.7; }
+    .docx-note {
+      max-width: 760px; margin: 0 auto 12px; font-size: 12px; color: var(--mut);
+    }
+    .content-quiet .docx-note {
+      border-left: 3px solid color-mix(in srgb, var(--action) 40%, var(--line2));
+      padding-left: 10px;
+    }
+
+    /* A 档 unsupported */
+    .unsup {
+      max-width: 440px; margin: 48px auto; text-align: center;
+    }
+    .content-current .unsup {
+      /* 现网：图标+旧文案 */
+    }
+    .unsup .ico {
+      width: 54px; height: 54px; margin: 0 auto 16px;
+      border-radius: 14px; border: 1px solid var(--line2);
+      background: var(--surf2); display: grid; place-items: center;
+      color: var(--mut); font-size: 20px;
+    }
+    .content-quiet .unsup .ico {
+      background: transparent; border-color: transparent; font-size: 28px;
+    }
+    .unsup h4 {
+      margin: 0 0 8px; font-family: var(--serif); font-size: 18px; font-weight: 700;
+    }
+    .unsup p { margin: 0 0 8px; font-size: 13px; color: var(--mut); line-height: 1.65; }
+    .unsup .truth {
+      margin: 12px 0 18px; padding: 10px 12px; border-radius: 8px;
+      background: var(--surf2); font-size: 12px; color: var(--text); line-height: 1.55; text-align: left;
+    }
+    .content-quiet .unsup .truth {
+      background: transparent; border-left: 3px solid var(--action); border-radius: 0; padding-left: 12px;
+    }
+    .content-current .unsup .truth { display: none; }
+    .content-current .unsup .cta-row { display: none; }
+    .content-quiet .unsup .old-copy { display: none; }
+    .cta-row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+    .btn {
+      border-radius: 8px; padding: 9px 14px; font-size: 13px; font-weight: 600; cursor: pointer;
+      border: 1px solid var(--line2); background: #fff; color: var(--mut); text-decoration: none;
+    }
+    .btn-brand { border-color: transparent; background: var(--action); color: #fff; }
+    .btn-link {
+      border: 0; background: transparent; color: var(--action); font-weight: 700; padding: 9px 4px;
+    }
+
+    /* 侧栏 */
+    .pside {
+      width: 260px; flex-shrink: 0; overflow: auto;
+      border-left: 1px solid var(--line2);
+      background: rgba(255,255,255,0.45); padding: 16px; font-size: 12px;
+    }
+    .content-quiet .pside { background: transparent; }
+    .side-card {
+      border: 1px solid var(--line2); border-radius: 12px;
+      background: rgba(255,255,255,0.9); padding: 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .content-quiet .side-card {
+      box-shadow: none; border: 0; border-radius: 0; background: transparent; padding: 4px 0;
+    }
+    .side-card h3 {
+      margin: 0 0 12px; font-family: var(--serif); font-size: 14px; font-weight: 700;
+    }
+    .meta { display: grid; gap: 10px; margin: 0; }
+    .meta div { display: grid; gap: 2px; }
+    .meta dt { color: var(--mut); font-size: 11px; }
+    .meta dd { margin: 0; font-weight: 500; word-break: break-all; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 500;
+      background: var(--ok-bg); color: var(--ok);
+    }
+    .badge .d { width: 6px; height: 6px; border-radius: 50%; background: var(--ok); }
+    .side-actions { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+    .side-actions .btn { width: 100%; text-align: center; }
+    .content-quiet .side-actions .btn-ask {
+      background: transparent; color: var(--action); border: 0; font-weight: 700; padding-left: 0; text-align: left;
+    }
+    .content-quiet .side-actions .btn-ask::after { content: " →"; }
+    .content-current .side-actions .btn-dl { display: none; }
+    .fmt-xlsx .side-actions .btn-dl { display: block; }
+
+    .pane { display: none; height: 100%; }
+    .fmt-pdf .pane-pdf,
+    .fmt-txt .pane-txt,
+    .fmt-md .pane-md,
+    .fmt-docx .pane-docx,
+    .fmt-xlsx .pane-xlsx { display: block; }
+
+    .pain {
+      position: absolute; left: 88px; right: 16px; bottom: 10px; z-index: 5;
+      max-width: 720px; margin: 0 auto;
+      padding: 10px 12px; border-radius: 10px;
+      background: rgba(255,241,234,0.95); border: 1px solid rgba(203,107,61,0.2);
+      font-size: 11px; line-height: 1.55; pointer-events: none;
+    }
+    .pain strong { display: block; margin-bottom: 4px; }
+    .pain ul { margin: 0; padding-left: 1.2em; }
+    .content-current .pain-quiet { display: none; }
+    .content-quiet .pain-current { display: none; }
+
+    @media (max-width: 900px) {
+      .rail { display: none; }
+      .pside { display: none; }
+      .pain { left: 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-bar">
+    <strong>文档预览改版</strong>
+    <span class="lock">壳已锁定 · 不改</span>
+    <span class="hint">主路径 PDF/TXT/MD/DOCX · XLSX=A 档诚实降级（可对话+下载）</span>
+    <div class="seg">
+      <button type="button" data-c="quiet" aria-pressed="true">预览改版</button>
+      <button type="button" data-c="current" aria-pressed="false">现网对照</button>
+    </div>
+    <div class="seg">
+      <button type="button" data-f="pdf" aria-pressed="true">PDF</button>
+      <button type="button" data-f="txt" aria-pressed="false">TXT</button>
+      <button type="button" data-f="md" aria-pressed="false">MD</button>
+      <button type="button" data-f="docx" aria-pressed="false">DOCX</button>
+      <button type="button" data-f="xlsx" aria-pressed="false">XLSX·A</button>
+    </div>
+  </div>
+
+  <div class="frame" id="frame">
+    <div class="aurora" aria-hidden="true"></div>
+    <aside class="rail" aria-label="主导航">
+      <a class="rail-mark" href="#/" aria-label="睿阁">
+        <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
+          <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+          <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+        </svg>
+      </a>
+      <div class="rail-sep"></div>
+      <nav class="rail-nav">
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+        <div class="rail-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      </nav>
+      <div class="rail-spacer"></div>
+      <div class="rail-bottom">
+        <div class="avatar">管</div>
+      </div>
+    </aside>
+
+    <div class="main-col">
+      <header class="topbar">
+        <a class="brand" href="#/">
+          <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+            <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+          </svg>
+          <span class="brand-name">睿阁</span>
+        </a>
+        <div class="topbar-spacer"></div>
+        <div class="scope">
+          <button type="button">个人</button>
+          <button type="button" class="on">团队</button>
+        </div>
+        <button type="button" class="sun" aria-label="主题">☀</button>
+      </header>
+
+      <div class="doc-shell content-quiet fmt-pdf" id="content">
+        <div class="ptool">
+          <a class="back" href="#/">← 返回资料库</a>
+          <span class="sep">·</span>
+          <span class="kb">财务制度与报销</span>
+          <span class="fname" id="fname">差旅报销管理办法.pdf</span>
+          <span class="fmt" id="fmt">PDF</span>
+        </div>
+
+        <div class="psplit">
+          <div class="pmain">
+            <div class="pane pane-pdf">
+              <span class="page-hint">引用定位 · 第 3 页</span>
+              <div class="pdf-frame">PDF iframe 预览区（示意）</div>
+            </div>
+
+            <div class="pane pane-txt">
+              <pre class="text-card">差旅报销须知（摘录）
+
+1. 出差前须完成审批单。
+2. 返回后 7 日内提交报销申请。
+3. 须附行程证明与合法发票。</pre>
+            </div>
+
+            <div class="pane pane-md">
+              <article class="md-card">
+                <h2>入职材料清单</h2>
+                <p>请在入职日前提交以下材料，HR 将在系统中核对。</p>
+                <ul>
+                  <li>身份证复印件</li>
+                  <li>学历证明</li>
+                  <li>银行卡信息</li>
+                </ul>
+              </article>
+            </div>
+
+            <div class="pane pane-docx">
+              <p class="docx-note">Word 文档 · 在线显示为提取后的纯文本（非排版还原）</p>
+              <pre class="text-card">发票开具 FAQ
+
+问：何时开具发票？
+答：费用确认后，由财务在 3 个工作日内开具。
+
+问：抬头错误如何处理？
+答：联系财务作废重开，勿自行修改 PDF。</pre>
+            </div>
+
+            <div class="pane pane-xlsx">
+              <div class="unsup">
+                <div class="ico">▦</div>
+                <h4>此格式暂不支持在线预览</h4>
+                <p class="old-copy">当前仅支持 PDF 与纯文本（TXT / MD）在浏览器内预览。你可下载后使用本地工具查看。</p>
+                <div class="truth">
+                  <strong style="display:block;margin-bottom:4px;font-size:12px">已入库，可对话检索</strong>
+                  Excel 表格适合在本地核对数字。睿阁已完成解析切片——可直接在资料库提问；需要看原表时请下载文件。
+                </div>
+                <div class="cta-row">
+                  <a class="btn btn-brand" href="#/">下载原文件</a>
+                  <a class="btn btn-link" href="#/">在资料库中提问</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <aside class="pside">
+            <div class="side-card">
+              <h3>文档信息</h3>
+              <dl class="meta">
+                <div>
+                  <dt>文件名</dt>
+                  <dd id="meta-name">差旅报销管理办法.pdf</dd>
+                </div>
+                <div>
+                  <dt>大小</dt>
+                  <dd id="meta-size">1.2 MB · 48 切片</dd>
+                </div>
+                <div>
+                  <dt>格式</dt>
+                  <dd id="meta-fmt">PDF</dd>
+                </div>
+                <div>
+                  <dt>状态</dt>
+                  <dd><span class="badge"><span class="d"></span>可问答</span></dd>
+                </div>
+              </dl>
+              <div class="side-actions">
+                <a class="btn btn-brand btn-ask" href="#/">在资料库中提问</a>
+                <a class="btn btn-dl" href="#/">下载原文件</a>
+              </div>
+            </div>
+          </aside>
+        </div>
+
+        <div class="pain pain-quiet">
+          <strong>改版（壳不动）· XLSX 定 A 档</strong>
+          <ul>
+            <li>工具条更轻；文件名旁显示格式徽标</li>
+            <li>TXT/MD/DOCX 去厚纸卡片阴影；DOCX 标明「抽文本」</li>
+            <li>侧栏去白卡片；提问改文字链</li>
+            <li>XLSX/PPTX：诚实说明可对话 + 主 CTA 下载（不做表格预览）</li>
+          </ul>
+        </div>
+        <div class="pain pain-current">
+          <strong>现网痛点</strong>
+          <ul>
+            <li>文本预览厚卡片阴影；侧栏 card 叠层</li>
+            <li>unsupported 文案过时（漏 DOCX）；无下载主路径</li>
+            <li>提问钮实心抢戏</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const content = document.getElementById("content");
+    const meta = {
+      pdf:  { name: "差旅报销管理办法.pdf", fmt: "PDF",  size: "1.2 MB · 48 切片" },
+      txt:  { name: "差旅报销须知.txt",     fmt: "TXT",  size: "12 KB · 6 切片" },
+      md:   { name: "入职材料清单.md",       fmt: "MD",   size: "8 KB · 4 切片" },
+      docx: { name: "发票开具 FAQ.docx",     fmt: "DOCX", size: "86 KB · 11 切片" },
+      xlsx: { name: "2025差旅台账.xlsx",     fmt: "XLSX", size: "340 KB · 22 切片" },
+    };
+    function applyFmt(f) {
+      content.classList.remove("fmt-pdf","fmt-txt","fmt-md","fmt-docx","fmt-xlsx");
+      content.classList.add("fmt-" + f);
+      const m = meta[f];
+      document.getElementById("fname").textContent = m.name;
+      document.getElementById("fmt").textContent = m.fmt;
+      document.getElementById("meta-name").textContent = m.name;
+      document.getElementById("meta-fmt").textContent = m.fmt;
+      document.getElementById("meta-size").textContent = m.size;
+    }
+    document.querySelectorAll("[data-c]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-c]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+        btn.setAttribute("aria-pressed", "true");
+        content.classList.toggle("content-quiet", btn.dataset.c === "quiet");
+        content.classList.toggle("content-current", btn.dataset.c === "current");
+      });
+    });
+    document.querySelectorAll("[data-f]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-f]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+        btn.setAttribute("aria-pressed", "true");
+        applyFmt(btn.dataset.f);
+      });
+    });
+  </script>
+</body>
+</html>

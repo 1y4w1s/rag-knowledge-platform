@@ -1,0 +1,81 @@
+# Grafana 告警规则 — 睿阁运维
+apiVersion: 1
+
+groups:
+  - name: "睿阁 5xx 错误率"
+    folder: "睿阁告警"
+    interval: 60s
+    rules:
+      - uid: ruige_high_5xx_rate
+        title: "5xx 错误率过高"
+        condition: "A"
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: P1
+            model:
+              expr: 'sum(count_over_time({service="ruige-api"} |= "status=5" [5m])) / sum(count_over_time({service="ruige-api"}[5m])) * 100'
+              interval: 60s
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "5xx 错误率 > 1%，持续 5 分钟"
+          description: "当前 5xx 占比 {{ $values.A.Value }}%"
+        labels:
+          severity: warning
+
+  - name: "睿阁延迟"
+    folder: "睿阁告警"
+    interval: 60s
+    rules:
+      - uid: ruige_high_p95_latency
+        title: "API P95 延迟过高"
+        condition: "A"
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: P1
+            model:
+              expr: 'quantile_over_time(0.95, {service="ruige-api"} | regexp "duration_ms=(?P<duration>\\d+)" | unwrap duration [5m])'
+              interval: 60s
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "API P95 延迟 > 5s，持续 5 分钟"
+          description: "当前 P95 延迟 {{ $values.A.Value }}ms"
+        labels:
+          severity: warning
+
+  - name: "睿阁 Ingestion"
+    folder: "睿阁告警"
+    interval: 60s
+    rules:
+      - uid: ruige_high_ingestion_failure
+        title: "Ingestion 失败率过高"
+        condition: "A"
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: P1
+            model:
+              expr: 'sum(count_over_time({service="ruige-api"} |= "ingestion failed" [5m])) / sum(count_over_time({service="ruige-api"} |= "ingestion" [5m])) * 100'
+              interval: 60s
+              refId: A
+        noDataState: NoData
+        execErrState: Error
+        for: 5m
+        annotations:
+          summary: "Ingestion 失败率 > 5%，持续 5 分钟"
+          description: "当前 Ingestion 失败占比 {{ $values.A.Value }}%"
+        labels:
+          severity: critical

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>睿阁 · 操作审计改版预览</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    /*
+      操作审计预览 · 壳锁定
+      视觉 quiet + 债：动作词典补全 · 库可点 · 人可读 · 空态区分 · 筛选项人话
+      人名/库名：改版示意 enrichment（落地需 API 带 email / kb_name）
+    */
+    :root {
+      --bg: #fafafa;
+      --surf: #f5f5f0;
+      --surf2: #f7f4f0;
+      --text: #1a1512;
+      --mut: #6b6560;
+      --line2: rgba(140, 100, 64, 0.14);
+      --action: #cb6b3d;
+      --nav-on: rgba(203, 107, 61, 0.08);
+      --ok: #4c7c5e;
+      --err: #a0443a;
+      --err-bg: #f8e8e6;
+      --err-border: rgba(160, 68, 58, 0.28);
+      --serif: "Noto Serif SC", "Songti SC", serif;
+      --sans: "Noto Sans SC", "PingFang SC", sans-serif;
+      --shell-border: rgba(140, 100, 64, 0.12);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--sans); color: var(--text); background: var(--bg);
+      overflow: hidden; -webkit-font-smoothing: antialiased;
+    }
+    button, input, select, a { font: inherit; }
+
+    .preview-bar {
+      position: relative; z-index: 80;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+      padding: 10px 16px; background: rgba(250,250,250,0.94);
+      border-bottom: 1px solid var(--line2);
+    }
+    .preview-bar strong { font-family: var(--serif); font-size: 14px; font-weight: 700; }
+    .preview-bar .hint { font-size: 12px; color: var(--mut); flex: 1 1 140px; min-width: 0; }
+    .lock {
+      font-size: 11px; color: var(--action); font-weight: 600;
+      padding: 4px 8px; border-radius: 6px; background: var(--nav-on);
+    }
+    .seg {
+      display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px;
+      background: var(--surf); border-radius: 10px; border: 1px solid var(--line2);
+    }
+    .seg button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] {
+      background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .frame {
+      position: relative; height: calc(100vh - 53px); display: flex; overflow: hidden;
+    }
+    .aurora {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(55% 40% at 50% 0%, rgba(232,130,78,0.1), transparent 70%);
+    }
+    .rail {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center;
+      width: 64px; flex: 0 0 64px; padding: 16px 0;
+      background: rgba(250,250,250,0.72);
+      border-right: 1px solid var(--shell-border);
+      backdrop-filter: blur(12px);
+    }
+    .rail-mark { color: var(--action); margin-bottom: 4px; }
+    .rail-sep { width: 26px; height: 1px; background: var(--line2); margin: 10px 0; }
+    .rail-nav { display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100%; }
+    .rail-item {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: grid; place-items: center; color: var(--mut); position: relative;
+    }
+    .rail-item.active { background: var(--nav-on); color: var(--action); }
+    .rail-item.active::before {
+      content: ""; position: absolute; left: -10px; top: 9px; bottom: 9px; width: 3px;
+      border-radius: 0 3px 3px 0; background: var(--action);
+    }
+    .rail-item svg { width: 21px; height: 21px; }
+    .rail-spacer { flex: 1; }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 999px;
+      background: color-mix(in srgb, var(--action) 18%, #fff);
+      color: var(--action); font-size: 12px; font-weight: 700;
+      display: grid; place-items: center;
+    }
+    .main-col { position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      display: flex; align-items: center; gap: 12px; height: 56px; flex-shrink: 0;
+      padding: 0 20px; border-bottom: 1px solid var(--shell-border);
+      background: rgba(250,250,250,0.78); backdrop-filter: blur(10px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
+    .brand svg { color: var(--action); }
+    .brand-name { font-family: var(--serif); font-size: 20px; font-weight: 700; }
+    .topbar-spacer { flex: 1; }
+    .scope {
+      display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px;
+      background: var(--surf); border: 1px solid var(--line2);
+    }
+    .scope button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 5px 12px; border-radius: 999px; font-size: 12px; cursor: pointer;
+    }
+    .scope button.on { background: #fff; color: var(--action); font-weight: 600; }
+
+    .content { flex: 1; overflow: auto; padding: 28px 28px 64px; }
+    .page { max-width: 1180px; margin: 0 auto; }
+
+    .head {
+      display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px 14px; margin-bottom: 18px;
+    }
+    .head h1 { margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 700; }
+    .head .en { font-size: 11px; letter-spacing: 0.12em; color: var(--mut); opacity: 0.45; }
+    .head-actions { margin-left: auto; }
+    .content-current .head {
+      position: relative; padding-left: 14px;
+    }
+    .content-current .head h1 {
+      font-family: var(--sans); font-size: 17px; font-weight: 600;
+    }
+    .content-current .head h1::before {
+      content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 4px; height: 15px; border-radius: 2px; background: var(--action);
+    }
+    .content-current .head .en { opacity: 1; letter-spacing: 2px; }
+
+    .btn {
+      border: 1px solid var(--line2); border-radius: 8px; padding: 7px 12px;
+      background: #fff; font-size: 12px; font-weight: 600; color: var(--mut); cursor: pointer;
+    }
+    .btn-brand { border: 0; background: var(--action); color: #fff; }
+
+    .filters {
+      display: flex; flex-wrap: wrap; align-items: end; gap: 12px;
+      padding: 16px; margin-bottom: 14px;
+      border: 1px solid var(--line2); border-radius: 12px;
+      background: rgba(255,255,255,0.85);
+      overflow: visible;
+      position: relative; z-index: 2;
+    }
+    .content-quiet .filters {
+      border-radius: 14px;
+      background: linear-gradient(165deg, #fff 0%, #f7f4f0 100%);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.85);
+    }
+    .field { min-width: 140px; flex: 1; }
+    .field label {
+      display: block; font-size: 11px; font-weight: 600; color: var(--mut); margin-bottom: 5px;
+    }
+    .field input, .field .select-trigger {
+      width: 100%; height: 36px; border: 1px solid var(--line2); border-radius: 8px;
+      padding: 0 10px; background: #fff; font-size: 13px; color: var(--text);
+    }
+    .field.mono input { font-family: ui-monospace, monospace; font-size: 12px; }
+    .content-quiet .field.mono { display: none; }
+    .content-current .field.kb-pick { display: none; }
+    .content-current .field.actor-pick { display: none; }
+    .content-quiet .field.ip-field { display: block; }
+
+    /* 站内自定义 Select（对齐 components/ui/Select） */
+    .select { position: relative; width: 100%; }
+    .select-trigger {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; height: 36px; border: 1px solid var(--line2); border-radius: 8px;
+      padding: 0 10px; background: #fff; font-size: 13px; color: var(--text);
+      cursor: pointer; text-align: left;
+    }
+    .select-trigger:hover { border-color: var(--mut); }
+    .select-trigger:focus {
+      outline: none; border-color: var(--action);
+      box-shadow: 0 0 0 3px rgba(203, 107, 61, 0.12);
+    }
+    .select-trigger .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .select-caret {
+      margin-left: 8px; flex-shrink: 0; width: 16px; height: 16px; color: var(--mut);
+    }
+    .select-menu {
+      position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 40;
+      max-height: 240px; overflow: auto; border-radius: 10px;
+      border: 1px solid var(--line2); background: #fff; padding: 6px;
+      box-shadow: 0 8px 24px rgba(26, 21, 18, 0.1);
+    }
+    .select-option {
+      cursor: pointer; border-radius: 8px; padding: 8px 10px;
+      font-size: 13px; color: var(--text);
+    }
+    .select-option:hover, .select-option[data-active="true"] {
+      background: #f5f2ed;
+    }
+    .select-option[aria-selected="true"] {
+      background: var(--nav-on); color: var(--action); font-weight: 600;
+    }
+    .content-current .select-menu { display: none !important; }
+    .content-current .select-demo-open .select-menu { display: none !important; }
+    /* 改版：默认展开一处示意菜单风格 */
+    .content-quiet .select-demo-open .select-menu { display: block; }
+
+    .table-wrap {
+      border: 1px solid var(--line2); border-radius: 12px; overflow: hidden;
+      background: rgba(255,255,255,0.8);
+    }
+    .content-quiet .table-wrap {
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      text-align: left; font-size: 11px; font-weight: 600; color: var(--mut);
+      padding: 10px 12px; border-bottom: 1px solid var(--line2);
+      background: var(--surf2);
+    }
+    .content-quiet th { background: transparent; }
+    td {
+      padding: 11px 12px; border-bottom: 1px solid var(--line2); vertical-align: top;
+    }
+    tr:last-child td { border-bottom: 0; }
+    .mono { font-family: ui-monospace, monospace; font-size: 12px; color: var(--mut); }
+    .muted { color: var(--mut); }
+    a.kb-link {
+      color: var(--action); font-weight: 600; text-decoration: none;
+    }
+    a.kb-link:hover { text-decoration: underline; }
+    .content-current a.kb-link { pointer-events: none; color: var(--mut); font-weight: 400; font-family: ui-monospace, monospace; font-size: 12px; }
+
+    .tag {
+      display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px;
+      font-size: 11px; font-weight: 600;
+      background: var(--surf2); border: 1px solid var(--line2); color: var(--mut);
+    }
+    .tag.err {
+      background: var(--err-bg); border-color: var(--err-border); color: var(--err);
+    }
+    .tag.raw {
+      font-family: ui-monospace, monospace; font-weight: 500; opacity: 0.85;
+    }
+    .content-quiet .tag.raw { display: none; }
+    .content-current .tag.full-label { display: none; }
+
+    .empty {
+      border: 1px dashed var(--line2); border-radius: 12px; padding: 36px 20px;
+      text-align: center; background: rgba(255,255,255,0.6);
+    }
+    .empty h2 { margin: 0 0 8px; font-family: var(--serif); font-size: 16px; }
+    .empty p { margin: 0; font-size: 13px; color: var(--mut); }
+    .content-quiet .empty {
+      text-align: left; border: 0; border-radius: 14px; padding: 20px 0;
+      background: transparent; border-top: 1px solid var(--line2);
+    }
+
+    .pager {
+      margin-top: 14px; display: flex; align-items: center; gap: 10px;
+      font-size: 12px; color: var(--mut);
+    }
+
+    .state-data .only-empty,
+    .state-empty .only-data,
+    .state-filtered .only-data,
+    .state-filtered .only-empty-none,
+    .state-empty .only-filtered,
+    .state-data .only-filtered { display: none !important; }
+    .state-empty .only-empty-none { display: block !important; }
+    .state-filtered .only-filtered { display: block !important; }
+    .state-data .only-data { display: block !important; }
+
+    .content-quiet .only-current { display: none !important; }
+    .content-current .only-quiet { display: none !important; }
+
+    .note {
+      margin-top: 20px; max-width: 760px; padding: 10px 12px; border-radius: 10px;
+      background: #fff1ea; border: 1px solid rgba(203,107,61,0.2);
+      font-size: 11px; line-height: 1.55;
+    }
+    .note ul { margin: 4px 0 0; padding-left: 1.2em; }
+    .content-quiet .note-current { display: none; }
+    .content-current .note-quiet { display: none; }
+
+    @media (max-width: 800px) { .rail { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="preview-bar">
+    <strong>操作审计改版</strong>
+    <span class="lock">壳已锁定 · 不改</span>
+    <span class="hint">quiet + 动作词典 · 库可点 · 人可读 · 空态区分</span>
+    <div class="seg" id="seg">
+      <button type="button" data-c="quiet" aria-pressed="true">改版</button>
+      <button type="button" data-c="current" aria-pressed="false">现网</button>
+      <button type="button" data-s="data" aria-pressed="true">有数据</button>
+      <button type="button" data-s="empty" aria-pressed="false">无记录</button>
+      <button type="button" data-s="filtered" aria-pressed="false">无匹配</button>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="aurora" aria-hidden="true"></div>
+    <aside class="rail">
+      <a class="rail-mark" href="#/" aria-label="睿阁">
+        <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
+          <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+          <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+        </svg>
+      </a>
+      <div class="rail-sep"></div>
+      <nav class="rail-nav">
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+        <div class="rail-item active" title="审计"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg></div>
+      </nav>
+      <div class="rail-spacer"></div>
+      <div class="avatar">管</div>
+    </aside>
+
+    <div class="main-col">
+      <header class="topbar">
+        <a class="brand" href="#/">
+          <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+            <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+          </svg>
+          <span class="brand-name">睿阁</span>
+        </a>
+        <div class="topbar-spacer"></div>
+        <div class="scope">
+          <button type="button">个人</button>
+          <button type="button" class="on">团队</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="page content-quiet state-data" id="page">
+          <div class="head">
+            <h1>操作审计</h1>
+            <span class="en">AUDIT</span>
+            <div class="head-actions">
+              <button type="button" class="btn">刷新</button>
+            </div>
+          </div>
+
+          <form class="filters" onsubmit="return false;">
+            <div class="field">
+              <label>操作类型</label>
+              <!-- 现网：操作类型已用站内 Select；此处用同款 trigger 示意 -->
+              <div class="select select-demo-open" data-select>
+                <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="true">
+                  <span class="label">全部</span>
+                  <svg class="select-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+                <div class="select-menu" role="listbox">
+                  <div class="select-option" role="option" aria-selected="true" data-active="true">全部</div>
+                  <div class="select-option" role="option" aria-selected="false">登录成功</div>
+                  <div class="select-option" role="option" aria-selected="false">登录失败</div>
+                  <div class="select-option only-quiet" role="option" aria-selected="false">上传文档</div>
+                  <div class="select-option only-quiet" role="option" aria-selected="false">Agent 工具执行</div>
+                  <div class="select-option only-quiet" role="option" aria-selected="false">创建对话</div>
+                  <div class="select-option only-quiet" role="option" aria-selected="false">授权共享</div>
+                  <div class="select-option only-quiet" role="option" aria-selected="false">解散团队</div>
+                </div>
+              </div>
+            </div>
+            <div class="field mono">
+              <label>资料库 ID</label>
+              <input type="text" placeholder="完整 UUID，可留空" />
+            </div>
+            <div class="field kb-pick">
+              <label>资料库</label>
+              <div class="select" data-select>
+                <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="label">全部资料库</span>
+                  <svg class="select-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+                <div class="select-menu" role="listbox" hidden>
+                  <div class="select-option" role="option" aria-selected="true">全部资料库</div>
+                  <div class="select-option" role="option" aria-selected="false">人事制度库</div>
+                  <div class="select-option" role="option" aria-selected="false">员工手册</div>
+                </div>
+              </div>
+            </div>
+            <div class="field actor-pick only-quiet">
+              <label>操作者</label>
+              <div class="select" data-select>
+                <button type="button" class="select-trigger" aria-haspopup="listbox" aria-expanded="false">
+                  <span class="label">全部成员</span>
+                  <svg class="select-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9l6 6 6-6"/></svg>
+                </button>
+                <div class="select-menu" role="listbox" hidden>
+                  <div class="select-option" role="option" aria-selected="true">全部成员</div>
+                  <div class="select-option" role="option" aria-selected="false">zhang@demo.local</div>
+                  <div class="select-option" role="option" aria-selected="false">li@demo.local</div>
+                </div>
+              </div>
+            </div>
+            <div class="field ip-field only-quiet" style="flex:0.8;min-width:120px">
+              <label>IP</label>
+              <input type="text" placeholder="可选" />
+            </div>
+            <div class="field" style="flex:0.7;min-width:130px">
+              <label>起始日期</label>
+              <input type="date" value="2026-07-01" />
+            </div>
+            <div class="field" style="flex:0.7;min-width:130px">
+              <label>结束日期</label>
+              <input type="date" value="2026-07-17" />
+            </div>
+            <div style="display:flex;gap:8px">
+              <button type="button" class="btn btn-brand">查询</button>
+              <button type="button" class="btn">重置</button>
+            </div>
+          </form>
+
+          <!-- 有数据 -->
+          <div class="only-data">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>时间</th>
+                    <th>操作</th>
+                    <th>资料库</th>
+                    <th>操作者</th>
+                    <th class="only-quiet">IP</th>
+                    <th>详情</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="muted" style="white-space:nowrap">2026/07/17 18:40:12</td>
+                    <td>
+                      <span class="tag full-label">上传文档</span>
+                      <span class="tag raw">document.upload</span>
+                    </td>
+                    <td>
+                      <a class="kb-link" href="#/kb/1">人事制度库</a>
+                      <span class="only-current mono">b1c2d3e4…</span>
+                    </td>
+                    <td>
+                      <span class="only-quiet">zhang@demo.local</span>
+                      <span class="only-current mono">a1b2c3d4…</span>
+                    </td>
+                    <td class="only-quiet muted">10.0.0.12</td>
+                    <td class="muted">差旅制度.pdf</td>
+                  </tr>
+                  <tr>
+                    <td class="muted" style="white-space:nowrap">2026/07/17 18:22:01</td>
+                    <td>
+                      <span class="tag err full-label">登录失败</span>
+                      <span class="tag err raw">auth.login_failed</span>
+                    </td>
+                    <td class="muted">—</td>
+                    <td>
+                      <span class="only-quiet">unknown@ext.local</span>
+                      <span class="only-current mono">—</span>
+                    </td>
+                    <td class="only-quiet muted">203.0.113.8</td>
+                    <td class="muted">—</td>
+                  </tr>
+                  <tr>
+                    <td class="muted" style="white-space:nowrap">2026/07/17 17:05:44</td>
+                    <td>
+                      <span class="tag full-label only-quiet">Agent 工具执行</span>
+                      <span class="tag raw">agent.tool_executed</span>
+                    </td>
+                    <td>
+                      <a class="kb-link" href="#/kb/2">员工手册</a>
+                      <span class="only-current mono">c2d3e4f5…</span>
+                    </td>
+                    <td>
+                      <span class="only-quiet">li@demo.local</span>
+                      <span class="only-current mono">d4e5f6a7…</span>
+                    </td>
+                    <td class="only-quiet muted">10.0.0.18</td>
+                    <td class="muted only-quiet">search_docs</td>
+                    <td class="muted only-current">{"tool":"search_docs"}</td>
+                  </tr>
+                  <tr>
+                    <td class="muted" style="white-space:nowrap">2026/07/17 16:11:09</td>
+                    <td>
+                      <span class="tag full-label only-quiet">创建对话</span>
+                      <span class="tag raw">chat.thread_created</span>
+                    </td>
+                    <td>
+                      <a class="kb-link" href="#/kb/1">人事制度库</a>
+                      <span class="only-current mono">b1c2d3e4…</span>
+                    </td>
+                    <td>
+                      <span class="only-quiet">wang@demo.local</span>
+                      <span class="only-current mono">e5f6a7b8…</span>
+                    </td>
+                    <td class="only-quiet muted">10.0.0.21</td>
+                    <td class="muted">报销材料咨询</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pager">共 128 条 · 第 1 / 7 页</div>
+          </div>
+
+          <!-- 无记录 -->
+          <div class="empty only-empty-none">
+            <h2>暂无审计记录</h2>
+            <p class="only-current">关键操作（登录、上传、删文档、成员变更等）会出现在这里。</p>
+            <p class="only-quiet">团队内尚无记入审计的操作。</p>
+          </div>
+
+          <!-- 无匹配 -->
+          <div class="empty only-filtered">
+            <h2 class="only-current">暂无审计记录</h2>
+            <p class="only-current">关键操作（登录、上传、删文档、成员变更等）会出现在这里。</p>
+            <h2 class="only-quiet">没有符合条件的记录</h2>
+            <p class="only-quiet">试试放宽日期或清空操作类型 / 资料库筛选。</p>
+          </div>
+
+          <div class="note note-current">
+            现网债
+            <ul>
+              <li>动作词典不全 → 英文 key；库/人短 UUID</li>
+              <li>筛资料库要手填 UUID；无按人 / IP</li>
+              <li>空结果与无数据文案相同；详情偶发 JSON 坨</li>
+            </ul>
+          </div>
+          <div class="note note-quiet">
+            改版 + 债（落地范围）
+            <ul>
+              <li>补全动作中文（含 agent / chat / grant / 限流等）</li>
+              <li>库下拉 + 链到资料库；操作者/库名 enrichment（API 加字段）</li>
+              <li>可选 IP / 操作者筛；空态区分无记录 vs 无匹配</li>
+              <li>quiet 软纸面；不做导出</li>
+            </ul>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const page = document.getElementById("page");
+    document.getElementById("seg").addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      if (btn.dataset.c) {
+        page.classList.toggle("content-quiet", btn.dataset.c === "quiet");
+        page.classList.toggle("content-current", btn.dataset.c === "current");
+        for (const b of e.currentTarget.querySelectorAll("[data-c]")) {
+          b.setAttribute("aria-pressed", String(b === btn));
+        }
+      }
+      if (btn.dataset.s) {
+        page.classList.remove("state-data", "state-empty", "state-filtered");
+        page.classList.add(
+          btn.dataset.s === "data" ? "state-data" :
+          btn.dataset.s === "empty" ? "state-empty" : "state-filtered"
+        );
+        for (const b of e.currentTarget.querySelectorAll("[data-s]")) {
+          b.setAttribute("aria-pressed", String(b === btn));
+        }
+      }
+    });
+
+    /* 预览：自定义 Select 开合（对齐站内交互） */
+    document.querySelectorAll("[data-select]").forEach((root) => {
+      const trigger = root.querySelector(".select-trigger");
+      const menu = root.querySelector(".select-menu");
+      if (!trigger || !menu) return;
+      trigger.addEventListener("click", () => {
+        const open = menu.hidden === false && !menu.hasAttribute("hidden");
+        const willOpen = menu.hasAttribute("hidden") || menu.hidden;
+        document.querySelectorAll("[data-select] .select-menu").forEach((m) => {
+          m.hidden = true;
+          m.setAttribute("hidden", "");
+        });
+        document.querySelectorAll("[data-select] .select-trigger").forEach((t) => {
+          t.setAttribute("aria-expanded", "false");
+        });
+        root.classList.remove("select-demo-open");
+        if (willOpen) {
+          menu.hidden = false;
+          menu.removeAttribute("hidden");
+          trigger.setAttribute("aria-expanded", "true");
+        }
+      });
+      menu.querySelectorAll(".select-option").forEach((opt) => {
+        opt.addEventListener("click", () => {
+          const label = root.querySelector(".select-trigger .label");
+          if (label) label.textContent = opt.textContent.trim();
+          menu.querySelectorAll(".select-option").forEach((o) => {
+            o.setAttribute("aria-selected", String(o === opt));
+            o.removeAttribute("data-active");
+          });
+          opt.setAttribute("data-active", "true");
+          menu.hidden = true;
+          menu.setAttribute("hidden", "");
+          trigger.setAttribute("aria-expanded", "false");
+          root.classList.remove("select-demo-open");
+        });
+      });
+    });
+  </script>
+</body>
+</html>

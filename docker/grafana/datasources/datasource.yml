@@ -1,0 +1,36 @@
+# Grafana 数据源 — Loki + Tempo 自动 provisioning
+apiVersion: 1
+
+datasources:
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    isDefault: true
+    editable: false
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        - name: trace_id
+          matcherRegex: '"trace_id":"([^"]+)"'
+          url: http://localhost:3001/explore?orgId=1&left={"datasource":"Tempo","queries":[{"query":"$${__value.raw}"}]}
+          urlDisplayLabel: "Trace: $1"
+
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    isDefault: false
+    editable: false
+    jsonData:
+      nodeGraph:
+        enabled: true
+      search:
+        hide: false
+      tracesToLogs:
+        datasourceUid: Loki
+        tags: ["trace_id", "service"]
+        mappedTags: []
+        mapTagNamesEnabled: false
+        spanStartTimeShift: -1h
+        spanEndTimeShift: 1h

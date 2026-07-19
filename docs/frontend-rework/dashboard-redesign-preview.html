@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>睿阁 · 概览（驾驶舱）改版预览</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    /*
+      概览轻改预览 · 壳锁定
+      企业向：就绪 + 最近有引用的提问 + 安静健康
+      去误导：假日期跳转、死「—」行、开发者 tag、营销空态
+    */
+    :root {
+      --bg: #fafafa;
+      --surf: #f5f5f0;
+      --surf2: #f7f4f0;
+      --text: #1a1512;
+      --mut: #6b6560;
+      --line2: rgba(140, 100, 64, 0.14);
+      --action: #cb6b3d;
+      --nav-on: rgba(203, 107, 61, 0.08);
+      --ok: #4c7c5e;
+      --err: #a0443a;
+      --warn: #8a7218;
+      --que: #5b6b7c;
+      --serif: "Noto Serif SC", "Songti SC", serif;
+      --sans: "Noto Sans SC", "PingFang SC", sans-serif;
+      --shell-border: rgba(140, 100, 64, 0.12);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--sans); color: var(--text); background: var(--bg);
+      overflow: hidden; -webkit-font-smoothing: antialiased;
+    }
+    button, a { font: inherit; }
+
+    .preview-bar {
+      position: relative; z-index: 80;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+      padding: 10px 16px; background: rgba(250,250,250,0.94);
+      border-bottom: 1px solid var(--line2);
+    }
+    .preview-bar strong { font-family: var(--serif); font-size: 14px; font-weight: 700; }
+    .preview-bar .hint { font-size: 12px; color: var(--mut); flex: 1 1 140px; min-width: 0; }
+    .lock {
+      font-size: 11px; color: var(--action); font-weight: 600;
+      padding: 4px 8px; border-radius: 6px; background: var(--nav-on);
+    }
+    .seg {
+      display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px;
+      background: var(--surf); border-radius: 10px; border: 1px solid var(--line2);
+    }
+    .seg button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] {
+      background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .frame {
+      position: relative; height: calc(100vh - 53px); display: flex; overflow: hidden;
+    }
+    .aurora {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(55% 40% at 50% 0%, rgba(232,130,78,0.1), transparent 70%);
+    }
+    .rail {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center;
+      width: 64px; flex: 0 0 64px; padding: 16px 0;
+      background: rgba(250,250,250,0.72);
+      border-right: 1px solid var(--shell-border);
+      backdrop-filter: blur(12px);
+    }
+    .rail-mark { color: var(--action); margin-bottom: 4px; }
+    .rail-sep { width: 26px; height: 1px; background: var(--line2); margin: 10px 0; }
+    .rail-nav { display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100%; }
+    .rail-item {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: grid; place-items: center; color: var(--mut); position: relative;
+    }
+    .rail-item.active { background: var(--nav-on); color: var(--action); }
+    .rail-item.active::before {
+      content: ""; position: absolute; left: -10px; top: 9px; bottom: 9px; width: 3px;
+      border-radius: 0 3px 3px 0; background: var(--action);
+    }
+    .rail-item svg { width: 21px; height: 21px; }
+    .rail-spacer { flex: 1; }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 999px;
+      background: color-mix(in srgb, var(--action) 18%, #fff);
+      color: var(--action); font-size: 12px; font-weight: 700;
+      display: grid; place-items: center;
+    }
+    .main-col { position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      display: flex; align-items: center; gap: 12px; height: 56px; flex-shrink: 0;
+      padding: 0 20px; border-bottom: 1px solid var(--shell-border);
+      background: rgba(250,250,250,0.78); backdrop-filter: blur(10px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
+    .brand svg { color: var(--action); }
+    .brand-name { font-family: var(--serif); font-size: 20px; font-weight: 700; }
+    .topbar-spacer { flex: 1; }
+    .scope {
+      display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px;
+      background: var(--surf); border: 1px solid var(--line2);
+    }
+    .scope button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 5px 12px; border-radius: 999px; font-size: 12px; cursor: pointer;
+    }
+    .scope button.on { background: #fff; color: var(--action); font-weight: 600; }
+
+    .content { flex: 1; overflow: auto; padding: 28px 28px 64px; }
+    .page { max-width: 1180px; margin: 0 auto; }
+
+    .head {
+      display: flex; align-items: baseline; gap: 10px; margin-bottom: 18px;
+    }
+    .head h1 { margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 700; }
+    .head .en { font-size: 11px; letter-spacing: 0.12em; color: var(--mut); opacity: 0.45; }
+    .content-current .page-head { display: none; }
+    .sec-h {
+      display: flex; align-items: baseline; gap: 10px; margin: 28px 0 12px;
+    }
+    .sec-h h2 { margin: 0; font-family: var(--serif); font-size: 15px; font-weight: 700; }
+    .sec-h .en { font-size: 10px; letter-spacing: 0.1em; color: var(--mut); opacity: 0.4; }
+    .content-current .sec-h {
+      position: relative; padding-left: 14px;
+    }
+    .content-current .sec-h h2 {
+      font-family: var(--sans); font-size: 17px; font-weight: 600;
+    }
+    .content-current .sec-h h2::before {
+      content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 4px; height: 14px; border-radius: 2px; background: var(--action);
+    }
+    .content-current .sec-h .en { opacity: 1; letter-spacing: 2px; font-size: 11px; }
+
+    .kpi {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 8px;
+    }
+    @media (max-width: 900px) { .kpi { grid-template-columns: 1fr 1fr; } }
+    .kpi a {
+      text-decoration: none; color: inherit;
+      border: 1px solid var(--line2); border-radius: 16px;
+      background: var(--surf); padding: 16px 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 -1px 0 rgba(255,255,255,0.6) inset;
+      position: relative; overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .content-current .kpi a:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(140,80,40,0.1);
+    }
+    .content-current .kpi a::before {
+      content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: linear-gradient(var(--action), #a85a30);
+    }
+    .content-quiet .kpi {
+      gap: 10px;
+      padding: 4px 0 4px;
+      margin-bottom: 4px;
+    }
+    .content-quiet .kpi a {
+      border-radius: 14px;
+      border: 1px solid var(--line2);
+      background: linear-gradient(165deg, #fff 0%, #f7f4f0 100%);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset;
+      padding: 16px 18px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .content-quiet .kpi a:hover {
+      border-color: color-mix(in srgb, var(--action) 35%, var(--line2));
+      background: #fff;
+    }
+    .content-quiet .kpi a::before {
+      display: block;
+      content: "";
+      position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px;
+      border-radius: 0 3px 3px 0;
+      background: color-mix(in srgb, var(--action) 55%, transparent);
+    }
+    .content-quiet .kpi .n { font-size: 30px; letter-spacing: -0.02em; }
+    .content-quiet .kpi .l { font-weight: 600; color: var(--text); }
+    .content-quiet .kpi .h { opacity: 0.85; }
+
+    .content-quiet .card {
+      border-radius: 14px;
+      background: rgba(255,255,255,0.72);
+      border: 1px solid var(--line2);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.9) inset;
+      padding: 18px 20px;
+      margin-top: 0;
+    }
+    .content-quiet .sec-h {
+      margin: 32px 0 14px;
+    }
+    .content-quiet .sec-h h2 { font-size: 17px; }
+    .content-quiet .page-head h1 { font-size: 26px; letter-spacing: -0.02em; }
+    .content-quiet .page-head {
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line2);
+    }
+
+    .content-quiet .alert-strip {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
+      margin-bottom: 18px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid color-mix(in srgb, var(--ok) 22%, var(--line2));
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--ok) 10%, transparent), transparent 42%),
+        #fff;
+      font-size: 13px;
+    }
+    .content-quiet .alert-strip .ok {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--serif); font-size: 15px; font-weight: 700; color: var(--ok);
+    }
+    .content-quiet .alert-strip .bad {
+      padding: 3px 10px; border-radius: 999px;
+      background: color-mix(in srgb, var(--err) 10%, #fff);
+      color: var(--err); font-weight: 600; font-size: 12px;
+    }
+
+    .content-quiet .hit-hero .big { font-size: 34px; }
+    .content-quiet .pipe {
+      height: 40px; border-radius: 12px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06) inset;
+    }
+    .content-quiet .trend .day {
+      padding: 8px 4px;
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--surf2) 70%, #fff);
+    }
+    .content-quiet .trend .sq {
+      border-radius: 10px;
+      background: color-mix(in srgb, var(--action) 42%, #f0e8e0);
+      box-shadow: 0 1px 2px rgba(120,70,40,0.08) inset;
+    }
+    .content-quiet .trend .sq.lo {
+      opacity: 1;
+      background: color-mix(in srgb, var(--action) 12%, #f3efe9);
+    }
+
+    .content-quiet a.feed-item {
+      margin: 0 0 6px;
+      padding: 12px 12px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      border-bottom: 1px solid transparent;
+      background: color-mix(in srgb, var(--surf2) 55%, #fff);
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .content-quiet a.feed-item:last-child { margin-bottom: 0; }
+    .content-quiet a.feed-item:hover {
+      background: #fff;
+      border-color: color-mix(in srgb, var(--action) 28%, var(--line2));
+    }
+    .content-quiet .feed-item .ic {
+      background: color-mix(in srgb, var(--action) 12%, #fff);
+      color: var(--action);
+    }
+    .content-quiet .feed-item .t { font-size: 14px; font-weight: 600; }
+    .content-quiet .cite-chip {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--action);
+      background: var(--nav-on);
+    }
+    .content-quiet .empty-quiet {
+      margin-top: 12px;
+      padding: 28px 28px 32px;
+      border-radius: 16px;
+      border: 1px solid var(--line2);
+      background:
+        radial-gradient(80% 60% at 10% 0%, rgba(203,107,61,0.08), transparent 55%),
+        #fff;
+    }
+    .content-quiet .empty-quiet h2 { font-size: 22px; }
+    .content-quiet .foot {
+      margin-top: 36px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--line2);
+      background: rgba(255,255,255,0.55);
+    }
+
+    .kpi .n { font-family: var(--serif); font-size: 28px; font-weight: 700; line-height: 1; }
+    .kpi .l { margin-top: 8px; font-size: 12px; color: var(--mut); }
+    .kpi .h { margin-top: 2px; font-size: 11px; color: var(--mut); }
+
+    .card {
+      border: 1px solid var(--line2); border-radius: 16px;
+      background: var(--surf); padding: 18px 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+      margin-bottom: 0;
+    }
+    .card-h {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px; font-size: 13px; color: var(--mut);
+    }
+    .tag {
+      font-size: 11px; padding: 3px 8px; border-radius: 6px;
+      border: 1px solid var(--line2); color: var(--mut);
+    }
+    .content-quiet .tag.dev { display: none; }
+
+    .grid2 { display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; }
+    .grid2b { display: grid; grid-template-columns: 1.4fr 1fr; gap: 14px; }
+    @media (max-width: 900px) { .grid2, .grid2b { grid-template-columns: 1fr; } }
+
+    .pipe {
+      display: flex; height: 44px; border-radius: 10px; overflow: hidden;
+      font-size: 12px; font-weight: 600; color: #fff; margin-bottom: 10px;
+    }
+    .pipe span { display: flex; align-items: center; justify-content: center; min-width: 60px; }
+    .content-quiet .pipe span.zero { display: none; }
+    .content-quiet .pipe span { min-width: 0; padding: 0 10px; }
+
+    .hit-hero {
+      text-align: center; padding: 8px 0 4px;
+    }
+    .hit-hero .big {
+      font-family: var(--serif); font-size: 46px; font-weight: 700; color: var(--ok); line-height: 1;
+    }
+    .content-quiet .hit-hero .big { font-size: 28px; }
+    .hit-hero .sub { margin-top: 8px; font-size: 12px; color: var(--mut); }
+    .gauge {
+      margin: 14px auto 0; height: 7px; border-radius: 999px; background: var(--surf2); overflow: hidden;
+    }
+    .gauge i { display: block; height: 100%; width: 92%; background: var(--ok); }
+
+    .perf-row {
+      display: flex; justify-content: space-between; align-items: baseline;
+      padding: 11px 0; border-bottom: 1px solid var(--line2); font-size: 13px;
+    }
+    .perf-row:last-child { border-bottom: 0; }
+    .perf-row .v { font-family: var(--serif); font-size: 19px; font-weight: 600; }
+    .content-quiet .perf-dead { display: none; }
+
+    .trend {
+      display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px;
+    }
+    .trend button, .trend .day {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 6px; border-radius: 12px; border: 0; background: transparent;
+      font-size: 11px; color: var(--mut); cursor: pointer;
+    }
+    .content-quiet .trend .day { cursor: default; }
+    .trend .sq {
+      width: 100%; aspect-ratio: 1; border-radius: 8px;
+      background: color-mix(in srgb, var(--action) 35%, var(--surf2));
+    }
+    .trend .sq.lo { opacity: 0.25; }
+    .trend .n { color: var(--text); font-weight: 500; }
+
+    .feed-item {
+      display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line2);
+      font-size: 13px; align-items: flex-start;
+    }
+    .feed-item:last-child { border-bottom: 0; }
+    .feed-item .ic {
+      width: 26px; height: 26px; border-radius: 8px; background: var(--surf2);
+      flex-shrink: 0;
+    }
+    .feed-item .t { font-weight: 500; }
+    .feed-item .m { font-size: 11px; color: var(--mut); margin-top: 2px; }
+    .feed-item .tm { margin-left: auto; font-size: 11px; color: var(--mut); flex-shrink: 0; }
+    .content-quiet a.feed-item {
+      text-decoration: none; color: inherit; border-radius: 6px; margin: 0 -4px; padding: 10px 4px;
+    }
+    .content-quiet a.feed-item:hover { background: color-mix(in srgb, var(--surf2) 80%, transparent); }
+    .feed-bar {
+      width: 3px; align-self: stretch; border-radius: 2px; background: var(--action); flex-shrink: 0;
+    }
+    .content-quiet .feed-bar { display: none; }
+
+    .empty-mkt {
+      border: 1px dashed var(--line2); border-radius: 20px; padding: 36px 24px;
+      text-align: center; background: #fff;
+      box-shadow: 0 8px 24px rgba(140,80,40,0.06);
+    }
+    .empty-mkt h2 { margin: 0 0 10px; font-family: var(--serif); font-size: 22px; }
+    .empty-mkt p { margin: 0 auto 16px; max-width: 420px; font-size: 13px; color: var(--mut); line-height: 1.6; }
+    .empty-stats {
+      display: flex; justify-content: center; gap: 20px; margin-top: 18px; font-size: 12px; color: var(--mut);
+    }
+    .empty-quiet {
+      max-width: 420px; padding: 8px 0 24px;
+    }
+    .empty-quiet h2 { margin: 0 0 8px; font-family: var(--serif); font-size: 20px; }
+    .empty-quiet p { margin: 0 0 14px; font-size: 13px; color: var(--mut); line-height: 1.55; }
+    .btns { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn {
+      border: 1px solid var(--line2); border-radius: 8px; padding: 8px 14px;
+      background: #fff; font-size: 12px; font-weight: 600; color: var(--mut); cursor: pointer;
+    }
+    .btn-brand { border: 0; background: var(--action); color: #fff; }
+    .btn-link { border: 0; background: transparent; color: var(--action); padding: 8px 4px; }
+
+    .alert-strip {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+      padding: 10px 0 4px; font-size: 13px;
+    }
+    .alert-strip .bad { color: var(--err); font-weight: 600; }
+    .alert-strip .ok { color: var(--ok); font-weight: 600; }
+    .content-current .alert-strip { display: none; }
+
+    .foot {
+      margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--line2);
+      font-size: 12px; color: var(--mut);
+    }
+    .foot details summary { cursor: pointer; list-style: none; }
+    .foot details summary::-webkit-details-marker { display: none; }
+    .foot .long {
+      margin-top: 10px; line-height: 1.6; font-size: 11px;
+    }
+    .content-quiet .foot .long-api { display: none; }
+
+    .state-empty .only-data { display: none !important; }
+    .state-data .only-empty { display: none !important; }
+    .content-quiet .only-current { display: none !important; }
+    .content-current .only-quiet { display: none !important; }
+
+    .note {
+      margin-top: 20px; padding: 10px 12px; border-radius: 10px;
+      background: #fff1ea; border: 1px solid rgba(203,107,61,0.2);
+      font-size: 11px; line-height: 1.55; max-width: 720px;
+    }
+    .note ul { margin: 4px 0 0; padding-left: 1.2em; }
+    .content-quiet .note-current { display: none; }
+    .content-current .note-quiet { display: none; }
+
+    @media (max-width: 800px) { .rail { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="preview-bar">
+    <strong>概览改版</strong>
+    <span class="lock">壳已锁定 · 不改</span>
+    <span class="hint">企业向 · 去误导 · 轻改气质</span>
+    <div class="seg" id="seg">
+      <button type="button" data-c="quiet" aria-pressed="true">改版</button>
+      <button type="button" data-c="current" aria-pressed="false">现网</button>
+      <button type="button" data-s="data" aria-pressed="true">有数据</button>
+      <button type="button" data-s="empty" aria-pressed="false">空库</button>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="aurora" aria-hidden="true"></div>
+    <aside class="rail">
+      <a class="rail-mark" href="#/" aria-label="睿阁">
+        <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
+          <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+          <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+        </svg>
+      </a>
+      <div class="rail-sep"></div>
+      <nav class="rail-nav">
+        <div class="rail-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg></div>
+      </nav>
+      <div class="rail-spacer"></div>
+      <div class="avatar">管</div>
+    </aside>
+
+    <div class="main-col">
+      <header class="topbar">
+        <a class="brand" href="#/">
+          <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+            <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+          </svg>
+          <span class="brand-name">睿阁</span>
+        </a>
+        <div class="topbar-spacer"></div>
+        <div class="scope">
+          <button type="button">个人</button>
+          <button type="button" class="on">团队</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="page content-quiet state-data" id="page">
+
+          <!-- 空库 -->
+          <div class="only-empty">
+            <div class="empty-mkt only-current">
+              <h2>把散落的资料，串成可被问的知识</h2>
+              <p>建一个资料库，上传 PDF / Word，几分钟后就能像问同事一样问它：出处·引用，全部带在身上。</p>
+              <div class="btns" style="justify-content:center">
+                <button type="button" class="btn btn-brand">新建第一个资料库</button>
+                <button type="button" class="btn">批量上传文档</button>
+              </div>
+              <div class="empty-stats">
+                <span>30 秒开始整理</span><span>10 格式</span><span>出处引用</span><span>RAG</span>
+              </div>
+            </div>
+            <div class="empty-quiet only-quiet">
+              <div class="head page-head"><h1>概览</h1><span class="en">OVERVIEW</span></div>
+              <h2>还没有可问的知识</h2>
+              <p>新建资料库并上传文档后，这里会显示就绪状态与最近提问。</p>
+              <div class="btns">
+                <button type="button" class="btn btn-brand">去新建资料库</button>
+                <button type="button" class="btn btn-link">去对话看看</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 有数据 -->
+          <div class="only-data">
+            <div class="head page-head only-quiet">
+              <h1>概览</h1>
+              <span class="en">OVERVIEW</span>
+            </div>
+
+            <div class="alert-strip only-quiet">
+              <span class="ok">128 篇可提问</span>
+              <span class="bad">2 篇失败 · 需处理</span>
+              <button type="button" class="btn btn-link" style="padding:0">查看失败文档</button>
+            </div>
+
+            <section class="kpi" aria-label="关键指标">
+              <a href="#/kb"><div class="n">6</div><div class="l">资料库</div><div class="h">当前空间可见</div></a>
+              <a href="#/docs"><div class="n">142</div><div class="l">已入库文件</div><div class="h">可提问 128</div></a>
+              <a href="#/ask"><div class="n">37</div><div class="l">近 7 日提问</div><div class="h">含引用溯源</div></a>
+              <a href="#/members"><div class="n">12</div><div class="l">团队成员</div><div class="h">企业版</div></a>
+            </section>
+
+            <!-- 改版：最近价值在前 -->
+            <div class="only-quiet">
+              <div class="sec-h"><h2>最近提问</h2><span class="en">RECENT</span></div>
+              <div class="card">
+                <div class="card-h"><span>带引用的对话</span></div>
+                <a class="feed-item" href="#/ask/t1">
+                  <div class="ic"></div>
+                  <div>
+                    <div class="t">报销需要哪些材料？</div>
+                    <div class="m">人事制度库</div>
+                    <span class="cite-chip only-quiet">3 条引用</span>
+                  </div>
+                  <span class="tm">12 分钟前</span>
+                </a>
+                <a class="feed-item" href="#/ask/t2">
+                  <div class="ic"></div>
+                  <div>
+                    <div class="t">入职首周要做什么？</div>
+                    <div class="m">员工手册</div>
+                    <span class="cite-chip only-quiet">5 条引用</span>
+                  </div>
+                  <span class="tm">2 小时前</span>
+                </a>
+                <a class="feed-item" href="#/ask/t3">
+                  <div class="ic"></div>
+                  <div>
+                    <div class="t">差旅标准是多少？</div>
+                    <div class="m">财务制度</div>
+                    <span class="cite-chip only-quiet">2 条引用</span>
+                  </div>
+                  <span class="tm">昨天</span>
+                </a>
+              </div>
+            </div>
+
+            <div class="sec-h"><h2>入库态势</h2><span class="en">INGESTION</span></div>
+            <div class="card">
+              <div class="card-h">
+                <span>文档流转</span>
+                <span class="tag dev">实时四态</span>
+                <span class="tag only-current">Plan-3E</span>
+              </div>
+              <div class="pipe">
+                <span style="flex:1;background:var(--que)" class="zero">排队 0</span>
+                <span style="flex:1;background:var(--warn)">处理中 3</span>
+                <span style="flex:8;background:var(--ok)">已完成 128</span>
+                <span style="flex:1;background:var(--err)">失败 2</span>
+              </div>
+              <div style="display:flex;gap:24px;font-size:13px;margin-top:8px">
+                <div><strong style="font-family:var(--serif);font-size:20px;color:var(--ok)">98%</strong><div style="font-size:11px;color:var(--mut)">入库成功率</div></div>
+                <div><strong style="font-family:var(--serif);font-size:20px">4.2s</strong><div style="font-size:11px;color:var(--mut)">平均耗时</div></div>
+                <div><strong style="font-family:var(--serif);font-size:20px">18.4k</strong><div style="font-size:11px;color:var(--mut)"><span class="only-current">切片颗粒</span><span class="only-quiet">切片数</span></div></div>
+              </div>
+            </div>
+
+            <div class="sec-h"><h2>可信与性能</h2><span class="en">TRUST</span></div>
+            <div class="grid2">
+              <div class="card hit-hero">
+                <div class="card-h" style="justify-content:center"><span>检索可证明性 · Golden Hit@3</span></div>
+                <div class="big">92%</div>
+                <div class="sub only-current">生产基线命中率 · 评估于 2026-07-01<br/>92% 基线 — 引用溯源可信</div>
+                <div class="sub only-quiet">评测基线命中率 · 回答有出处可抽检</div>
+                <div class="gauge"><i></i></div>
+              </div>
+              <div class="card">
+                <div class="card-h"><span>检索性能</span><span class="tag">近 7 日</span></div>
+                <div class="perf-row"><span>平均检索延迟</span><span class="v">186ms</span></div>
+                <div class="perf-row"><span>样本数</span><span class="v">420</span></div>
+                <div class="perf-row perf-dead"><span>引用覆盖率</span><span class="v">—</span></div>
+                <div class="perf-row perf-dead"><span>P95 延迟</span><span class="v">—</span></div>
+              </div>
+            </div>
+
+            <div class="sec-h"><h2>活跃度</h2><span class="en">ACTIVITY</span></div>
+            <div class="grid2b">
+              <div class="card">
+                <div class="card-h">
+                  <span>近 7 日提问</span>
+                  <span class="tag only-current">按日分桶</span>
+                </div>
+                <div class="trend">
+                  <button type="button" class="only-current"><span>一</span><div class="sq lo"></div><span class="n">2</span></button>
+                  <button type="button" class="only-current"><span>二</span><div class="sq"></div><span class="n">5</span></button>
+                  <button type="button" class="only-current"><span>三</span><div class="sq"></div><span class="n">8</span></button>
+                  <button type="button" class="only-current"><span>四</span><div class="sq lo"></div><span class="n">3</span></button>
+                  <button type="button" class="only-current"><span>五</span><div class="sq"></div><span class="n">9</span></button>
+                  <button type="button" class="only-current"><span>六</span><div class="sq lo"></div><span class="n">1</span></button>
+                  <button type="button" class="only-current"><span>日</span><div class="sq"></div><span class="n">9</span></button>
+                  <div class="day only-quiet"><span>一</span><div class="sq lo"></div><span class="n">2</span></div>
+                  <div class="day only-quiet"><span>二</span><div class="sq"></div><span class="n">5</span></div>
+                  <div class="day only-quiet"><span>三</span><div class="sq"></div><span class="n">8</span></div>
+                  <div class="day only-quiet"><span>四</span><div class="sq lo"></div><span class="n">3</span></div>
+                  <div class="day only-quiet"><span>五</span><div class="sq"></div><span class="n">9</span></div>
+                  <div class="day only-quiet"><span>六</span><div class="sq lo"></div><span class="n">1</span></div>
+                  <div class="day only-quiet"><span>日</span><div class="sq"></div><span class="n">9</span></div>
+                </div>
+                <p class="only-current" style="margin:10px 0 0;font-size:11px;color:var(--action)">点击日期 → /ask?date=…（Ask 页不认 · 误导）</p>
+                <p class="only-quiet" style="margin:10px 0 0;font-size:11px;color:var(--mut)">仅展示趋势，不跳转</p>
+              </div>
+              <div class="card">
+                <div class="card-h"><span>知识构成</span><span class="tag">格式</span></div>
+                <div style="font-size:13px;display:flex;flex-direction:column;gap:10px">
+                  <div style="display:flex;gap:8px;align-items:center"><span style="width:48px;color:var(--mut)">PDF</span><div style="flex:1;height:8px;background:var(--surf2);border-radius:99px"><div style="width:55%;height:100%;background:#3a322c;border-radius:99px"></div></div><span>78</span></div>
+                  <div style="display:flex;gap:8px;align-items:center"><span style="width:48px;color:var(--mut)">DOCX</span><div style="flex:1;height:8px;background:var(--surf2);border-radius:99px"><div style="width:28%;height:100%;background:#3a322c;border-radius:99px"></div></div><span>40</span></div>
+                  <div style="display:flex;gap:8px;align-items:center"><span style="width:48px;color:var(--mut)">MD</span><div style="flex:1;height:8px;background:var(--surf2);border-radius:99px"><div style="width:17%;height:100%;background:#3a322c;border-radius:99px"></div></div><span>24</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sec-h only-current"><h2>最近对话与动态</h2><span class="en">Threads & Audit</span></div>
+            <div class="grid2 only-current">
+              <div class="card">
+                <div class="card-h"><span>最近对话</span><span class="tag">/ask-threads</span></div>
+                <div class="feed-item"><div class="feed-bar"></div><div class="ic"></div><div><div class="t">报销需要哪些材料？</div><div class="m">3 条引用</div></div><span class="tm">12 分钟前</span></div>
+                <div class="feed-item"><div class="ic"></div><div><div class="t">入职首周要做什么？</div><div class="m">5 条引用</div></div><span class="tm">2 小时前</span></div>
+                <p style="margin:8px 0 0;font-size:11px;color:var(--warn)">列表不可点 · 像死的</p>
+              </div>
+              <div class="card">
+                <div class="card-h"><span>操作动态</span><span class="tag">audit</span></div>
+                <div class="feed-item"><div class="ic"></div><div><div class="t">上传了《差旅制度》</div><div class="m">kb:a1b2c3d4</div></div><span class="tm">1 小时前</span></div>
+                <div class="feed-item"><div class="ic"></div><div><div class="t">成员加入</div><div class="m">全局</div></div><span class="tm">昨天</span></div>
+              </div>
+            </div>
+
+            <div class="only-quiet">
+              <div class="sec-h"><h2>操作动态</h2><span class="en">ACTIVITY LOG</span></div>
+              <div class="card">
+                <a class="feed-item" href="#/audit">
+                  <div class="ic"></div>
+                  <div><div class="t">上传了《差旅制度》</div><div class="m">人事制度库</div></div>
+                  <span class="tm">1 小时前</span>
+                </a>
+                <a class="feed-item" href="#/audit">
+                  <div class="ic"></div>
+                  <div><div class="t">成员加入团队</div><div class="m">组织</div></div>
+                  <span class="tm">昨天</span>
+                </a>
+              </div>
+            </div>
+
+            <footer class="foot">
+              <details class="only-current">
+                <summary>数据口径 ▾</summary>
+                <div class="long long-api">
+                  主轴数据来自 GET /api/v1/dashboard/stats 实时聚合…… knowledge_base_count、documents_by_status、golden_hit_rate_percent、avg_retrieval_latency_ms……标注「待聚合 / 待接入」的项需小幅后端支撑……
+                </div>
+              </details>
+              <div class="only-quiet">数据按当前空间实时汇总</div>
+            </footer>
+          </div>
+
+          <div class="note note-current">
+            现网误导 / 噪音
+            <ul>
+              <li>营销空态 · KPI 抬升卡 · Hit@3 超大号</li>
+              <li>点日期假跳转 · Feed 不可点 · kb:uuid · Plan-3E /ask-threads</li>
+              <li>Perf 死「—」· 管道 0 占位 · API 长页脚</li>
+            </ul>
+          </div>
+          <div class="note note-quiet">
+            改版（企业向）
+            <ul>
+              <li>软纸面 KPI / 卡片（无抬升）· 就绪条微色</li>
+              <li>最近提问优先 + 引用 chip · 趋势有色块层次</li>
+              <li>仍去误导：不假跳转 · 无死行 · 无人话 tag</li>
+            </ul>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const page = document.getElementById("page");
+    document.getElementById("seg").addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      if (btn.dataset.c) {
+        page.classList.toggle("content-quiet", btn.dataset.c === "quiet");
+        page.classList.toggle("content-current", btn.dataset.c === "current");
+        for (const b of e.currentTarget.querySelectorAll("[data-c]")) {
+          b.setAttribute("aria-pressed", String(b === btn));
+        }
+      }
+      if (btn.dataset.s) {
+        page.classList.toggle("state-data", btn.dataset.s === "data");
+        page.classList.toggle("state-empty", btn.dataset.s === "empty");
+        for (const b of e.currentTarget.querySelectorAll("[data-s]")) {
+          b.setAttribute("aria-pressed", String(b === btn));
+        }
+      }
+    });
+  </script>
+</body>
+</html>

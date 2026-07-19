@@ -1,0 +1,16 @@
+{
+  "url": "/knowledge-bases",
+  "docH": 900,
+  "theme": "light",
+  "bodyBg": "rgba(0, 0, 0, 0)",
+  "bodyColor": "rgb(26, 21, 18)",
+  "sectionCount": 1,
+  "h1": null,
+  "h2List": [],
+  "h3List": [
+    "111"
+  ],
+  "containers": 1,
+  "trackingWide": [],
+  "hardcoded": []
+}

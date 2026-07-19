@@ -1,0 +1,47 @@
+# Loki 配置 v3 — TSDB 存储，30 天保留
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+auth_enabled: false
+
+ingester:
+  wal:
+    dir: /loki/wal
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+
+schema_config:
+  configs:
+    - from: 2024-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  tsdb_shipper:
+    active_index_directory: /loki/index
+    cache_location: /loki/cache
+  filesystem:
+    directory: /loki/chunks
+
+limits_config:
+  retention_period: 720h  # 30 天
+  max_query_lookback: 720h
+  ingestion_rate_mb: 10
+  ingestion_burst_size_mb: 20
+
+compactor:
+  working_directory: /loki/compactor
+  retention_enabled: true
+  delete_request_store: filesystem
+
+table_manager:
+  retention_deletes_enabled: true
+  retention_period: 720h

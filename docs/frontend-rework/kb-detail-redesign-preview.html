@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>睿阁 · 库详情改版预览</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    /*
+      库详情预览 · 壳锁定 quiet（与 shell / 列表落地一致）
+      对照仅内容区：现网详情 vs 改版提案
+      逻辑保留：上传/编辑/对话 · 筛选排序分页 · 删/重试 · grants · RBAC · 轮询
+    */
+    :root {
+      --bg: #fafafa;
+      --surf: #f5f5f0;
+      --surf2: #f7f4f0;
+      --text: #1a1512;
+      --mut: #6b6560;
+      --line2: rgba(140, 100, 64, 0.14);
+      --action: #cb6b3d;
+      --nav-on: rgba(203, 107, 61, 0.08);
+      --ok: #4c7c5e;
+      --ok-bg: #e8f0eb;
+      --err: #a0443a;
+      --err-bg: #f8e8e6;
+      --amber-bg: #fff1ea;
+      --amber-text: #8b4513;
+      --serif: "Noto Serif SC", "Songti SC", serif;
+      --sans: "Noto Sans SC", "PingFang SC", sans-serif;
+      --shell-border: rgba(140, 100, 64, 0.12);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--sans); color: var(--text); background: var(--bg);
+      overflow: hidden; -webkit-font-smoothing: antialiased;
+    }
+    button, a, input { font: inherit; }
+
+    .preview-bar {
+      position: relative; z-index: 80;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+      padding: 10px 16px; background: rgba(250,250,250,0.94);
+      border-bottom: 1px solid var(--line2);
+    }
+    .preview-bar strong { font-family: var(--serif); font-size: 14px; font-weight: 700; }
+    .preview-bar .hint { font-size: 12px; color: var(--mut); flex: 1 1 160px; min-width: 0; }
+    .lock {
+      font-size: 11px; color: var(--action); font-weight: 600;
+      padding: 4px 8px; border-radius: 6px; background: var(--nav-on);
+    }
+    .seg {
+      display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px;
+      background: var(--surf); border-radius: 10px; border: 1px solid var(--line2);
+    }
+    .seg button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] {
+      background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .frame {
+      position: relative; height: calc(100vh - 53px); display: flex; overflow: hidden;
+    }
+    .aurora {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(55% 40% at 50% 0%, rgba(232,130,78,0.1), transparent 70%);
+    }
+
+    /* 壳锁定 */
+    .rail {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center;
+      width: 64px; flex: 0 0 64px; padding: 16px 0;
+      background: rgba(250,250,250,0.72);
+      border-right: 1px solid var(--shell-border);
+      backdrop-filter: blur(12px);
+    }
+    .rail-mark { color: var(--action); margin-bottom: 4px; }
+    .rail-sep { width: 26px; height: 1px; background: var(--line2); margin: 10px 0; }
+    .rail-nav { display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100%; }
+    .rail-item {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: grid; place-items: center; color: var(--mut); position: relative;
+    }
+    .rail-item.active { background: var(--nav-on); color: var(--action); }
+    .rail-item.active::before {
+      content: ""; position: absolute; left: -10px; top: 9px; bottom: 9px; width: 3px;
+      border-radius: 0 3px 3px 0; background: var(--action);
+    }
+    .rail-item svg { width: 21px; height: 21px; }
+    .rail-spacer { flex: 1; }
+    .rail-bottom { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 999px;
+      background: color-mix(in srgb, var(--action) 18%, #fff);
+      color: var(--action); font-size: 12px; font-weight: 700;
+      display: grid; place-items: center;
+    }
+    .main-col { position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      display: flex; align-items: center; gap: 12px; height: 56px; flex-shrink: 0;
+      padding: 0 20px; border-bottom: 1px solid var(--shell-border);
+      background: rgba(250,250,250,0.78); backdrop-filter: blur(10px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
+    .brand svg { color: var(--action); }
+    .brand-name { font-family: var(--serif); font-size: 20px; font-weight: 700; }
+    .topbar-spacer { flex: 1; }
+    .scope {
+      display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px;
+      background: var(--surf); border: 1px solid var(--line2);
+    }
+    .scope button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 5px 12px; border-radius: 999px; font-size: 12px; cursor: pointer;
+    }
+    .scope button.on { background: #fff; color: var(--action); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .sun {
+      width: 34px; height: 34px; border: 0; border-radius: 999px;
+      background: transparent; color: var(--mut); display: grid; place-items: center;
+    }
+    .content { flex: 1; overflow: auto; padding: 28px 28px 64px; }
+    .inner { max-width: 1180px; margin: 0 auto; }
+
+    /* ═══ 内容：页头 ═══ */
+    .kb-head {
+      display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between;
+      gap: 16px; margin-bottom: 20px; padding-bottom: 18px;
+      border-bottom: 1px solid var(--line2);
+    }
+    .content-quiet .kb-head { border-bottom-color: transparent; padding-bottom: 8px; margin-bottom: 14px; }
+    .back { font-size: 12px; color: var(--mut); text-decoration: none; }
+    .back:hover { color: var(--text); }
+    .kb-head h1 {
+      margin: 8px 0 0; font-family: var(--serif); font-size: 24px; font-weight: 700; line-height: 1.2;
+    }
+    .kb-head .desc { margin: 6px 0 0; font-size: 13px; color: var(--mut); }
+    .head-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn {
+      border-radius: 8px; padding: 8px 12px; font-size: 12px; font-weight: 600; cursor: pointer;
+      border: 1px solid var(--line2); background: #fff; color: var(--mut);
+    }
+    .btn-brand { border-color: transparent; background: var(--action); color: #fff; }
+    .btn-ghost { border-color: transparent; background: transparent; }
+    .content-quiet .btn-chat {
+      background: transparent; color: var(--action); border: 0; padding-right: 0; font-weight: 700;
+    }
+    .content-quiet .btn-chat::after { content: " →"; }
+    .content-quiet .btn-upload {
+      border-color: var(--line2); background: #fff; color: var(--text); font-weight: 600;
+    }
+
+    .grants {
+      margin-bottom: 16px; border: 1px solid var(--line2); border-radius: 12px;
+      background: rgba(255,255,255,0.85); padding: 12px 14px;
+    }
+    .content-quiet .grants {
+      background: transparent; border-color: transparent; border-bottom: 1px solid var(--line2);
+      border-radius: 0; padding: 8px 0 14px;
+    }
+    .grants summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--mut); list-style: none; }
+    .grants summary::-webkit-details-marker { display: none; }
+    .grants p { margin: 8px 0 0; font-size: 12px; color: var(--mut); }
+
+    .section-title {
+      display: flex; align-items: baseline; gap: 10px; margin: 8px 0 12px;
+    }
+    .section-title .label {
+      position: relative; padding-left: 14px;
+      font-family: var(--serif); font-size: 17px; font-weight: 600;
+    }
+    .section-title .label::before {
+      content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 4px; height: 15px; border-radius: 2px; background: var(--action);
+    }
+    .section-title .en { font-size: 11px; letter-spacing: 2px; color: var(--mut); }
+    .section-title .count {
+      font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+      background: var(--surf2); color: var(--mut); border-radius: 999px; padding: 2px 8px;
+    }
+    .section-title .rule { flex: 1; height: 1px; background: var(--line2); }
+    .content-quiet .section-title .label { padding-left: 0; font-size: 18px; font-weight: 700; }
+    .content-quiet .section-title .label::before { display: none; }
+    .content-quiet .section-title .en { opacity: 0.45; letter-spacing: 0.12em; }
+    .content-quiet .section-title .rule { opacity: 0.35; }
+
+    .toolbar {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin-bottom: 12px;
+    }
+    .status-banner {
+      width: 100%; display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 500;
+      background: var(--amber-bg); border: 1px solid #e8c4b0; color: var(--amber-text);
+    }
+    .content-quiet .status-banner {
+      background: transparent; border: 0; border-left: 3px solid var(--action);
+      border-radius: 0; padding-left: 10px; color: var(--mut); font-weight: 500;
+    }
+    .search {
+      flex: 1 1 180px; max-width: 22rem; display: flex; align-items: center; gap: 8px;
+      border: 1px solid var(--line2); border-radius: 8px; background: #fff;
+      height: 36px; padding: 0 12px;
+    }
+    .content-quiet .search { height: 40px; border-radius: 10px; }
+    .search input { flex: 1; border: 0; outline: none; background: transparent; font-size: 13px; }
+    .pill {
+      border: 1px solid var(--line2); background: #fff; color: var(--mut);
+      border-radius: 8px; padding: 6px 11px; font-size: 12px; cursor: pointer;
+    }
+    .pill.on { border-color: transparent; background: var(--action); color: #fff; font-weight: 600; }
+    .content-quiet .pill.on {
+      background: rgba(203,107,61,0.1); color: var(--action);
+    }
+
+    .table-wrap {
+      border: 1px solid var(--line2); border-radius: 12px; overflow: hidden;
+      background: rgba(255,255,255,0.85);
+    }
+    .content-quiet .table-wrap {
+      background: transparent; border-radius: 0; border-left: 0; border-right: 0; border-radius: 0;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th {
+      text-align: left; padding: 10px 12px; font-size: 11px; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--mut); font-weight: 600;
+      background: var(--surf2); border-bottom: 1px solid var(--line2);
+    }
+    .content-quiet th {
+      background: transparent; text-transform: none; letter-spacing: 0; font-weight: 500;
+    }
+    td { padding: 12px; border-bottom: 1px solid var(--line2); vertical-align: middle; }
+    tr:last-child td { border-bottom: 0; }
+    tr.warn { background: rgba(255, 241, 234, 0.45); }
+    .content-quiet tr.warn { background: transparent; }
+    .content-quiet tr.warn td:first-child { box-shadow: inset 3px 0 0 rgba(203,107,61,0.35); }
+    .fname { font-weight: 600; color: var(--text); text-decoration: none; }
+    .fname:hover { color: var(--action); }
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      border-radius: 6px; padding: 3px 8px; font-size: 11px; font-weight: 500;
+    }
+    .badge .d { width: 6px; height: 6px; border-radius: 50%; }
+    .badge.ok { background: var(--ok-bg); color: var(--ok); }
+    .badge.ok .d { background: var(--ok); }
+    .badge.proc { background: var(--amber-bg); color: var(--amber-text); }
+    .badge.proc .d { background: var(--action); }
+    .badge.err { background: var(--err-bg); color: var(--err); }
+    .badge.err .d { background: var(--err); }
+    .row-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+    .row-acts a, .row-acts button {
+      border: 0; background: transparent; color: var(--mut);
+      font-size: 12px; font-weight: 500; cursor: pointer; padding: 2px 4px;
+    }
+    .content-quiet .row-acts a.primary { color: var(--action); font-weight: 700; }
+
+    .pager {
+      margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line2);
+      display: flex; justify-content: space-between; font-size: 12px; color: var(--mut);
+    }
+    .pager button {
+      border: 1px solid var(--line2); background: #fff; border-radius: 8px;
+      padding: 6px 12px; font-size: 12px; color: var(--mut); cursor: pointer;
+    }
+
+    .empty {
+      margin-top: 8px; border: 1px dashed var(--line2); border-radius: 16px;
+      padding: 40px 24px; text-align: center; background: #fff;
+      box-shadow: 0 4px 16px rgba(140,80,50,0.06);
+    }
+    .content-quiet .empty { box-shadow: none; background: rgba(255,255,255,0.5); }
+    .empty h2 { margin: 0 0 8px; font-family: var(--serif); font-size: 18px; }
+    .empty p { margin: 0 auto 16px; max-width: 340px; font-size: 13px; color: var(--mut); line-height: 1.6; }
+    .empty .steps {
+      display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;
+      margin: 16px 0 20px; font-size: 12px; color: var(--mut);
+    }
+    .empty .steps span {
+      padding: 8px 12px; border-radius: 8px; border: 1px solid var(--line2); background: var(--surf2);
+    }
+    .content-quiet .empty .steps { display: none; }
+
+    .pain {
+      margin-top: 18px; padding: 12px 14px; border-radius: 10px;
+      background: #fff1ea; border: 1px solid rgba(203,107,61,0.2);
+      font-size: 12px; line-height: 1.65;
+    }
+    .pain strong { display: block; margin-bottom: 6px; }
+    .pain ul { margin: 0; padding-left: 1.2em; }
+    .content-current .pain-quiet { display: none; }
+    .content-quiet .pain-current { display: none; }
+
+    .role-member .admin-only { display: none !important; }
+    .role-admin .member-only { display: none !important; }
+    .view-empty .view-docs { display: none !important; }
+    .view-docs .view-empty { display: none !important; }
+
+    @media (max-width: 800px) {
+      .rail { display: none; }
+      .hide-sm { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-bar">
+    <strong>库详情改版预览</strong>
+    <span class="lock">壳已锁定 · 不改</span>
+    <span class="hint">对照只切内容区 · 上传/筛选/删重试/对话/RBAC 逻辑不变</span>
+    <div class="seg">
+      <button type="button" data-c="quiet" aria-pressed="true">详情改版</button>
+      <button type="button" data-c="current" aria-pressed="false">现网详情（对照）</button>
+      <button type="button" data-role="admin" aria-pressed="true">Admin</button>
+      <button type="button" data-role="member" aria-pressed="false">Member</button>
+      <button type="button" data-view="docs" aria-pressed="true">有文档</button>
+      <button type="button" data-view="empty" aria-pressed="false">空库</button>
+    </div>
+  </div>
+
+  <div class="frame role-admin view-docs" id="frame">
+    <div class="aurora" aria-hidden="true"></div>
+    <aside class="rail" aria-label="主导航">
+      <a class="rail-mark" href="#/" aria-label="睿阁">
+        <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
+          <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+          <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+        </svg>
+      </a>
+      <div class="rail-sep"></div>
+      <nav class="rail-nav">
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+        <div class="rail-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+      </nav>
+      <div class="rail-spacer"></div>
+      <div class="rail-bottom">
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg></div>
+        <div class="avatar">管</div>
+      </div>
+    </aside>
+
+    <div class="main-col">
+      <header class="topbar">
+        <a class="brand" href="#/">
+          <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+            <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+          </svg>
+          <span class="brand-name">睿阁</span>
+        </a>
+        <div class="topbar-spacer"></div>
+        <div class="scope">
+          <button type="button">个人</button>
+          <button type="button" class="on">团队</button>
+        </div>
+        <button type="button" class="sun" aria-label="主题">☀</button>
+      </header>
+
+      <main class="content content-quiet" id="content">
+        <div class="inner">
+          <header class="kb-head">
+            <div>
+              <a class="back" href="#/">← 返回资料库</a>
+              <h1>财务制度与报销</h1>
+              <p class="desc">差旅、发票与审批时限等制度条文</p>
+            </div>
+            <div class="head-actions">
+              <button type="button" class="btn btn-upload admin-only">上传文档</button>
+              <button type="button" class="btn member-only" disabled>上传文档</button>
+              <button type="button" class="btn btn-ghost admin-only">编辑</button>
+              <button type="button" class="btn btn-chat btn-brand">开始对话</button>
+            </div>
+          </header>
+
+          <details class="grants admin-only">
+            <summary>跨部门共享</summary>
+            <p>已共享给：人事部 · 可再添加部门或公司范围（逻辑占位）</p>
+          </details>
+
+          <div class="view-docs">
+            <div class="section-title">
+              <span class="label">文档</span>
+              <span class="en">DOCUMENTS</span>
+              <span class="count">28</span>
+              <span class="rule"></span>
+              <button type="button" class="btn btn-ghost admin-only" style="font-size:12px">回收站</button>
+            </div>
+
+            <div class="toolbar">
+              <div class="status-banner">正显示：索引中 · 清除筛选</div>
+              <label class="search">
+                <span aria-hidden>⌕</span>
+                <input id="document-list-search" type="search" placeholder="搜索文件名…" />
+              </label>
+              <button type="button" class="pill">高级筛选</button>
+              <button type="button" class="pill on">上传时间</button>
+              <button type="button" class="pill">文件名</button>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>文件名</th>
+                    <th class="hide-sm">状态</th>
+                    <th class="hide-sm">可见性</th>
+                    <th class="hide-sm">上传时间</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><a class="fname" href="#/">差旅报销管理办法.pdf</a></td>
+                    <td class="hide-sm"><span class="badge ok"><span class="d"></span>可问答</span></td>
+                    <td class="hide-sm">全员</td>
+                    <td class="hide-sm">今天 14:02</td>
+                    <td>
+                      <div class="row-acts">
+                        <a class="primary" href="#/">预览</a>
+                        <button type="button" class="admin-only">删除</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><a class="fname" href="#/">发票开具 FAQ.docx</a></td>
+                    <td class="hide-sm"><span class="badge proc"><span class="d"></span>索引中</span></td>
+                    <td class="hide-sm">全员</td>
+                    <td class="hide-sm">今天 13:40</td>
+                    <td><div class="row-acts"><span style="color:var(--mut)">—</span></div></td>
+                  </tr>
+                  <tr>
+                    <td><a class="fname" href="#/">扫描件-旧规章.pdf</a></td>
+                    <td class="hide-sm"><span class="badge err"><span class="d"></span>失败</span></td>
+                    <td class="hide-sm">全员</td>
+                    <td class="hide-sm">昨天</td>
+                    <td>
+                      <div class="row-acts">
+                        <a class="primary" href="#/">预览</a>
+                        <button type="button" class="admin-only">重试</button>
+                        <button type="button" class="admin-only">删除</button>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr class="warn">
+                    <td><a class="fname" href="#/">高管差旅特例.md</a></td>
+                    <td class="hide-sm"><span class="badge ok"><span class="d"></span>可问答</span></td>
+                    <td class="hide-sm">仅管理员</td>
+                    <td class="hide-sm">3 天前</td>
+                    <td>
+                      <div class="row-acts">
+                        <a class="primary" href="#/">预览</a>
+                        <button type="button" class="admin-only">删除</button>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="pager">
+              <span>第 1 / 2 页 · 共 28 篇</span>
+              <div style="display:flex;gap:8px">
+                <button type="button" disabled>上一页</button>
+                <button type="button">下一页</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="view-empty empty">
+            <h2>还没有文档</h2>
+            <p>上传 PDF / Word / Markdown 等，入库完成后即可带引用对话。</p>
+            <div class="steps">
+              <span>① 上传</span><span>② 解析入库</span><span>③ 对话引用</span>
+            </div>
+            <button type="button" class="btn btn-brand admin-only">上传第一份文档</button>
+            <button type="button" class="btn member-only" disabled>联系管理员上传</button>
+          </div>
+
+          <div class="pain pain-quiet">
+            <strong>详情改版（壳不动）</strong>
+            <ul>
+              <li>页头去硬底部分隔；「开始对话」改文字链权重，上传改轮廓钮</li>
+              <li>文档 SectionTitle 用 quiet（去竖条）；共享区去厚卡片壳</li>
+              <li>状态筛选 banner 改左边条，不抢橙底块</li>
+              <li>表格去白卡片壳；仅管理员行用左边线提示，不全行染底</li>
+              <li>空库弱化三步营销卡（预览示意）</li>
+            </ul>
+          </div>
+          <div class="pain pain-current">
+            <strong>现网详情痛点（对照）</strong>
+            <ul>
+              <li>页头底边 + 实心「开始对话」+ 文档区 SectionTitle 竖条/英文，双标题偏吵</li>
+              <li>Grants / 表格 / 空态都是白卡片壳，和安静壳叠层</li>
+              <li>status-filter 暖色实心 banner；admin_only 行大面积染底</li>
+              <li>零文档 EmptyStateV44 三步引导偏营销</li>
+            </ul>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const frame = document.getElementById("frame");
+    const content = document.getElementById("content");
+    document.querySelectorAll("[data-c]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-c]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+        btn.setAttribute("aria-pressed", "true");
+        content.classList.toggle("content-quiet", btn.dataset.c === "quiet");
+        content.classList.toggle("content-current", btn.dataset.c === "current");
+      });
+    });
+    document.querySelectorAll("[data-role]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-role]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+        btn.setAttribute("aria-pressed", "true");
+        frame.classList.toggle("role-admin", btn.dataset.role === "admin");
+        frame.classList.toggle("role-member", btn.dataset.role === "member");
+      });
+    });
+    document.querySelectorAll("[data-view]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-view]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+        btn.setAttribute("aria-pressed", "true");
+        frame.classList.toggle("view-docs", btn.dataset.view === "docs");
+        frame.classList.toggle("view-empty", btn.dataset.view === "empty");
+      });
+    });
+  </script>
+</body>
+</html>

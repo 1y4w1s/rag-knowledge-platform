@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>睿阁 · 账号设置改版预览</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    /*
+      账号设置预览 · 壳锁定 quiet
+      布局：单栏 ~600px · ①信息 ②安全 ③团队 ④API Key ⑤退出
+      去掉 EmptyStateV44；对照仅内容区
+    */
+    :root {
+      --bg: #fafafa;
+      --surf: #f5f5f0;
+      --surf2: #f7f4f0;
+      --text: #1a1512;
+      --mut: #6b6560;
+      --line2: rgba(140, 100, 64, 0.14);
+      --action: #cb6b3d;
+      --nav-on: rgba(203, 107, 61, 0.08);
+      --err: #a0443a;
+      --serif: "Noto Serif SC", "Songti SC", serif;
+      --sans: "Noto Sans SC", "PingFang SC", sans-serif;
+      --shell-border: rgba(140, 100, 64, 0.12);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--sans); color: var(--text); background: var(--bg);
+      overflow: hidden; -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; }
+
+    .preview-bar {
+      position: relative; z-index: 80;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+      padding: 10px 16px; background: rgba(250,250,250,0.94);
+      border-bottom: 1px solid var(--line2);
+    }
+    .preview-bar strong { font-family: var(--serif); font-size: 14px; font-weight: 700; }
+    .preview-bar .hint { font-size: 12px; color: var(--mut); flex: 1 1 140px; min-width: 0; }
+    .lock {
+      font-size: 11px; color: var(--action); font-weight: 600;
+      padding: 4px 8px; border-radius: 6px; background: var(--nav-on);
+    }
+    .seg {
+      display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px;
+      background: var(--surf); border-radius: 10px; border: 1px solid var(--line2);
+    }
+    .seg button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] {
+      background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .frame {
+      position: relative; height: calc(100vh - 53px); display: flex; overflow: hidden;
+    }
+    .aurora {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(55% 40% at 50% 0%, rgba(232,130,78,0.1), transparent 70%);
+    }
+    .rail {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center;
+      width: 64px; flex: 0 0 64px; padding: 16px 0;
+      background: rgba(250,250,250,0.72);
+      border-right: 1px solid var(--shell-border);
+      backdrop-filter: blur(12px);
+    }
+    .rail-mark { color: var(--action); margin-bottom: 4px; }
+    .rail-sep { width: 26px; height: 1px; background: var(--line2); margin: 10px 0; }
+    .rail-nav { display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100%; }
+    .rail-item {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: grid; place-items: center; color: var(--mut); position: relative;
+    }
+    .rail-item.active { background: var(--nav-on); color: var(--action); }
+    .rail-item.active::before {
+      content: ""; position: absolute; left: -10px; top: 9px; bottom: 9px; width: 3px;
+      border-radius: 0 3px 3px 0; background: var(--action);
+    }
+    .rail-item svg { width: 21px; height: 21px; }
+    .rail-spacer { flex: 1; }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 999px;
+      background: color-mix(in srgb, var(--action) 18%, #fff);
+      color: var(--action); font-size: 12px; font-weight: 700;
+      display: grid; place-items: center;
+    }
+    .main-col { position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      display: flex; align-items: center; gap: 12px; height: 56px; flex-shrink: 0;
+      padding: 0 20px; border-bottom: 1px solid var(--shell-border);
+      background: rgba(250,250,250,0.78); backdrop-filter: blur(10px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
+    .brand svg { color: var(--action); }
+    .brand-name { font-family: var(--serif); font-size: 20px; font-weight: 700; }
+    .topbar-spacer { flex: 1; }
+    .scope {
+      display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px;
+      background: var(--surf); border: 1px solid var(--line2);
+    }
+    .scope button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 5px 12px; border-radius: 999px; font-size: 12px; cursor: pointer;
+    }
+    .scope button.on { background: #fff; color: var(--action); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+    .content { flex: 1; overflow: auto; padding: 28px 28px 64px; }
+    .page { max-width: 1180px; margin: 0 auto; }
+
+    .head {
+      display: flex; align-items: baseline; gap: 10px; margin-bottom: 22px;
+    }
+    .head h1 {
+      margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 700;
+    }
+    .head .en { font-size: 11px; letter-spacing: 0.12em; color: var(--mut); opacity: 0.45; }
+    .content-current .head {
+      position: relative; padding-left: 14px;
+    }
+    .content-current .head h1 { font-size: 17px; font-weight: 600; }
+    .content-current .head h1::before {
+      content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 4px; height: 15px; border-radius: 2px; background: var(--action);
+    }
+    .content-current .head .en { opacity: 1; letter-spacing: 2px; }
+
+    .col { max-width: 600px; }
+
+    /* 现网：厚卡 + 双栏示意 */
+    .card {
+      border: 1px solid var(--line2); border-radius: 12px;
+      background: rgba(255,255,255,0.85); padding: 22px; margin-bottom: 16px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .card h3 { margin: 0 0 16px; font-size: 16px; font-weight: 700; }
+    .content-current .grid2 {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+    .content-quiet .grid2 { display: block; }
+
+    /* 改版：轻分区 */
+    .content-quiet .card {
+      box-shadow: none; background: transparent; border: 0;
+      border-bottom: 1px solid var(--line2); border-radius: 0;
+      padding: 0 0 22px; margin-bottom: 22px;
+    }
+    .content-quiet .card:last-child { border-bottom: 0; }
+    .content-quiet .card h3 {
+      font-family: var(--serif); font-size: 15px; font-weight: 700; margin-bottom: 14px;
+    }
+
+    .field { margin-bottom: 12px; }
+    .field label {
+      display: block; font-size: 12px; font-weight: 600; color: var(--mut); margin-bottom: 6px;
+    }
+    .field input, .field .ro {
+      width: 100%; height: 40px; border: 1px solid var(--line2); border-radius: 8px;
+      padding: 0 12px; background: #fff; font-size: 13px; color: var(--text);
+    }
+    .field .ro { display: flex; align-items: center; background: var(--surf2); color: var(--mut); }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row input { flex: 1; }
+
+    .btn {
+      border: 1px solid var(--line2); border-radius: 8px; padding: 8px 14px;
+      background: #fff; font-size: 12px; font-weight: 600; color: var(--mut); cursor: pointer;
+    }
+    .btn-brand { border-color: transparent; background: var(--action); color: #fff; }
+    .btn-ghost { border-color: transparent; background: transparent; }
+    .btn-danger { color: var(--err); border-color: color-mix(in srgb, var(--err) 25%, var(--line2)); }
+    .content-quiet .btn-logout {
+      border: 0; background: transparent; color: var(--mut); font-weight: 500; padding-left: 0;
+    }
+
+    .hint { font-size: 12px; color: var(--mut); margin: 0 0 12px; line-height: 1.5; }
+    .empty-hero {
+      border: 1px dashed var(--line2); border-radius: 16px; padding: 28px 20px;
+      text-align: center; margin-bottom: 16px; background: #fff;
+      box-shadow: 0 4px 16px rgba(140,80,50,0.06);
+    }
+    .empty-hero h2 { margin: 0 0 8px; font-family: var(--serif); font-size: 18px; }
+    .empty-hero p { margin: 0; font-size: 13px; color: var(--mut); }
+    .content-quiet .empty-hero { display: none; }
+    .content-current .state-solo .sec-team-join { margin-top: 0; }
+
+    .keys summary {
+      cursor: pointer; font-size: 13px; font-weight: 600; color: var(--mut);
+      list-style: none;
+    }
+    .keys summary::-webkit-details-marker { display: none; }
+    .keys .body { margin-top: 12px; font-size: 12px; color: var(--mut); }
+
+    .state-team .only-solo { display: none !important; }
+    .state-solo .only-team { display: none !important; }
+
+    .pain {
+      margin-top: 8px; max-width: 600px; padding: 10px 12px; border-radius: 10px;
+      background: #fff1ea; border: 1px solid rgba(203,107,61,0.2);
+      font-size: 11px; line-height: 1.55;
+    }
+    .pain ul { margin: 4px 0 0; padding-left: 1.2em; }
+    .content-current .pain-quiet { display: none; }
+    .content-quiet .pain-current { display: none; }
+
+    @media (max-width: 800px) {
+      .rail { display: none; }
+      .content-current .grid2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-bar">
+    <strong>账号设置改版</strong>
+    <span class="lock">壳已锁定 · 不改</span>
+    <span class="hint">单栏 · ①信息 ②安全 ③团队 ④Key ⑤退出 · 逻辑不变</span>
+    <div class="seg">
+      <button type="button" data-c="quiet" aria-pressed="true">改版</button>
+      <button type="button" data-c="current" aria-pressed="false">现网</button>
+      <button type="button" data-s="solo" aria-pressed="true">无团队</button>
+      <button type="button" data-s="team" aria-pressed="false">已在团队</button>
+    </div>
+  </div>
+
+  <div class="frame" id="frame">
+    <div class="aurora" aria-hidden="true"></div>
+    <aside class="rail" aria-label="主导航">
+      <a class="rail-mark" href="#/" aria-label="睿阁">
+        <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
+          <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+          <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+        </svg>
+      </a>
+      <div class="rail-sep"></div>
+      <nav class="rail-nav">
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+        <div class="rail-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></svg></div>
+      </nav>
+      <div class="rail-spacer"></div>
+      <div class="avatar">管</div>
+    </aside>
+
+    <div class="main-col">
+      <header class="topbar">
+        <a class="brand" href="#/">
+          <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+            <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+          </svg>
+          <span class="brand-name">睿阁</span>
+        </a>
+        <div class="topbar-spacer"></div>
+        <div class="scope">
+          <button type="button" class="on">个人</button>
+          <button type="button">团队</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="page content-quiet state-solo" id="content">
+          <div class="head">
+            <h1>账号设置</h1>
+            <span class="en">ACCOUNT</span>
+          </div>
+
+          <div class="col">
+            <div class="empty-hero only-solo">
+              <h2>第一次设置，3 分钟搞定</h2>
+              <p>昵称、密码都还没填。完成下面几项即可开始使用。</p>
+            </div>
+
+            <div class="grid2">
+              <section class="card">
+                <h3>账号信息</h3>
+                <div class="field">
+                  <label>邮箱</label>
+                  <div class="ro">demo@ruige.local</div>
+                </div>
+                <div class="field">
+                  <label>账号类型</label>
+                  <div class="ro" id="type-label">个人版</div>
+                </div>
+                <div class="field only-team">
+                  <label>所属团队</label>
+                  <div class="ro">睿阁演示团队</div>
+                </div>
+                <div class="field">
+                  <label>昵称</label>
+                  <div class="row">
+                    <input type="text" value="演示用户" />
+                    <button type="button" class="btn btn-brand">保存</button>
+                  </div>
+                </div>
+              </section>
+
+              <section class="card">
+                <h3>修改密码</h3>
+                <div class="field">
+                  <label>当前密码</label>
+                  <input type="password" value="········" />
+                </div>
+                <div class="field">
+                  <label>新密码</label>
+                  <input type="password" placeholder="至少 8 位" />
+                </div>
+                <button type="button" class="btn btn-brand">更新密码</button>
+              </section>
+            </div>
+
+            <section class="card sec-team-join only-solo">
+              <h3>加入团队</h3>
+              <p class="hint">填写邀请码加入团队空间。</p>
+              <div class="field">
+                <label>邀请码</label>
+                <div class="row">
+                  <input type="text" placeholder="邀请码" />
+                  <button type="button" class="btn btn-brand">加入</button>
+                </div>
+              </div>
+            </section>
+
+            <section class="card only-team">
+              <h3>离开团队</h3>
+              <p class="hint">离开后将回到个人空间。</p>
+              <button type="button" class="btn btn-danger">离开团队</button>
+            </section>
+
+            <section class="card keys">
+              <details>
+                <summary>API Key</summary>
+                <div class="body">已创建 0 个密钥 · 创建 / 撤销</div>
+              </details>
+            </section>
+
+            <section class="card">
+              <h3>会话</h3>
+              <button type="button" class="btn btn-logout">退出登录</button>
+            </section>
+
+            <div class="pain pain-quiet">
+              <strong>改版布局</strong>
+              <ul>
+                <li>单栏上下：信息 → 安全 → 团队 → Key → 退出</li>
+                <li>去顶栏营销空态；卡片改轻分隔</li>
+              </ul>
+            </div>
+            <div class="pain pain-current">
+              <strong>现网</strong>
+              <ul>
+                <li>无团队大空态 + 双栏厚卡叠层</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const content = document.getElementById("content");
+    document.querySelectorAll("[data-c]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-c]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+        btn.setAttribute("aria-pressed", "true");
+        content.classList.toggle("content-quiet", btn.dataset.c === "quiet");
+        content.classList.toggle("content-current", btn.dataset.c === "current");
+      });
+    });
+    document.querySelectorAll("[data-s]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-s]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+        btn.setAttribute("aria-pressed", "true");
+        const team = btn.dataset.s === "team";
+        content.classList.toggle("state-team", team);
+        content.classList.toggle("state-solo", !team);
+        document.getElementById("type-label").textContent = team ? "企业版 · 成员" : "个人版";
+      });
+    });
+  </script>
+</body>
+</html>

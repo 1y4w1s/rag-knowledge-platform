@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>睿阁 · 组织管理改版预览</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    /*
+      组织管理三页预览 · 壳锁定 quiet
+      页：成员 / 部门 / 团队设置
+      债：Member 可看 · 删/移出确认 · 根不重命名 · 弹窗统一 · token 色
+    */
+    :root {
+      --bg: #fafafa;
+      --surf: #f5f5f0;
+      --surf2: #f7f4f0;
+      --text: #1a1512;
+      --mut: #6b6560;
+      --line2: rgba(140, 100, 64, 0.14);
+      --action: #cb6b3d;
+      --nav-on: rgba(203, 107, 61, 0.08);
+      --err: #a0443a;
+      --err-bg: #f8e8e6;
+      --serif: "Noto Serif SC", "Songti SC", serif;
+      --sans: "Noto Sans SC", "PingFang SC", sans-serif;
+      --shell-border: rgba(140, 100, 64, 0.12);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; }
+    body {
+      font-family: var(--sans); color: var(--text); background: var(--bg);
+      overflow: hidden; -webkit-font-smoothing: antialiased;
+    }
+    button, input, select { font: inherit; }
+
+    .preview-bar {
+      position: relative; z-index: 80;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+      padding: 10px 16px; background: rgba(250,250,250,0.94);
+      border-bottom: 1px solid var(--line2);
+    }
+    .preview-bar strong { font-family: var(--serif); font-size: 14px; font-weight: 700; }
+    .preview-bar .hint { font-size: 12px; color: var(--mut); flex: 1 1 120px; min-width: 0; }
+    .lock {
+      font-size: 11px; color: var(--action); font-weight: 600;
+      padding: 4px 8px; border-radius: 6px; background: var(--nav-on);
+    }
+    .seg {
+      display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px;
+      background: var(--surf); border-radius: 10px; border: 1px solid var(--line2);
+    }
+    .seg button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 7px 12px; border-radius: 8px; font-size: 12px; font-weight: 500; cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] {
+      background: #fff; color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    }
+
+    .frame {
+      position: relative; height: calc(100vh - 53px); display: flex; overflow: hidden;
+    }
+    .aurora {
+      position: absolute; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(55% 40% at 50% 0%, rgba(232,130,78,0.1), transparent 70%);
+    }
+    .rail {
+      position: relative; z-index: 2;
+      display: flex; flex-direction: column; align-items: center;
+      width: 64px; flex: 0 0 64px; padding: 16px 0;
+      background: rgba(250,250,250,0.72);
+      border-right: 1px solid var(--shell-border);
+      backdrop-filter: blur(12px);
+    }
+    .rail-mark { color: var(--action); margin-bottom: 4px; }
+    .rail-sep { width: 26px; height: 1px; background: var(--line2); margin: 10px 0; }
+    .rail-nav { display: flex; flex-direction: column; gap: 6px; align-items: center; width: 100%; }
+    .rail-item {
+      width: 44px; height: 44px; border-radius: 12px;
+      display: grid; place-items: center; color: var(--mut); position: relative;
+    }
+    .rail-item.active { background: var(--nav-on); color: var(--action); }
+    .rail-item.active::before {
+      content: ""; position: absolute; left: -10px; top: 9px; bottom: 9px; width: 3px;
+      border-radius: 0 3px 3px 0; background: var(--action);
+    }
+    .rail-item svg { width: 21px; height: 21px; }
+    .rail-spacer { flex: 1; }
+    .avatar {
+      width: 32px; height: 32px; border-radius: 999px;
+      background: color-mix(in srgb, var(--action) 18%, #fff);
+      color: var(--action); font-size: 12px; font-weight: 700;
+      display: grid; place-items: center;
+    }
+    .main-col { position: relative; z-index: 1; flex: 1; min-width: 0; display: flex; flex-direction: column; overflow: hidden; }
+    .topbar {
+      display: flex; align-items: center; gap: 12px; height: 56px; flex-shrink: 0;
+      padding: 0 20px; border-bottom: 1px solid var(--shell-border);
+      background: rgba(250,250,250,0.78); backdrop-filter: blur(10px);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; }
+    .brand svg { color: var(--action); }
+    .brand-name { font-family: var(--serif); font-size: 20px; font-weight: 700; }
+    .topbar-spacer { flex: 1; }
+    .scope {
+      display: inline-flex; padding: 3px; gap: 2px; border-radius: 999px;
+      background: var(--surf); border: 1px solid var(--line2);
+    }
+    .scope button {
+      border: 0; background: transparent; color: var(--mut);
+      padding: 5px 12px; border-radius: 999px; font-size: 12px; cursor: pointer;
+    }
+    .scope button.on { background: #fff; color: var(--action); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+    .content { flex: 1; overflow: auto; padding: 28px 28px 64px; }
+    .page { max-width: 1180px; margin: 0 auto; }
+
+    .head {
+      display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px 14px; margin-bottom: 20px;
+    }
+    .head h1 { margin: 0; font-family: var(--serif); font-size: 22px; font-weight: 700; }
+    .head .en { font-size: 11px; letter-spacing: 0.12em; color: var(--mut); opacity: 0.45; }
+    .head .count { font-size: 13px; color: var(--mut); }
+    .head-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+    .content-current .head {
+      position: relative; padding-left: 14px;
+    }
+    .content-current .head h1 { font-size: 17px; font-weight: 600; font-family: var(--sans); }
+    .content-current .head h1::before {
+      content: ""; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+      width: 4px; height: 15px; border-radius: 2px; background: var(--action);
+    }
+    .content-current .head .en { opacity: 1; letter-spacing: 2px; }
+
+    .btn {
+      border: 1px solid var(--line2); border-radius: 8px; padding: 7px 12px;
+      background: #fff; font-size: 12px; font-weight: 600; color: var(--mut); cursor: pointer;
+    }
+    .btn-brand { border-color: transparent; background: var(--action); color: #fff; }
+    .btn-ghost { border: 0; background: transparent; color: var(--mut); font-weight: 500; }
+    .btn-link { border: 0; background: transparent; color: var(--action); font-weight: 600; padding: 0; }
+    .btn-danger {
+      border-color: color-mix(in srgb, var(--err) 30%, var(--line2));
+      color: var(--err); background: #fff;
+    }
+    .btn-danger-solid { border: 0; background: var(--err); color: #fff; }
+
+    .panel {
+      border: 1px solid var(--line2); border-radius: 12px;
+      background: rgba(255,255,255,0.85); padding: 16px 18px; margin-bottom: 14px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .panel h3 { margin: 0 0 10px; font-size: 15px; font-weight: 700; }
+    .panel p.muted { margin: 0 0 12px; font-size: 13px; color: var(--mut); line-height: 1.5; }
+
+    .content-quiet .panel-invite {
+      box-shadow: none; background: transparent; border: 0;
+      border-bottom: 1px solid var(--line2); border-radius: 0;
+      padding: 0 0 16px; margin-bottom: 16px;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+    }
+    .content-quiet .panel-invite h3 { margin: 0; font-family: var(--serif); font-size: 14px; }
+    .content-quiet .panel-invite p.muted { margin: 0; flex: 1 1 200px; font-size: 12px; }
+    .invite-code {
+      font-family: ui-monospace, monospace; font-size: 15px; font-weight: 700;
+      letter-spacing: 0.08em; padding: 6px 10px; border-radius: 8px;
+      border: 1px solid var(--line2); background: var(--surf2);
+    }
+
+    .empty-hero {
+      border: 1px dashed var(--line2); border-radius: 16px; padding: 28px 20px;
+      text-align: center; margin-bottom: 14px; background: #fff;
+      box-shadow: 0 4px 16px rgba(140,80,50,0.06);
+    }
+    .empty-hero h2 { margin: 0 0 8px; font-family: var(--serif); font-size: 18px; }
+    .empty-hero p { margin: 0; font-size: 13px; color: var(--mut); }
+    .content-quiet .empty-hero { display: none !important; }
+
+    .table-wrap {
+      border: 1px solid var(--line2); border-radius: 12px; overflow: hidden;
+      background: rgba(255,255,255,0.7);
+    }
+    .content-quiet .table-wrap {
+      border: 0; border-radius: 0; background: transparent;
+      border-top: 1px solid var(--line2);
+    }
+    .t-head, .t-row {
+      display: grid; grid-template-columns: minmax(0,1fr) 6.5rem 8rem 10rem;
+      gap: 12px; align-items: center; padding: 10px 14px;
+    }
+    .role-member .t-head, .role-member .t-row {
+      grid-template-columns: minmax(0,1fr) 6.5rem 8rem;
+    }
+    .t-head {
+      font-size: 11px; font-weight: 600; color: var(--mut);
+      background: var(--surf2); border-bottom: 1px solid var(--line2);
+    }
+    .content-quiet .t-head { background: transparent; }
+    .t-row { border-bottom: 1px solid var(--line2); font-size: 13px; }
+    .t-row:last-child { border-bottom: 0; }
+    .content-current .t-row-card {
+      margin: 6px 8px; padding: 12px 14px; border-radius: 12px;
+      border: 1px solid var(--line2); background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+    .who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+    .who .av {
+      width: 32px; height: 32px; border-radius: 999px; flex-shrink: 0;
+      background: var(--nav-on); color: var(--action); font-size: 11px; font-weight: 700;
+      display: grid; place-items: center;
+    }
+    .who .name { font-weight: 600; font-size: 13px; }
+    .who .mail { font-size: 11px; color: var(--mut); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge {
+      display: inline-flex; padding: 2px 8px; border-radius: 999px;
+      font-size: 11px; font-weight: 600; background: var(--surf2); color: var(--mut);
+    }
+    .badge-owner { background: var(--action); color: #fff; }
+    .ops { text-align: right; display: flex; flex-wrap: wrap; justify-content: end; gap: 4px; }
+    .ops button { font-size: 12px; }
+    .role-member .admin-only { display: none !important; }
+    .role-admin .member-only-title { display: none; }
+    .role-member .admin-only-title { display: none; }
+
+    .split {
+      display: grid; gap: 16px; grid-template-columns: minmax(0,2fr) minmax(0,3fr);
+    }
+    @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+    .pane {
+      border: 1px solid var(--line2); border-radius: 12px;
+      background: rgba(255,255,255,0.8); padding: 14px; min-height: 320px;
+    }
+    .content-quiet .pane {
+      background: transparent; box-shadow: none;
+      border-radius: 0; border: 0; border-right: 1px solid var(--line2); padding: 0 16px 0 0;
+    }
+    .content-quiet .split .pane:last-child { border-right: 0; padding: 0 0 0 8px; }
+    .pane-label { font-size: 11px; font-weight: 600; color: var(--mut); margin: 0 0 10px; }
+    .tree-item {
+      display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-radius: 8px;
+      font-size: 13px; cursor: default; margin-bottom: 2px;
+    }
+    .tree-item.on {
+      background: #efebe6; font-weight: 600;
+      box-shadow: inset 3px 0 0 var(--action);
+    }
+    .tree-item.indent { padding-left: 28px; }
+    .detail-h { font-family: var(--serif); font-size: 18px; font-weight: 700; margin: 0 0 4px; }
+    .detail-meta { font-size: 13px; color: var(--mut); margin: 0 0 14px; }
+    .rename-box {
+      display: flex; flex-wrap: wrap; gap: 8px; align-items: end;
+      padding: 12px; border: 1px solid var(--line2); border-radius: 10px;
+      background: #fff; margin-bottom: 14px;
+    }
+    .content-quiet .rename-box {
+      background: transparent; border: 0; border-bottom: 1px solid var(--line2);
+      border-radius: 0; padding: 0 0 14px;
+    }
+    .field label { display: block; font-size: 11px; font-weight: 600; color: var(--mut); margin-bottom: 4px; }
+    .field input {
+      height: 36px; border: 1px solid var(--line2); border-radius: 8px; padding: 0 10px; min-width: 180px;
+    }
+    .dash-empty {
+      border: 1px dashed var(--line2); border-radius: 12px; padding: 28px 16px;
+      text-align: center; color: var(--mut); font-size: 13px; background: rgba(245,242,237,0.35);
+    }
+    .content-quiet .dash-empty {
+      text-align: left; border: 0; border-radius: 0; background: transparent; padding: 8px 0;
+    }
+    .mini-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .mini-table th {
+      text-align: left; font-size: 11px; color: var(--mut); font-weight: 600;
+      padding: 8px 6px; border-bottom: 1px solid var(--line2);
+    }
+    .mini-table td { padding: 10px 6px; border-bottom: 1px solid var(--line2); }
+    .doc-wait {
+      display: inline-block; padding: 2px 8px; border-radius: 6px;
+      background: #fff1ea; color: #8b4513; font-size: 11px; font-weight: 600;
+    }
+    .content-quiet .doc-wait {
+      background: var(--surf2); color: var(--mut); border-radius: 999px;
+    }
+
+    .settings-col { max-width: 560px; }
+    .content-quiet .settings-card {
+      border: 0; border-bottom: 1px solid var(--line2); border-radius: 0;
+      background: transparent; box-shadow: none; padding: 0 0 20px; margin-bottom: 20px;
+    }
+    .content-quiet .settings-card h3 { font-family: var(--serif); font-size: 15px; }
+    .danger-block { margin-top: 8px; padding-top: 16px; border-top: 1px solid var(--line2); }
+    .content-current .danger-block h3 { color: var(--err); font-family: var(--serif); }
+    .content-quiet .danger-block h3 {
+      color: var(--text); font-family: var(--serif); font-size: 15px; font-weight: 700; margin: 0 0 8px;
+    }
+    .content-quiet .danger-block p { font-size: 12px; color: var(--mut); margin: 0 0 10px; }
+    .content-quiet .btn-dissolve {
+      border: 0; background: transparent; color: var(--err); font-weight: 600; padding: 0;
+    }
+
+    .modal-demo {
+      margin-top: 18px; padding: 14px; border-radius: 12px;
+      border: 1px dashed var(--line2); background: var(--surf2);
+    }
+    .modal-demo .label { font-size: 11px; font-weight: 700; color: var(--mut); margin-bottom: 10px; }
+    .dialog {
+      max-width: 360px; background: #fff; border: 1px solid var(--line2);
+      border-radius: 12px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .content-current .dialog.dissolve-old {
+      border-radius: 16px; background: var(--bg);
+    }
+    .dialog h4 { margin: 0 0 8px; font-family: var(--serif); font-size: 16px; }
+    .dialog p { margin: 0 0 12px; font-size: 13px; color: var(--mut); line-height: 1.5; }
+    .dialog .warn-box {
+      padding: 10px 12px; border-radius: 8px; margin-bottom: 12px;
+      border: 1px solid color-mix(in srgb, var(--err) 30%, transparent);
+      background: var(--err-bg); color: var(--err); font-size: 13px;
+    }
+    .content-quiet .dialog .warn-box { display: none; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+    .view { display: none; }
+    .page[data-page="members"] .view-members { display: block; }
+    .page[data-page="departments"] .view-departments { display: block; }
+    .page[data-page="settings"] .view-settings { display: block; }
+
+    .note {
+      margin-top: 20px; max-width: 720px; padding: 10px 12px; border-radius: 10px;
+      background: #fff1ea; border: 1px solid rgba(203,107,61,0.2);
+      font-size: 11px; line-height: 1.55; color: var(--text);
+    }
+    .note ul { margin: 4px 0 0; padding-left: 1.2em; }
+    .content-quiet .note-current { display: none; }
+    .content-current .note-quiet { display: none; }
+
+    @media (max-width: 800px) { .rail { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="preview-bar">
+    <strong>组织管理改版</strong>
+    <span class="lock">壳已锁定 · 不改</span>
+    <span class="hint">三页 quiet · Member 可看 · 确认债一并示意</span>
+    <div class="seg" id="seg-page">
+      <button type="button" data-p="members" aria-pressed="true">成员</button>
+      <button type="button" data-p="departments" aria-pressed="false">部门</button>
+      <button type="button" data-p="settings" aria-pressed="false">团队设置</button>
+    </div>
+    <div class="seg" id="seg-chrome">
+      <button type="button" data-c="quiet" aria-pressed="true">改版</button>
+      <button type="button" data-c="current" aria-pressed="false">现网</button>
+      <button type="button" data-r="admin" aria-pressed="true">Admin</button>
+      <button type="button" data-r="member" aria-pressed="false">Member</button>
+    </div>
+  </div>
+
+  <div class="frame">
+    <div class="aurora" aria-hidden="true"></div>
+    <aside class="rail" aria-label="主导航">
+      <a class="rail-mark" href="#/" aria-label="睿阁">
+        <svg width="30" height="30" viewBox="0 0 48 48" fill="none">
+          <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+          <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+          <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+        </svg>
+      </a>
+      <div class="rail-sep"></div>
+      <nav class="rail-nav">
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></div>
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a4 4 0 0 1-4 4H7l-4 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg></div>
+        <div class="rail-item active" title="组织"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg></div>
+        <div class="rail-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+      </nav>
+      <div class="rail-spacer"></div>
+      <div class="avatar" id="rail-av">管</div>
+    </aside>
+
+    <div class="main-col">
+      <header class="topbar">
+        <a class="brand" href="#/">
+          <svg width="34" height="34" viewBox="0 0 48 48" fill="none">
+            <path d="M24 4 L27 9 L21 9 Z" fill="currentColor"/>
+            <path d="M15.5 14.5 Q24 11.5 32.5 14.5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M15.5 14.5 l-2 -2 M32.5 14.5 l2 -2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <line x1="20" y1="15.5" x2="20" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            <line x1="28" y1="15.5" x2="28" y2="22.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
+            <path d="M12.5 24 Q24 21 35.5 24" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M12.5 24 l-2.5 -2.2 M35.5 24 l2.5 -2.2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            <path d="M14 25.5 L34 25.5 L37 40 L11 40 Z M20.5 40 L20.5 33 Q24 30 27.5 33 L27.5 40 Z" fill="currentColor" fill-rule="evenodd"/>
+          </svg>
+          <span class="brand-name">睿阁</span>
+        </a>
+        <div class="topbar-spacer"></div>
+        <div class="scope">
+          <button type="button">个人</button>
+          <button type="button" class="on">团队</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <div class="page content-quiet role-admin" id="content" data-page="members">
+
+          <!-- 成员 -->
+          <div class="view view-members">
+            <div class="head">
+              <h1 class="admin-only-title">成员管理</h1>
+              <h1 class="member-only-title">团队成员</h1>
+              <span class="en">MEMBERS</span>
+              <span class="count">3</span>
+              <div class="head-actions">
+                <button type="button" class="btn">刷新</button>
+                <button type="button" class="btn btn-brand admin-only">+ 添加成员</button>
+              </div>
+            </div>
+
+            <div class="empty-hero admin-only">
+              <h2>把同事请进来</h2>
+              <p>生成邀请码，或按邮箱添加已注册用户。</p>
+            </div>
+
+            <section class="panel panel-invite admin-only">
+              <h3>邀请码</h3>
+              <p class="muted content-current-only">生成邀请码后，新同事在注册页选择「团队 · 成员」并填写此码即可加入。同一邀请码可供多人使用。</p>
+              <p class="muted content-quiet-only">注册时填写即可加入</p>
+              <span class="invite-code">RG-7K2M</span>
+              <button type="button" class="btn">复制</button>
+              <button type="button" class="btn">重新生成</button>
+              <button type="button" class="btn btn-ghost admin-only" style="margin-left:auto">邮箱添加…</button>
+            </section>
+
+            <div class="table-wrap">
+              <div class="t-head">
+                <div>成员</div><div>角色</div><div>加入时间</div><div class="admin-only"></div>
+              </div>
+              <div class="t-row t-row-card">
+                <div class="who"><div class="av">张</div><div><div class="name">张三</div><div class="mail">zhang@demo.local</div></div></div>
+                <div><span class="badge badge-owner">所有者</span></div>
+                <div style="color:var(--mut);font-size:12px">2026-03-01</div>
+                <div class="ops admin-only"><button type="button" class="btn btn-ghost">转让所有权</button></div>
+              </div>
+              <div class="t-row t-row-card">
+                <div class="who"><div class="av">李</div><div><div class="name">李四</div><div class="mail">li@demo.local</div></div></div>
+                <div><span class="badge">管理员</span></div>
+                <div style="color:var(--mut);font-size:12px">2026-04-12</div>
+                <div class="ops admin-only">
+                  <button type="button" class="btn btn-ghost">降为成员</button>
+                </div>
+              </div>
+              <div class="t-row t-row-card">
+                <div class="who"><div class="av">王</div><div><div class="name">王五</div><div class="mail">wang@demo.local</div></div></div>
+                <div><span class="badge">成员</span></div>
+                <div style="color:var(--mut);font-size:12px">2026-06-02</div>
+                <div class="ops admin-only">
+                  <button type="button" class="btn btn-ghost">设为管理员</button>
+                  <button type="button" class="btn btn-ghost" style="color:var(--err)">移除</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-demo admin-only">
+              <div class="label">债 · 移除确认（示意）</div>
+              <div class="dialog">
+                <h4>移除成员</h4>
+                <p>确定将「wang@demo.local」移出团队？</p>
+                <div class="dialog-actions">
+                  <button type="button" class="btn">取消</button>
+                  <button type="button" class="btn btn-danger-solid">确认移除</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 部门 -->
+          <div class="view view-departments">
+            <div class="head">
+              <h1>组织与部门</h1>
+              <span class="en">DEPARTMENTS</span>
+              <div class="head-actions">
+                <button type="button" class="btn btn-brand">+ 新建子部门</button>
+              </div>
+            </div>
+            <div class="split">
+              <section class="pane">
+                <p class="pane-label">部门树</p>
+                <div class="tree-item on">睿阁演示团队</div>
+                <div class="tree-item indent">研发中心</div>
+                <div class="tree-item indent">市场部</div>
+              </section>
+              <section class="pane">
+                <h3 class="detail-h">睿阁演示团队</h3>
+                <p class="detail-meta">12 名成员 · 2 个子部门</p>
+                <div class="rename-box content-current-block">
+                  <div class="field">
+                    <label>部门名称</label>
+                    <input type="text" value="公司根" />
+                  </div>
+                  <button type="button" class="btn">重命名</button>
+                </div>
+                <p class="muted content-quiet-only" style="font-size:12px;color:var(--mut);margin:0 0 14px">
+                  根节点名称请在「团队设置」修改
+                </p>
+                <div class="head-actions" style="margin:0 0 12px;justify-content:flex-start">
+                  <button type="button" class="btn btn-brand">+ 添加成员</button>
+                </div>
+                <div class="dash-empty content-current-block" style="margin-bottom:12px">
+                  当前仅有公司根节点。点击右上角「新建一级部门」或在上方「新建子部门」开始搭建组织树。
+                </div>
+                <table class="mini-table">
+                  <thead>
+                    <tr><th>邮箱</th><th>部门角色</th><th>主部门</th><th></th></tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>li@demo.local</td>
+                      <td><span class="doc-wait">部门管理员</span></td>
+                      <td>是</td>
+                      <td style="text-align:right">
+                        <button type="button" class="btn btn-ghost" style="color:var(--err)">移出</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <div class="modal-demo">
+                  <div class="label">债 · 删部门 / 移出确认（示意）</div>
+                  <div class="dialog">
+                    <h4>删除部门</h4>
+                    <p>确定删除「市场部」？子部门须先清空。</p>
+                    <div class="dialog-actions">
+                      <button type="button" class="btn">取消</button>
+                      <button type="button" class="btn btn-danger-solid">确认删除</button>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+
+          <!-- 团队设置 -->
+          <div class="view view-settings">
+            <div class="head">
+              <h1>团队设置</h1>
+              <span class="en">TEAM SETTINGS</span>
+            </div>
+            <div class="settings-col">
+              <section class="panel settings-card">
+                <h3>团队信息</h3>
+                <div class="field" style="margin-bottom:12px">
+                  <label>团队名称</label>
+                  <div style="display:flex;gap:8px">
+                    <input type="text" value="睿阁演示团队" style="flex:1;height:40px;border:1px solid var(--line2);border-radius:8px;padding:0 12px" />
+                    <button type="button" class="btn btn-brand">保存</button>
+                  </div>
+                </div>
+                <div class="field" style="margin-bottom:8px">
+                  <label>创建时间</label>
+                  <div style="height:40px;display:flex;align-items:center;padding:0 12px;border-radius:8px;background:var(--surf2);color:var(--mut);font-size:13px;border:1px solid var(--line2)">2026-03-01</div>
+                </div>
+                <div class="field">
+                  <label>成员数</label>
+                  <div style="height:40px;display:flex;align-items:center;padding:0 12px;border-radius:8px;background:var(--surf2);color:var(--mut);font-size:13px;border:1px solid var(--line2)">12</div>
+                </div>
+              </section>
+
+              <div class="danger-block">
+                <h3>危险操作</h3>
+                <p>解散将永久删除资料库、文档与成员记录。</p>
+                <button type="button" class="btn btn-danger content-current-only" style="background:var(--err);color:#fff;border:0">解散团队</button>
+                <button type="button" class="btn-dissolve content-quiet-only">解散团队</button>
+              </div>
+
+              <div class="modal-demo">
+                <div class="label">债 · 解散弹窗文案去重 + 皮肤统一</div>
+                <div class="dialog dissolve-old">
+                  <h4>解散团队</h4>
+                  <p>解散后将永久删除所有资料库、文档和成员记录，不可恢复。</p>
+                  <div class="warn-box">此操作不可撤销。团队内所有数据将被永久清除。</div>
+                  <p style="font-size:12px;margin-bottom:8px">请输入团队名称以确认</p>
+                  <div class="dialog-actions">
+                    <button type="button" class="btn">取消</button>
+                    <button type="button" class="btn btn-danger-solid">确认解散</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="note note-current">
+            现网痛点（对照）
+            <ul>
+              <li>成员：EmptyState + 厚邀请卡 + 行内抬升卡；Member 侧栏进不去</li>
+              <li>部门：双厚卡；根可重命名；删/移出无确认；角色用文档徽章</li>
+              <li>设置：厚卡；解散大红实心；弹窗文案叠两层</li>
+            </ul>
+          </div>
+          <div class="note note-quiet">
+            改版 + 债（本页示意）
+            <ul>
+              <li>Member 可进成员页只读；邀请收成一行，邮箱添加次要</li>
+              <li>表去抬升；根不重命名；危险确认统一 --err</li>
+              <li>解散文案一层；设置分区对齐账号 quiet</li>
+            </ul>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <style>
+    .content-quiet .content-current-only,
+    .content-quiet .content-current-block { display: none !important; }
+    .content-current .content-quiet-only { display: none !important; }
+  </style>
+  <script>
+    const content = document.getElementById("content");
+    const railAv = document.getElementById("rail-av");
+
+    document.getElementById("seg-page").addEventListener("click", (e) => {
+      const btn = e.target.closest("button[data-p]");
+      if (!btn) return;
+      content.dataset.page = btn.dataset.p;
+      for (const b of e.currentTarget.querySelectorAll("button")) {
+        b.setAttribute("aria-pressed", String(b === btn));
+      }
+    });
+
+    document.getElementById("seg-chrome").addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      if (btn.dataset.c) {
+        content.classList.toggle("content-quiet", btn.dataset.c === "quiet");
+        content.classList.toggle("content-current", btn.dataset.c === "current");
+        for (const b of e.currentTarget.querySelectorAll("button[data-c]")) {
+          b.setAttribute("aria-pressed", String(b === btn));
+        }
+      }
+      if (btn.dataset.r) {
+        content.classList.toggle("role-admin", btn.dataset.r === "admin");
+        content.classList.toggle("role-member", btn.dataset.r === "member");
+        railAv.textContent = btn.dataset.r === "admin" ? "管" : "成";
+        for (const b of e.currentTarget.querySelectorAll("button[data-r]")) {
+          b.setAttribute("aria-pressed", String(b === btn));
+        }
+      }
+    });
+  </script>
+</body>
+</html>

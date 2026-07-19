@@ -1,0 +1,57 @@
+{
+  "version": "v1",
+  "created_at": "2026-07-18",
+  "description": "Golden QA 296题 + Expense QA 105题跨领域基线",
+  "golden_qa": {
+    "total": 296,
+    "hit_k": 3,
+    "hit_at_k": 0.8649,
+    "mrr": 0.978,
+    "rejection_correct": 0,
+    "rejection_total": 38,
+    "rejection_accuracy": 0.0,
+    "latency_ms": {"p50": 1649, "p95": 2157},
+    "by_tag": {
+      "annual": {"total": 26, "hit": 26, "rate": 1.0},
+      "benefit": {"total": 20, "hit": 20, "rate": 1.0},
+      "bonus": {"total": 9, "hit": 9, "rate": 1.0},
+      "chart": {"total": 10, "hit": 8, "rate": 0.8},
+      "comm": {"total": 5, "hit": 5, "rate": 1.0},
+      "cross": {"total": 11, "hit": 11, "rate": 1.0},
+      "docx": {"total": 15, "hit": 15, "rate": 1.0},
+      "edge": {"total": 9, "hit": 9, "rate": 1.0},
+      "expense": {"total": 20, "hit": 20, "rate": 1.0},
+      "late": {"total": 12, "hit": 12, "rate": 1.0},
+      "leave": {"total": 9, "hit": 9, "rate": 1.0},
+      "long": {"total": 1, "hit": 1, "rate": 1.0},
+      "meal": {"total": 11, "hit": 11, "rate": 1.0},
+      "negative": {"total": 38, "hit": 0, "rate": 0.0},
+      "noncomp": {"total": 9, "hit": 9, "rate": 1.0},
+      "overtime": {"total": 16, "hit": 16, "rate": 1.0},
+      "perf": {"total": 19, "hit": 19, "rate": 1.0},
+      "png": {"total": 10, "hit": 8, "rate": 0.8},
+      "promo": {"total": 9, "hit": 9, "rate": 1.0},
+      "resign": {"total": 12, "hit": 12, "rate": 1.0},
+      "section": {"total": 228, "hit": 228, "rate": 1.0},
+      "security": {"total": 16, "hit": 16, "rate": 1.0},
+      "train": {"total": 10, "hit": 10, "rate": 1.0},
+      "trip": {"total": 10, "hit": 10, "rate": 1.0}
+    }
+  },
+  "thresholds": {
+    "hit_at_k_min": 0.80,
+    "mrr_min": 0.90,
+    "rejection_min": 0.0
+  },
+  "expense_qa": {
+    "total": 105,
+    "hit_k": 3,
+    "hit_at_k": 0.410,
+    "mrr": 0.424,
+    "created_at": "2026-07-18",
+    "thresholds": {
+      "hit_at_k_min": 0.30,
+      "mrr_min": 0.30
+    }
+  }
+}

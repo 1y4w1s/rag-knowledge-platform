@@ -1,0 +1,163 @@
+# � �� 2G �ƾ���ջ��Postgres + API��
+# �����״�������Ƽ�����
+#   1. ���� scripts/docker-engine.example.json �� Docker Desktop �� Engine �� Apply
+#   2. .\scripts\docker-pull.ps1
+#   3. docker compose up -d --build
+# ��һ����.\scripts\docker-up.ps1
+# ���գ�curl http://localhost:8000/health  ��  {"status":"ok","database":"ok"}
+
+services:
+  postgres:
+    build:
+      context: ./docker/postgres
+      pull: false
+    image: ruige-postgres:16-pgvector
+    container_name: ruige-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ruige
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_DB: ruige
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_buffers=256MB"
+      - "-c"
+      - "work_mem=8MB"
+      - "-c"
+      - "effective_cache_size=1GB"
+      - "-c"
+      - "max_connections=20"
+      - "-c"
+      - "random_page_cost=1.1"
+      - "-c"
+      - "log_min_duration_statement=1000"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h localhost -U ruige -d ruige"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    stop_grace_period: 60s
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+
+  api:
+    build:
+      context: ./backend
+      pull: false
+    container_name: ruige-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:-changeme}@postgres:5432/ruige
+      LOKI_URL: http://loki:3100
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
+      RAG_RATE_LIMIT_MODE: normal
+      HF_ENDPOINT: https://hf-mirror.com
+      REDIS_URL: redis://redis:6379/1
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx;r=httpx.get('http://localhost:8000/health');exit(0 if r.json().get('database')=='ok' else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    stop_grace_period: 30s
+    mem_limit: 2g
+    volumes:
+      - uploads_data:/app/uploads
+      - ./backend/models:/app/models
+
+  migrate:
+    build:
+      context: ./backend
+      pull: false
+    container_name: ruige-migrate
+    restart: "no"
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:-changeme}@postgres:5432/ruige
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["alembic", "upgrade", "head"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "1"
+
+  celery-worker:
+    build:
+      context: ./backend
+      pull: false
+    container_name: ruige-celery
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:-changeme}@postgres:5432/ruige
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      CELERY_TASK_ALWAYS_EAGER: "false"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: ["celery", "-A", "app.services.ingestion.celery_app", "worker", "--loglevel=info", "--concurrency=5"]
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    stop_grace_period: 30s
+    volumes:
+      - uploads_data:/app/uploads
+
+  redis:
+    image: redis:7-alpine
+    container_name: ruige-redis
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres_data:
+  uploads_data:
+  redis_data:

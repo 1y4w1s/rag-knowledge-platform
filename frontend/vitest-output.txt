@@ -1,0 +1,24 @@
+﻿
+[1m[46m RUN [49m[22m [36mv3.2.7 [39m[90mD:/MyPrograms/rag-knowledge-platform/frontend[39m
+
+ [31m❯[39m src/components/chat/ChatPageShell.test.tsx [2m([22m[2m7 tests[22m[2m | [22m[31m7 failed[39m[2m)[22m[32m 61[2mms[22m[39m
+[31m   [31m×[31m ChatPageShell[2m > [22mrenders thread panel, message list and chat input[39m[32m 38[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'collapsed')[39m
+[31m   [31m×[31m ChatPageShell[2m > [22mshows loading panel when historyLoading is true[39m[32m 4[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'collapsed')[39m
+[31m   [31m×[31m ChatPageShell[2m > [22mdisplays messages passed in chatStateConfig[39m[32m 4[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'collapsed')[39m
+[31m   [31m×[31m ChatPageShell[2m > [22mregenerate button calls onRegenerate callback[39m[32m 3[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'collapsed')[39m
+[31m   [31m×[31m ChatPageShell[2m > [22mnew chat button calls onCreateThread[39m[32m 5[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'collapsed')[39m
+[31m   [31m×[31m ChatPageShell[2m > [22mshows error banner when streamError is set[39m[32m 2[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'collapsed')[39m
+[31m   [31m×[31m ChatPageShell[2m > [22mdisables input when disabled is true[39m[32m 3[2mms[22m[39m
+[31m     → Cannot read properties of undefined (reading 'collapsed')[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m7 failed[39m[22m[90m (7)[39m
+[2m   Start at [22m 18:14:12
+[2m   Duration [22m 6.18s[2m (transform 175ms, setup 640ms, collect 341ms, tests 61ms, environment 3.48s, prepare 855ms)[22m
+

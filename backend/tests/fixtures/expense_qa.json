@@ -1,0 +1,1488 @@
+{
+  "description": "费用报销管理制度评测集（2026-07-18）",
+  "source": "expense_policy.md",
+  "hit_k": 3,
+  "cases": [
+    {
+      "case_id": "EP-1",
+      "query": "报销需要在多少天内提交？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "30 个自然日内",
+        "section_title": "2.1 报销时限"
+      }
+    },
+    {
+      "case_id": "EP-2",
+      "query": "超过30天的报销怎么办？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "部门负责人审批",
+        "section_title": "2.1 报销时限"
+      }
+    },
+    {
+      "case_id": "EP-3",
+      "query": "超过60天的报销还能报吗？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "CFO 特批",
+        "section_title": "2.1 报销时限"
+      }
+    },
+    {
+      "case_id": "EP-4",
+      "query": "800元的报销由谁审批？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "直属主管",
+        "section_title": "2.2 报销审批权限"
+      }
+    },
+    {
+      "case_id": "EP-5",
+      "query": "3000元的报销审批流程是什么？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "部门负责人",
+        "section_title": "2.2 报销审批权限"
+      }
+    },
+    {
+      "case_id": "EP-6",
+      "query": "15000元的报销需要谁来批？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "财务总监",
+        "section_title": "2.2 报销审批权限"
+      }
+    },
+    {
+      "case_id": "EP-7",
+      "query": "超过20000元的报销审批需要哪些人？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "CEO 审批",
+        "section_title": "2.2 报销审批权限"
+      }
+    },
+    {
+      "case_id": "EP-8",
+      "query": "报销需要什么发票？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "增值税普通发票",
+        "section_title": "2.3 报销凭证要求"
+      }
+    },
+    {
+      "case_id": "EP-9",
+      "query": "超过500元的发票需要什么？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "发票查验真伪截图",
+        "section_title": "2.3 报销凭证要求"
+      }
+    },
+    {
+      "case_id": "EP-10",
+      "query": "电子发票报销有什么要求？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "承诺该发票未重复报销",
+        "section_title": "2.3 报销凭证要求"
+      }
+    },
+    {
+      "case_id": "EP-11",
+      "query": "每月统一报销日是几号？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "1 日和 15 日",
+        "section_title": "2.4 报销周期"
+      }
+    },
+    {
+      "case_id": "EP-12",
+      "query": "报销款多久到账？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "次月 5 日前",
+        "section_title": "2.4 报销周期"
+      }
+    },
+    {
+      "case_id": "EP-13",
+      "query": "一线城市出差每天补贴多少？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元/天",
+        "section_title": "3.1 出差补贴"
+      }
+    },
+    {
+      "case_id": "EP-14",
+      "query": "二线城市出差住宿标准是多少？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "350 元",
+        "section_title": "3.1 出差补贴"
+      }
+    },
+    {
+      "case_id": "EP-15",
+      "query": "其他城市出差每天补贴多少？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元/天",
+        "section_title": "3.1 出差补贴"
+      }
+    },
+    {
+      "case_id": "EP-16",
+      "query": "一线城市住宿标准是多少？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "500 元",
+        "section_title": "3.1 出差补贴"
+      }
+    },
+    {
+      "case_id": "EP-17",
+      "query": "出差坐高铁有什么规定？",
+      "tags": [
+        "section",
+        "trip",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "高铁二等座",
+        "section_title": "3.2 交通费"
+      }
+    },
+    {
+      "case_id": "EP-18",
+      "query": "什么时候可以坐飞机出差？",
+      "tags": [
+        "section",
+        "trip",
+        "transport",
+        "condition"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "1,000 公里",
+        "section_title": "3.2 交通费"
+      }
+    },
+    {
+      "case_id": "EP-19",
+      "query": "出差市内交通每天上限多少？",
+      "tags": [
+        "section",
+        "trip",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元",
+        "section_title": "3.2 交通费"
+      }
+    },
+    {
+      "case_id": "EP-20",
+      "query": "自驾出差怎么报销？",
+      "tags": [
+        "section",
+        "trip",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "0.8 元/公里",
+        "section_title": "3.2 交通费"
+      }
+    },
+    {
+      "case_id": "EP-21",
+      "query": "出差住宿有什么要求？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "连锁酒店",
+        "section_title": "3.3 住宿费"
+      }
+    },
+    {
+      "case_id": "EP-22",
+      "query": "两人同性出差住宿有什么规定？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "合住一间",
+        "section_title": "3.3 住宿费"
+      }
+    },
+    {
+      "case_id": "EP-23",
+      "query": "招待客户人均标准是多少？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元/人",
+        "section_title": "4.1 招待标准"
+      }
+    },
+    {
+      "case_id": "EP-24",
+      "query": "招待政府人员人均标准是多少？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "300 元/人",
+        "section_title": "4.1 招待标准"
+      }
+    },
+    {
+      "case_id": "EP-25",
+      "query": "内部团建人均标准是多少？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元/人",
+        "section_title": "4.1 招待标准"
+      }
+    },
+    {
+      "case_id": "EP-26",
+      "query": "单次招待费超过2000元需要谁审批？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "财务总监",
+        "section_title": "4.2 招待审批"
+      }
+    },
+    {
+      "case_id": "EP-27",
+      "query": "招待同一客户月度累计超过多少需CFO审批？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "10,000 元",
+        "section_title": "4.2 招待审批"
+      }
+    },
+    {
+      "case_id": "EP-28",
+      "query": "招待费报销需要什么材料？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "招待对象",
+        "section_title": "4.3 报销要求"
+      }
+    },
+    {
+      "case_id": "EP-29",
+      "query": "招待费中酒水不能超过多少？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "restriction"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "30%",
+        "section_title": "4.3 报销要求"
+      }
+    },
+    {
+      "case_id": "EP-30",
+      "query": "员工每月办公用品预算多少？",
+      "tags": [
+        "section",
+        "office",
+        "budget"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "50 元/人",
+        "section_title": "5.1 日常办公用品"
+      }
+    },
+    {
+      "case_id": "EP-31",
+      "query": "办公用品单次超过多少需提前申请？",
+      "tags": [
+        "section",
+        "office",
+        "purchase"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "500 元",
+        "section_title": "5.1 日常办公用品"
+      }
+    },
+    {
+      "case_id": "EP-32",
+      "query": "固定资产的标准是多少？",
+      "tags": [
+        "section",
+        "office",
+        "asset"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "2,000 元",
+        "section_title": "5.2 固定资产"
+      }
+    },
+    {
+      "case_id": "EP-33",
+      "query": "普通员工每月话费补贴多少？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元",
+        "section_title": "6.1 手机话费补贴"
+      }
+    },
+    {
+      "case_id": "EP-34",
+      "query": "经理级每月话费补贴多少？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元",
+        "section_title": "6.1 手机话费补贴"
+      }
+    },
+    {
+      "case_id": "EP-35",
+      "query": "总监级每月话费补贴多少？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "300 元",
+        "section_title": "6.1 手机话费补贴"
+      }
+    },
+    {
+      "case_id": "EP-36",
+      "query": "在家办公宽带费每月报销多少？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元",
+        "section_title": "6.2 网络费用"
+      }
+    },
+    {
+      "case_id": "EP-37",
+      "query": "加班到几点可以报销打车费？",
+      "tags": [
+        "section",
+        "benefit",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "21:00",
+        "section_title": "7.1 日常通勤"
+      }
+    },
+    {
+      "case_id": "EP-38",
+      "query": "加班打车费报销上限是多少？",
+      "tags": [
+        "section",
+        "benefit",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "50 元",
+        "section_title": "7.1 日常通勤"
+      }
+    },
+    {
+      "case_id": "EP-39",
+      "query": "员工每年外部培训费用上限是多少？",
+      "tags": [
+        "section",
+        "train",
+        "budget"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "5,000 元",
+        "section_title": "8.1 培训申请"
+      }
+    },
+    {
+      "case_id": "EP-40",
+      "query": "培训后离职需要退还费用吗？",
+      "tags": [
+        "section",
+        "train",
+        "resign"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "按比例退还",
+        "section_title": "8.1 培训申请"
+      }
+    },
+    {
+      "case_id": "EP-41",
+      "query": "认证考试通过后公司报销多少？",
+      "tags": [
+        "section",
+        "train",
+        "exam"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "80%",
+        "section_title": "8.2 认证考试"
+      }
+    },
+    {
+      "case_id": "EP-42",
+      "query": "认证考试没通过能报销吗？",
+      "tags": [
+        "section",
+        "train",
+        "exam",
+        "rejection"
+      ],
+      "source": "md",
+      "expect_rejection": true,
+      "expect": {
+        "content_contains": "不报销"
+      }
+    },
+    {
+      "case_id": "EP-43",
+      "query": "哪些费用不予报销？",
+      "tags": [
+        "section",
+        "expense",
+        "restriction"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "个人消费",
+        "section_title": "9.1 不予报销的费用"
+      }
+    },
+    {
+      "case_id": "EP-44",
+      "query": "虚报发票怎么处理？",
+      "tags": [
+        "section",
+        "expense",
+        "penalty"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "5 倍扣发",
+        "section_title": "9.2 违规处理"
+      }
+    },
+    {
+      "case_id": "EP-45",
+      "query": "报销制度从什么时候开始执行？",
+      "tags": [
+        "section",
+        "policy",
+        "effective"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "2026 年 1 月 1 日",
+        "section_title": "10.1"
+      }
+    },
+    {
+      "case_id": "EP-46",
+      "query": "费用报销制度由哪个部门负责解释？",
+      "tags": [
+        "section",
+        "policy"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "财务部",
+        "section_title": "10.2 附则"
+      }
+    },
+    {
+      "case_id": "EP-47",
+      "query": "报销发票需要什么类型？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "增值税专用发票",
+        "section_title": "2.3 报销凭证要求"
+      }
+    },
+    {
+      "case_id": "EP-48",
+      "query": "出差到北京每天补贴多少？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元",
+        "section_title": "3.1 出差补贴"
+      }
+    },
+    {
+      "case_id": "EP-49",
+      "query": "去杭州出差住宿标准是多少？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "350 元",
+        "section_title": "3.1 出差补贴"
+      }
+    },
+    {
+      "case_id": "EP-50",
+      "query": "去县城出差每天补贴多少？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元",
+        "section_title": "3.1 出差补贴"
+      }
+    },
+    {
+      "case_id": "EP-51",
+      "query": "短途公出多少公里以内鼓励公共交通？",
+      "tags": [
+        "section",
+        "transport",
+        "policy"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "10 公里",
+        "section_title": "7.2 公出交通"
+      }
+    },
+    {
+      "case_id": "EP-52",
+      "query": "招待客户吃饭每人不能超过多少钱？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元",
+        "section_title": "4.1 招待标准"
+      }
+    },
+    {
+      "case_id": "EP-53",
+      "query": "报销超过5万需要审批？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "CEO 审批",
+        "section_title": "2.2 报销审批权限"
+      }
+    },
+    {
+      "case_id": "EP-54",
+      "query": "出差去上海住宿标准是多少？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "500 元",
+        "section_title": "3.1 出差补贴"
+      }
+    },
+    {
+      "case_id": "EP-55",
+      "query": "出差行李超重费能报销吗？",
+      "tags": [
+        "section",
+        "trip",
+        "rejection"
+      ],
+      "source": "md",
+      "expect_rejection": true,
+      "expect": {
+        "content_contains": "个人消费"
+      }
+    },
+    {
+      "case_id": "EP-56",
+      "query": "员工每年最多能报销多少培训费？",
+      "tags": [
+        "section",
+        "train",
+        "budget"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "5,000 元",
+        "section_title": "8.1 培训申请"
+      }
+    },
+    {
+      "case_id": "EP-57",
+      "query": "一年能报销几次认证考试？",
+      "tags": [
+        "section",
+        "train",
+        "exam"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "2 次",
+        "section_title": "8.2 认证考试"
+      }
+    },
+    {
+      "case_id": "EP-58",
+      "query": "境外消费报销要什么凭证？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "Invoice",
+        "section_title": "2.3 报销凭证要求"
+      }
+    },
+    {
+      "case_id": "EP-59",
+      "query": "虚报发票会有什么后果？",
+      "tags": [
+        "section",
+        "expense",
+        "penalty"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "5 倍",
+        "section_title": "9.2 违规处理"
+      }
+    },
+    {
+      "case_id": "EP-60",
+      "query": "制度与法律法规冲突怎么办？",
+      "tags": [
+        "section",
+        "policy",
+        "legal"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "以法律法规为准",
+        "section_title": "10.3 附则"
+      }
+    },
+    {
+      "case_id": "EP-61",
+      "query": "购买办公桌2000元以上属于什么？",
+      "tags": [
+        "section",
+        "office",
+        "asset"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "固定资产",
+        "section_title": "5.2 固定资产"
+      }
+    },
+    {
+      "case_id": "EP-62",
+      "query": "IT设备通过谁采购？",
+      "tags": [
+        "section",
+        "office",
+        "purchase"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "IT 部门",
+        "section_title": "5.2 固定资产"
+      }
+    },
+    {
+      "case_id": "EP-63",
+      "query": "这个制度适用于哪些人？",
+      "tags": [
+        "section",
+        "policy",
+        "scope"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "全体员工",
+        "section_title": "1.1 目的"
+      }
+    },
+    {
+      "case_id": "EP-64",
+      "query": "报销制度覆盖哪些费用类型？",
+      "tags": [
+        "section",
+        "policy",
+        "scope"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "差旅费",
+        "section_title": "1.2 适用范围"
+      }
+    },
+    {
+      "case_id": "EP-65",
+      "query": "经理话费补贴多少钱？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元",
+        "section_title": "6.1 手机话费补贴"
+      }
+    },
+    {
+      "case_id": "EP-66",
+      "query": "单张发票超过多少要查验真伪？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "500 元",
+        "section_title": "2.3 报销凭证要求"
+      }
+    },
+    {
+      "case_id": "EP-67",
+      "query": "部门负责人的报销审批权限上限是多少？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "5,000 元",
+        "section_title": "2.2 报销审批权限"
+      }
+    },
+    {
+      "case_id": "EP-68",
+      "query": "财务总监的审批权限从多少开始？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "5,000",
+        "section_title": "2.2 报销审批权限"
+      }
+    },
+    {
+      "case_id": "EP-69",
+      "query": "出差坐飞机需要提前审批吗？",
+      "tags": [
+        "section",
+        "trip",
+        "transport",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "提前审批",
+        "section_title": "3.2 交通费"
+      }
+    },
+    {
+      "case_id": "EP-70",
+      "query": "招待费中酒水比例不能超过多少？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "restriction"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "30%",
+        "section_title": "4.3 报销要求"
+      }
+    },
+    {
+      "case_id": "EP-71",
+      "query": "本制度何时开始生效？",
+      "tags": [
+        "section",
+        "policy",
+        "effective"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "2026 年 1 月 1 日",
+        "section_title": "10.1",
+        "heading_path_contains": "10.1"
+      }
+    },
+    {
+      "case_id": "EP-72",
+      "query": "总监级以上出差住宿有优惠吗？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel",
+        "edge"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "总监级以上除外",
+        "section_title": "3.3 住宿费"
+      }
+    },
+    {
+      "case_id": "EP-73",
+      "query": "财务总监审批权限是多少？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "财务总监",
+        "section_title": "2.2 报销审批权限"
+      }
+    },
+    {
+      "case_id": "EP-74",
+      "query": "报销餐费需要什么清单？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "消费清单",
+        "section_title": "4.3 报销要求"
+      }
+    },
+    {
+      "case_id": "EP-75",
+      "query": "出差机票超标了能报销吗？",
+      "tags": [
+        "section",
+        "trip",
+        "restriction"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "超出部分自理",
+        "section_title": "9.1 不予报销的费用"
+      }
+    },
+    {
+      "case_id": "EP-76",
+      "query": "报销周期是怎么规定的？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "1 日和 15 日",
+        "section_title": "2.4 报销周期"
+      }
+    },
+    {
+      "case_id": "EP-77",
+      "query": "招待政府跟招待客户标准一样吗？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "comparison"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "300 元",
+        "section_title": "4.1 招待标准"
+      }
+    },
+    {
+      "case_id": "EP-78",
+      "query": "出差到深圳住宿每天多少钱？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "500 元",
+        "section_title": "3.1 出差补贴"
+      }
+    },
+    {
+      "case_id": "EP-79",
+      "query": "去成都出差补贴多少？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "150 元",
+        "section_title": "3.1 出差补贴"
+      }
+    },
+    {
+      "case_id": "EP-80",
+      "query": "通讯费补贴分几档？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元",
+        "section_title": "6.1 手机话费补贴"
+      }
+    },
+    {
+      "case_id": "EP-81",
+      "query": "预算内采购办公用品要审批吗？",
+      "tags": [
+        "section",
+        "office",
+        "purchase"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "500 元",
+        "section_title": "5.1 日常办公用品"
+      }
+    },
+    {
+      "case_id": "EP-82",
+      "query": "笔记本电脑坏了怎么处理？",
+      "tags": [
+        "section",
+        "office",
+        "asset"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "IT 部门",
+        "section_title": "5.2 固定资产"
+      }
+    },
+    {
+      "case_id": "EP-83",
+      "query": "境外消费报销金额怎么算？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "折算为人民币",
+        "section_title": "2.3 报销凭证要求"
+      }
+    },
+    {
+      "case_id": "EP-84",
+      "query": "报销未经审批的聚餐能报吗？",
+      "tags": [
+        "section",
+        "expense",
+        "rejection"
+      ],
+      "source": "md",
+      "expect_rejection": true,
+      "expect": {
+        "content_contains": "未经审批的聚餐"
+      }
+    },
+    {
+      "case_id": "EP-85",
+      "query": "员工出差是否必须住协议酒店？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "协议酒店",
+        "section_title": "3.3 住宿费"
+      }
+    },
+    {
+      "case_id": "EP-86",
+      "query": "报销超过30天不到60天需要谁批？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "部门负责人",
+        "section_title": "2.1 报销时限"
+      }
+    },
+    {
+      "case_id": "EP-87",
+      "query": "部门负责人对下属报销承担什么责任？",
+      "tags": [
+        "section",
+        "expense",
+        "penalty"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "连带责任",
+        "section_title": "9.2 违规处理"
+      }
+    },
+    {
+      "case_id": "EP-88",
+      "query": "招待费的审批权限是怎么划分的？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "2,000 元",
+        "section_title": "4.2 招待审批"
+      }
+    },
+    {
+      "case_id": "EP-89",
+      "query": "公司报销日是哪几天？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "1 日和 15 日",
+        "section_title": "2.4 报销周期"
+      }
+    },
+    {
+      "case_id": "EP-90",
+      "query": "报销制度由谁解释和修订？",
+      "tags": [
+        "section",
+        "policy"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "财务部",
+        "section_title": "10.2 附则"
+      }
+    },
+    {
+      "case_id": "EP-91",
+      "query": "报销审批金额等级有哪些？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "1,000",
+        "section_title": "2.2 报销审批权限"
+      }
+    },
+    {
+      "case_id": "EP-92",
+      "query": "出差补贴包含餐费吗？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "含餐",
+        "section_title": "3.1 出差补贴"
+      }
+    },
+    {
+      "case_id": "EP-93",
+      "query": "出差市内交通怎么报销？",
+      "tags": [
+        "section",
+        "trip",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "实报实销",
+        "section_title": "3.2 交通费"
+      }
+    },
+    {
+      "case_id": "EP-94",
+      "query": "招待费中酒水超了怎么办？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "restriction"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "30%",
+        "section_title": "4.3 报销要求"
+      }
+    },
+    {
+      "case_id": "EP-95",
+      "query": "罚款违约金能报销吗？",
+      "tags": [
+        "section",
+        "expense",
+        "rejection"
+      ],
+      "source": "md",
+      "expect_rejection": true,
+      "expect": {
+        "content_contains": "罚款、罚金、违约金"
+      }
+    },
+    {
+      "case_id": "EP-96",
+      "query": "超标的酒店费用怎么处理？",
+      "tags": [
+        "section",
+        "trip",
+        "restriction"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "超出部分自理",
+        "section_title": "9.1 不予报销的费用"
+      }
+    },
+    {
+      "case_id": "EP-97",
+      "query": "因公外出短途怎么出行？",
+      "tags": [
+        "section",
+        "transport",
+        "policy"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "公共交通",
+        "section_title": "7.2 公出交通"
+      }
+    },
+    {
+      "case_id": "EP-98",
+      "query": "参加认证考试公司报销多少？",
+      "tags": [
+        "section",
+        "train",
+        "exam"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "80%",
+        "section_title": "8.2 认证考试"
+      }
+    },
+    {
+      "case_id": "EP-99",
+      "query": "出差坐高铁超过4小时可以坐什么？",
+      "tags": [
+        "section",
+        "trip",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "高铁一等座",
+        "section_title": "3.2 交通费"
+      }
+    },
+    {
+      "case_id": "EP-100",
+      "query": "制度规定与法律冲突怎么办？",
+      "tags": [
+        "section",
+        "policy",
+        "legal"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "以法律法规为准",
+        "section_title": "10.3 附则"
+      }
+    },
+    {
+      "case_id": "EP-101",
+      "query": "公司宽带费怎么报销？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "运营商发票",
+        "section_title": "6.2"
+      }
+    },
+    {
+      "case_id": "EP-102",
+      "query": "公司报销制度的目的是什么？",
+      "tags": [
+        "section",
+        "policy",
+        "scope"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "规范",
+        "section_title": "1.1 目的"
+      }
+    },
+    {
+      "case_id": "EP-103",
+      "query": "招待费清单需要包含什么？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "参与人员名单",
+        "section_title": "4.3 报销要求"
+      }
+    },
+    {
+      "case_id": "EP-104",
+      "query": "手机话费补贴分哪些级别？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "普通员工",
+        "section_title": "6.1 手机话费补贴"
+      }
+    },
+    {
+      "case_id": "EP-105",
+      "query": "出差到广州每天补贴多少？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元",
+        "section_title": "3.1 出差补贴"
+      }
+    }
+  ]
+}

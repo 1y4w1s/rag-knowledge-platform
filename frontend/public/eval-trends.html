@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><title>睿阁评测趋势</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f3f0; padding: 40px; color: #2c2420; }
+h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 8px; }
+.sub { color: #8a7e76; font-size: 0.85rem; margin-bottom: 32px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px; }
+.card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.card h2 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; color: #8a7e76; margin-bottom: 4px; }
+.card .value { font-size: 2rem; font-weight: 700; color: #2c2420; }
+.card .meta { font-size: 0.8rem; color: #8a7e76; margin-top: 4px; }
+.chart { margin-top: 12px; height: 80px; display: flex; align-items: flex-end; gap: 3px; }
+.bar { flex: 1; background: linear-gradient(to top, #c8bdb0, #a89888); border-radius: 2px 2px 0 0; min-height: 4px; position: relative; }
+.bar:hover { background: #8a7e76; }
+.bar-label { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); font-size: 0.65rem; color: #8a7e76; white-space: nowrap; }
+</style>
+</head>
+<body>
+<h1>睿阁 · 评测仪表盘</h1>
+<p class="sub" id="status">加载中...</p>
+<div class="grid" id="grid"></div>
+<script>
+const API = "/api/v1/evaluations";
+const DATASETS = [
+  { name: "golden_qa", label: "Golden QA 110", metric: "hit_at_3" },
+  { name: "expense_qa", label: "Expense QA 105", metric: "hit_at_3" },
+  { name: "enterprise_qa", label: "Enterprise QA 108", metric: "hit_at_3" },
+];
+
+async function load() {
+  const grid = document.getElementById("grid");
+  let html = "";
+  let totalRuns = 0;
+  for (const ds of DATASETS) {
+    try {
+      const r = await fetch(`${API}/trends?dataset=${ds.name}&metric=${ds.metric}`);
+      const data = await r.json();
+      totalRuns += data.total_runs;
+      const lastVal = data.points.length > 0 ? data.points[data.points.length - 1].value : 0;
+      const maxVal = Math.max(...data.points.map(p => p.value), 0.01);
+      
+      let bars = "";
+      if (data.points.length > 0) {
+        bars = data.points.map((p, i) => {
+          const h = Math.max(4, (p.value / maxVal) * 60);
+          return `<div class="bar" style="height:${h}px" title="${(p.value*100).toFixed(1)}%"></div>`;
+        }).join("");
+      } else {
+        bars = `<div style="color:#8a7e76;font-size:0.8rem;padding:20px 0">暂无数据</div>`;
+      }
+
+      html += `<div class="card">
+        <h2>${ds.label}</h2>
+        <div class="value">${(lastVal * 100).toFixed(1)}%</div>
+        <div class="meta">Hit@3 · ${data.total_runs} 次运行</div>
+        <div class="chart">${bars}</div>
+      </div>`;
+    } catch(e) {
+      html += `<div class="card"><h2>${ds.label}</h2><div class="value" style="color:#c00">Err</div><div class="meta">${e.message}</div></div>`;
+    }
+  }
+  grid.innerHTML = html;
+  document.getElementById("status").textContent = `共 ${totalRuns} 次评测运行 · 实时数据`;
+}
+
+load();
+</script>
+</body>
+</html>

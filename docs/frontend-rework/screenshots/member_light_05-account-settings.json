@@ -1,0 +1,21 @@
+{
+  "url": "/settings/account",
+  "docH": 900,
+  "theme": "light",
+  "bodyBg": "rgba(0, 0, 0, 0)",
+  "bodyColor": "rgb(26, 21, 18)",
+  "sectionCount": 0,
+  "h1": null,
+  "h2List": [
+    "账号设置"
+  ],
+  "h3List": [
+    "账号信息",
+    "离开团队",
+    "修改密码",
+    "API Key 管理"
+  ],
+  "containers": 0,
+  "trackingWide": [],
+  "hardcoded": []
+}

@@ -1,0 +1,200 @@
+import { getAccessToken } from "@/lib/auth-storage";
+import {
+  normalizeDetailMessage,
+  readApiErrorDetail,
+  statusFallbackMessage,
+} from "@/lib/api-error";
+import type { AccountType, OrgRole } from "@/lib/auth-storage";
+
+const API_BASE = "/api/v1";
+
+export interface AccountSettings {
+  id: string;
+  email: string;
+  username: string;
+  nickname: string | null;
+  account_type: AccountType;
+  org_id: string | null;
+  org_role: OrgRole | null;
+  org_name: string | null;
+}
+
+async function parseSettingsError(res: Response): Promise<string> {
+  const detail = await readApiErrorDetail(res);
+  if (detail) {
+    return normalizeDetailMessage(detail, res.status, "generic");
+  }
+  return statusFallbackMessage(res.status) ?? "请求失败，请稍后重试";
+}
+
+export async function fetchAccountSettings(): Promise<AccountSettings> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/settings/account`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(await parseSettingsError(res));
+  return (await res.json()) as AccountSettings;
+}
+
+export async function changeAccountPassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<string> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/settings/account`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      current_password: currentPassword,
+      new_password: newPassword,
+    }),
+  });
+  if (!res.ok) throw new Error(await parseSettingsError(res));
+
+  const data = (await res.json()) as { message?: string };
+  return data.message ?? "密码已更新，请重新登录";
+}
+
+/** PATCH /settings/profile 请求体（Wave 5.3 暴露给前端的可编辑字段） */
+export interface UpdateProfilePayload {
+  nickname?: string | null;
+  username?: string;
+}
+
+/**
+ * 更新账号基础信息（昵称 / 用户名）。
+ * 后端 schema：nickname 0–64 字符、username 3–32 字母数字下划线。
+ */
+export async function updateAccountProfile(
+  payload: UpdateProfilePayload,
+): Promise<AccountSettings> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/settings/profile`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(await parseSettingsError(res));
+  return (await res.json()) as AccountSettings;
+}
+
+export interface JoinTeamResult {
+  message: string;
+  account: AccountSettings;
+}
+
+export async function joinTeamWithInviteCode(code: string): Promise<JoinTeamResult> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/settings/account/join-team`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ invite_code: code.trim() }),
+  });
+  if (!res.ok) throw new Error(await parseSettingsError(res));
+  return (await res.json()) as JoinTeamResult;
+}
+
+export interface LeaveTeamResult {
+  message: string;
+  account: AccountSettings;
+}
+
+export async function leaveTeam(): Promise<LeaveTeamResult> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/settings/account/leave-team`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(await parseSettingsError(res));
+  return (await res.json()) as LeaveTeamResult;
+}
+
+export function formatAccountTypeLabel(settings: AccountSettings): string {
+  if (settings.account_type === "personal") return "个人版";
+  if (settings.org_role === "admin") return "团队版 · 管理员";
+  if (settings.org_role === "member") return "团队版 · 成员";
+  return "团队版";
+}
+
+// ── API Key 管理 ─────────────────────────────────────
+
+export interface ApiKeyItem {
+  id: string;
+  name: string;
+  prefix: string;
+  scopes: string;
+  is_active: boolean;
+  created_at: string;
+  last_used_at: string | null;
+  expires_at: string | null;
+}
+
+export interface ApiKeyCreateResponse {
+  id: string;
+  name: string;
+  prefix: string;
+  raw_key: string;
+  scopes: string;
+  created_at: string;
+}
+
+export async function createApiKey(
+  name: string,
+  scopes = "",
+): Promise<ApiKeyCreateResponse> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/api-keys`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ name, scopes }),
+  });
+  if (!res.ok) throw new Error(await parseSettingsError(res));
+  return (await res.json()) as ApiKeyCreateResponse;
+}
+
+export async function listApiKeys(): Promise<ApiKeyItem[]> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/api-keys`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(await parseSettingsError(res));
+  const data = (await res.json()) as { items: ApiKeyItem[] };
+  return data.items;
+}
+
+export async function deleteApiKey(keyId: string): Promise<void> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/api-keys/${keyId}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(await parseSettingsError(res));
+}

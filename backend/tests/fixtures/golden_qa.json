@@ -1,0 +1,1955 @@
+{
+  "version": "1.0",
+  "description": "golden_qa v1.0 - 110 cases",
+  "hit_k": 3,
+  "cases": [
+    {
+      "case_id": "GQ-1",
+      "domain": "attendance",
+      "difficulty": 0.2,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "section"
+      ],
+      "query": "年假有多少天？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.1 年假",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "年假10天"
+      }
+    },
+    {
+      "case_id": "GQ-2",
+      "domain": "attendance",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "section"
+      ],
+      "query": "迟到怎么处理？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.2 迟到",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "迟到 30 分钟"
+      }
+    },
+    {
+      "case_id": "GQ-3",
+      "domain": "compensation",
+      "difficulty": 0.2,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "section"
+      ],
+      "query": "年终奖什么时候发？",
+      "source": "md",
+      "expect": {
+        "section_title": "2.1 年终奖",
+        "heading_path_contains": "薪酬福利",
+        "content_contains": "12 月"
+      }
+    },
+    {
+      "case_id": "GQ-4",
+      "domain": "attendance",
+      "difficulty": 0.4,
+      "question_type": "cross_reference",
+      "tags": [
+        "pdf",
+        "cross_page",
+        "english"
+      ],
+      "query": "annual leave 10 days which page",
+      "source": "pdf",
+      "expect": {
+        "content_contains": "10 days of annual leave",
+        "page_number": 2
+      }
+    },
+    {
+      "case_id": "GQ-5",
+      "domain": "compensation",
+      "difficulty": 0.2,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "section"
+      ],
+      "query": "每月餐补多少钱？",
+      "source": "md",
+      "expect": {
+        "section_title": "2.2 餐补",
+        "heading_path_contains": "薪酬福利",
+        "content_contains": "300 元"
+      }
+    },
+    {
+      "case_id": "GQ-6",
+      "domain": "attendance",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "section"
+      ],
+      "query": "年假需要提前多久申请？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.1 年假",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "提前两周"
+      }
+    },
+    {
+      "case_id": "GQ-7",
+      "domain": "attendance",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "clause_number"
+      ],
+      "query": "员工手册 1.2 条款对迟到怎么规定？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.2 迟到",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "迟到 30 分钟"
+      }
+    },
+    {
+      "case_id": "GQ-8",
+      "domain": "attendance",
+      "difficulty": 0.4,
+      "question_type": "negation",
+      "tags": [
+        "md",
+        "negation"
+      ],
+      "query": "迟到超过 30 分钟不会按旷工算吧？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.2 迟到",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "旷工"
+      }
+    },
+    {
+      "case_id": "GQ-9",
+      "domain": "attendance",
+      "difficulty": 0.2,
+      "question_type": "simple",
+      "tags": [
+        "docx",
+        "section"
+      ],
+      "query": "年假有多少天？",
+      "source": "docx",
+      "expect": {
+        "section_title": "1.1 年假",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "年假10天"
+      }
+    },
+    {
+      "case_id": "GQ-10",
+      "domain": "attendance",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "pdf",
+        "cross_page",
+        "english"
+      ],
+      "query": "annual leave apply two weeks in advance",
+      "source": "pdf",
+      "expect": {
+        "content_contains": "weeks in advance",
+        "page_number": 2
+      }
+    },
+    {
+      "case_id": "GQ-11",
+      "domain": "compensation",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "table",
+        "r2-2"
+      ],
+      "query": "餐补福利表里每月多少钱？",
+      "source": "md",
+      "expect": {
+        "section_title": "2.2 餐补",
+        "heading_path_contains": "薪酬福利",
+        "content_contains": "300 元/月"
+      }
+    },
+    {
+      "case_id": "GQ-12",
+      "domain": "attendance",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "paraphrase"
+      ],
+      "query": "带薪年休假可以休多少天？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.1 年假",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "年假10天"
+      }
+    },
+    {
+      "case_id": "GQ-13",
+      "domain": "attendance",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "section"
+      ],
+      "query": "工作日加班怎么算加班费？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.1 加班",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "1.5 倍"
+      }
+    },
+    {
+      "case_id": "GQ-14",
+      "domain": "compensation",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "出差到一线城市每天补贴多少？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.2 出差",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "200 元"
+      }
+    },
+    {
+      "case_id": "GQ-15",
+      "domain": "attendance",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "section"
+      ],
+      "query": "加班需要什么流程？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.1 加班",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "加班审批单"
+      }
+    },
+    {
+      "case_id": "GQ-16",
+      "domain": "finance",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "section"
+      ],
+      "query": "出差住宿费怎么报销？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.2 出差",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "实报实销"
+      }
+    },
+    {
+      "case_id": "GQ-17",
+      "domain": "career",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "员工每年可以参加几天外部培训？",
+      "source": "md",
+      "expect": {
+        "section_title": "4.1 培训",
+        "heading_path_contains": "职业发展",
+        "content_contains": "不超过 5 天"
+      }
+    },
+    {
+      "case_id": "GQ-18",
+      "domain": "career",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "date"
+      ],
+      "query": "晋升评估一年几次？什么时间？",
+      "source": "md",
+      "expect": {
+        "section_title": "4.2 晋升",
+        "heading_path_contains": "职业发展",
+        "content_contains": "6 月"
+      }
+    },
+    {
+      "case_id": "GQ-19",
+      "domain": "separation",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "竞业限制期是多久？",
+      "source": "md",
+      "expect": {
+        "section_title": "5.2 竞业限制",
+        "heading_path_contains": "离职管理",
+        "content_contains": "12 个月"
+      }
+    },
+    {
+      "case_id": "GQ-20",
+      "domain": "separation",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "正式员工离职需要提前多久通知？",
+      "source": "md",
+      "expect": {
+        "section_title": "5.1 离职通知期",
+        "heading_path_contains": "离职管理",
+        "content_contains": "30 天"
+      }
+    },
+    {
+      "case_id": "GQ-21",
+      "domain": "career",
+      "difficulty": 0.5,
+      "question_type": "conditional",
+      "tags": [
+        "md",
+        "negation"
+      ],
+      "query": "培训完就离职要不要赔钱？",
+      "source": "md",
+      "expect": {
+        "section_title": "4.1 培训",
+        "heading_path_contains": "职业发展",
+        "content_contains": "按比例退还"
+      }
+    },
+    {
+      "case_id": "GQ-22",
+      "domain": "separation",
+      "difficulty": 0.4,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "term"
+      ],
+      "query": "没提前30天通知离职会怎么样？",
+      "source": "md",
+      "expect": {
+        "section_title": "5.1 离职通知期",
+        "heading_path_contains": "离职管理",
+        "content_contains": "代通知金"
+      }
+    },
+    {
+      "case_id": "GQ-23",
+      "domain": "separation",
+      "difficulty": 0.4,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "竞业限制补偿金按什么标准发？",
+      "source": "md",
+      "expect": {
+        "section_title": "5.2 竞业限制",
+        "heading_path_contains": "离职管理",
+        "content_contains": "30%"
+      }
+    },
+    {
+      "case_id": "GQ-24",
+      "domain": "career",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "condition"
+      ],
+      "query": "晋升需要绩效达到什么标准？",
+      "source": "md",
+      "expect": {
+        "section_title": "4.2 晋升",
+        "heading_path_contains": "职业发展",
+        "content_contains": "B 级以上"
+      }
+    },
+    {
+      "case_id": "GQ-25",
+      "domain": "attendance",
+      "difficulty": 0.4,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "法定节假日加班费怎么算？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.1 加班",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "3 倍"
+      }
+    },
+    {
+      "case_id": "GQ-26",
+      "domain": "attendance",
+      "difficulty": 0.6,
+      "question_type": "cross_reference",
+      "tags": [
+        "md",
+        "cross_section"
+      ],
+      "query": "请年假期间如果被叫回来加班，加班费怎么算？",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "1.1 年假",
+          "heading_path_contains": "考勤制度",
+          "content_contains": "年假10天"
+        },
+        {
+          "section_title": "3.1 加班",
+          "heading_path_contains": "考勤补充",
+          "content_contains": "1.5 倍"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-27",
+      "domain": "compensation",
+      "difficulty": 0.6,
+      "question_type": "cross_reference",
+      "tags": [
+        "md",
+        "cross_section"
+      ],
+      "query": "出差途中需要加班的话，补贴和加班费怎么算？",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "3.1 加班",
+          "heading_path_contains": "考勤补充",
+          "content_contains": "加班"
+        },
+        {
+          "section_title": "3.2 出差",
+          "heading_path_contains": "考勤补充",
+          "content_contains": "200 元"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-28",
+      "domain": "career",
+      "difficulty": 0.6,
+      "question_type": "cross_reference",
+      "tags": [
+        "md",
+        "cross_section"
+      ],
+      "query": "培训完不到一年就离职，需要赔培训费吗？",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "4.1 培训",
+          "heading_path_contains": "职业发展",
+          "content_contains": "按比例退还"
+        },
+        {
+          "section_title": "5.1 离职通知期",
+          "heading_path_contains": "离职管理",
+          "content_contains": "30 天"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-29",
+      "domain": "separation",
+      "difficulty": 0.6,
+      "question_type": "cross_reference",
+      "tags": [
+        "md",
+        "cross_section"
+      ],
+      "query": "离职后竞业限制补偿金怎么发？",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "5.1 离职通知期",
+          "heading_path_contains": "离职管理",
+          "content_contains": "30 天"
+        },
+        {
+          "section_title": "5.2 竞业限制",
+          "heading_path_contains": "离职管理",
+          "content_contains": "30%"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-30",
+      "domain": "compensation",
+      "difficulty": 0.7,
+      "question_type": "cross_reference",
+      "tags": [
+        "md",
+        "cross_section"
+      ],
+      "query": "年假休不完离职了能折现吗？年终奖还能拿吗？",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "1.1 年假",
+          "heading_path_contains": "考勤制度",
+          "content_contains": "年假10天"
+        },
+        {
+          "section_title": "2.1 年终奖",
+          "heading_path_contains": "薪酬福利",
+          "content_contains": "12 月"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-31",
+      "domain": "compensation",
+      "difficulty": 0.4,
+      "question_type": "parametric",
+      "tags": [
+        "md",
+        "parametric"
+      ],
+      "query": "出差到二线城市每天补贴多少钱？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.2 出差",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "150 元"
+      }
+    },
+    {
+      "case_id": "GQ-32",
+      "domain": "attendance",
+      "difficulty": 0.4,
+      "question_type": "parametric",
+      "tags": [
+        "md",
+        "parametric"
+      ],
+      "query": "休息日（周六日）加班按几倍工资算？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.1 加班",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "2 倍"
+      }
+    },
+    {
+      "case_id": "GQ-33",
+      "domain": "career",
+      "difficulty": 0.5,
+      "question_type": "conditional",
+      "tags": [
+        "md",
+        "parametric"
+      ],
+      "query": "年度绩效C级能申请晋升吗？",
+      "source": "md",
+      "expect": {
+        "section_title": "4.2 晋升",
+        "heading_path_contains": "职业发展",
+        "content_contains": "B 级以上"
+      }
+    },
+    {
+      "case_id": "GQ-34",
+      "domain": "separation",
+      "difficulty": 0.4,
+      "question_type": "parametric",
+      "tags": [
+        "md",
+        "parametric"
+      ],
+      "query": "还在试用期想离职，要提前多久通知？",
+      "source": "md",
+      "expect": {
+        "section_title": "5.1 离职通知期",
+        "heading_path_contains": "离职管理",
+        "content_contains": "3 天"
+      }
+    },
+    {
+      "case_id": "GQ-35",
+      "domain": "career",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "parametric"
+      ],
+      "query": "外出培训的费用是公司出还是自己垫？",
+      "source": "md",
+      "expect": {
+        "section_title": "4.1 培训",
+        "heading_path_contains": "职业发展",
+        "content_contains": "由公司承担"
+      }
+    },
+    {
+      "case_id": "GQ-36",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "产假政策是什么？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-37",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "社保公司按什么基数交？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-38",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "公积金缴纳比例是多少？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-39",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "公司有股票期权计划吗？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-40",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "高温补贴有吗？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-41",
+      "domain": "attendance",
+      "difficulty": 0.5,
+      "question_type": "conditional",
+      "tags": [
+        "md",
+        "complex"
+      ],
+      "query": "我刚入职8个月，能申请年假吗？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.1 年假",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "年满一年"
+      }
+    },
+    {
+      "case_id": "GQ-42",
+      "domain": "separation",
+      "difficulty": 0.5,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "complex"
+      ],
+      "query": "竞业补偿金是离职后一次性给还是按月发？",
+      "source": "md",
+      "expect": {
+        "section_title": "5.2 竞业限制",
+        "heading_path_contains": "离职管理",
+        "content_contains": "按月支付"
+      }
+    },
+    {
+      "case_id": "GQ-43",
+      "domain": "career",
+      "difficulty": 0.5,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "complex"
+      ],
+      "query": "想晋升除了绩效达标还要满足什么条件？",
+      "source": "md",
+      "expect": {
+        "section_title": "4.2 晋升",
+        "heading_path_contains": "职业发展",
+        "content_contains": "任职满一年"
+      }
+    },
+    {
+      "case_id": "GQ-44",
+      "domain": "finance",
+      "difficulty": 0.5,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "complex"
+      ],
+      "query": "出差住宿超标了还能实报实销吗？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.2 出差",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "实报实销"
+      }
+    },
+    {
+      "case_id": "GQ-45",
+      "domain": "attendance",
+      "difficulty": 0.4,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "complex"
+      ],
+      "query": "加班一定要填审批单吗？事后补可以吗？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.1 加班",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "加班审批单"
+      }
+    },
+    {
+      "case_id": "GQ-46",
+      "domain": "compensation",
+      "difficulty": 0.6,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "年终",
+      "source": "md",
+      "expect": {
+        "section_title": "2.1 年终奖",
+        "heading_path_contains": "薪酬福利",
+        "content_contains": "12 月"
+      }
+    },
+    {
+      "case_id": "GQ-47",
+      "domain": "cross",
+      "difficulty": 0.7,
+      "question_type": "cross_reference",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "什么情况下要赔公司钱？",
+      "source": "md",
+      "min_match": 1,
+      "expects": [
+        {
+          "section_title": "4.1 培训",
+          "heading_path_contains": "职业发展",
+          "content_contains": "按比例退还"
+        },
+        {
+          "section_title": "5.1 离职通知期",
+          "heading_path_contains": "离职管理",
+          "content_contains": "代通知金"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-48",
+      "domain": "compensation",
+      "difficulty": 0.5,
+      "question_type": "parametric",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "出差到其他城市每天补贴100，是哪个城市档位？",
+      "source": "md",
+      "expect": {
+        "section_title": "3.2 出差",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "100 元"
+      }
+    },
+    {
+      "case_id": "GQ-49",
+      "domain": "attendance",
+      "difficulty": 0.4,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "迟到超30分钟算旷工吗？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.2 迟到",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "旷工"
+      }
+    },
+    {
+      "case_id": "GQ-50",
+      "domain": "attendance",
+      "difficulty": 0.6,
+      "question_type": "conditional",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "我明年6月工作满一年，7月申请年假可以吗？",
+      "source": "md",
+      "expect": {
+        "section_title": "1.1 年假",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "年满一年"
+      }
+    },
+    {
+      "case_id": "GQ-51",
+      "domain": "finance",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "section"
+      ],
+      "query": "出差交通高铁可以坐什么座？",
+      "source": "md",
+      "expect": {
+        "section_title": "6.1 差旅报销",
+        "heading_path_contains": "财务报销",
+        "content_contains": "高铁二等座"
+      }
+    },
+    {
+      "case_id": "GQ-52",
+      "domain": "finance",
+      "difficulty": 0.4,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "出差坐飞机需要什么手续？",
+      "source": "md",
+      "expect": {
+        "section_title": "6.1 差旅报销",
+        "heading_path_contains": "财务报销",
+        "content_contains": "提前审批"
+      }
+    },
+    {
+      "case_id": "GQ-53",
+      "domain": "finance",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "出差期间市内交通每天上限多少？",
+      "source": "md",
+      "expect": {
+        "section_title": "6.1 差旅报销",
+        "heading_path_contains": "财务报销",
+        "content_contains": "50 元"
+      }
+    },
+    {
+      "case_id": "GQ-54",
+      "domain": "finance",
+      "difficulty": 0.4,
+      "question_type": "parametric",
+      "tags": [
+        "md",
+        "parametric"
+      ],
+      "query": "在一线城市招待客户吃饭，每人标准不超过多少？",
+      "source": "md",
+      "expect": {
+        "section_title": "6.2 业务招待",
+        "heading_path_contains": "财务报销",
+        "content_contains": "300 元"
+      }
+    },
+    {
+      "case_id": "GQ-55",
+      "domain": "finance",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "办公用品预算每人每月多少钱？",
+      "source": "md",
+      "expect": {
+        "section_title": "6.3 办公用品采购",
+        "heading_path_contains": "财务报销",
+        "content_contains": "50 元"
+      }
+    },
+    {
+      "case_id": "GQ-56",
+      "domain": "finance",
+      "difficulty": 0.4,
+      "question_type": "conditional",
+      "tags": [
+        "md",
+        "condition"
+      ],
+      "query": "超过多少元的固定资产采购需要总监审批？",
+      "source": "md",
+      "expect": {
+        "section_title": "6.3 办公用品采购",
+        "heading_path_contains": "财务报销",
+        "content_contains": "500 元"
+      }
+    },
+    {
+      "case_id": "GQ-57",
+      "domain": "finance",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "报销需要在费用发生后多久提交？",
+      "source": "md",
+      "expect": {
+        "section_title": "6.4 报销时限",
+        "heading_path_contains": "财务报销",
+        "content_contains": "30 天"
+      }
+    },
+    {
+      "case_id": "GQ-58",
+      "domain": "finance",
+      "difficulty": 0.4,
+      "question_type": "conditional",
+      "tags": [
+        "md",
+        "condition"
+      ],
+      "query": "报销超过多少钱需要财务总监加签？",
+      "source": "md",
+      "expect": {
+        "section_title": "6.4 报销时限",
+        "heading_path_contains": "财务报销",
+        "content_contains": "5000 元"
+      }
+    },
+    {
+      "case_id": "GQ-59",
+      "domain": "finance",
+      "difficulty": 0.6,
+      "question_type": "cross_reference",
+      "tags": [
+        "md",
+        "cross_section"
+      ],
+      "query": "出差交通住宿和市内交通分别怎么报销？",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "6.1 差旅报销",
+          "heading_path_contains": "财务报销",
+          "content_contains": "高铁二等座"
+        },
+        {
+          "section_title": "6.1 差旅报销",
+          "heading_path_contains": "财务报销",
+          "content_contains": "50 元"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-60",
+      "domain": "finance",
+      "difficulty": 0.5,
+      "question_type": "parametric",
+      "tags": [
+        "md",
+        "parametric"
+      ],
+      "query": "二线城市招待客户用餐标准是多少？其他城市呢？",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "6.2 业务招待",
+          "heading_path_contains": "财务报销",
+          "content_contains": "200 元"
+        },
+        {
+          "section_title": "6.2 业务招待",
+          "heading_path_contains": "财务报销",
+          "content_contains": "150 元"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-61",
+      "domain": "security",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "section"
+      ],
+      "query": "公司系统密码有什么要求？",
+      "source": "md",
+      "expect": {
+        "section_title": "7.1 密码与账户安全",
+        "heading_path_contains": "信息安全",
+        "content_contains": "8 位"
+      }
+    },
+    {
+      "case_id": "GQ-62",
+      "domain": "security",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "公司系统密码多久需要更换一次？",
+      "source": "md",
+      "expect": {
+        "section_title": "7.1 密码与账户安全",
+        "heading_path_contains": "信息安全",
+        "content_contains": "90 天"
+      }
+    },
+    {
+      "case_id": "GQ-63",
+      "domain": "security",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "section"
+      ],
+      "query": "公司数据分为哪几个安全级别？",
+      "source": "md",
+      "expect": {
+        "section_title": "7.2 数据分级与保密",
+        "heading_path_contains": "信息安全",
+        "content_contains": "四级"
+      }
+    },
+    {
+      "case_id": "GQ-64",
+      "domain": "security",
+      "difficulty": 0.4,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "机密数据能用微信发吗？",
+      "source": "md",
+      "expect": {
+        "section_title": "7.2 数据分级与保密",
+        "heading_path_contains": "信息安全",
+        "content_contains": "禁止"
+      }
+    },
+    {
+      "case_id": "GQ-65",
+      "domain": "security",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "发现安全漏洞多久内报告？",
+      "source": "md",
+      "expect": {
+        "section_title": "7.3 设备管理",
+        "heading_path_contains": "信息安全",
+        "content_contains": "2 小时"
+      }
+    },
+    {
+      "case_id": "GQ-66",
+      "domain": "benefits",
+      "difficulty": 0.2,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "年度体检标准是多少钱？",
+      "source": "md",
+      "expect": {
+        "section_title": "8.1 年度体检",
+        "heading_path_contains": "福利制度",
+        "content_contains": "800 元"
+      }
+    },
+    {
+      "case_id": "GQ-67",
+      "domain": "benefits",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "春节中秋端午各发多少节日礼金？",
+      "source": "md",
+      "expect": {
+        "section_title": "8.2 节日福利",
+        "heading_path_contains": "福利制度",
+        "content_contains": "500 元"
+      }
+    },
+    {
+      "case_id": "GQ-68",
+      "domain": "benefits",
+      "difficulty": 0.4,
+      "question_type": "parametric",
+      "tags": [
+        "md",
+        "parametric"
+      ],
+      "query": "补充医疗保险门诊报销比例多少？年度上限多少？",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "8.3 补充医疗保险",
+          "heading_path_contains": "福利制度",
+          "content_contains": "90%"
+        },
+        {
+          "section_title": "8.3 补充医疗保险",
+          "heading_path_contains": "福利制度",
+          "content_contains": "5000 元"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-69",
+      "domain": "benefits",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "部门团建人均预算是多少？",
+      "source": "md",
+      "expect": {
+        "section_title": "8.4 团建活动",
+        "heading_path_contains": "福利制度",
+        "content_contains": "300 元"
+      }
+    },
+    {
+      "case_id": "GQ-70",
+      "domain": "benefits",
+      "difficulty": 0.4,
+      "question_type": "conditional",
+      "tags": [
+        "md",
+        "condition"
+      ],
+      "query": "入职多久可以参加年度体检？",
+      "source": "md",
+      "expect": {
+        "section_title": "8.1 年度体检",
+        "heading_path_contains": "福利制度",
+        "content_contains": "半年"
+      }
+    },
+    {
+      "case_id": "GQ-71",
+      "domain": "performance",
+      "difficulty": 0.3,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "section"
+      ],
+      "query": "绩效考核多久一次？",
+      "source": "md",
+      "expect": {
+        "section_title": "9.1 考核周期",
+        "heading_path_contains": "绩效考核",
+        "content_contains": "每半年"
+      }
+    },
+    {
+      "case_id": "GQ-72",
+      "domain": "performance",
+      "difficulty": 0.4,
+      "question_type": "parametric",
+      "tags": [
+        "md",
+        "parametric"
+      ],
+      "query": "S级绩效需要多少分？",
+      "source": "md",
+      "expect": {
+        "section_title": "9.2 等级与评分",
+        "heading_path_contains": "绩效考核",
+        "content_contains": "95 分"
+      }
+    },
+    {
+      "case_id": "GQ-73",
+      "domain": "performance",
+      "difficulty": 0.4,
+      "question_type": "parametric",
+      "tags": [
+        "md",
+        "parametric"
+      ],
+      "query": "年度绩效S级年终奖系数是多少？",
+      "source": "md",
+      "expect": {
+        "section_title": "9.3 绩效与薪酬关联",
+        "heading_path_contains": "绩效考核",
+        "content_contains": "1.5"
+      }
+    },
+    {
+      "case_id": "GQ-74",
+      "domain": "performance",
+      "difficulty": 0.5,
+      "question_type": "conditional",
+      "tags": [
+        "md",
+        "condition"
+      ],
+      "query": "连续两次D级会怎么样？",
+      "source": "md",
+      "expect": {
+        "section_title": "9.2 等级与评分",
+        "heading_path_contains": "绩效考核",
+        "content_contains": "绩效改进计划"
+      }
+    },
+    {
+      "case_id": "GQ-75",
+      "domain": "performance",
+      "difficulty": 0.4,
+      "question_type": "simple",
+      "tags": [
+        "md",
+        "number"
+      ],
+      "query": "对考核结果有异议，多久内可以申诉？",
+      "source": "md",
+      "expect": {
+        "section_title": "9.4 申诉流程",
+        "heading_path_contains": "绩效考核",
+        "content_contains": "7 个工作日"
+      }
+    },
+    {
+      "case_id": "GQ-76",
+      "domain": "performance",
+      "difficulty": 0.4,
+      "question_type": "parametric",
+      "tags": [
+        "md",
+        "parametric"
+      ],
+      "query": "年度绩效A级薪资上浮多少？",
+      "source": "md",
+      "expect": {
+        "section_title": "9.3 绩效与薪酬关联",
+        "heading_path_contains": "绩效考核",
+        "content_contains": "10%"
+      }
+    },
+    {
+      "case_id": "GQ-77",
+      "domain": "cross",
+      "difficulty": 0.8,
+      "question_type": "calculation",
+      "tags": [
+        "md",
+        "complex",
+        "calculation"
+      ],
+      "query": "如果某员工绩效S级、年终奖系数1.5，同时工作日加班10小时，加班费1.5倍，这些怎么一起算？",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "3.1 加班",
+          "heading_path_contains": "考勤补充",
+          "content_contains": "1.5 倍"
+        },
+        {
+          "section_title": "9.3 绩效与薪酬关联",
+          "heading_path_contains": "绩效考核",
+          "content_contains": "1.5"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-78",
+      "domain": "performance",
+      "difficulty": 0.6,
+      "question_type": "cross_reference",
+      "tags": [
+        "md",
+        "cross_section"
+      ],
+      "query": "绩效C级年终奖系数是0.5，那还能调薪吗？",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "9.3 绩效与薪酬关联",
+          "heading_path_contains": "绩效考核",
+          "content_contains": "0.5"
+        },
+        {
+          "section_title": "9.3 绩效与薪酬关联",
+          "heading_path_contains": "绩效考核",
+          "content_contains": "不调薪"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-79",
+      "domain": "attendance",
+      "difficulty": 0.4,
+      "question_type": "conditional",
+      "tags": [
+        "md",
+        "condition"
+      ],
+      "query": "请假超过3天需要谁审批？超过7天呢？",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "附录 A",
+          "heading_path_contains": "请假审批流程图",
+          "content_contains": "部门总监"
+        },
+        {
+          "section_title": "附录 A",
+          "heading_path_contains": "请假审批流程图",
+          "content_contains": "人力资源总监"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-80",
+      "domain": "performance",
+      "difficulty": 0.5,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge",
+        "table"
+      ],
+      "query": "附录C的绩效分布比例里S级和D级各占多少？",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "附录 C",
+          "heading_path_contains": "绩效评分分布",
+          "content_contains": "10%"
+        },
+        {
+          "section_title": "附录 C",
+          "heading_path_contains": "绩效评分分布",
+          "content_contains": "10%"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-81",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "公司今年的净利润是多少？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-82",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "公司上市计划是什么？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-83",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "公司有多少员工？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-84",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "CEO的薪资是多少？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-85",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "劳动合同法对试用期有什么规定？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-86",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "个人所得税怎么计算？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-87",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "公司在北京有哪些办公地点？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-88",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "公司技术栈用什么框架？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-89",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "公司的使命和愿景是什么？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-90",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "怀孕期间可以辞退吗？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-91",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "公司对员工烒股有什么规定？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-92",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "带宠物来上班可以吗？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-93",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "公司有免费的咖啡吗？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-94",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "办公室可以抽烟吗？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-95",
+      "domain": "cross",
+      "difficulty": 0.3,
+      "question_type": "rejection",
+      "tags": [
+        "md",
+        "negative"
+      ],
+      "query": "公司有员工宿舍吗？",
+      "source": "md",
+      "expect_rejection": true
+    },
+    {
+      "case_id": "GQ-96",
+      "domain": "finance",
+      "difficulty": 0.5,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "出差",
+      "source": "md",
+      "expect": {
+        "section_title": "6.1 差旅报销",
+        "heading_path_contains": "财务报销",
+        "content_contains": "高铁"
+      }
+    },
+    {
+      "case_id": "GQ-97",
+      "domain": "security",
+      "difficulty": 0.5,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "密码",
+      "source": "md",
+      "expect": {
+        "section_title": "7.1 密码与账户安全",
+        "heading_path_contains": "信息安全",
+        "content_contains": "8 位"
+      }
+    },
+    {
+      "case_id": "GQ-98",
+      "domain": "separation",
+      "difficulty": 0.5,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "离职要提前多久",
+      "source": "md",
+      "expect": {
+        "section_title": "5.1 离职通知期",
+        "heading_path_contains": "离职管理",
+        "content_contains": "30 天"
+      }
+    },
+    {
+      "case_id": "GQ-99",
+      "domain": "security",
+      "difficulty": 0.6,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "怎么才算违纪",
+      "source": "md",
+      "expect": {
+        "section_title": "7.2 数据分级与保密",
+        "heading_path_contains": "信息安全",
+        "content_contains": "警告"
+      }
+    },
+    {
+      "case_id": "GQ-100",
+      "domain": "attendance",
+      "difficulty": 0.4,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "加班给不给钱",
+      "source": "md",
+      "expect": {
+        "section_title": "3.1 加班",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "加班费"
+      }
+    },
+    {
+      "case_id": "GQ-101",
+      "domain": "attendance",
+      "difficulty": 0.4,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "迟到多久算旷工",
+      "source": "md",
+      "expect": {
+        "section_title": "1.2 迟到",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "旷工"
+      }
+    },
+    {
+      "case_id": "GQ-102",
+      "domain": "benefits",
+      "difficulty": 0.5,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge",
+        "negation"
+      ],
+      "query": "年度体检不用自费吧",
+      "source": "md",
+      "expect": {
+        "section_title": "8.1 年度体检",
+        "heading_path_contains": "福利制度",
+        "content_contains": "免费"
+      }
+    },
+    {
+      "case_id": "GQ-103",
+      "domain": "cross",
+      "difficulty": 0.6,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge"
+      ],
+      "query": "钱",
+      "source": "md",
+      "expect": {
+        "content_contains": "年终奖"
+      }
+    },
+    {
+      "case_id": "GQ-104",
+      "domain": "attendance",
+      "difficulty": 0.6,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge",
+        "conditional"
+      ],
+      "query": "如果没满一年",
+      "source": "md",
+      "expect": {
+        "section_title": "1.1 年假",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "年满一年"
+      }
+    },
+    {
+      "case_id": "GQ-105",
+      "domain": "finance",
+      "difficulty": 0.5,
+      "question_type": "edge",
+      "tags": [
+        "md",
+        "edge",
+        "table"
+      ],
+      "query": "出差补贴对比表一线城市住宿上限",
+      "source": "md",
+      "expect": {
+        "section_title": "附录 B",
+        "heading_path_contains": "出差补贴标准",
+        "content_contains": "500 元"
+      }
+    },
+    {
+      "case_id": "GQ-106",
+      "domain": "separation",
+      "difficulty": 0.7,
+      "question_type": "cross_reference",
+      "tags": [
+        "md",
+        "cross_section",
+        "complex"
+      ],
+      "query": "试用期和正式员工离职分别提前多久通知",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "5.1 离职通知期",
+          "heading_path_contains": "离职管理",
+          "content_contains": "3 天"
+        },
+        {
+          "section_title": "5.1 离职通知期",
+          "heading_path_contains": "离职管理",
+          "content_contains": "30 天"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-107",
+      "domain": "performance",
+      "difficulty": 0.8,
+      "question_type": "cross_reference",
+      "tags": [
+        "md",
+        "cross_section",
+        "complex"
+      ],
+      "query": "绩效S级年终奖系数1.5薪资上浮15还要满足什么晋升条件",
+      "source": "md",
+      "min_match": 3,
+      "expects": [
+        {
+          "section_title": "9.3 绩效与薪酬关联",
+          "heading_path_contains": "绩效考核",
+          "content_contains": "1.5"
+        },
+        {
+          "section_title": "9.3 绩效与薪酬关联",
+          "heading_path_contains": "绩效考核",
+          "content_contains": "15%"
+        },
+        {
+          "section_title": "4.2 晋升",
+          "heading_path_contains": "职业发展",
+          "content_contains": "任职满一年"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-108",
+      "domain": "finance",
+      "difficulty": 0.6,
+      "question_type": "cross_reference",
+      "tags": [
+        "md",
+        "cross_section",
+        "complex"
+      ],
+      "query": "出差一线城市每天补贴和住宿上限查附录B",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "附录 B",
+          "heading_path_contains": "出差补贴标准",
+          "content_contains": "200 元"
+        },
+        {
+          "section_title": "附录 B",
+          "heading_path_contains": "出差补贴标准",
+          "content_contains": "500 元"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-109",
+      "domain": "separation",
+      "difficulty": 0.7,
+      "question_type": "cross_reference",
+      "tags": [
+        "md",
+        "cross_section",
+        "complex"
+      ],
+      "query": "离职竞业补偿金标准和未休年假怎么办",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "5.2 竞业限制",
+          "heading_path_contains": "离职管理",
+          "content_contains": "30%"
+        },
+        {
+          "section_title": "1.1 年假",
+          "heading_path_contains": "考勤制度",
+          "content_contains": "年假10天"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-110",
+      "domain": "security",
+      "difficulty": 0.6,
+      "question_type": "cross_reference",
+      "tags": [
+        "md",
+        "cross_section",
+        "complex"
+      ],
+      "query": "设备丢了怎么处理安全漏洞呢",
+      "source": "md",
+      "min_match": 2,
+      "expects": [
+        {
+          "section_title": "7.3 设备管理",
+          "heading_path_contains": "信息安全",
+          "content_contains": "2 小时"
+        },
+        {
+          "section_title": "7.3 设备管理",
+          "heading_path_contains": "信息安全",
+          "content_contains": "报告"
+        }
+      ]
+    }
+  ]
+}
