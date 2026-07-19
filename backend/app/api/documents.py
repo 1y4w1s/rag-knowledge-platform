@@ -22,7 +22,7 @@ from app.core.request_ip import get_client_ip
 from app.core.deps import CurrentUser, KbAction, get_current_user, require_kb_access
 from app.services.auth.api_rate_limit import ApiRateLimitKind, enforce_api_rate_limit
 from app.models.document import Document
-from app.models.enums import DocumentVisibility
+from app.models.enums import DocumentVisibility, DocumentVisibility as DocVisEnum
 from app.schemas.document import (
     DocumentListResponse,
     DocumentResponse,
@@ -32,7 +32,6 @@ from app.services.documents.lifecycle import delete_document, retry_document
 from app.services.documents.listing import get_document, list_documents
 from app.services.documents.preview import get_document_preview
 from app.services.documents.upload import upload_documents
-from app.services.rag.cache import clear_query_cache
 
 router = APIRouter(
     prefix="/knowledge-bases/{kb_id}/documents",
@@ -155,6 +154,7 @@ async def post_documents(
         visibility=visibility,
     )
     # 文档上传后清空该 KB 的检索缓存
+    from app.services.rag.cache import clear_query_cache
     await clear_query_cache(kb_id=kb_id)
     return DocumentUploadResponse(documents=docs)
 
@@ -203,7 +203,7 @@ async def get_document_preview_route(
 
 # ── 文档可见性 ────────────────────────────────────────
 
-from app.models.enums import DocumentVisibility as DocVisEnum
+from app.models.enums import DocumentVisibility, DocumentVisibility as DocVisEnum as DocVisEnum
 from pydantic import BaseModel
 
 
@@ -220,7 +220,7 @@ async def update_document_visibility(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> DocumentResponse:
     """修改文档可见性（仅上传者/团队 Admin/Owner 可操作）。"""
-    from app.models.enums import DocumentVisibility
+    from app.models.enums import DocumentVisibility, DocumentVisibility as DocVisEnum
     from app.services.documents.listing import get_document
 
     doc_resp = await get_document(db, current_user, kb_id, doc_id)
