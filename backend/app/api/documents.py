@@ -203,7 +203,7 @@ async def get_document_preview_route(
 
 # ── 文档可见性 ────────────────────────────────────────
 
-from app.models.enums import DocumentVisibility, DocumentVisibility as DocVisEnum as DocVisEnum
+from app.models.enums import DocumentVisibility, DocumentVisibility as DocVisEnum
 from pydantic import BaseModel
 
 
