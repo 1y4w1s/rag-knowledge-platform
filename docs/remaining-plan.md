@@ -31,13 +31,12 @@
 动作：无，已配置（benchmark.yml `schedule` cron）。已验证手动触发通过 #8。
 风险：夜间可能缺模型缓存（bge-small-en）。已在 retrieval.py 中有 fallback 到 bge。
 
-### 2. 前端 EvaluationsPage 修复
-优先级：P2
-状态：UI 有「评测」页面入口，但后台 `/evaluation-runs` API 没有返回数据（页面 404 或空）。需检查：
-- 后端 `/api/v1/evaluation-runs` 路由是否正确注册
-- 前端 API 路径是否匹配
-
-### 3. CRAG 4409 全量
+### 2. CRAG 4409 全量
+优先级：P3
+当前：100 条 sample
+目标：全量 4409 条（夜间）
+风险：CI 超时（~30min）
+方案：改为 nightly 使用 `--sample 4409`
 优先级：P3
 当前：100 条 sample
 目标：全量 4409 条（夜间）
