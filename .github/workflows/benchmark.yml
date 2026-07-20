@@ -122,6 +122,9 @@ jobs:
           if [ "$DATASETS" = "all" ]; then
             DATASETS="crag,liverag,rageval,ragbench,mirage,enterprise"
           fi
+          if [ -z "$SAMPLE_ARG" ] && echo "$DATASETS" | grep -q "crag"; then
+            SAMPLE_ARG="--sample 100"
+          fi
 
           python -m tests.benchmark.run_retrieval \
             --datasets "$DATASETS" \
