@@ -110,8 +110,6 @@ jobs:
           JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
           RAG_RATE_LIMIT_MODE: ${{ inputs.mode || 'bypass' }}
           RAG_REAL_EMBEDDING: ${{ inputs.mock_embedding == 'true' && '0' || '1' }}
-          DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
-          TONGYI_API_KEY: ${{ secrets.TONGYI_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           RAG_TEST_PASSWORD: ${{ secrets.RAG_TEST_PASSWORD }}
         run: |
