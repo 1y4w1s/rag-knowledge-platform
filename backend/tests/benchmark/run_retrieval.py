@@ -49,7 +49,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument(
         "--mock",
         action="store_true",
-        help="使用 mock 嵌入（快速验证，不调用通义 API）",
+        help="使用 mock 嵌入（快速验证，不走真实嵌入）",
     )
     p.add_argument(
         "--top-k",
@@ -86,7 +86,7 @@ async def main() -> None:
         logger.info("使用 MOCK 嵌入模式")
     else:
         os.environ["RAG_REAL_EMBEDDING"] = "1"
-        logger.info("使用真实嵌入模式（需通义 API Key）")
+        logger.info("使用真实嵌入模式（bge-small-zh via fastembed）")
 
     # 导入后端模块（需在设置环境之后）
     from app.core.database import SessionLocal
