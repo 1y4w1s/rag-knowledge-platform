@@ -93,12 +93,18 @@ class BenchmarkRunner:
 
     # ==================== 重试工具 ====================
 
-    async def _call_with_retry(self, fn: Callable, *args, label: str = "", **kwargs):
-        """带重试的函数调用，最多 MAX_RETRIES 次。"""
+    async def _call_with_retry(self, fn: Callable, *args, **kwargs):
+        """带重试的函数调用，最多 MAX_RETRIES 次。
+        自动 await 异步函数。"""
+        # 分离 label（仅用于日志）和实际函数参数
+        label = kwargs.pop("label", "")
         last_err = None
         for attempt in range(1, MAX_RETRIES + 1):
             try:
-                return fn(*args, **kwargs)
+                result = fn(*args, **kwargs)
+                if hasattr(result, "__await__"):
+                    result = await result
+                return result
             except Exception as e:
                 last_err = e
                 if attempt < MAX_RETRIES:
