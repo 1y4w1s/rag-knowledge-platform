@@ -93,6 +93,9 @@ jobs:
 
       - name: Cleanup old evaluation runs
         continue-on-error: true
+        env:
+          DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
+          JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
         run: |
           python backend/scripts/cleanup_eval_runs.py
 
