@@ -100,18 +100,18 @@ def embedding_input_text(heading_path: str | None, content: str) -> str:
     return content
 
 
-def _mock_vector(text: str) -> list[float]:
+def _mock_vector(text: str, dim: int | None = None) -> list[float]:
     digest = hashlib.sha256(text.encode("utf-8")).digest()
-    dim = _get_embedding_dim()
+    target_dim = dim or _get_embedding_dim()
     values: list[float] = []
-    while len(values) < dim:
+    while len(values) < target_dim:
         for i in range(0, len(digest), 4):
             chunk = digest[i : i + 4]
             if len(chunk) < 4:
                 chunk = chunk.ljust(4, b"\0")
             num = int.from_bytes(chunk, "big", signed=False)
             values.append((num % 1000) / 1000.0 - 0.5)
-            if len(values) >= EMBEDDING_DIM:
+            if len(values) >= target_dim:
                 break
         digest = hashlib.sha256(digest).digest()
 
@@ -277,7 +277,8 @@ async def embed_texts(texts: Sequence[str], provider: str | None = None) -> list
 
     provider = (provider or settings.embedding_provider).lower()
     if _is_mock_mode():
-        return _validate_vectors([_mock_vector(t) for t in texts], label="mock_embed")
+        dim = 384 if provider == "bge_en" else _get_embedding_dim()
+        return _validate_vectors([_mock_vector(t, dim=dim) for t in texts], label="mock_embed", expected_dim=dim)
 
     if provider == "tongyi":
         use_cache = _cache_enabled()
