@@ -7,7 +7,7 @@ import type { ChatMessage, UserChatMessage, AssistantChatMessage } from "@/compo
 vi.mock("@/components/chat/ThreadListPanel", () => ({
   ThreadListPanel: ({ onCreateThread }: { onCreateThread: () => void }) => (
     <div data-testid="thread-list-panel">
-      <button data-testid="new-chat-btn" onClick={onCreateThread}>新建对话</button>
+      <button data-testid="new-chat-btn" onClick={onCreateThread}>脨脗陆篓露脭禄掳</button>
     </div>
   ),
 }));
@@ -17,9 +17,9 @@ vi.mock("@/components/chat/ChatMessageList", () => ({
     <div data-testid="chat-message-list">
       {messages.map((m, i) => (
         <div key={i} data-testid={`msg-${i}`}>
-          {m.role === "user" ? `用户: ${m.content}` : `助手: ${m.content}`}
+          {m.role === "user" ? `脫脙禄搂: ${m.content}` : `脰煤脢脰: ${m.content}`}
           {m.role === "assistant" && onRegenerate && (
-            <button data-testid={`regenerate-${i}`} onClick={() => onRegenerate(i)}>重新生成</button>
+            <button data-testid={`regenerate-${i}`} onClick={() => onRegenerate(i)}>脰脴脨脗脡煤鲁脡</button>
           )}
         </div>
       ))}
@@ -31,13 +31,13 @@ vi.mock("@/components/chat/ChatInput", () => ({
   ChatInput: ({ onSend, disabled }: { onSend: (msg: string) => void; disabled?: boolean }) => (
     <div data-testid="chat-input">
       <input data-testid="msg-input" disabled={disabled} />
-      <button data-testid="send-btn" onClick={() => { if (!disabled) onSend("你好"); }}>发送</button>
+      <button data-testid="send-btn" onClick={() => { if (!disabled) onSend("脛茫潞脙"); }}>路垄脣脥</button>
     </div>
   ),
 }));
 
 vi.mock("@/components/chat/ChatLoadingPanel", () => ({
-  ChatLoadingPanel: () => <div data-testid="loading-panel">加载中...</div>,
+  ChatLoadingPanel: () => <div data-testid="loading-panel">录脫脭脴脰脨...</div>,
 }));
 
 vi.mock("@/components/chat/AgentModeSwitcher", () => ({
@@ -53,12 +53,12 @@ vi.mock("@/components/chat/ToolTimeline", () => ({
 }));
 
 function makeUserMsg(overrides: Partial<UserChatMessage> = {}): UserChatMessage {
-  return { role: "user", content: "年假有几天？", createdAt: "2026-07-18T10:00:00Z", ...overrides };
+  return { role: "user", content: "脛锚录脵脫脨录赂脤矛拢驴", createdAt: "2026-07-18T10:00:00Z", ...overrides };
 }
 
 function makeAssistantMsg(overrides: Partial<AssistantChatMessage> = {}): AssistantChatMessage {
   return {
-    role: "assistant", content: "5 天", citations: [], expandedIndex: null,
+    role: "assistant", content: "5 脤矛", citations: [], expandedIndex: null,
     createdAt: "2026-07-18T10:00:05Z", streaming: false, ...overrides,
   };
 }
@@ -81,6 +81,7 @@ const defaultMessageListConfig = {
   onCancelApproval: vi.fn(), resolvingApprovalId: null, approvalError: null,
 };
 const defaultInputConfig = { disabled: false, onSend: vi.fn(), draftRestore: undefined };
+const defaultToolbar = <div />;
 
 describe("ChatPageShell", () => {
   it("renders thread panel, message list and chat input", () => {
@@ -91,9 +92,10 @@ describe("ChatPageShell", () => {
         chatState={defaultChatState}
         messageListConfig={defaultMessageListConfig}
         inputConfig={defaultInputConfig}
+        toolbar={defaultToolbar}
         scrollRef={{ current: null }}
       >
-        <div data-testid="extra-content">额外内容</div>
+        <div data-testid="extra-content">露卯脥芒脛脷脠脻</div>
       </ChatPageShell>,
     );
     expect(screen.getByTestId("thread-list-panel")).toBeTruthy();
@@ -110,6 +112,7 @@ describe("ChatPageShell", () => {
         chatState={{ ...defaultChatState, historyLoading: true }}
         messageListConfig={defaultMessageListConfig}
         inputConfig={defaultInputConfig}
+        toolbar={defaultToolbar}
         scrollRef={{ current: null }}
       />,
     );
@@ -125,11 +128,12 @@ describe("ChatPageShell", () => {
         chatState={{ ...defaultChatState, messages }}
         messageListConfig={{ ...defaultMessageListConfig, onRegenerate: vi.fn() }}
         inputConfig={defaultInputConfig}
+        toolbar={defaultToolbar}
         scrollRef={{ current: null }}
       />,
     );
-    expect(screen.getByText("用户: 年假有几天？")).toBeTruthy();
-    expect(screen.getByText("助手: 5 天")).toBeTruthy();
+    expect(screen.getByText("脫脙禄搂: 脛锚录脵脫脨录赂脤矛拢驴")).toBeTruthy();
+    expect(screen.getByText("脰煤脢脰: 5 脤矛")).toBeTruthy();
   });
 
   it("regenerate button calls onRegenerate callback", () => {
@@ -142,6 +146,7 @@ describe("ChatPageShell", () => {
         chatState={{ ...defaultChatState, messages }}
         messageListConfig={{ ...defaultMessageListConfig, onRegenerate }}
         inputConfig={defaultInputConfig}
+        toolbar={defaultToolbar}
         scrollRef={{ current: null }}
       />,
     );
@@ -158,6 +163,7 @@ describe("ChatPageShell", () => {
         chatState={defaultChatState}
         messageListConfig={defaultMessageListConfig}
         inputConfig={defaultInputConfig}
+        toolbar={defaultToolbar}
         scrollRef={{ current: null }}
       />,
     );
@@ -170,14 +176,15 @@ describe("ChatPageShell", () => {
       <ChatPageShell
         threadPanel={{ ...defaultThreadPanel, collapsed: true }}
         agentConfig={defaultAgentConfig}
-        chatState={{ ...defaultChatState, historyError: "加载失败", streamError: "对话出错" }}
+        chatState={{ ...defaultChatState, historyError: "录脫脭脴脢搂掳脺", streamError: "露脭禄掳鲁枚麓铆" }}
         messageListConfig={defaultMessageListConfig}
         inputConfig={defaultInputConfig}
+        toolbar={defaultToolbar}
         scrollRef={{ current: null }}
       />,
     );
-    expect(screen.getByText("对话出错")).toBeTruthy();
-    expect(screen.getByText("加载失败")).toBeTruthy();
+    expect(screen.getByText("露脭禄掳鲁枚麓铆")).toBeTruthy();
+    expect(screen.getByText("录脫脭脴脢搂掳脺")).toBeTruthy();
   });
 
   it("disables input when disabled is true", () => {
@@ -189,6 +196,7 @@ describe("ChatPageShell", () => {
         chatState={defaultChatState}
         messageListConfig={defaultMessageListConfig}
         inputConfig={{ disabled: true, onSend }}
+        toolbar={defaultToolbar}
         scrollRef={{ current: null }}
       />,
     );

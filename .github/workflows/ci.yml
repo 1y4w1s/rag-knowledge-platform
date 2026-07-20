@@ -137,12 +137,11 @@ jobs:
         env:
           BASELINE_PATH: docs/baseline.json
         run: |
-          python3 scripts/ci_baseline_check.py
+          python3 backend/scripts/ci_baseline_check.py
 
       - name: New scoring engine comparison (experimental)
         run: |
-          cd backend
-          python scripts/ci_new_scorer.py
+          python3 backend/scripts/ci_new_scorer.py
 
   lint:
     runs-on: ubuntu-latest

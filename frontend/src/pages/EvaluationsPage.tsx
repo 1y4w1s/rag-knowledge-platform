@@ -203,7 +203,6 @@ function SimpleTrendChart({ points, average, metric: _metric }: { points: { run_
   const minV = Math.min(...points.map(p => p.value), 0);
   const range = maxV - minV || 0.01;
   const height = 160;
-  const _barW = Math.max(4, Math.min(20, (600 - 40) / points.length));
 
   return (
     <div className="relative">
