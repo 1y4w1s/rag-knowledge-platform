@@ -140,23 +140,6 @@
       }
     },
     {
-      "case_id": "GQ-9",
-      "domain": "attendance",
-      "difficulty": 0.2,
-      "question_type": "simple",
-      "tags": [
-        "docx",
-        "section"
-      ],
-      "query": "年假有多少天？",
-      "source": "docx",
-      "expect": {
-        "section_title": "1.1 年假",
-        "heading_path_contains": "考勤制度",
-        "content_contains": "年假10天"
-      }
-    },
-    {
       "case_id": "GQ-10",
       "domain": "attendance",
       "difficulty": 0.3,

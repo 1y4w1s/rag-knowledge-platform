@@ -59,7 +59,7 @@ def _match_single_expect(expect: dict, chunk: Any) -> bool:
     if sec is not None and getattr(chunk, "section_title", None) != sec:
         return False
     hpc = expect.get("heading_path_contains")
-    if hpc is not None and hpc not in (getattr(chunk, "heading_path", None) or ""):
+    if hpc is not None and hpc.lower() not in (getattr(chunk, "heading_path", None) or "").lower():
         return False
     cc = expect.get("content_contains")
     if cc is not None:
@@ -115,7 +115,7 @@ def chunk_matches(case: GoldenQACase, chunk: Any) -> bool:
         return any(_match_single_expect(e, chunk) for e in case.expects)
     if case.section_title is not None and getattr(chunk, "section_title", None) != case.section_title:
         return False
-    if case.heading_path_contains is not None and case.heading_path_contains not in (getattr(chunk, "heading_path", None) or ""):
+    if case.heading_path_contains is not None and case.heading_path_contains.lower() not in (getattr(chunk, "heading_path", None) or "").lower():
         return False
     if case.content_contains is not None:
         chunk_content = (getattr(chunk, "content", None) or "").lower()

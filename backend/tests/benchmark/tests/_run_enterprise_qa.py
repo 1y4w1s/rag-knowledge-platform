@@ -1,4 +1,4 @@
-"""Enterprise QA 检索评测。入库 6 份文档 → 108 题检索 → L1-L4 分层报告。"""
+"""Enterprise QA 检索评测（已弃用，请用 scripts/run_benchmark.py --dataset enterprise_qa）。入库 6 份文档 → 108 题检索 → L1-L4 分层报告。"""
 import asyncio, json, os, uuid
 from pathlib import Path
 

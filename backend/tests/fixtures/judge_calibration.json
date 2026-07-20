@@ -1,0 +1,165 @@
+{
+  "version": "1.0",
+  "items": [
+    {
+      "case_id": "GQ-1",
+      "query": "年假有多少天？",
+      "golden_answer": "根据《员工手册》第一章考勤制度第1.1节，员工工作满一年后可享受年假10天。年假须提前两周申请，经直属主管审批后方可休假。",
+      "difficulty": "L1",
+      "domain": "attendance",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-2",
+      "query": "迟到怎么处理？",
+      "golden_answer": "根据员工手册，迟到30分钟以内按事假半天处理；超过30分钟按旷工半天处理。",
+      "difficulty": "L1",
+      "domain": "attendance",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-3",
+      "query": "年终奖什么时候发？",
+      "golden_answer": "根据《员工手册》2.1节，年终奖于每年12月发放，发放日前需仍在职。",
+      "difficulty": "L1",
+      "domain": "compensation",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-4",
+      "query": "annual leave 10 days which page",
+      "golden_answer": "根据《员工手册 v2.0》第一章第1.1节，员工年满一年后可享受年假10天。年假须提前两周申请，由直属主管审批后方可休假。",
+      "difficulty": "L2",
+      "domain": "attendance",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-7",
+      "query": "员工手册 1.2 条款对迟到怎么规定？",
+      "golden_answer": "根据员工手册1.2条款，迟到30分钟以内按事假半天处理；超过30分钟按旷工半天处理。",
+      "difficulty": "L1",
+      "domain": "attendance",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-13",
+      "query": "工作日加班怎么算加班费？",
+      "golden_answer": "根据文档，工作日加班按基本工资的1.5倍计算加班费，且加班须提前填写加班审批单。",
+      "difficulty": "L1",
+      "domain": "attendance",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-16",
+      "query": "出差住宿费怎么报销？",
+      "golden_answer": "出差住宿费凭发票实报实销。一线城市住宿标准上限为500元/晚，二线城市350元/晚，其他城市250元/晚。报销时需提供合规发票。",
+      "difficulty": "L1",
+      "domain": "finance",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-19",
+      "query": "竞业限制期是多久？",
+      "golden_answer": "根据文档内容，竞业限制期为离职后12个月。",
+      "difficulty": "L1",
+      "domain": "separation",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-21",
+      "query": "培训完就离职要不要赔钱？",
+      "golden_answer": "根据员工手册第4.1条，员工参加公司承担费用的外部培训后，需在公司服务满一年，否则需按比例退还培训费用。因此，培训完就离职可能需要赔钱，具体金额取决于未服务满一年的剩余时间比例。",
+      "difficulty": "L2",
+      "domain": "career",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-25",
+      "query": "法定节假日加班费怎么算？",
+      "golden_answer": "根据《员工手册》第三章第3.1节规定，法定节假日加班按基本工资的3倍计算加班费。加班须提前填写加班审批单。",
+      "difficulty": "L2",
+      "domain": "attendance",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-28",
+      "query": "培训完不到一年就离职，需要赔培训费吗？",
+      "golden_answer": "根据员工手册第4.1节规定，员工参加公司承担费用的外部培训后，需在公司服务满一年，否则需按比例退还培训费用。因此，培训完不到一年就离职，需要按比例退还培训费用。",
+      "difficulty": "L3",
+      "domain": "career",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-34",
+      "query": "还在试用期想离职，要提前多久通知？",
+      "golden_answer": "根据《员工手册》第五章5.1离职通知期规定，试用期员工提前3天通知即可离职。",
+      "difficulty": "L2",
+      "domain": "separation",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-46",
+      "query": "年终",
+      "golden_answer": "年终奖于每年12月发放，发放日前需仍在职。年终奖系数与绩效考核等级挂钩：S级系数1.5，A级系数1.2，B级系数1.0，C级系数0.5，D级无年终奖。",
+      "difficulty": "L3",
+      "domain": "compensation",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-57",
+      "query": "报销需要在费用发生后多久提交？",
+      "golden_answer": "根据员工手册，费用发生后须在**30天内**提交报销申请。逾期30至60天的，需书面说明原因；超过60天则不予受理。",
+      "difficulty": "L1",
+      "domain": "finance",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-61",
+      "query": "公司系统密码有什么要求？",
+      "golden_answer": "根据文档，公司系统密码要求：至少8位，包含大小写字母、数字和特殊字符，每90天更换一次。禁止将账户密码告知他人，禁止共用账号。离职后账号将在24小时内停用。",
+      "difficulty": "L1",
+      "domain": "security",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-67",
+      "query": "春节中秋端午各发多少节日礼金？",
+      "golden_answer": "根据文档内容，春节、中秋、端午各发放节日礼金500元。",
+      "difficulty": "L1",
+      "domain": "benefits",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-77",
+      "query": "如果某员工绩效S级、年终奖系数1.5，同时工作日加班10小时，加班费1.5倍，这些怎么一起算？",
+      "golden_answer": "根据《员工手册》，绩效S级对应年终奖系数1.5，年终奖按此系数计算。工作日加班按基本工资1.5倍计算加班费，需提前填写加班审批单。两者独立计算：年终奖基于年度绩效和系数，加班费基于实际加班时长和基本工资，互不影响。具体金额需结合员工基本工资和年终奖基数确定。",
+      "difficulty": "L4",
+      "domain": "cross",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-103",
+      "query": "钱",
+      "golden_answer": "根据文档内容，未找到与“钱”直接相关的具体条款。文档涉及薪酬福利、报销、补贴等财务相关内容，如年终奖、餐补、通讯补贴、出差补贴、业务招待标准、报销时限等，但未单独定义“钱”的通用规则。如需具体信息，请明确问题指向，例如：年终奖发放条件、报销流程或补贴标准。",
+      "difficulty": "L3",
+      "domain": "cross",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-106",
+      "query": "试用期和正式员工离职分别提前多久通知",
+      "golden_answer": "根据文档内容，试用期员工离职需提前3天通知；正式员工离职需提前30天通知。",
+      "difficulty": "L3",
+      "domain": "separation",
+      "is_rejection": false
+    },
+    {
+      "case_id": "GQ-110",
+      "query": "设备丢了怎么处理安全漏洞呢",
+      "golden_answer": "根据文档第七章信息安全规定：\n\n1. **设备遗失**：须在1小时内向IT部门报告，远程擦除数据后将追究保管责任。\n2. **安全漏洞**：发现安全漏洞应在2小时内向IT部门报告。\n\n两者需分别处理，设备遗失报告后由IT部门远程擦除数据，安全漏洞则单独报告。",
+      "difficulty": "L3",
+      "domain": "security",
+      "is_rejection": false
+    }
+  ]
+}

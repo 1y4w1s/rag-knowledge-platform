@@ -72,6 +72,78 @@ jobs:
           python -m pytest tests/test_chat.py tests/test_r4_4_streaming.py tests/test_citation_resolve.py -v --tb=short
         continue-on-error: true
 
+  rag-benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: test
+    env:
+      HF_ENDPOINT: https://hf-mirror.com
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: ruige
+          POSTGRES_PASSWORD: changeme
+          POSTGRES_DB: ruige
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ruige"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Cache fastembed model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: fastembed-bge-small-zh-${{ runner.os }}
+
+      - name: Set mirror for model download
+        run: echo "HF_ENDPOINT=https://hf-mirror.com" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          pip install -r backend/requirements.txt
+
+      - name: Apply migrations
+        run: |
+          cd backend && alembic upgrade head
+
+      - name: Run Golden QA benchmark (real embeddings)
+        env:
+          DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
+          JWT_SECRET: 1362b8353e8306574369454872b0fb2a
+          RAG_RATE_LIMIT_MODE: bypass
+          PYTHONPATH: /app
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          RAG_TEST_PASSWORD: ${{ secrets.RAG_TEST_PASSWORD }}
+        run: |
+          cd backend
+          python scripts/run_benchmark.py --dataset golden_qa --mode retrieval --output json 2>&1 | tee benchmark_output.txt
+          echo "BENCHMARK_DONE=1" >> $GITHUB_ENV
+
+      - name: Compare with baseline
+        env:
+          BASELINE_PATH: docs/baseline.json
+        run: |
+          python3 scripts/ci_baseline_check.py
+
+      - name: New scoring engine comparison (experimental)
+        run: |
+          cd backend
+          python scripts/ci_new_scorer.py
+
   lint:
     runs-on: ubuntu-latest
     steps:
