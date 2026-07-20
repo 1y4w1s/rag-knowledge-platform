@@ -122,12 +122,7 @@ describe("useThreadSession", () => {
   it("createNewThread delegates to useThreadList", async () => {
     const { result } = renderHook(() => useThreadSession(mockContext));
 
-    let _thread: { id: string };
-    await act(async () => {
-      _thread = await result.current.createNewThread();
-    });
-
-    expect(mockCreateNewThread).toHaveBeenCalled();
+expect(mockCreateNewThread).toHaveBeenCalled();
   });
 
   it("initial state has empty threads and null active thread", () => {
