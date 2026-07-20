@@ -129,8 +129,7 @@ jobs:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           RAG_TEST_PASSWORD: ${{ secrets.RAG_TEST_PASSWORD }}
         run: |
-          cd backend
-          python scripts/run_benchmark.py --dataset golden_qa --mode retrieval --output json 2>&1 | tee benchmark_output.txt
+          python scripts/run_benchmark.py --dataset golden_qa --mode retrieval --output json 2>&1 | tee backend/benchmark_output.txt
           echo "BENCHMARK_DONE=1" >> $GITHUB_ENV
 
       - name: Compare with baseline
