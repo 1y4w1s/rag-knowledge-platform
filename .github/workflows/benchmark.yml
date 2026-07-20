@@ -101,8 +101,8 @@ jobs:
         run: |
           mkdir -p backend/data/benchmark/crag
           curl -L -o backend/data/benchmark/crag/crag_task_1_and_2_dev_v4.jsonl.bz2 \
-            "https://github.com/facebookresearch/CRAG/raw/d7e6e5a/task_1_and_2/data/crag_task_1_and_2_dev_v4.jsonl.bz2"
-          echo "CRAG downloaded (commit d7e6e5a)"
+            "https://github.com/facebookresearch/CRAG/raw/refs/heads/main/data/crag_task_1_and_2_dev_v4.jsonl.bz2?download="
+          echo "CRAG downloaded"
 
       - name: Run retrieval benchmark
         env:
@@ -183,7 +183,7 @@ jobs:
         run: |
           mkdir -p backend/data/benchmark/crag
           curl -L -o backend/data/benchmark/crag/crag_task_1_and_2_dev_v4.jsonl.bz2 \
-            "https://github.com/facebookresearch/CRAG/raw/d7e6e5a/task_1_and_2/data/crag_task_1_and_2_dev_v4.jsonl.bz2"
+            "https://github.com/facebookresearch/CRAG/raw/refs/heads/main/data/crag_task_1_and_2_dev_v4.jsonl.bz2?download="
       - name: Run CRAG 4409 benchmark
         env:
           DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
