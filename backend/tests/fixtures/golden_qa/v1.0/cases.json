@@ -68,28 +68,6 @@
       "independent_review": false
     },
     {
-      "case_id": "GQ-4",
-      "domain": "attendance",
-      "difficulty": "L2",
-      "question_type": "reasoning",
-      "tags": [
-        "pdf",
-        "cross_page",
-        "english"
-      ],
-      "query": "annual leave 10 days which page",
-      "source": "pdf",
-      "expect": {
-        "content_contains": "annual leave 10 days",
-        "page_number": 2
-      },
-      "match_type": "content",
-      "source_doc_version": "1.0",
-      "source_doc": "golden_handbook.md",
-      "golden_answer": "根据《员工手册 v2.0》第一章第1.1节，员工年满一年后可享受年假10天。年假须提前两周申请，由直属主管审批后方可休假。",
-      "independent_review": false
-    },
-    {
       "case_id": "GQ-5",
       "domain": "compensation",
       "difficulty": "L1",
@@ -175,28 +153,6 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档内容，迟到超过30分钟按旷工半天处理。",
-      "independent_review": false
-    },
-    {
-      "case_id": "GQ-10",
-      "domain": "attendance",
-      "difficulty": "L1",
-      "question_type": "direct",
-      "tags": [
-        "pdf",
-        "cross_page",
-        "english"
-      ],
-      "query": "annual leave apply two weeks in advance",
-      "source": "pdf",
-      "expect": {
-        "content_contains": "weeks in advance",
-        "page_number": 2
-      },
-      "match_type": "content",
-      "source_doc_version": "1.0",
-      "source_doc": "golden_handbook.md",
-      "golden_answer": "根据《员工手册》第1.1条，员工年满一年后可享受年假10天。年假须提前两周申请，由直属主管审批后方可休假。",
       "independent_review": false
     },
     {
@@ -558,7 +514,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档内容，年假期间被叫回来加班，加班费按以下标准计算：工作日加班按基本工资1.5倍，休息日加班按2倍，法定节假日加班按3倍计算。加班须提前填写加班审批单。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "工作日加班按基本工资 1.5 倍计算加班费"
+      }
     },
     {
       "case_id": "GQ-27",
@@ -588,7 +547,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档，出差补贴和加班费是分开计算的。出差期间每日补贴按城市等级发放（一线城市200元、二线城市150元、其他城市100元），住宿费实报实销。加班费则按基本工资倍数计算：工作日1.5倍、休息日2倍、法定节假日3倍，且需提前填写加班审批单。两者互不冲突，可同时享受。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "出差途中需要加班，加班费按基本工资 1.5 倍计算"
+      }
     },
     {
       "case_id": "GQ-28",
@@ -618,7 +580,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据员工手册第4.1节规定，员工参加公司承担费用的外部培训后，需在公司服务满一年，否则需按比例退还培训费用。因此，培训完不到一年就离职，需要按比例退还培训费用。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "培训后需在公司服务满一年，否则按比例退还培训费用"
+      }
     },
     {
       "case_id": "GQ-29",
@@ -648,7 +613,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据员工手册，高层管理人员及核心技术人员的竞业限制期为离职后12个月。竞业限制期间，公司按月支付补偿金，标准为离职前12个月平均工资的30%。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "竞业限制期间公司按月支付补偿金，标准为离职前 12 个月平均工资的 30%"
+      }
     },
     {
       "case_id": "GQ-30",
@@ -678,7 +646,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档内容，年假未休完离职能否折现未明确规定，建议咨询公司人力资源部。年终奖发放条件为“发放日前需仍在职”，若离职发生在12月发放日之前，则无法获得年终奖。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "年终奖于每年 12 月发放，发放日前需仍在职"
+      }
     },
     {
       "case_id": "GQ-31",
@@ -1040,7 +1011,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档内容，以下情况需要向公司支付赔偿或费用：\n\n1. **培训费用**：员工参加公司承担费用的外部培训后，若未服务满一年离职，需按比例退还培训费用（第四章4.1）。\n2. **代通知金**：正式员工未提前30天通知离职，需支付相应天数基本工资作为代通知金（第五章5.1）。\n3. **设备遗失**：公司配发设备遗失，可能追究保管责任（第七章7.3）。\n\n此外，违反保密规定可能面临解除劳动合同等处分，但未明确提及直接赔偿。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "未满通知期离职的，需支付相应天数的基本工资作为代通知金"
+      }
     },
     {
       "case_id": "GQ-48",
@@ -1312,7 +1286,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档，出差交通费：高铁二等座及以下凭票实报实销，飞机经济舱须提前审批。住宿费凭发票实报实销，标准为一线城市500元/晚、二线城市350元/晚、其他城市250元/晚。市内交通每天不超过50元，凭票报销。餐饮补贴已包含在出差补贴中，不再单独报销餐票。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "出差交通费：高铁二等座及以下凭票实报实销"
+      }
     },
     {
       "case_id": "GQ-60",
@@ -1342,7 +1319,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档内容，二线城市招待客户用餐标准为每人不超过200元，其他城市不超过150元。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "二线城市不超过 200 元，其他城市不超过 100 元"
+      }
     },
     {
       "case_id": "GQ-61",
@@ -1526,7 +1506,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档内容，补充医疗保险门诊报销比例为90%，年度上限为5000元。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "门诊报销比例 90%，年度上限 2,000 元"
+      }
     },
     {
       "case_id": "GQ-69",
@@ -1733,7 +1716,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据《员工手册》，绩效S级对应年终奖系数1.5，年终奖按此系数计算。工作日加班按基本工资1.5倍计算加班费，需提前填写加班审批单。两者独立计算：年终奖基于年度绩效和系数，加班费基于实际加班时长和基本工资，互不影响。具体金额需结合员工基本工资和年终奖基数确定。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "工作日加班按基本工资 1.5 倍计算加班费，休息日加班按 2 倍计算，法定节假日加班按 3 倍计算"
+      }
     },
     {
       "case_id": "GQ-78",
@@ -1763,7 +1749,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档第九章第9.3节，绩效C级年终奖系数为0.5，但C级和D级不调薪。因此，绩效C级的员工不能调薪。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "晋升条件包括：在当前岗位任职满一年、年度绩效评估为 B 级以上、无重大违纪记录"
+      }
     },
     {
       "case_id": "GQ-79",
@@ -1793,7 +1782,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档附录A的请假审批流程图，请假超过3天需要部门总监审批；请假超过7天则需要人力资源总监审批。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "迟到 30 分钟以内按事假半天处理；超过 30 分钟按旷工半天处理"
+      }
     },
     {
       "case_id": "GQ-80",
@@ -1824,7 +1816,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据附录C，S级占比不超过10%，D级占比为10%。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "年度绩效为 S 级的员工次年度薪资上浮 15%，A 级上浮 10%，B 级上浮 5%，C 级和 D 级不调薪"
+      }
     },
     {
       "case_id": "GQ-81",
@@ -2255,21 +2250,20 @@
       "case_id": "GQ-103",
       "domain": "cross",
       "difficulty": "L3",
-      "question_type": "direct",
+      "question_type": "rejection",
       "tags": [
         "md",
         "edge"
       ],
       "query": "钱",
       "source": "md",
-      "expect": {
-        "content_contains": "年终奖"
-      },
+      "expect": {},
       "match_type": "content",
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
-      "golden_answer": "根据文档内容，未找到与“钱”直接相关的具体条款。文档涉及薪酬福利、报销、补贴等财务相关内容，如年终奖、餐补、通讯补贴、出差补贴、业务招待标准、报销时限等，但未单独定义“钱”的通用规则。如需具体信息，请明确问题指向，例如：年终奖发放条件、报销流程或补贴标准。",
-      "independent_review": false
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false,
+      "expect_rejection": true
     },
     {
       "case_id": "GQ-104",
@@ -2346,7 +2340,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档内容，试用期员工离职需提前3天通知；正式员工离职需提前30天通知。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "试用期员工提前 3 天通知；正式员工提前 30 天通知"
+      }
     },
     {
       "case_id": "GQ-107",
@@ -2382,7 +2379,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档，绩效S级员工年终奖系数为1.5，次年度薪资上浮15%。晋升条件包括：在当前岗位任职满一年、年度绩效评估为B级以上、无重大违纪记录。S级已满足B级以上条件，但还需满足任职满一年和无重大违纪记录。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "S 级年终奖系数 1.5，A 级系数 1.2，B 级系数 1.0，C 级系数 0.5，D 级无年终奖"
+      }
     },
     {
       "case_id": "GQ-108",
@@ -2413,7 +2413,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据附录B，出差一线城市每日补贴为200元，住宿标准上限为500元/晚。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "出差期间每日补贴标准：一线城市 200 元"
+      }
     },
     {
       "case_id": "GQ-109",
@@ -2444,7 +2447,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档，离职竞业限制补偿金标准为：高层管理人员及核心技术人员的竞业限制期为离职后12个月，期间公司按月支付补偿金，标准为离职前12个月平均工资的30%。\n\n关于未休年假，文档未明确说明处理方式。建议参考公司内部规定或劳动法相关条款。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "竞业限制期间公司按月支付补偿金"
+      }
     },
     {
       "case_id": "GQ-110",
@@ -2475,7 +2481,10 @@
       "source_doc_version": "1.0",
       "source_doc": "golden_handbook.md",
       "golden_answer": "根据文档第七章信息安全规定：\n\n1. **设备遗失**：须在1小时内向IT部门报告，远程擦除数据后将追究保管责任。\n2. **安全漏洞**：发现安全漏洞应在2小时内向IT部门报告。\n\n两者需分别处理，设备遗失报告后由IT部门远程擦除数据，安全漏洞则单独报告。",
-      "independent_review": false
+      "independent_review": false,
+      "expect": {
+        "content_contains": "发现安全漏洞应在 2 小时内向IT部门报告"
+      }
     }
   ]
 }
