@@ -73,10 +73,7 @@ export function EvaluationsPage() {
 
   return (
     <div className="mx-auto max-w-[1180px] px-7 pb-16 pt-7">
-      <SectionTitle
-        title="RAG 评测"
-        description="Golden QA 检索/生成质量评测与趋势追踪"
-      />
+      <SectionTitle label="RAG 评测" />
 
       {state === "loading" && (
         <div className="flex items-center justify-center py-16 text-muted-foreground">
@@ -85,7 +82,8 @@ export function EvaluationsPage() {
       )}
 
       {state === "error" && (
-        <AlertBanner variant="error" message={errorMsg} className="mb-6">
+        <AlertBanner className="mb-6">
+          {errorMsg}
           <Button variant="outline" size="sm" onClick={load}>重试</Button>
         </AlertBanner>
       )}
@@ -200,12 +198,12 @@ function SummaryCard({ label, value, cls }: { label: string; value: string; cls:
   );
 }
 
-function SimpleTrendChart({ points, average, metric }: { points: { run_id: string; value: number; created_at: string }[]; average: number; metric: string }) {
+function SimpleTrendChart({ points, average, metric: _metric }: { points: { run_id: string; value: number; created_at: string }[]; average: number; metric: string }) {
   const maxV = Math.max(...points.map(p => p.value), 0.01);
   const minV = Math.min(...points.map(p => p.value), 0);
   const range = maxV - minV || 0.01;
   const height = 160;
-  const barW = Math.max(4, Math.min(20, (600 - 40) / points.length));
+  const _barW = Math.max(4, Math.min(20, (600 - 40) / points.length));
 
   return (
     <div className="relative">

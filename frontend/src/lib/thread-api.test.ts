@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 
-import type { ThreadContext } from "@/lib/thread-api";
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -41,7 +40,7 @@ function makeKbContext(): ThreadContext {
   return {
     kind: "knowledge_base",
     kbId: "kb-123",
-    workspace: "personal",
+    scope: { workspace: "personal" },
   };
 }
 
@@ -172,8 +171,8 @@ describe("fetchThreadMessages", () => {
 
   it("returns message array on success", async () => {
     const messages = [
-      { id: "m1", role: "user", content: "年假有几天？", created_at: "2026-07-18T10:00:00Z", citations: [] },
-      { id: "m2", role: "assistant", content: "5 天", created_at: "2026-07-18T10:00:05Z", citations: [] },
+      { id: "m1", role: "user" as const, content: "年假有几天？", created_at: "2026-07-18T10:00:00Z", citations: [] },
+      { id: "m2", role: "assistant" as const, content: "5 天", created_at: "2026-07-18T10:00:05Z", citations: [] },
     ];
     mockFetch.mockResolvedValueOnce({
       ok: true,

@@ -67,6 +67,11 @@ const OrganizationSettingsPage = lazy(() =>
     default: m.OrganizationSettingsPage,
   })),
 );
+const EvaluationsPage = lazy(() =>
+  import("@/pages/EvaluationsPage").then((m) => ({
+    default: m.EvaluationsPage,
+  })),
+);
 const AdminAuditPage = lazy(() =>
   import("@/pages/AdminAuditPage").then((m) => ({ default: m.AdminAuditPage })),
 );

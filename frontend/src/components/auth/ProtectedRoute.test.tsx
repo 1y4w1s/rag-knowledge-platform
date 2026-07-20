@@ -52,7 +52,7 @@ describe("ProtectedRoute", () => {
 
   it("includes current path as redirect parameter in login URL", () => {
     mockIsAuthenticated.mockReturnValue(false);
-    const { container } = render(
+    render(
       <MemoryRouter initialEntries={["/knowledge-bases/kb-123"]}>
         <Routes>
           <Route element={<ProtectedRoute />}>
