@@ -120,8 +120,8 @@ describe("useThreadSession", () => {
   });
 
   it("createNewThread delegates to useThreadList", async () => {
-    renderHook(() => useThreadSession(mockContext));
-
+    const { result } = renderHook(() => useThreadSession(mockContext));
+    expect(result).toBeDefined();
     expect(mockCreateNewThread).toHaveBeenCalled();
   });
 
