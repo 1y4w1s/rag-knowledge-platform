@@ -91,10 +91,16 @@ async def retrieve_chunks(
     embed_col = "embedding_en" if is_english else None
 
     # 2026-07-19: 嵌入降级感知——嵌入失效时跳过向量召回，走纯 FTS
+    query_vec = None
     if degradation_requires_embed(assess_degradation()):
-        query_vec = (await try_embed_texts([query], provider=embed_provider))[0]
-    else:
-        query_vec = None
+        vec = await try_embed_texts([query], provider=embed_provider)
+        if vec is not None:
+            query_vec = vec[0]
+        elif embed_provider == "bge_en":
+            # 英文嵌入失败（模型未下载/网络不通），回退到中文嵌入
+            vec = await try_embed_texts([query])
+            if vec is not None:
+                query_vec = vec[0]
     if query_vec is None:
         get_tracker("retrieval.embed").record(0)
     else:
