@@ -93,8 +93,7 @@ jobs:
 
       - name: Cleanup old evaluation runs
         run: |
-          cd backend
-          python scripts/cleanup_eval_runs.py
+          python backend/scripts/cleanup_eval_runs.py
 
       - name: Download CRAG dataset
         if: contains(inputs.datasets, 'crag') || inputs.datasets == 'all' || github.event_name == 'schedule'
