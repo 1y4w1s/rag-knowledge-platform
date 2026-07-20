@@ -36,7 +36,12 @@ async def main():
 
     async with SessionLocal() as db:
         for i, c in enumerate(cases):
-            chunks = await retrieve_chunks(db, kb_id=kb_id, query=c["query"], top_k=3)
+            try:
+                chunks = await retrieve_chunks(db, kb_id=kb_id, query=c["query"], top_k=3)
+            except Exception:
+                continue
+            if not chunks:
+                continue
             if not chunks:
                 continue
             rchunks = [RetrievedChunk.from_raw(ck) for ck in chunks]
