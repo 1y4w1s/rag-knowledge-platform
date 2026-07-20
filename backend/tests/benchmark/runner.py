@@ -180,8 +180,14 @@ class BenchmarkRunner:
                     self._retrieve_fn, q.query, self.kb_id, top_k,
                     label="retrieval-%s" % q.case_id,
                 )
-            except Exception:
+            except Exception as e:
                 skipped += 1
+                # 回滚适配器的 DB 会话，防止 InFailedSQLTransaction
+                try:
+                    from sqlalchemy import text as sa_text
+                    await self._retrieve_fn.__self__._db.execute(sa_text("ROLLBACK"))
+                except Exception:
+                    pass
                 continue
 
             elapsed = (time.perf_counter() - t0) * 1000
@@ -218,7 +224,7 @@ class BenchmarkRunner:
             breakdown_type={k: self._aggregate_retrieval(v, top_k) for k, v in type_results.items()},
         )
         logger.info("检索完成: %s Hit@%d=%.1f%% MRR=%.3f (skip=%d)",
-                     dataset_name, top_k, metrics.hit_at_k * 100, metrics.mean_reciprocal_rank, skipped)
+                     dataset_name, top_k, getattr(metrics, f"hit_at_{top_k}", 0) * 100, metrics.mean_reciprocal_rank, skipped)
         return report
 
     def _eval_retrieval(
