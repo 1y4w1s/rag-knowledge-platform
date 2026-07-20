@@ -17,7 +17,7 @@ def main():
         "QUICK_SAMPLE": str(args.sample),
         "FULL": "true" if args.full else "false",
         "BASELINE_JSON": (BASE_DIR / "docs" / "baseline.json").read_text(encoding="utf-8-sig"),
-        "RAG_REAL_EMBEDDING": "0",  # mock 嵌入
+        "RAG_REAL_EMBEDDING": "1",  # 真实嵌入
     }
 
     result = subprocess.run(

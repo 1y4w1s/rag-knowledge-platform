@@ -1,0 +1,2116 @@
+{
+  "version": "1.0",
+  "cases": [
+    {
+      "case_id": "EP-1",
+      "query": "报销需要在多少天内提交？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "30 个自然日内",
+        "section_title": "2.1 报销时限"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》，所有费用报销须在费用发生后 **30个自然日内** 提交报销申请。超过30天但未超过60天的，需经部门负责人审批后方可报销；超过60天的，原则上不予报销，特殊情况需经CFO特批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-2",
+      "query": "超过30天的报销怎么办？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "部门负责人审批",
+        "section_title": "2.1 报销时限"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》，费用报销须在发生后30个自然日内提交。超过30天但未超过60天的，需经部门负责人审批后方可报销；超过60天的，原则上不予报销，特殊情况需经CFO特批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-3",
+      "query": "超过60天的报销还能报吗？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "CFO 特批",
+        "section_title": "2.1 报销时限"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "超过60天的报销原则上不予报销，特殊情况需经CFO特批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-4",
+      "query": "800元的报销由谁审批？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "直属主管",
+        "section_title": "2.2 报销审批权限"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》第2.2条，金额≤1,000元的报销由直属主管审批。因此，800元的报销由直属主管审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-5",
+      "query": "3000元的报销审批流程是什么？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "部门负责人",
+        "section_title": "2.2 报销审批权限"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档，3000元属于“1,000元 < 金额 ≤ 5,000元”范围，审批流程为：部门负责人审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-6",
+      "query": "15000元的报销需要谁来批？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "财务总监",
+        "section_title": "2.2 报销审批权限"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档规定，报销金额在5,000元至20,000元之间时，需要部门负责人和财务总监共同审批。因此，15,000元的报销需经部门负责人和财务总监审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-7",
+      "query": "超过20000元的报销审批需要哪些人？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "CEO 审批",
+        "section_title": "2.2 报销审批权限"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，超过20,000元的报销审批需要部门负责人、财务总监和CEO共同审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-8",
+      "query": "报销需要什么发票？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "增值税普通发票",
+        "section_title": "2.3 报销凭证要求"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》，报销需提供**增值税普通发票或增值税专用发票**，且发票内容须与实际消费一致。单张发票金额超过500元时，需附发票查验真伪截图。电子发票须打印并在报销单上注明“承诺该发票未重复报销”。境外消费须提供Invoice或Receipt，并折算为人民币。此外，业务招待费报销还须在发票背面注明招待对象、事由及参与人员名单，并提供消费清单。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-9",
+      "query": "超过500元的发票需要什么？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "发票查验真伪截图",
+        "section_title": "2.3 报销凭证要求"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "超过500元的单张发票，须附发票查验真伪截图。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-10",
+      "query": "电子发票报销有什么要求？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "承诺该发票未重复报销",
+        "section_title": "2.3 报销凭证要求"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档，电子发票报销要求：须打印并在报销单上注明“承诺该发票未重复报销”。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-11",
+      "query": "每月统一报销日是几号？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "1 日和 15 日",
+        "section_title": "2.4 报销周期"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "每月统一报销日为1日和15日。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-12",
+      "query": "报销款多久到账？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "次月 5 日前",
+        "section_title": "2.4 报销周期"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "报销款在每月1日和15日统一报销日之前提交且审批通过的，款项在次月5日前到账。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-13",
+      "query": "一线城市出差每天补贴多少？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元/天",
+        "section_title": "3.1 出差补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，一线城市（北京、上海、广州、深圳）出差每日补贴为200元/天（含餐）。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-14",
+      "query": "二线城市出差住宿标准是多少？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "350 元",
+        "section_title": "3.1 出差补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，二线城市出差住宿标准为每晚350元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-15",
+      "query": "其他城市出差每天补贴多少？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元/天",
+        "section_title": "3.1 出差补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》，其他城市出差每日补贴为100元/天（含餐），住宿标准为每晚250元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-16",
+      "query": "一线城市住宿标准是多少？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "500 元",
+        "section_title": "3.1 出差补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，一线城市（北京、上海、广州、深圳）的住宿标准为每晚500元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-17",
+      "query": "出差坐高铁有什么规定？",
+      "tags": [
+        "section",
+        "trip",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "高铁二等座",
+        "section_title": "3.2 交通费"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档，出差坐高铁的规定如下：单程≤4小时可乘坐高铁二等座；单程>4小时可乘坐高铁一等座。若单程≥1,000公里或高铁耗时≥6小时，可选择飞机，但需提前审批。自驾时按高铁二等座票价报销，另加0.8元/公里油费补贴。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-18",
+      "query": "什么时候可以坐飞机出差？",
+      "tags": [
+        "section",
+        "trip",
+        "transport",
+        "condition"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "1,000 公里",
+        "section_title": "3.2 交通费"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档规定，乘坐飞机出差需满足以下条件：单程距离≥1,000公里，或高铁耗时≥6小时，且须提前审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-19",
+      "query": "出差市内交通每天上限多少？",
+      "tags": [
+        "section",
+        "trip",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元",
+        "section_title": "3.2 交通费"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，出差市内交通费凭发票实报实销，每日上限为100元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-20",
+      "query": "自驾出差怎么报销？",
+      "tags": [
+        "section",
+        "trip",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "0.8 元/公里",
+        "section_title": "3.2 交通费"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档，自驾出差按高铁二等座票价报销，另加0.8元/公里油费补贴。需提供相关凭证，并遵循差旅费报销流程。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-21",
+      "query": "出差住宿有什么要求？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "连锁酒店",
+        "section_title": "3.3 住宿费"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "出差住宿要求：须入住连锁酒店或公司协议酒店；发票须注明住宿日期和明细；两人同性出差须合住一间（总监级以上除外）。住宿标准按城市级别执行：一线城市每晚500元，二线城市350元，其他城市250元。超标部分自理。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-22",
+      "query": "两人同性出差住宿有什么规定？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "合住一间",
+        "section_title": "3.3 住宿费"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》第3.3节规定，两人同性出差须合住一间，总监级以上人员除外。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-23",
+      "query": "招待客户人均标准是多少？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元/人",
+        "section_title": "4.1 招待标准"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，招待客户的人均标准为200元/人。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-24",
+      "query": "招待政府人员人均标准是多少？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "300 元/人",
+        "section_title": "4.1 招待标准"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，招待政府/监管机构的人均标准为300元/人。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-25",
+      "query": "内部团建人均标准是多少？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元/人",
+        "section_title": "4.1 招待标准"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，公司内部会议/团建的人均标准为100元/人。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-26",
+      "query": "单次招待费超过2000元需要谁审批？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "财务总监",
+        "section_title": "4.2 招待审批"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档规定，单次招待费超过2000元需要部门负责人和财务总监共同审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-27",
+      "query": "招待同一客户月度累计超过多少需CFO审批？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "10,000 元",
+        "section_title": "4.2 招待审批"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，招待同一客户月度累计超过10,000元需CFO审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-28",
+      "query": "招待费报销需要什么材料？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "招待对象",
+        "section_title": "4.3 报销要求"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，招待费报销需要以下材料：\n\n1. 发票（增值税普通发票或专用发票，内容与实际消费一致）；\n2. 发票背面注明招待对象、事由、参与人员名单；\n3. 消费清单（餐厅/酒水的明细单）；\n4. 单张发票超过500元需附发票查验真伪截图；\n5. 电子发票需打印并注明“承诺该发票未重复报销”；\n6. 若含酒精饮料，须确保不超过总消费30%。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-29",
+      "query": "招待费中酒水不能超过多少？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "restriction"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "30%",
+        "section_title": "4.3 报销要求"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档规定，招待费中严禁报销含酒精饮料超过总消费30%的招待费。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-30",
+      "query": "员工每月办公用品预算多少？",
+      "tags": [
+        "section",
+        "office",
+        "budget"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "50 元/人",
+        "section_title": "5.1 日常办公用品"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，员工每月办公用品预算为50元/人。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-31",
+      "query": "办公用品单次超过多少需提前申请？",
+      "tags": [
+        "section",
+        "office",
+        "purchase"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "500 元",
+        "section_title": "5.1 日常办公用品"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，办公用品单次采购金额达到或超过500元时，需提前提交采购申请。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-32",
+      "query": "固定资产的标准是多少？",
+      "tags": [
+        "section",
+        "office",
+        "asset"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "2,000 元",
+        "section_title": "5.2 固定资产"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，固定资产的标准是：单价≥2,000元的设备须作为固定资产管理。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-33",
+      "query": "普通员工每月话费补贴多少？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元",
+        "section_title": "6.1 手机话费补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "普通员工每月话费补贴最高为100元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-34",
+      "query": "经理级每月话费补贴多少？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元",
+        "section_title": "6.1 手机话费补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，经理级每月话费补贴最高为200元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-35",
+      "query": "总监级每月话费补贴多少？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "300 元",
+        "section_title": "6.1 手机话费补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档第6.1条，总监级及以上员工每月最高报销手机话费补贴为300元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-36",
+      "query": "在家办公宽带费每月报销多少？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元",
+        "section_title": "6.2 网络费用"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档第6.2条规定，在家办公员工每月最高可报销100元宽带费，需提供运营商发票。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-37",
+      "query": "加班到几点可以报销打车费？",
+      "tags": [
+        "section",
+        "benefit",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "21:00",
+        "section_title": "7.1 日常通勤"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档规定，员工加班至21:00以后，可报销打车费，上限为50元/次。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-38",
+      "query": "加班打车费报销上限是多少？",
+      "tags": [
+        "section",
+        "benefit",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "50 元",
+        "section_title": "7.1 日常通勤"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，加班打车费报销上限为50元/次。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-39",
+      "query": "员工每年外部培训费用上限是多少？",
+      "tags": [
+        "section",
+        "train",
+        "budget"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "5,000 元",
+        "section_title": "8.1 培训申请"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，员工每年外部培训费用上限为5,000元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-40",
+      "query": "培训后离职需要退还费用吗？",
+      "tags": [
+        "section",
+        "train",
+        "resign"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "按比例退还",
+        "section_title": "8.1 培训申请"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档规定，员工参加外部培训后须在公司服务满一年，否则需按比例退还培训费用。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-41",
+      "query": "认证考试通过后公司报销多少？",
+      "tags": [
+        "section",
+        "train",
+        "exam"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "80%",
+        "section_title": "8.2 认证考试"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档第8.2条规定，与岗位相关的专业认证考试费用，通过后公司报销80%；未通过则不报销。每人每年最多报销2次认证考试。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-42",
+      "query": "认证考试没通过能报销吗？",
+      "tags": [
+        "section",
+        "train",
+        "exam",
+        "rejection"
+      ],
+      "source": "md",
+      "expect_rejection": true,
+      "expect": {
+        "content_contains": "不报销"
+      },
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-43",
+      "query": "哪些费用不予报销？",
+      "tags": [
+        "section",
+        "expense",
+        "restriction"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "个人消费",
+        "section_title": "9.1 不予报销的费用"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》第9.1条，以下费用不予报销：个人消费（如私人购物、旅游、娱乐等）；罚款、罚金、违约金；与工作无关的会员费、订阅费；未经审批的聚餐、团建；超标的酒店、机票、餐饮费用（超出部分自理）。此外，超过60天未提交的报销申请原则上不予报销（特殊情况需CFO特批）。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-44",
+      "query": "虚报发票怎么处理？",
+      "tags": [
+        "section",
+        "expense",
+        "penalty"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "5 倍扣发",
+        "section_title": "9.2 违规处理"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》第9.2条，虚报、冒领、伪造发票的，一经发现，按金额5倍扣发绩效工资，并记入员工诚信档案；情节严重的，公司保留追究法律责任的权利。部门负责人对下属报销的真实性承担连带责任。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-45",
+      "query": "报销制度从什么时候开始执行？",
+      "tags": [
+        "section",
+        "policy",
+        "effective"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "2026 年 1 月 1 日",
+        "section_title": "10.1"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，报销制度自2026年1月1日起执行。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-46",
+      "query": "费用报销制度由哪个部门负责解释？",
+      "tags": [
+        "section",
+        "policy"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "财务部",
+        "section_title": "10.2 附则"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档第10.2条，本制度由财务部负责解释和修订。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-47",
+      "query": "报销发票需要什么类型？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "增值税专用发票",
+        "section_title": "2.3 报销凭证要求"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，报销发票须为增值税普通发票或增值税专用发票，发票内容须与实际消费一致。单张发票金额超过500元的，须附发票查验真伪截图；电子发票须打印并在报销单上注明“承诺该发票未重复报销”；境外消费须提供Invoice或Receipt，并折算为人民币。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-48",
+      "query": "出差到北京每天补贴多少？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元",
+        "section_title": "3.1 出差补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档规定，北京属于一线城市，出差到北京的每日补贴为200元/天（含餐），住宿标准为每晚500元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-49",
+      "query": "去杭州出差住宿标准是多少？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "350 元",
+        "section_title": "3.1 出差补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，杭州属于二线城市（省会城市），住宿标准为每晚350元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-50",
+      "query": "去县城出差每天补贴多少？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元",
+        "section_title": "3.1 出差补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，县城属于“其他城市”类别，每日出差补贴为100元/天（含餐）。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-51",
+      "query": "短途公出多少公里以内鼓励公共交通？",
+      "tags": [
+        "section",
+        "transport",
+        "policy"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "10 公里",
+        "section_title": "7.2 公出交通"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，短途公出单程10公里以内鼓励使用公共交通。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-52",
+      "query": "招待客户吃饭每人不能超过多少钱？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元",
+        "section_title": "4.1 招待标准"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，招待客户吃饭的人均标准为200元/人。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-53",
+      "query": "报销超过5万需要审批？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "CEO 审批",
+        "section_title": "2.2 报销审批权限"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档规定，报销金额超过20,000元需经部门负责人、财务总监及CEO三级审批。文档中未单独提及5万元的特殊审批流程，因此报销超过5万元仍按“金额>20,000元”的标准执行，即需部门负责人、财务总监和CEO共同审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-54",
+      "query": "出差去上海住宿标准是多少？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "500 元",
+        "section_title": "3.1 出差补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，出差去上海（一线城市）的住宿标准为每晚500元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-55",
+      "query": "出差行李超重费能报销吗？",
+      "tags": [
+        "section",
+        "trip",
+        "rejection"
+      ],
+      "source": "md",
+      "expect_rejection": true,
+      "expect": {
+        "content_contains": "个人消费"
+      },
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-56",
+      "query": "员工每年最多能报销多少培训费？",
+      "tags": [
+        "section",
+        "train",
+        "budget"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "5,000 元",
+        "section_title": "8.1 培训申请"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，员工每年最多能报销5,000元的外部培训费用。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-57",
+      "query": "一年能报销几次认证考试？",
+      "tags": [
+        "section",
+        "train",
+        "exam"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "2 次",
+        "section_title": "8.2 认证考试"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档第8.2条规定，每人每年最多报销2次认证考试。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-58",
+      "query": "境外消费报销要什么凭证？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "Invoice",
+        "section_title": "2.3 报销凭证要求"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "境外消费报销需提供 Invoice 或 Receipt，并折算为人民币。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-59",
+      "query": "虚报发票会有什么后果？",
+      "tags": [
+        "section",
+        "expense",
+        "penalty"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "5 倍",
+        "section_title": "9.2 违规处理"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》第9.2条，虚报、冒领、伪造发票一经发现，按金额5倍扣发绩效工资，并记入员工诚信档案；情节严重的，公司保留追究法律责任的权利。部门负责人对下属报销的真实性承担连带责任。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-60",
+      "query": "制度与法律法规冲突怎么办？",
+      "tags": [
+        "section",
+        "policy",
+        "legal"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "以法律法规为准",
+        "section_title": "10.3 附则"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档第10.3条，本制度如有与法律法规冲突之处，以法律法规为准。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-61",
+      "query": "购买办公桌2000元以上属于什么？",
+      "tags": [
+        "section",
+        "office",
+        "asset"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "固定资产",
+        "section_title": "5.2 固定资产"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档第5.2条，单价≥2,000元的设备须作为固定资产管理。购买办公桌2000元以上属于固定资产，需提前提交固定资产申购单，经部门负责人和财务总监审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-62",
+      "query": "IT设备通过谁采购？",
+      "tags": [
+        "section",
+        "office",
+        "purchase"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "IT 部门",
+        "section_title": "5.2 固定资产"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，IT设备（如笔记本电脑、显示器等）须通过IT部门统一采购。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-63",
+      "query": "这个制度适用于哪些人？",
+      "tags": [
+        "section",
+        "policy",
+        "scope"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "全体员工",
+        "section_title": "1.1 目的"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，该制度适用于公司全体员工。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-64",
+      "query": "报销制度覆盖哪些费用类型？",
+      "tags": [
+        "section",
+        "policy",
+        "scope"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "差旅费",
+        "section_title": "1.2 适用范围"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，报销制度覆盖的费用类型包括：差旅费、业务招待费、办公用品费、通讯费、交通费、培训费等各项日常运营费用。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-65",
+      "query": "经理话费补贴多少钱？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元",
+        "section_title": "6.1 手机话费补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档第6.1条，经理级员工每月最高报销手机话费补贴为200元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-66",
+      "query": "单张发票超过多少要查验真伪？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "500 元",
+        "section_title": "2.3 报销凭证要求"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，单张发票金额超过500元的，须附发票查验真伪截图。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-67",
+      "query": "部门负责人的报销审批权限上限是多少？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "5,000 元",
+        "section_title": "2.2 报销审批权限"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，部门负责人的报销审批权限上限为5,000元。具体规定：金额≤1,000元由直属主管审批；1,000元<金额≤5,000元由部门负责人审批；超过5,000元需更高层级审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-68",
+      "query": "财务总监的审批权限从多少开始？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "5,000",
+        "section_title": "2.2 报销审批权限"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，财务总监的审批权限从单笔金额超过1,000元且不超过5,000元时开始介入，具体为：金额在1,000元至5,000元之间需部门负责人审批，超过5,000元至20,000元需部门负责人加财务总监审批。此外，单次招待费超过2,000元也需财务总监审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-69",
+      "query": "出差坐飞机需要提前审批吗？",
+      "tags": [
+        "section",
+        "trip",
+        "transport",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "提前审批",
+        "section_title": "3.2 交通费"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "需要。根据制度第3.2条，乘坐飞机仅限单程≥1,000公里或高铁耗时≥6小时的情况，且须提前审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-70",
+      "query": "招待费中酒水比例不能超过多少？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "restriction"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "30%",
+        "section_title": "4.3 报销要求"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，招待费中酒水比例不能超过总消费的30%。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-71",
+      "query": "本制度何时开始生效？",
+      "tags": [
+        "section",
+        "policy",
+        "effective"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "2026 年 1 月 1 日",
+        "section_title": "10.1",
+        "heading_path_contains": "10.1"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "本制度自2026年1月1日起执行。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-72",
+      "query": "总监级以上出差住宿有优惠吗？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel",
+        "edge"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "总监级以上除外",
+        "section_title": "3.3 住宿费"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，总监级以上出差住宿没有优惠，但两人同性出差时，总监级以上人员可不住标准间，即可以单独住宿。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-73",
+      "query": "财务总监审批权限是多少？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "财务总监",
+        "section_title": "2.2 报销审批权限"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档，财务总监的审批权限包括：金额在5,000元至20,000元之间的费用，需部门负责人加财务总监审批；单次招待费超过2,000元，需部门负责人加财务总监审批；招待同一客户月度累计超过10,000元，需CFO审批；固定资产申购需部门负责人加财务总监审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-74",
+      "query": "报销餐费需要什么清单？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "消费清单",
+        "section_title": "4.3 报销要求"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "报销餐费需提供消费清单（餐厅/酒水的明细单），并在发票背面注明招待对象、事由及参与人员名单。严禁报销含酒精饮料超过总消费30%的招待费。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-75",
+      "query": "出差机票超标了能报销吗？",
+      "tags": [
+        "section",
+        "trip",
+        "restriction"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "超出部分自理",
+        "section_title": "9.1 不予报销的费用"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档规定，出差机票超标部分不予报销，超出部分需自理（第9.1条）。若因特殊情况需超标，须提前审批（第3.2条：飞机仅限单程≥1,000公里或高铁耗时≥6小时，且须提前审批）。未提前审批的超标费用，公司不予承担。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-76",
+      "query": "报销周期是怎么规定的？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "1 日和 15 日",
+        "section_title": "2.4 报销周期"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档，报销周期规定如下：每月1日和15日为统一报销日。报销申请在此日期前提交且审批通过的，款项在次月5日前到账。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-77",
+      "query": "招待政府跟招待客户标准一样吗？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "comparison"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "300 元",
+        "section_title": "4.1 招待标准"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "不一样。根据文档第4.1条，招待客户/合作伙伴的标准为200元/人，而招待政府/监管机构的标准为300元/人。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-78",
+      "query": "出差到深圳住宿每天多少钱？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "500 元",
+        "section_title": "3.1 出差补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》，深圳属于一线城市，住宿标准为每晚500元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-79",
+      "query": "去成都出差补贴多少？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "150 元",
+        "section_title": "3.1 出差补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，成都属于二线城市（省会城市），出差补贴标准为：每日补贴（含餐）150元/天，住宿标准每晚350元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-80",
+      "query": "通讯费补贴分几档？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "100 元",
+        "section_title": "6.1 手机话费补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，通讯费补贴分为三档：普通员工每月最高报销100元，经理级每月最高报销200元，总监级及以上每月最高报销300元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-81",
+      "query": "预算内采购办公用品要审批吗？",
+      "tags": [
+        "section",
+        "office",
+        "purchase"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "500 元",
+        "section_title": "5.1 日常办公用品"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档，日常办公用品单次采购金额≥500元须提前提交采购申请；低于500元则无需额外审批，但各部门每月办公用品预算为50元/人，需在预算内执行。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-82",
+      "query": "笔记本电脑坏了怎么处理？",
+      "tags": [
+        "section",
+        "office",
+        "asset"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "IT 部门",
+        "section_title": "5.2 固定资产"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档第5.2条，笔记本电脑属于固定资产（单价≥2,000元）。若损坏，需通过IT部门统一采购更换，并提前提交固定资产申购单，经部门负责人和财务总监审批。日常办公用品（单价<2,000元）则按第5.1条处理。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-83",
+      "query": "境外消费报销金额怎么算？",
+      "tags": [
+        "section",
+        "expense",
+        "invoice"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "折算为人民币",
+        "section_title": "2.3 报销凭证要求"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档，境外消费报销时，须提供 Invoice 或 Receipt，并折算为人民币。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-84",
+      "query": "报销未经审批的聚餐能报吗？",
+      "tags": [
+        "section",
+        "expense",
+        "rejection"
+      ],
+      "source": "md",
+      "expect_rejection": true,
+      "expect": {
+        "content_contains": "未经审批的聚餐"
+      },
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-85",
+      "query": "员工出差是否必须住协议酒店？",
+      "tags": [
+        "section",
+        "trip",
+        "hotel"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "协议酒店",
+        "section_title": "3.3 住宿费"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "是的。根据《费用报销管理制度》第3.3条，员工出差须入住连锁酒店或公司协议酒店，且发票须注明住宿日期和明细。此外，两人同性出差须合住一间（总监级以上除外）。因此，员工出差必须选择协议或连锁酒店，否则可能影响报销。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-86",
+      "query": "报销超过30天不到60天需要谁批？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "部门负责人",
+        "section_title": "2.1 报销时限"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档第2.1条，报销超过30天但未超过60天的，需经部门负责人审批后方可报销。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-87",
+      "query": "部门负责人对下属报销承担什么责任？",
+      "tags": [
+        "section",
+        "expense",
+        "penalty"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "连带责任",
+        "section_title": "9.2 违规处理"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》第9.2条规定，部门负责人对下属报销的真实性承担连带责任。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-88",
+      "query": "招待费的审批权限是怎么划分的？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "2,000 元",
+        "section_title": "4.2 招待审批"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档，招待费审批权限划分如下：\n\n- 单次招待费 ≤ 2,000 元：部门负责人审批。\n- 单次招待费 > 2,000 元：部门负责人 + 财务总监审批。\n- 招待同一客户月度累计超过 10,000 元：需 CFO 审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-89",
+      "query": "公司报销日是哪几天？",
+      "tags": [
+        "section",
+        "expense",
+        "deadline"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "1 日和 15 日",
+        "section_title": "2.4 报销周期"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，公司报销日为每月1日和15日。报销申请需在此日期前提交并审批通过，款项将在次月5日前到账。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-90",
+      "query": "报销制度由谁解释和修订？",
+      "tags": [
+        "section",
+        "policy"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "财务部",
+        "section_title": "10.2 附则"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，报销制度由财务部负责解释和修订。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-91",
+      "query": "报销审批金额等级有哪些？",
+      "tags": [
+        "section",
+        "expense",
+        "approval"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "1,000",
+        "section_title": "2.2 报销审批权限"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档，报销审批金额等级如下：\n\n- 金额 ≤ 1,000元：直属主管审批；\n- 1,000元 < 金额 ≤ 5,000元：部门负责人审批；\n- 5,000元 < 金额 ≤ 20,000元：部门负责人 + 财务总监审批；\n- 金额 > 20,000元：部门负责人 + 财务总监 + CEO审批。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-92",
+      "query": "出差补贴包含餐费吗？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "含餐",
+        "section_title": "3.1 出差补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，出差补贴包含餐费。文档第3.1节“出差补贴”表格中明确标注“每日补贴（含餐）”，因此每日补贴金额已涵盖餐费。例如，一线城市每日补贴200元/天（含餐），住宿标准另计。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-93",
+      "query": "出差市内交通怎么报销？",
+      "tags": [
+        "section",
+        "trip",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "实报实销",
+        "section_title": "3.2 交通费"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "出差市内交通凭发票实报实销，每日上限100元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-94",
+      "query": "招待费中酒水超了怎么办？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain",
+        "restriction"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "30%",
+        "section_title": "4.3 报销要求"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》第4.3条规定，严禁报销含酒精饮料超过总消费30%的招待费。若酒水超比例，超出部分不予报销，需由个人自理。报销时须提供消费清单，确保合规。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-95",
+      "query": "罚款违约金能报销吗？",
+      "tags": [
+        "section",
+        "expense",
+        "rejection"
+      ],
+      "source": "md",
+      "expect_rejection": true,
+      "expect": {
+        "content_contains": "罚款、罚金、违约金"
+      },
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-96",
+      "query": "超标的酒店费用怎么处理？",
+      "tags": [
+        "section",
+        "trip",
+        "restriction"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "超出部分自理",
+        "section_title": "9.1 不予报销的费用"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》第9.1条规定，超标的酒店费用不予报销，超出部分由员工自理。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-97",
+      "query": "因公外出短途怎么出行？",
+      "tags": [
+        "section",
+        "transport",
+        "policy"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "公共交通",
+        "section_title": "7.2 公出交通"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "因公外出短途出行（单程≤10公里）鼓励使用公共交通。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-98",
+      "query": "参加认证考试公司报销多少？",
+      "tags": [
+        "section",
+        "train",
+        "exam"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "80%",
+        "section_title": "8.2 认证考试"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档第8.2条，与岗位相关的专业认证考试费用，通过后公司报销80%；未通过则不报销。每人每年最多报销2次认证考试。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-99",
+      "query": "出差坐高铁超过4小时可以坐什么？",
+      "tags": [
+        "section",
+        "trip",
+        "transport"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "高铁一等座",
+        "section_title": "3.2 交通费"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档规定，出差乘坐高铁单程超过4小时的，可以乘坐高铁一等座。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-100",
+      "query": "制度规定与法律冲突怎么办？",
+      "tags": [
+        "section",
+        "policy",
+        "legal"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "以法律法规为准",
+        "section_title": "10.3 附则"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据制度第10.3条，如有与法律法规冲突之处，以法律法规为准。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-101",
+      "query": "公司宽带费怎么报销？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "运营商发票",
+        "section_title": "6.2"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档，在家办公员工每月最高报销100元宽带费，需提供运营商发票。报销流程遵循一般费用报销规定：费用发生后30个自然日内提交申请，附发票（增值税普通或专用发票），按金额对应审批权限审批。每月1日和15日为统一报销日，审批通过后次月5日前到账。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-102",
+      "query": "公司报销制度的目的是什么？",
+      "tags": [
+        "section",
+        "policy",
+        "scope"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "规范",
+        "section_title": "1.1 目的"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，公司报销制度的目的是：规范公司费用报销流程，控制运营成本，确保财务合规。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-103",
+      "query": "招待费清单需要包含什么？",
+      "tags": [
+        "section",
+        "expense",
+        "entertain"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "参与人员名单",
+        "section_title": "4.3 报销要求"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，招待费清单（发票背面）需注明：招待对象、事由、参与人员名单，并附消费清单（餐厅/酒水的明细单）。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-104",
+      "query": "手机话费补贴分哪些级别？",
+      "tags": [
+        "section",
+        "benefit",
+        "communication"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "普通员工",
+        "section_title": "6.1 手机话费补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据文档内容，手机话费补贴分为三个级别：普通员工每月最高报销100元；经理级每月最高报销200元；总监级及以上每月最高报销300元。",
+      "independent_review": false
+    },
+    {
+      "case_id": "EP-105",
+      "query": "出差到广州每天补贴多少？",
+      "tags": [
+        "section",
+        "trip",
+        "allowance"
+      ],
+      "source": "md",
+      "expect": {
+        "content_contains": "200 元",
+        "section_title": "3.1 出差补贴"
+      },
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "expense_policy.md",
+      "golden_answer": "根据《费用报销管理制度》，广州属于一线城市，出差补贴标准为每日200元（含餐），住宿标准为每晚500元。",
+      "independent_review": false
+    }
+  ]
+}

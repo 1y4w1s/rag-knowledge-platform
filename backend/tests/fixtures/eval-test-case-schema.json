@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ruige.dev/eval/test-case/v1",
+  "title": "EvalTestCase",
+  "description": "睿阁评测系统单道测试题 Schema",
+  "type": "object",
+  "required": [
+    "case_id", "query", "difficulty", "source_doc",
+    "question_type", "match_type"
+  ],
+  "properties": {
+    "case_id": {
+      "type": "string",
+      "pattern": "^[A-Z]+-\\d+$",
+      "description": "例如: GQ-1, EP-105, ENT-108"
+    },
+    "query": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 500
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["L1", "L2", "L3", "L4"]
+    },
+    "domain": {
+      "type": "string",
+      "description": "功能域/领域分类"
+    },
+    "source_doc": {
+      "type": "string",
+      "minLength": 1,
+      "description": "答案来源文档，例如: golden_handbook.md"
+    },
+    "source_doc_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "来源文档版本号"
+    },
+    "question_type": {
+      "type": "string",
+      "enum": ["direct", "reasoning", "calculation", "rejection"],
+      "description": "direct=直接抽取 reason=需要推理 calc=需要计算 rej=拒答"
+    },
+    "match_type": {
+      "type": "string",
+      "enum": ["content", "exact"],
+      "description": "content=子串匹配 exact=精确匹配"
+    },
+    "golden_answer": {
+      "type": "string",
+      "description": "标准答案文本（LLM-as-judge 使用，可选）"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "independent_review": {
+      "type": "boolean",
+      "default": false
+    },
+    "expect": {
+      "type": "object",
+      "properties": {
+        "content_contains": {
+          "type": "string",
+          "minLength": 1,
+          "description": "必须从 chunk 内容直接复制"
+        },
+        "section_title": {
+          "type": "string",
+          "description": "预期所在章节标题"
+        },
+        "heading_path_contains": {
+          "type": "string",
+          "description": "预期标题路径"
+        },
+        "page_number": {
+          "type": "integer",
+          "description": "预期页码"
+        }
+      },
+      "anyOf": [
+        { "required": ["content_contains"] },
+        { "required": ["section_title"] }
+      ]
+    },
+    "expect_rejection": {
+      "type": "boolean",
+      "description": "当 question_type=rejection 时，此字段必须为 true"
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "question_type": { "const": "rejection" } } },
+      "then": {
+        "required": ["expect_rejection"],
+        "properties": {
+          "expect": { "not": {} },
+          "expect_rejection": { "const": true }
+        }
+      }
+    },
+    {
+      "if": { "properties": { "question_type": { "const": "calculation" } } },
+      "then": {
+        "description": "计算题不参与 Hit@K 评分"
+      }
+    }
+  ]
+}

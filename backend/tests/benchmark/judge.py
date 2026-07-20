@@ -177,6 +177,43 @@ class LLMJudge:
         result = await self._call_llm(prompt)
         return self._parse_score(result, default=0.0)
 
+    async def verify_calibration(self, calibration_path: str | None = None) -> dict:
+        """用预标注校准集验证评分一致性。"""
+        import json, os
+        path = calibration_path or os.path.join(
+            os.path.dirname(__file__), "..", "fixtures", "judge_calibration.json"
+        )
+        try:
+            with open(path, encoding="utf-8") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            return {"status": "SKIP", "reason": f"calibration file not found: {path}"}
+
+        results = []
+        for item in data.get("items", []):
+            query = item["query"]
+            golden = item.get("golden_answer", "")
+
+            # 用 golden 自身作为 generated_answer 测试 -> 应得高分
+            score, reason = await self.evaluate_correctness(query, golden, golden)
+            results.append({
+                "case_id": item["case_id"],
+                "score": score,
+                "expected_ge": 0.8,  # self-match 应 >= 0.8
+                "pass": score >= 0.8,
+            })
+
+        passed = sum(1 for r in results if r["pass"])
+        total = len(results)
+        pass_rate = passed / total if total > 0 else 0
+        return {
+            "status": "PASS" if pass_rate >= 0.8 else "WARN",
+            "passed": passed,
+            "total": total,
+            "pass_rate": round(pass_rate, 2),
+            "failures": [r for r in results if not r["pass"]],
+        }
+
     async def _call_llm(self, prompt: str) -> str:
         """调用 DeepSeek。"""
         self._total_calls += 1

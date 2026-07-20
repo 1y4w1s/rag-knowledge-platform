@@ -29,7 +29,7 @@ def _escape_ilike(value: str) -> str:
 def _sanitize_tokens(tokens: list[str]) -> list[str]:
     """过滤可能引起 PostgreSQL tsquery 解析错误的 token。"""
     # tsquery 保留字符: & | ! ( )
-    forbidden = re.compile(r"[&|!()]")
+    forbidden = re.compile(r"[&|!()'\"`]")
     return [t for t in tokens if t.strip() and not forbidden.search(t)]
 
 
