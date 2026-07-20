@@ -139,6 +139,12 @@ jobs:
           path: backend/benchmark_results/
           retention-days: 30
 
+      - name: Run generation evaluation (best-effort)
+        continue-on-error: true
+        timeout-minutes: 30
+        run: |
+          python scripts/run_benchmark.py --dataset golden_qa --mode full 2>&1 | tee backend/gen_eval_output.txt
+
       - name: Deploy report to GitHub Pages (optional)
         if: github.ref == 'refs/heads/master'
         run: |
