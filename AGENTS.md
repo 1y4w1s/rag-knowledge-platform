@@ -4,7 +4,7 @@
 
 - **产品名**：**睿阁**（原名「知岸」，2026-07-14 品牌更名；代码目录仍为 `rag-knowledge-platform`，不重命名文件夹）
 - **目标**：**企业级知识库 RAG 产品**——团队可协作、可审计、可部署、可长期运营；多格式文档上传 → 结构入库 → hybrid 检索 → **引用溯源对话**。
-- **不再以毕设答辩为决策主轴**：`docs/ENTERPRISE_DEMO_SCRIPT.md`、15min 计时、R8 试跑等**仅作回归参考**，不得因为「演示能过」而推迟审计、存储一致、限流、评测闭环等企业项。
+- **不再以毕设答辩为决策主轴**：15min 计时等**仅作回归参考**，不得因为「演示能过」而推迟审计、存储一致、限流、评测闭环等企业项。
 - **账号类型**：个人版（单人）/ 企业版（组织 + Owner/Admin + Member）。
 - **LLM**：DeepSeek + 阿里云通义千问（Key **仅服务端**）；嵌入模型锁定后勿随意更换（见 `TECH.md` §4.4）。
 - **P0 产品底线（不可砍）**：对话**必须**带引用（文档名 + 位置 + 片段）；无依据须明确拒答；**kb_id / workspace 隔离**；Member 只读 + 可对话。
@@ -15,11 +15,11 @@
 |----|---------------------------|
 | 审计、限流、存储一致、状态机、软删/去重（Plan-3E） | 支付、积分、套餐计费 |
 | RAG 评测闭环、检索提质（Plan-RAG R2～R5） | **F5 多模态**、复杂 Agent 联网 |
-| **Format-F4 扫描 PDF OCR ✅**（[`format-f4-ocr-plan.md`](docs/tasks/format-f4-ocr-plan.md) · F4-1～F4-5 · 2026-07-08） | PNG/JPG 单图 · 对话贴图 OCR · F5 多模态 |
-| 生产部署（**HTTP 内网**，见 `enterprise-wave-plan.md` §3；**HTTPS 不做**）、备份、可观测（Wave 6 + 3E-6） | 多租户 SaaS 商业化 · 公网 HTTPS |
+| **Format-F4 扫描 PDF OCR ✅**（`docs/tasks/format-f4-ocr-plan.md` · F4-1～F4-5 · 2026-07-08） | PNG/JPG 单图 · 对话贴图 OCR · F5 多模态 |
+| 生产部署（**HTTP 内网**，见 `docs/tasks/enterprise-wave-plan.md` §3；**HTTPS 不做**）、备份、可观测（Wave 6 + 3E-6） | 多租户 SaaS 商业化 · 公网 HTTPS |
 | 对话历史 / 多 thread（PRD P1，按 plan 排） | 无引用的「纯聊天」模式 |
 
-**权威 backlog（企业向）**：`kb-pages-polish-plan.md` **Plan-3E** · `docs/TECH.md` **TECH-SEC P1** · `rag-optimization-plan.md` **R2～R5** · `002-plan.md` **Wave 6** · PRD **P1** 节。
+**权威 backlog（企业向）**：`docs/remaining-plan.md` · `docs/TECH.md` **TECH-SEC P1** · `docs/tasks/rag-optimization-plan.md` **R2～R5** · PRD **P1** 节。
 
 ## 当前阶段
 
@@ -89,8 +89,8 @@
 |----|------|
 | PRD | ✅ v0.1（P1 节 = 企业 backlog） |
 | TECH | ✅ TECH-1～6 + TECH-SEC |
-| 开发清单 | ✅ `002-plan.md`（MVP + **Wave 6.1～6.4 ✅** 2026-07-07） |
-| 驾驶舱 | ✅ `docs/cockpit.html`（与 002-plan Wave 6 对齐；§8 ①15min 计时仍须用户亲手） |
+| 开发清单 | ✅ `docs/remaining-plan.md` |
+| 驾驶舱 | ✅ `docs/remaining-plan.md` |
 | 代码基线 | Wave 0～5、workspace、Plan-11/2.x 权限 UX、RAG Wave 3、对话 Wave 5.2 |
 | UI | ✅ `DESIGN.md`（唯一设计权威）；企业态仍要过 AGENTS UI 硬约束 |
 
@@ -121,15 +121,15 @@
 
 ## 踩坑区
 
-> **跨项目通用坑**（PowerShell 命令、端口、流程）：[`../docs/process/PITFALLS.md`](../docs/process/PITFALLS.md) · 新坑优先写项目特有，通用坑写分册。
+> **跨项目通用坑**（PowerShell 命令、端口、流程）：`docs/process/PITFALLS.md` · 新坑优先写项目特有，通用坑写分册。
 
 - **Docker API 改后端后须 rebuild（2026-07-04）**：`docker compose build api && docker compose up -d api`；验收 OpenAPI 含新路由。
 - **详情页文档列表可能过期（2026-07-04）**：轮询停后列表可过期；DELETE/重试 404 → refetch 自愈；focus 同步。删/重试逻辑须对称（见 R5-S1）。
 - **只读审查 vs 修复须分对话（2026-07-04）**：审窗只出 gap；修复另开 I 窗。
-- **Plan 1.6 空库 + `?status=`（2026-07-04）**：空库勿叠 onboarding；见 `kb-pages-polish-plan.md` Plan-6。
+- **Plan 1.6 空库 + `?status=`（2026-07-04）**：空库勿叠 onboarding。
 - **测试嵌入 ≠ 生产嵌入（2026-07-06）**：`test_retrieval_golden` 用 mock 向量；**企业验收**须用真嵌入 + 真 DeepSeek 抽测 golden 题，不能只看 CI 绿。
 - **对话是「单轮问答」不是「多轮记忆」（2026-07-06）**：MVP 每问独立检索；多轮上下文 + 历史 UI 在 PRD P1，企业化须单独 plan，勿假设已实现。
 - **删库清盘（EW-A1 ✅ 2026-07-06）**：`services/storage/cleaner.py` · 删库后调 `remove_kb_tree`；清盘失败只打日志不挡 DB 删。
 - **详情页 `n is not iterable`（2026-07-07）**：ORG-4.3 共享面板/grants API 若 `items` 缺失会把 state 设成非数组，展开面板或 `for…of` 时白屏。`asGrantList`/`asUnitList` + `buildDepartmentTree`/`normalizeDocumentListFilters` 兜底；改前端后须 `npm run build` 并 rebuild `web` 容器。
-- **浏览器验收 UX gap（2026-07-08）**：① ~~对话页 `ChatPage` 用 `min-h` 非固定高度，输入框随 `main` 滚动下沉（UX-1）~~ **UX-1 ✅**（2026-07-09）；② ~~预览/对话异步 `setOverride` 导致回概览顶栏仍显示资料库路径（UX-2）~~ **UX-2 ✅**（2026-07-09）；③ ~~预览页头像「退出登录」与右栏文档信息叠层（UX-3）~~ **UX-3 ✅**（2026-07-09）；④ ~~member 乱操作 toast 仅库详情灰按钮有、列表/概览/硬闯 URL 反馈弱（UX-4）~~ **UX-4 ✅**（2026-07-09）；⑤ ~~组织页建部门后 picker 须 F5（UX-6）~~ **UX-6 ✅**（2026-07-09）；⑥ ~~公司 Admin 切具体部门无效~~ **UX-7 ✅**（2026-07-09）；⑦ ~~切部门强制跳概览~~ **UX-8 ✅** 留当前页 + toast（2026-07-09）。详见 `docs/cockpit.html` UX backlog。
+- **浏览器验收 UX gap（2026-07-08）**：① ~~对话页 `ChatPage` 用 `min-h` 非固定高度，输入框随 `main` 滚动下沉（UX-1）~~ **UX-1 ✅**（2026-07-09）；② ~~预览/对话异步 `setOverride` 导致回概览顶栏仍显示资料库路径（UX-2）~~ **UX-2 ✅**（2026-07-09）；③ ~~预览页头像「退出登录」与右栏文档信息叠层（UX-3）~~ **UX-3 ✅**（2026-07-09）；④ ~~member 乱操作 toast 仅库详情灰按钮有、列表/概览/硬闯 URL 反馈弱（UX-4）~~ **UX-4 ✅**（2026-07-09）；⑤ ~~组织页建部门后 picker 须 F5（UX-6）~~ **UX-6 ✅**（2026-07-09）；⑥ ~~公司 Admin 切具体部门无效~~ **UX-7 ✅**（2026-07-09）；⑦ ~~切部门强制跳概览~~ **UX-8 ✅** 留当前页 + toast（2026-07-09）。
 - **库内对话「当前资料库」下拉错位（2026-07-09）**：`ChatPage` 拉库列表须带 `department_id` scope（与 `/ask` 一致）；当前库不在列表时 `<select>` 会显示第一项名称 · `withCurrentKnowledgeBase()` 兜底。

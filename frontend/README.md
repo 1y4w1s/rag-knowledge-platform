@@ -29,4 +29,4 @@ frontend/src/
 └── lib/mock-auth.ts     # Wave 4.1 mock 角色
 ```
 
-视觉 token 见 `docs/DESIGN.md` DESIGN-2；预览见 `docs/design-preview.html`。
+视觉 token 见 `docs/DESIGN.md` DESIGN-2；预览见 `DESIGN.md`。
