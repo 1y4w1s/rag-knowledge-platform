@@ -97,6 +97,7 @@ jobs:
           python scripts/cleanup_eval_runs.py
 
       - name: Download CRAG dataset
+        if: contains(inputs.datasets, 'crag') || inputs.datasets == 'all' || github.event_name == 'schedule'
         run: |
           mkdir -p backend/data/benchmark/crag
           curl -L -o backend/data/benchmark/crag/crag_task_1_and_2_dev_v4.jsonl.bz2 \
@@ -110,6 +111,7 @@ jobs:
           RAG_RATE_LIMIT_MODE: ${{ inputs.mode || 'bypass' }}
           RAG_REAL_EMBEDDING: ${{ inputs.mock_embedding == 'true' && '0' || '1' }}
           DASHSCOPE_API_KEY: ${{ secrets.DASHSCOPE_API_KEY }}
+          TONGYI_API_KEY: ${{ secrets.TONGYI_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           RAG_TEST_PASSWORD: ${{ secrets.RAG_TEST_PASSWORD }}
         run: |
@@ -118,9 +120,9 @@ jobs:
           if [ "${{ inputs.sample }}" != "0" ] && [ -n "${{ inputs.sample }}" ]; then
             SAMPLE_ARG="--sample ${{ inputs.sample }}"
           fi
-          DATASETS="${{ inputs.datasets || 'golden_qa' }}"
+          DATASETS="${{ inputs.datasets || 'enterprise' }}"
           if [ "$DATASETS" = "all" ]; then
-            DATASETS="golden_qa,expense_qa,enterprise_qa"
+            DATASETS="crag,liverag,rageval,ragbench,mirage,enterprise"
           fi
 
           python -m tests.benchmark.run_retrieval \
