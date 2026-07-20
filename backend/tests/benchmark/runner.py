@@ -112,7 +112,7 @@ class BenchmarkRunner:
 
     def _checkpoint_path(self, dataset_name: str, mode: str, run_id: str) -> Path:
         CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
-        return CHECKPOINT_DIR / "%s_%s_%s.json" % (dataset_name, mode, run_id)
+        return CHECKPOINT_DIR / ("%s_%s_%s.json" % (dataset_name, mode, run_id))
 
     def _save_checkpoint(self, path: Path, results: list, completed: int, total: int) -> None:
         data = {"completed": completed, "total": total, "results": [asdict(r) for r in results]}
