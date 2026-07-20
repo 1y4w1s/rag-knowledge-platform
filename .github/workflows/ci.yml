@@ -120,6 +120,12 @@ jobs:
         run: |
           cd backend && alembic upgrade head
 
+      - name: Pre-download embedding models (best-effort)
+        continue-on-error: true
+        run: |
+          pip install -q huggingface-hub
+          python3 backend/scripts/predownload_models.py
+
       - name: Run Golden QA benchmark (real embeddings)
         env:
           DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
