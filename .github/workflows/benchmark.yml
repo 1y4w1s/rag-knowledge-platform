@@ -92,6 +92,7 @@ jobs:
           alembic upgrade head
 
       - name: Cleanup old evaluation runs
+        continue-on-error: true
         run: |
           python backend/scripts/cleanup_eval_runs.py
 
