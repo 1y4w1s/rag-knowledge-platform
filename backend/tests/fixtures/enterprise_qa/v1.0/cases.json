@@ -1,7 +1,5 @@
 {
   "version": "1.0",
-  "description": "睿阁 Enterprise QA 验收集 v1.0 — 6 份模拟企业文档，L1-L4 分层，总计 108 题",
-  "hit_k": 3,
   "cases": [
     {
       "case_id": "ENT-001",
@@ -14,11 +12,17 @@
       "query": "AcmeCloud 企业版最新的版本号是什么？",
       "source": "md",
       "expect": {
-        "content_contains": "**A**: AcmeCloud 企业版在原生 Kubernetes 基础上提供了以下增值能力：\n- **企业级管理控制台**：图形化界面，无需手动编辑 YAML 文件。\n- **内置安全合规**：自动满足等保 2.0、SOC 2 要求，无需额外配置。\n- **智能运维**：AI 异常预测、成本分析、自动扩缩容。\n- **商业支持**：7×24 小时技术支持，SLA 保障 99.99%。\n- **"
+        "content_contains": "AcmeCloud 企业版 v3.2 产品规格书"
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据提供的文档内容，无法找到AcmeCloud企业版的最新版本号。文档中未提及任何版本号信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-002",
@@ -35,7 +39,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档内容，AcmeCloud 的基础版（免费版）价格为0元/月，包含5GB存储和100GB月流量。专业版为$29/月（年付$24/月），企业版为$99/月（年付$79/月）。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-003",
@@ -51,7 +61,13 @@
       "source_docs": [
         "acme_产品规格书.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-004",
@@ -64,11 +80,17 @@
       "query": "AcmeCloud 提供哪三种部署方式？",
       "source": "md",
       "expect": {
-        "content_contains": "**A**: AcmeCloud 企业版在原生 Kubernetes 基础上提供了以下增值能力：\n- **企业级管理控制台**：图形化界面，无需手动编辑 YAML 文件。\n- **内置安全合规**：自动满足等保 2.0、SOC 2 要求，无需额外配置。\n- **智能运维**：AI 异常预测、成本分析、自动扩缩容。\n- **商业支持**：7×24 小时技术支持，SLA 保障 99.99%。\n- **"
+        "content_contains": "支持裸金属、虚拟机及容器混合部署"
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档内容，AcmeCloud 提供三种部署方式：1）Web控制台拖拽上传，单文件最大5GB；2）命令行工具（CLI），支持批量上传和断点续传；3）API调用，单次请求最大100MB。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-005",
@@ -85,7 +107,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档内容，AcmeCloud专业版月付价格为$29/月，年付价格为$24/月。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-006",
@@ -101,7 +129,13 @@
       "source_docs": [
         "acme_产品规格书.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-007",
@@ -118,7 +152,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档内容，未明确提及部署集群模式最少需要的节点数量。文档主要介绍AcmeCloud的云服务功能，包括虚拟机创建、存储、数据库等，但未涉及集群模式的具体节点要求。建议参考AcmeCloud官方文档或联系技术支持获取准确信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-008",
@@ -135,7 +175,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档内容，未提及创建用户的API端点。文档仅在第10题提到支持按API端点设置权限，但未提供具体端点地址。建议查阅AcmeCloud API文档或联系技术支持获取详细信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-009",
@@ -152,7 +198,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档内容，未明确提及企业版 API 调用频率限制的具体数值。文档仅在第16题提到免费版试用期结束后“超出免费版限制的功能（如高级API调用）将被暂停”，但未给出企业版的具体限制。建议参考文档中其他部分或联系客服获取详细信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-010",
@@ -169,7 +221,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档内容，企业版相比免费版和专业版，额外提供以下高级功能：支持自定义域名登录、审计日志、最多20台设备同时在线（免费版2台、专业版5台）、最多100名团队成员（免费版2名、专业版50名），以及单点登录（SSO）和API密钥管理。此外，企业版年付可享折扣，并支持增值税专用发票申请。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-011",
@@ -185,7 +243,13 @@
       "source_docs": [
         "acme_产品规格书.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-012",
@@ -202,7 +266,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档内容，企业版年付价格为$79/月（即$948/年），专业版年付价格为$24/月（即$288/年）。企业版年费比专业版年费贵$660。文档中未提及“基础版”这一名称，仅提到免费版、专业版和企业版。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-013",
@@ -219,7 +289,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档内容，企业版年付价格为$79/月，专业版年付价格为$24/月。企业版年费是专业版的约3.29倍（$79 ÷ $24 ≈ 3.29）。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-014",
@@ -236,7 +312,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档，AcmeCloud 的企业版（$99/月，年付$79/月）支持SSO和审计日志，且最多可添加100名成员。但客户需求为1000用户，远超企业版上限（100名成员），且预算为每月3万（约$4000），远高于企业版价格。因此，建议客户联系AcmeCloud销售团队定制企业方案，或考虑升级至更高版本（文档未提及），以满足1000用户需求。当前标准版无法直接满足。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-015",
@@ -253,7 +335,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "根据文档内容，未找到关于“合同的服务期限”的直接信息。文档主要涉及AcmeCloud的账号、计费、产品功能等FAQ，未提及合同服务期限的具体条款。建议查阅相关合同文件或联系客服获取准确信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-016",
@@ -270,7 +358,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "抱歉，根据提供的文档内容，没有找到关于“保密条款”或“保密期限”的信息。文档主要涵盖AcmeCloud的账号登录、计费付款和产品功能等FAQ，未涉及保密协议相关内容。建议您查阅其他相关文档或联系客服获取具体信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-017",
@@ -287,7 +381,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "根据文档内容，AcmeCloud 的SLA承诺系统可用性为99.9%。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-018",
@@ -304,7 +404,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "抱歉，文档内容中未提及“合同金额”相关信息。根据提供的FAQ文档，仅包含账号登录、计费付款、产品功能等常见问题，没有涉及任何合同金额的具体数据。建议您查阅相关合同文件或联系AcmeCloud客服获取准确信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-019",
@@ -321,7 +427,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "根据提供的文档内容，未提及合同约定的争议解决机构。文档主要涵盖AcmeCloud的账号、计费、产品功能等FAQ，无相关争议解决条款。建议查阅具体合同文件或联系客服获取准确信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-020",
@@ -338,7 +450,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "根据文档内容，未提及甲方续约需提前通知乙方的具体时间要求。文档主要涉及账号、计费、产品功能等FAQ，未包含合同续约条款。建议查阅具体合同或联系客服获取准确信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-021",
@@ -355,7 +473,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "根据提供的文档内容，未找到关于“违约金按未支付金额的多少比例计算”的相关信息。文档主要涵盖AcmeCloud的账号登录、计费付款、产品功能等FAQ，未涉及违约金比例的具体条款。建议查阅合同或联系客服获取准确信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-022",
@@ -372,7 +496,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "根据文档内容，未明确提及SLA中故障响应时间的具体等级。文档仅在第21题提到“所有服务均支持按需扩展，99.9% SLA保障”，未涉及故障响应时间分级。建议查阅AcmeCloud官方SLA协议获取详细信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-023",
@@ -389,7 +519,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "根据文档内容，未提及“乙方连续两个月 SLA 不达标”的具体处理方式。文档仅提到所有服务支持99.9% SLA保障，但未说明违约处理条款。建议参考具体服务协议或联系客服获取详细信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-024",
@@ -406,7 +542,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "根据文档内容，未涉及合同终止后乙方需移交材料的相关信息。建议参考合同条款或联系客服获取具体清单。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-025",
@@ -422,7 +564,13 @@
       "source_docs": [
         "acme_框架合同.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-026",
@@ -439,7 +587,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "根据文档内容，未提及甲方的付款账期（30天或60天）及逾期违约金比例。文档仅涉及AcmeCloud的计费与付款问题，如套餐价格、付款方式、账单异议处理等，未包含甲方付款账期或违约金的具体信息。建议查阅相关合同或联系客服获取准确信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-027",
@@ -457,7 +611,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "根据提供的文档内容，无法找到2026年Q1总收入的相关信息。文档为AcmeCloud客户常见问题FAQ，主要涵盖账号登录、计费付款、产品功能等，未提及任何财务数据或收入信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-028",
@@ -474,7 +634,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "抱歉，文档内容为 AcmeCloud 客户常见问题 FAQ，未包含“毛利率”相关信息。请提供相关文档或明确问题范围。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-029",
@@ -492,7 +658,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "抱歉，文档内容是关于 AcmeCloud 云服务的常见问题 FAQ，不包含任何财务数据或“净利润”相关信息。请提供相关财务文档以便生成准确答案。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-030",
@@ -510,7 +682,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "根据提供的文档内容，无法确定哪个产品线的收入最高。文档是AcmeCloud的客户常见问题FAQ，主要介绍账号、计费、产品功能等，未包含任何产品线收入数据。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-031",
@@ -528,7 +706,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "根据文档内容，未提及“总运营费用”的具体数值。文档主要介绍AcmeCloud的套餐价格（免费版、专业版、企业版）及按量计费标准（存储$0.02/GB/月、流量$0.01/GB），但未提供任何运营费用总额或计算示例。如需总运营费用，需结合具体使用量（如存储、流量、实例规格等）自行计算。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-032",
@@ -546,7 +730,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "根据提供的文档内容，未提及“研发费用占收入比例”相关信息。文档为AcmeCloud客户常见问题FAQ，涵盖账号登录、计费付款、产品功能等60个问题，但无财务数据。建议查阅公司财报或联系财务部门获取该比例。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-033",
@@ -564,7 +754,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "根据文档内容，无法回答该问题。文档为 AcmeCloud 客户常见问题 FAQ，未提及净利润率或相关财务数据。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-034",
@@ -581,7 +777,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "根据提供的文档内容，无法找到关于“团队在 Q1 增加了多少工程师”的相关信息。文档为 AcmeCloud 客户常见问题 FAQ，主要涵盖账号登录、计费付款和产品功能等内容，未提及工程师招聘或团队规模变化。建议查阅其他相关文档或联系人力资源部门获取准确数据。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-035",
@@ -597,7 +799,13 @@
       "source_docs": [
         "acme_季度报告.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-036",
@@ -614,7 +822,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "根据文档内容，没有提及“重点项目里程碑”的相关信息。文档是AcmeCloud客户常见问题FAQ，涵盖账号登录、计费付款和产品功能等60个问答，未涉及项目里程碑完成情况。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-037",
@@ -631,7 +845,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "根据文档内容，未提及“收入同比增长”相关信息，因此无法提供具体百分比。文档为AcmeCloud客户常见问题FAQ，主要涵盖账号登录、计费付款、产品功能等60个问题，不包含财务数据。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-038",
@@ -649,7 +869,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "根据文档内容，无法确定三条产品线的毛利率高低。文档仅介绍了AcmeCloud的云服务产品线（云存储、云计算、数据库等），未提供各产品线的毛利率数据。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-039",
@@ -666,7 +892,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "抱歉，您提供的文档内容中不包含关于“人均收入同比提升”的任何数据或信息。该FAQ合集主要涉及AcmeCloud的账号登录、计费付款和产品功能等云服务相关问题，未提及收入或财务指标。因此，无法根据文档内容计算人均收入同比提升情况。建议您提供相关数据来源或文档。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-040",
@@ -683,7 +915,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "抱歉，您的问题“运营费用占收入的比例是上升还是下降了？为什么？”与提供的文档内容无关。文档是AcmeCloud的FAQ合集，主要涉及账号、计费、产品功能等客户常见问题，未包含任何关于运营费用或财务比例的信息。请提供相关文档或重新提问。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-041",
@@ -700,7 +938,13 @@
       },
       "source_docs": [
         "acme_员工手册_英文.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "根据提供的文档内容，没有找到关于员工年假天数的相关信息。文档为“AcmeCloud 客户常见问题 FAQ”，主要涉及账号登录、计费付款和产品功能等客户服务问题，不包含员工福利或年假政策。建议查阅公司内部人力资源政策或员工手册获取准确信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-042",
@@ -717,7 +961,13 @@
       },
       "source_docs": [
         "acme_员工手册_英文.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "抱歉，文档内容是关于 AcmeCloud 云服务的 FAQ，未提及公司上班时间。无法根据文档生成答案。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-043",
@@ -734,7 +984,13 @@
       },
       "source_docs": [
         "acme_员工手册_英文.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "根据文档内容，IT安全政策要求密码至少8位，且需包含大小写字母和数字。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-044",
@@ -751,7 +1007,13 @@
       },
       "source_docs": [
         "acme_员工手册_英文.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "根据提供的文档内容，未提及带薪病假相关信息。文档为AcmeCloud客户FAQ，涵盖账号登录、计费付款和产品功能，不涉及员工福利或病假政策。建议参考公司人力资源政策或联系相关部门获取准确信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-045",
@@ -768,7 +1030,13 @@
       },
       "source_docs": [
         "acme_员工手册_英文.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "根据提供的文档内容，无法找到关于公司部门数量的信息。文档主要涉及AcmeCloud的账号、计费、产品功能等FAQ，未提及公司内部部门结构。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-046",
@@ -785,7 +1053,13 @@
       },
       "source_docs": [
         "acme_员工手册_英文.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "根据提供的文档内容，未找到关于“个人邮箱使用政策”的相关信息。文档主要涵盖AcmeCloud的账号注册、登录、计费、产品功能等FAQ，未提及公司对个人邮箱使用的规定。建议查阅公司内部员工手册或联系人力资源部门获取准确政策。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-047",
@@ -802,7 +1076,13 @@
       },
       "source_docs": [
         "acme_员工手册_英文.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "根据提供的文档内容，无法找到关于“研发部门的负责人是谁”的信息。文档为AcmeCloud客户常见问题FAQ，主要涵盖账号登录、计费付款和产品功能等客户支持内容，未提及公司内部组织架构或部门负责人信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-048",
@@ -819,7 +1099,13 @@
       },
       "source_docs": [
         "acme_员工手册_英文.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "抱歉，文档内容中未包含关于“dress code”或“商务休闲装”的相关信息。请提供相关文档内容以便生成准确答案。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-049",
@@ -836,7 +1122,13 @@
       },
       "source_docs": [
         "acme_员工手册_英文.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "根据文档内容，没有关于员工在上班时间处理私人事务流程的相关信息。文档是 AcmeCloud 客户常见问题 FAQ，主要涉及账号登录、计费付款和产品功能等云服务相关问题，不包含员工管理或工作流程内容。建议您参考公司内部员工手册或咨询人力资源部门获取相关信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-050",
@@ -853,7 +1145,13 @@
       },
       "source_docs": [
         "acme_员工手册_英文.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "抱歉，文档内容是关于 AcmeCloud 云服务的 FAQ，不包含任何关于年假天数或员工与高管休假政策的信息。因此，无法根据文档生成相关答案。请提供相关文档。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-051",
@@ -869,7 +1167,13 @@
       "source_docs": [
         "acme_员工手册_英文.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-052",
@@ -886,7 +1190,13 @@
       },
       "source_docs": [
         "acme_员工手册_英文.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "根据文档内容，信息安全政策中关于公司设备上安装软件的具体限制未直接提及。文档主要涉及 AcmeCloud 账号、计费和产品功能，未涵盖公司设备软件安装政策。因此，无法从提供内容中提取相关限制及原因。建议查阅具体信息安全政策文档获取详细信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-053",
@@ -903,7 +1213,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "根据文档内容，未提及管理后台的默认端口信息。文档主要介绍了AcmeCloud的账号登录、计费、产品功能等FAQ，但未包含管理后台端口的详细说明。建议查阅AcmeCloud官方技术文档或联系客服获取此信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-054",
@@ -920,7 +1236,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "根据文档内容，未提供数据库全量备份的 cron 表达式。文档主要涵盖账号、计费、产品功能等FAQ，未涉及数据库备份的具体配置。建议查阅AcmeCloud数据库备份相关文档或联系技术支持获取准确信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-055",
@@ -937,7 +1259,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "根据文档内容，未明确提及日志文件的具体保留天数。文档中仅提到版本控制功能可设置自动清理策略（如保留最近30天），但未涉及日志文件的保留期限。建议查阅其他相关文档或联系客服获取准确信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-056",
@@ -954,7 +1282,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "根据文档内容，未明确提及数据库增量备份的执行频率。文档仅在第21题提到AcmeCloud提供数据库服务（MySQL、PostgreSQL、MongoDB），但未涉及备份策略细节。建议查阅相关备份文档或联系客服获取具体信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-057",
@@ -971,7 +1305,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "根据文档内容，未提及SSH默认端口号建议修改的具体值。文档仅说明创建虚拟机后可通过SSH连接，并支持自定义安全组规则，但未给出端口号建议。如需修改，建议参考通用安全实践，将默认端口22改为非标准端口（如2222），以降低被扫描风险。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-058",
@@ -988,7 +1328,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "根据文档内容，未明确提及CPU使用率超过80%的告警阈值时间。文档仅在第24题中描述了虚拟机创建和配置，未涉及监控告警的具体参数。因此，无法从给定文档中生成相关答案。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-059",
@@ -1006,7 +1352,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "根据文档内容，未提及全量备份和增量备份的执行时间。文档主要涵盖账号、计费、产品功能等FAQ，未涉及备份策略的具体时间安排。建议查阅AcmeCloud备份相关文档或联系客服获取详细信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-060",
@@ -1022,7 +1374,13 @@
       "source_docs": [
         "acme_操作手册.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-061",
@@ -1038,7 +1396,13 @@
       "source_docs": [
         "acme_操作手册.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-062",
@@ -1055,7 +1419,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "根据文档内容，未明确列出防火墙规则中开放的具体端口。但文档提到虚拟机支持自定义安全组规则，用户可根据需求配置端口。建议参考常见云服务默认开放端口，如SSH（22）、HTTP（80）、HTTPS（443）、RDP（3389）、MySQL（3306）等，具体以实际配置为准。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-063",
@@ -1072,7 +1442,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "根据文档内容，建议开启版本控制并设置自动清理策略，例如保留最近90天的历史版本。同时，可调整存储桶的版本控制保留数量（最多100个版本），并配置生命周期规则自动删除超过90天的版本文件。这样既能满足日志保留需求，又能通过自动清理过期版本节省存储空间。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-064",
@@ -1089,7 +1465,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "根据安全最佳实践，SSH 端口不建议使用默认22，因为该端口是常见攻击目标，易被自动化脚本和恶意扫描尝试暴力破解。通过修改为非常用端口（如2222），可显著降低被随机攻击的风险。文档虽未直接提及，但结合常见安全策略，建议在创建虚拟机时自定义安全组规则，限制SSH访问来源IP，并启用密钥认证而非密码登录，以增强防护。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-065",
@@ -1106,7 +1488,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档内容，重置密码的步骤如下：在登录页面点击“忘记密码”，输入注册邮箱。系统会在60秒内发送重置链接，点击后设置新密码。链接有效期为15分钟。若未收到邮件，请检查垃圾箱或联系客服。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-066",
@@ -1123,7 +1511,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档内容，AcmeCloud免费版提供5GB存储空间。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-067",
@@ -1140,7 +1534,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档内容，AcmeCloud 的API调用频率限制未在提供的FAQ中明确说明。文档仅提及API密钥管理（专业版和企业版支持）以及单次API请求最大100MB（上传文件时），但未给出具体的调用频率限制数值。建议查阅AcmeCloud官方API文档或联系客服获取详细信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-068",
@@ -1158,7 +1558,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档内容，未明确提及“数据导出支持哪些格式”。文档中仅在第17题提到“支持导出为CSV格式”，用于历史消费记录的对账。因此，标准答案为：文档未全面说明数据导出格式，仅提及历史消费记录可导出为CSV格式。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-069",
@@ -1175,7 +1581,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档内容，未直接提及技术支持响应时间。但文档中关于账单异议处理提到“3个工作日内核实并回复”，账号锁定联系客服处理时间约2小时。建议参考这些信息或联系客服确认具体响应时间。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-070",
@@ -1192,7 +1604,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档内容，未明确说明数据加密方式。文档主要涵盖账号登录、计费付款和产品功能，未提及数据加密的具体技术或标准。如需了解加密方式，建议联系客服或查阅相关安全文档。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-071",
@@ -1208,7 +1626,13 @@
       "source_docs": [
         "acme_FAQ合集.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-072",
@@ -1225,7 +1649,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档内容，专业版支持5个管理员和50个成员，提供单点登录（SSO）和API密钥管理；企业版支持最多100名成员，额外提供自定义域名登录和审计日志功能。企业账号需由主管理员操作注销。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-073",
@@ -1241,7 +1671,13 @@
       "source_docs": [
         "acme_FAQ合集.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-074",
@@ -1258,7 +1694,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "多个 API Key 的调用频率是独立计算的。每个 API Key 拥有独立的调用配额和速率限制，互不影响。用户可在控制台为每个 Key 单独设置调用限制，超出限制仅影响该 Key 的访问，其他 Key 可正常使用。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-075",
@@ -1275,7 +1717,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "不会。升级到专业版后，原有数据（包括文件、配置等）会完整保留。升级即时生效，按剩余天数比例补差价，数据不会丢失。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-076",
@@ -1291,7 +1739,13 @@
       "source_docs": [
         "acme_FAQ合集.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-077",
@@ -1308,7 +1762,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档内容，专业版月付$29/月，年付$24/月（节省约17%）；企业版月付$99/月，年付$79/月（节省约20%）。但文档未提供人民币价格或具体换算比例，无法直接计算5000元月消费的年付节省金额。建议您登录控制台查看实际套餐价格，或联系客服获取人民币报价。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-078",
@@ -1325,7 +1785,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档，年付套餐取消订阅的退款政策如下：降级将在当前计费周期结束后生效，不退款。例如，月中从专业版降级为免费版，下月1日生效。若对账单有异议，可提交工单或邮件至billing@acmecloud.com，核实为计费错误将全额退款，处理周期约5-7个工作日。因此，主动取消年付订阅通常不退款，仅计费错误可退全款。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-079",
@@ -1342,7 +1808,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档内容，AcmeCloud 的核心功能包括：云存储（对象存储、块存储）、云计算（虚拟机、容器）、数据库（MySQL、PostgreSQL、MongoDB）、CDN加速、DNS托管和Serverless函数计算。所有服务支持按需扩展，并有99.9%的SLA保障。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-080",
@@ -1359,7 +1831,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档内容，AcmeCloud 免费版（基础版）支持1个管理员和2个成员，即最多共3个用户。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-081",
@@ -1376,7 +1854,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档内容，基础版（免费版）和专业版均不包含审计日志功能。文档指出，企业版额外支持审计日志。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-082",
@@ -1392,7 +1876,13 @@
       "source_docs": [
         "acme_框架合同.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-083",
@@ -1409,7 +1899,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "根据文档内容，未明确提及SLA中P1级故障的响应时间。文档仅提到“所有服务均支持按需扩展，99.9% SLA保障”（第21题），但未具体说明故障响应时间。建议参考AcmeCloud官方SLA文档或联系客服获取详细信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-084",
@@ -1426,7 +1922,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "根据文档内容，未提及系统可用性低于99.9%但高于99%的具体补偿方案。文档仅提到所有服务支持99.9% SLA保障，但未详细说明SLA违约补偿条款。建议查阅AcmeCloud服务等级协议或联系客服获取具体补偿政策。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-085",
@@ -1443,7 +1945,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "根据提供的文档内容，没有找到关于“销售费用”或“销售费用占收入比例”的信息。文档是 AcmeCloud 客户常见问题 FAQ，主要涵盖账号登录、计费付款和产品功能等客户支持内容，不包含财务数据如销售费用或收入比例。建议查阅公司财务报告或联系相关部门获取此信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-086",
@@ -1459,7 +1967,13 @@
       "source_docs": [
         "acme_季度报告.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-087",
@@ -1476,7 +1990,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "根据文档内容，没有提供关于“项目完成度”的信息。文档是 AcmeCloud 的客户常见问题 FAQ，涵盖账号登录、计费付款、产品功能等类别，但未涉及任何项目及其完成度的数据或描述。因此，无法回答“哪个项目的完成度最低”这一问题。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-088",
@@ -1492,7 +2012,13 @@
       "source_docs": [
         "acme_员工手册_英文.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-089",
@@ -1509,7 +2035,13 @@
       },
       "source_docs": [
         "acme_员工手册_英文.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_员工手册_英文.md",
+      "golden_answer": "根据文档内容，没有关于员工请假政策的直接信息。文档是AcmeCloud客户常见问题FAQ，主要涉及账号、计费、产品功能等云服务相关内容，不包含员工请假规定。建议参考公司内部员工手册或人力资源政策。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-090",
@@ -1526,7 +2058,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "抱歉，文档内容中没有提到 Nginx 访问日志的存放路径。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-091",
@@ -1543,7 +2081,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "根据文档内容，未明确提及“磁盘使用率超过85%的告警级别”。文档中仅在第14题提到“超出80%时发送预警邮件”，但未定义告警级别。建议参考具体监控系统设置或联系技术支持获取详细信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-092",
@@ -1560,7 +2104,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "根据文档内容，未找到关于错误码E1001的具体排查步骤。建议参考以下通用排查方法：1. 检查应用服务器配置和日志文件；2. 确认资源（如存储、内存）是否充足；3. 重启服务或实例；4. 联系AcmeCloud技术支持提供错误码和日志。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-093",
@@ -1576,7 +2126,13 @@
       "source_docs": [
         "acme_操作手册.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-094",
@@ -1593,7 +2149,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档内容，企业账号在“团队管理”中最多可添加100名成员。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-095",
@@ -1610,7 +2172,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档内容，上传文件的大小限制取决于上传方式：通过Web控制台拖拽上传，单文件最大为5GB；通过命令行工具（CLI）支持批量上传和断点续传；通过API调用，单次请求最大为100MB。建议使用分片上传大文件以优化速度。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-096",
@@ -1627,7 +2195,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档内容，未明确说明数据存储的具体地理位置。文档仅提及AcmeCloud提供云存储服务，并支持按需扩展，但未涉及数据存储在中国境内或境外的信息。建议联系客服获取详细数据存储位置说明。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-097",
@@ -1644,7 +2218,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档内容，未直接提及API返回429错误码的原因及解决方法。但根据常见实践，429错误通常表示请求速率限制（Rate Limiting），可能因短时间内发送过多请求触发。建议：1）检查API调用频率，降低请求速率；2）查看文档中的速率限制说明（如每分钟最大请求数）；3）等待一段时间后重试；4）若需更高限额，联系客服或升级套餐。具体请参考AcmeCloud API文档或联系技术支持。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-098",
@@ -1662,7 +2242,13 @@
       "source_docs": [
         "acme_FAQ合集.md",
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md,acme_产品规格书.md",
+      "golden_answer": "免费版仅支持1个管理员和2个成员，无法满足200人分部门独立管理需求。最低需要专业版（支持5个管理员和50个成员），但若需200人规模，建议选择企业版（支持最多100名成员，可添加更多管理员）。企业版还提供自定义域名登录和审计日志，适合多部门精细权限控制。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-099",
@@ -1679,7 +2265,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "部署 AcmeCloud 虚拟机的最低配置为 1 核 CPU、1GB 内存，费用为 $0.01/小时。用户可在控制台选择地域、镜像（如 Ubuntu、CentOS、Windows Server）和规格，创建后通过 SSH 或 RDP 连接，并支持自定义安全组规则。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-100",
@@ -1695,7 +2287,13 @@
       "source_docs": [
         "acme_产品规格书.md"
       ],
-      "expect_rejection": true
+      "expect_rejection": true,
+      "question_type": "rejection",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "该问题在文档中无相关信息，应拒绝回答。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-101",
@@ -1713,7 +2311,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "根据文档内容，未找到关于“集群模式”网络条件的直接说明。文档主要涵盖账号登录、计费付款和产品功能（如云存储、虚拟机等），但未涉及集群模式的网络要求。建议参考AcmeCloud官方文档或联系技术支持获取详细信息。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-102",
@@ -1730,7 +2334,13 @@
       },
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_产品规格书.md",
+      "golden_answer": "最经济的方案是升级到专业版。专业版支持5个管理员和50个成员，但基础版仅支持2个成员。若要容纳80个用户，需购买企业版（支持100名成员），价格为$99/月（年付$79/月）。企业版提供1TB存储和10TB月流量，超出部分按量计费。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-103",
@@ -1747,7 +2357,13 @@
       },
       "source_docs": [
         "acme_框架合同.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_框架合同.md",
+      "golden_answer": "根据文档内容，未找到关于“合同续约需要提前多少天通知”的相关信息。建议您查阅合同条款或联系AcmeCloud客服获取具体续约通知要求。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-104",
@@ -1765,7 +2381,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "根据文档内容，AcmeCloud企业账号最多可添加100名成员。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-105",
@@ -1782,7 +2404,13 @@
       },
       "source_docs": [
         "acme_季度报告.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_季度报告.md",
+      "golden_answer": "根据文档内容，运营费用中最大的一项未明确提及。文档主要介绍AcmeCloud的FAQ，包括账号、计费、产品功能等，但未列出具体运营费用项目或比较其大小。因此，无法从给定文档中确定运营费用中最大的一项。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-106",
@@ -1799,7 +2427,13 @@
       },
       "source_docs": [
         "acme_操作手册.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_操作手册.md",
+      "golden_answer": "根据文档内容，数据库备份文件保留数量未明确说明。但关于文件存储的版本控制功能，文档提到每个存储桶最多保留100个历史版本，并可设置自动清理策略（如保留最近30天）。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-107",
@@ -1816,7 +2450,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "根据文档内容，未直接提供“如何联系技术支持”的答案。但文档中提到：若账号被锁定或因安全原因需联系客服，需提供身份证明；对账单有异议时，可通过工单或邮件（billing@acmecloud.com）提交。建议用户登录控制台查找“帮助”或“支持”页面，或通过官网联系渠道获取技术支持。",
+      "independent_review": false
     },
     {
       "case_id": "ENT-108",
@@ -1833,7 +2473,13 @@
       },
       "source_docs": [
         "acme_FAQ合集.md"
-      ]
+      ],
+      "question_type": "direct",
+      "match_type": "content",
+      "source_doc_version": "1.0",
+      "source_doc": "acme_FAQ合集.md",
+      "golden_answer": "可以。您可以在同一个 AcmeCloud 账号下，通过“团队管理”功能为每个业务线创建不同的子账号，并精细控制权限。例如，为每个业务线分配独立的文件夹、存储桶或项目，并设置只读或读写权限，实现数据隔离。企业版还支持自定义域名登录和审计日志，便于管理。",
+      "independent_review": false
     }
   ]
 }

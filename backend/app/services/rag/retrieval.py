@@ -7,13 +7,15 @@
 from __future__ import annotations
 
 import logging
+import re
 import time
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.services.ingestion.embedder import embed_texts
+from app.core.degradation import assess_degradation, degradation_requires_embed
+from app.services.ingestion.embedder import embed_texts, try_embed_texts
 from app.services.org.scope import OrgScope
 from app.services.rag.diversity import apply_kb_diversity
 from app.services.rag.executor import (
@@ -79,12 +81,32 @@ async def retrieve_chunks(
 
     _t = time.perf_counter
     t0 = _t()
-    query_vec = (await embed_texts([query]))[0]
-    get_tracker("retrieval.embed").record((_t() - t0) * 1000)
+
+    # 语言检测：判断 query 是否为英文
+    # 英文 query → 用 bge-en 英文嵌入 + embedding_en 列
+    ascii_chars = sum(1 for c in query if c.isascii() and c.isalpha())
+    total_chars = sum(1 for c in query if c.isalpha())
+    is_english = total_chars > 0 and (ascii_chars / total_chars) > 0.5
+    embed_provider = "bge_en" if is_english else None
+    embed_col = "embedding_en" if is_english else None
+
+    # 2026-07-19: 嵌入降级感知——嵌入失效时跳过向量召回，走纯 FTS
+    if degradation_requires_embed(assess_degradation()):
+        query_vec = (await try_embed_texts([query], provider=embed_provider))[0]
+    else:
+        query_vec = None
+    if query_vec is None:
+        get_tracker("retrieval.embed").record(0)
+    else:
+        get_tracker("retrieval.embed").record((_t() - t0) * 1000)
 
     t0 = _t()
-    vector_rows = await vector_recall(db, kb_id=kb_id, query_vec=query_vec,
-        limit=VECTOR_RECALL, visible_kb_ids=visible_kb_ids, hide_admin_only=hide_admin_only)
+    if query_vec is not None:
+        vector_rows = await vector_recall(db, kb_id=kb_id, query_vec=query_vec,
+            limit=VECTOR_RECALL, visible_kb_ids=visible_kb_ids, hide_admin_only=hide_admin_only,
+            embedding_col=embed_col)
+    else:
+        vector_rows = []
     get_tracker("retrieval.vector_recall").record((_t() - t0) * 1000)
 
     t0 = _t()
@@ -144,11 +166,23 @@ async def retrieve_workspace_chunks(
     if visible_kb_ids is not None and not visible_kb_ids:
         return []
 
-    query_vec = (await embed_texts([query]))[0]
+    # 语言检测
+    ascii_chars = sum(1 for c in query if c.isascii() and c.isalpha())
+    total_chars = sum(1 for c in query if c.isalpha())
+    is_english = total_chars > 0 and (ascii_chars / total_chars) > 0.5
+    embed_provider = "bge_en" if is_english else None
+    embed_col = "embedding_en" if is_english else None
 
-    vector_rows = await _vector_recall_workspace(db, scope=scope, org_scope=org_scope,
+    # 2026-07-19: 嵌入降级感知
+    if degradation_requires_embed(assess_degradation()):
+        query_vec = (await try_embed_texts([query], provider=embed_provider))[0]
+    else:
+        query_vec = None
+
+    if query_vec is not None:
+        vector_rows = await _vector_recall_workspace(db, scope=scope, org_scope=org_scope,
         query_vec=query_vec, limit=VECTOR_RECALL, visible_kb_ids=visible_kb_ids,
-        hide_admin_only=hide_admin_only)
+        hide_admin_only=hide_admin_only, embedding_col=embed_col)
     fts_rows = await _fts_recall_workspace(db, scope_clause=kb_scope_clause(scope, org_scope),
         query=query, limit=FTS_RECALL, visible_kb_ids=visible_kb_ids,
         hide_admin_only=hide_admin_only)
@@ -210,7 +244,7 @@ async def _expand_if_low_confidence(db, result, query, kb_id, visible_kb_ids, hi
         for eq in expanded[1:]:
             if eq.lower().strip() == query.lower().strip():
                 continue
-            eq_vec = (await embed_texts([eq]))[0]
+            eq_vec = (await try_embed_texts([eq]))[0]
             eq_rows = await vector_recall(db, kb_id=kb_id, query_vec=eq_vec,
                 limit=VECTOR_RECALL, visible_kb_ids=visible_kb_ids, hide_admin_only=hide_admin_only)
             for row in eq_rows:

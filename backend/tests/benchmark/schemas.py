@@ -56,6 +56,7 @@ class RetrievalResult:
     mrr: float = 0.0
     ndcg_at_k: float = 0.0
     correct_rejection: bool = False
+    expect_rejection: bool = False  # 2026-07-19: 修正 rejection_rate 分母
     # v1.0 扩展
     precision_at_k: float = 0.0  # 相关 chunks / top_k
     recall_at_k: float = 0.0     # 检索到的相关 chunks / 全部相关 chunks

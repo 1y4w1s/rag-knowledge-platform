@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import time
 from dataclasses import asdict
 from pathlib import Path
@@ -29,12 +30,23 @@ from tests.benchmark.schemas import (
 _llm_judge = None
 _faithfulness_judge = None
 
-def _get_judge():
+async def _get_judge():
     global _llm_judge
     if _llm_judge is None:
         try:
             from tests.benchmark.judge import LLMJudge
             _llm_judge = LLMJudge()
+            # 校准集验证评分一致性（非阻塞，失败只打日志）
+            try:
+                calib = await _llm_judge.verify_calibration()
+                if calib.get("status") == "WARN":
+                    logger.warning("Judge calibration: %d/%d passed (%.0f%%)",
+                                   calib["passed"], calib["total"], calib["pass_rate"] * 100)
+                else:
+                    logger.info("Judge calibration: %s (%d/%d)",
+                                calib["status"], calib.get("passed", 0), calib.get("total", 0))
+            except Exception as calib_err:
+                logger.warning("Judge calibration skipped: %s", calib_err)
         except ImportError:
             pass
     return _llm_judge
@@ -213,24 +225,28 @@ class BenchmarkRunner:
         contents = [c.content[:200] for c in chunks[:top_k]]
 
         match_positions = []
-        total_relevant = 0
+        matched_expects: set[int] = set()  # 2026-07-19: 去重 expects 索引
 
         for i, chunk in enumerate(chunks[:top_k]):
             content = (chunk.content or "").lower()
             matched = False
             if q.expects:
-                for exp in q.expects:
+                for ei, exp in enumerate(q.expects):
                     cc = exp.get("content_contains", "")
                     if cc and cc.lower() in content:
+                        if ei not in matched_expects:
+                            matched_expects.add(ei)
                         matched = True
-                        total_relevant += 1
                         break
             if not matched and q.answer:
                 if q.answer.lower() in content:
                     matched = True
-                    total_relevant += 1
             if matched:
                 match_positions.append(i)
+
+        total_relevant = len(matched_expects) if q.expects else (1 if any(matched_expects) else 0)
+        if not matched_expects and match_positions and not q.expects:
+            total_relevant = 1
 
         hit_1 = any(p < 1 for p in match_positions)
         hit_3 = any(p < 3 for p in match_positions)
@@ -254,6 +270,7 @@ class BenchmarkRunner:
             chunk_ids=chunk_ids, chunk_scores=scores, chunk_contents=contents,
             hit_at_1=hit_1, hit_at_3=hit_3, hit_at_5=hit_5,
             mrr=mrr, ndcg_at_k=ndcg, correct_rejection=correct_rejection,
+            expect_rejection=q.expect_rejection,
             precision_at_k=precision, recall_at_k=recall,
             map_contribution=map_contrib,
             latency_ms=latency_ms,
@@ -263,8 +280,9 @@ class BenchmarkRunner:
     def _ndcg_at_k(match_positions: list[int], k: int) -> float:
         if not match_positions:
             return 0.0
-        dcg = sum(1.0 / (pos + 2).bit_length() for pos in match_positions if pos < k)
-        ideal = sum(1.0 / (i + 2).bit_length() for i in range(min(len(match_positions), k)))
+        # 标准 log2 折扣（2026-07-19: 从 bit_length 修正）
+        dcg = sum(1.0 / math.log2(pos + 2) for pos in match_positions if pos < k)
+        ideal = sum(1.0 / math.log2(i + 2) for i in range(min(len(match_positions), k)))
         return dcg / ideal if ideal > 0 else 0.0
 
     @staticmethod
@@ -272,6 +290,7 @@ class BenchmarkRunner:
         n = len(results)
         if n == 0:
             return RetrievalMetrics()
+        rejection_denom = sum(1 for r in results if r.expect_rejection)
         return RetrievalMetrics(
             hit_at_1=sum(1 for r in results if r.hit_at_1) / n,
             hit_at_3=sum(1 for r in results if r.hit_at_3) / n,
@@ -280,8 +299,8 @@ class BenchmarkRunner:
             mean_ndcg_at_k=sum(r.ndcg_at_k for r in results) / n,
             correct_rejection_rate=(
                 sum(1 for r in results if r.correct_rejection) /
-                max(1, sum(1 for r in results if not r.hit_at_1))
-            ) if any(r.correct_rejection or not r.hit_at_1 for r in results) else 0.0,
+                max(1, rejection_denom)
+            ) if rejection_denom > 0 else 0.0,
             total=n,
             precision_at_k=sum(r.precision_at_k for r in results) / n,
             recall_at_k=sum(r.recall_at_k for r in results) / n,
@@ -306,7 +325,7 @@ class BenchmarkRunner:
         run_id = run_id or time.strftime("%Y%m%d_%H%M%S")
         cp_path = self._checkpoint_path(dataset_name, "generation", run_id)
 
-        judge_instance = _get_judge() if judge else None
+        judge_instance = await _get_judge() if judge else None
         faith_instance = _get_faithfulness() if faithfulness else None
 
         completed_results: list[GenerationResult] = []

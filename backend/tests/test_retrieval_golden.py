@@ -64,7 +64,11 @@ def _get_embedding_dim() -> int:
 
 @pytest.fixture(autouse=True)
 def _mock_embedding(monkeypatch: pytest.MonkeyPatch) -> None:
-    """所有 golden 测试使用 mock 嵌入（避免真实 API 调用）。"""
+    """所有 golden 测试使用 mock 嵌入（避免真实 API 调用）。
+    设置 RAG_REAL_EMBEDDING=1 使用真实嵌入。"""
+    import os
+    if os.environ.get("RAG_REAL_EMBEDDING") == "1":
+        return
     monkeypatch.setattr(embedder, "embed_texts", _mock_embed_texts)
 
 

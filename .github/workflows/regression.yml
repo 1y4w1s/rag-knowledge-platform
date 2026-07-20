@@ -1,10 +1,8 @@
-# RAG 回归检测 CI
+# RAG 回归检测 CI（已弃用）
 #
-# 当 PR 修改了 RAG/ingestion 核心代码时自动运行。
-# 跑 Golden QA 50 题子集（mock 嵌入，零费用，~30 秒），
-# 对比基线 docs/baseline.json，结果写 PR comment。
-#
-# 手动触发全量：workflow_dispatch
+# 此 workflow 已弃用，功能已合并到 ci.yml 的 rag-benchmark job。
+# 保留此文件供参考，将在 3 个月后删除。
+# 如需回归检测，请关注 ci.yml 中的 Baseline 对比结果。
 
 name: RAG Regression
 

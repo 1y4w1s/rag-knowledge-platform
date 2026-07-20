@@ -141,6 +141,7 @@ async def _write_chunks(
     drafts: list[ChunkDraft],
 
     vectors: list[list[float]],
+    vectors_en: list[list[float]] | None = None,
 
 ) -> int:
 
@@ -155,6 +156,8 @@ async def _write_chunks(
     parent_ids: dict[str, UUID] = {}
 
     vector_iter = iter(vectors)
+    vector_en_iter = iter(vectors_en) if vectors_en else None
+    vector_en_iter = iter(vectors_en) if vectors_en else None
 
 
 
@@ -170,12 +173,15 @@ async def _write_chunks(
 
             embedding = None
             embed_model = None
+            embedding_en = None
 
             if _is_searchable(draft):
 
                 try:
                     embedding = next(vector_iter)
                     embed_model = current_embedding_model()
+                    if vector_en_iter:
+                        embedding_en = next(vector_en_iter, None)
                 except StopIteration:
                     pass
 
@@ -206,6 +212,8 @@ async def _write_chunks(
             embedding_model=embed_model,
 
             embedding=embedding,
+
+            embedding_en=embedding_en,
 
         )
 
@@ -350,7 +358,18 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
 
 
-            chunk_count = await _write_chunks(db, doc=doc, drafts=drafts, vectors=vectors)
+            vectors_en = None
+            full_text = " ".join(d.content for d in drafts if d.content)
+            ascii_chars = sum(1 for c in full_text if c.isascii() and c.isalpha())
+            total_chars = sum(1 for c in full_text if c.isalpha())
+            is_english = total_chars > 0 and (ascii_chars / total_chars) > 0.5
+            if is_english:
+                try:
+                    vectors_en = await embed_texts(embed_inputs, provider="bge_en")
+                except Exception:
+                    pass
+
+            chunk_count = await _write_chunks(db, doc=doc, drafts=drafts, vectors=vectors, vectors_en=vectors_en)
 
             doc.status = DocumentStatus.completed
 

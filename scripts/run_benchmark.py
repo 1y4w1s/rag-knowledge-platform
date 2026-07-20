@@ -68,7 +68,9 @@ async def run_retrieval(dataset_cfg: dict, output: str) -> dict:
 
     qa_path = FIXTURES / dataset_cfg["qa_file"]
     data = json.loads(qa_path.read_text(encoding="utf-8"))
-    cases = [c for c in data["cases"] if not c.get("expect_rejection")]
+    all_cases = data["cases"]
+    rejection_count = sum(1 for c in all_cases if c.get("expect_rejection"))
+    cases = [c for c in all_cases if not c.get("expect_rejection")]
 
     # 建 KB + 入库文档
     transport = ASGITransport(app=app)
@@ -159,6 +161,7 @@ async def run_retrieval(dataset_cfg: dict, output: str) -> dict:
     return {
         "dataset": dataset_cfg["name"],
         "total": n, "hit_at_3": hit3,
+        "rejection_count": rejection_count,
         "by_domain": dom_breakdown,
         "run_id": run_id,
     }
@@ -284,7 +287,7 @@ async def main():
 
         if args.mode in ("retrieval", "full"):
             result = await run_retrieval(cfg, args.output)
-            print(f"  Total: {result['total']}")
+            print(f"  Total: {result['total']} (excluded {result['rejection_count']} rejection queries)")
             print(f"  Hit@3: {result['hit_at_3']:.1%}")
             for dom, stats in sorted(result["by_domain"].items()):
                 print(f"    {dom}: {stats['hit']}/{stats['total']} = {stats['rate']:.0%}")
