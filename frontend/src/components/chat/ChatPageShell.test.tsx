@@ -80,7 +80,7 @@ const defaultMessageListConfig = {
   kbId: "kb-1", onToggleCitation: vi.fn(), onAdoptApproval: vi.fn(),
   onCancelApproval: vi.fn(), resolvingApprovalId: null, approvalError: null,
 };
-const defaultInputConfig = { disabled: false, onSend: vi.fn() };
+const defaultInputConfig = { disabled: false, onSend: vi.fn(), draftRestore: undefined };
 
 describe("ChatPageShell", () => {
   it("renders thread panel, message list and chat input", () => {

@@ -63,7 +63,7 @@ import type { ThreadContext } from "@/lib/thread-api";
 
 const mockContext: ThreadContext = {
   kind: "workspace",
-  workspace: "personal",
+  scope: { workspace: "personal", expectedGen: 0, getCurrentGeneration: () => 0 },
 };
 
 describe("useThreadSession", () => {
@@ -122,9 +122,9 @@ describe("useThreadSession", () => {
   it("createNewThread delegates to useThreadList", async () => {
     const { result } = renderHook(() => useThreadSession(mockContext));
 
-    let thread: { id: string };
+    let _thread: { id: string };
     await act(async () => {
-      thread = await result.current.createNewThread();
+      _thread = await result.current.createNewThread();
     });
 
     expect(mockCreateNewThread).toHaveBeenCalled();
