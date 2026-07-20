@@ -1,4 +1,5 @@
-"""Generation Faithfulness + Citation Accuracy 评测。
+"""已弃用，请用 scripts/run_benchmark.py --mode full。
+Generation Faithfulness + Citation Accuracy 评测。
 对 golden_qa 的生成回答，评估：
 1. Faithfulness: 回答中的每个事实是否都能在检索片段中找到依据
 2. Citation Accuracy: [片段N] 引用是否指向包含对应信息的片段

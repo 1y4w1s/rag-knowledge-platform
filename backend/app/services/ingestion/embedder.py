@@ -122,13 +122,14 @@ def _mock_vector(text: str) -> list[float]:
 def _validate_vectors(
     vectors: list[list[float]],
     label: str = "embedding",
+    expected_dim: int | None = None,
 ) -> list[list[float]]:
     """输出质量校验：零向量、NaN、Inf、维度不匹配 → 抛错。
 
     覆盖面试提到的「安静失效」场景——API 返回 200 但数据是坏的。
     """
+    exp_dim = expected_dim or _get_embedding_dim()
     for i, v in enumerate(vectors):
-        exp_dim = _get_embedding_dim()
         if len(v) != exp_dim:
             raise ValueError(f"{label}[{i}] 维度 {len(v)} ≠ {exp_dim}")
         if any(not isinstance(x, (int, float)) for x in v):
@@ -233,6 +234,19 @@ async def _embed_bge(texts: Sequence[str]) -> list[list[float]]:
     return _validate_vectors(all_vectors, label="bge_embed")
 
 
+async def _embed_bge_en(texts: Sequence[str]) -> list[list[float]]:
+    """bge-small-en-v1.5 via fastembed (384 dim)。"""
+    from fastembed import TextEmbedding
+    if not hasattr(_embed_bge_en, "_model"):
+        _embed_bge_en._model = TextEmbedding(
+            model_name="BAAI/bge-small-en-v1.5",
+            providers=["CPUExecutionProvider"],
+        )
+    model = _embed_bge_en._model
+    all_vectors = [v.tolist() if hasattr(v, 'tolist') else list(v) for v in model.embed(list(texts))]
+    return _validate_vectors(all_vectors, label="bge_en_embed", expected_dim=384)
+
+
 def _has_cuda() -> bool:
     try:
         import torch
@@ -254,19 +268,18 @@ def _is_mock_mode() -> bool:
 def _cache_enabled() -> bool:
     """在非 mock 提供商下启用缓存。"""
     provider = settings.embedding_provider.lower()
-    return provider in ("tongyi", "bge") and not _is_mock_mode()
+    return provider in ("tongyi", "bge", "bge_en") and not _is_mock_mode()
 
 
-async def embed_texts(texts: Sequence[str]) -> list[list[float]]:
+async def embed_texts(texts: Sequence[str], provider: str | None = None) -> list[list[float]]:
     if not texts:
         return []
 
-    provider = settings.embedding_provider.lower()
+    provider = (provider or settings.embedding_provider).lower()
     if _is_mock_mode():
         return _validate_vectors([_mock_vector(t) for t in texts], label="mock_embed")
 
     if provider == "tongyi":
-        # 缓存检查
         use_cache = _cache_enabled()
         if use_cache and len(texts) == 1:
             cached = _embedding_cache.get(texts[0])
@@ -275,7 +288,6 @@ async def embed_texts(texts: Sequence[str]) -> list[list[float]]:
 
         vectors = await async_retry(_embed_tongyi, texts, max_retries=settings.retry_max_attempts, base_delay=settings.retry_base_delay, breaker_name="tongyi_embed")
 
-        # 缓存落盘
         if use_cache:
             for text, vec in zip(texts, vectors):
                 _embedding_cache.set(text, vec)
@@ -297,13 +309,17 @@ async def embed_texts(texts: Sequence[str]) -> list[list[float]]:
 
         return vectors
 
-    raise ValueError(f"不支持的嵌入提供商: {settings.embedding_provider}")
+    if provider == "bge_en":
+        vectors = await async_retry(_embed_bge_en, texts, max_retries=settings.retry_max_attempts, base_delay=settings.retry_base_delay, breaker_name="bge_en_embed")
+        return vectors
+
+    raise ValueError(f"不支持的嵌入提供商: {provider}")
 
 
-async def try_embed_texts(texts: Sequence[str]) -> list[list[float]] | None:
+async def try_embed_texts(texts: Sequence[str], provider: str | None = None) -> list[list[float]] | None:
     """嵌入降级：嵌入失败时返回 None，调用方降级为纯 FTS。"""
     try:
-        return await embed_texts(texts)
+        return await embed_texts(texts, provider=provider)
     except Exception:
         return None
 
