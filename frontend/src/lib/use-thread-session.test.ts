@@ -72,8 +72,7 @@ describe("useThreadSession", () => {
   });
 
   it("returns all required fields", () => {
-    const { result } = renderHook(() => useThreadSession(mockContext));
-
+    renderHook(() => useThreadSession(mockContext));
     expect(result.current).toHaveProperty("threads");
     expect(result.current).toHaveProperty("threadsLoading");
     expect(result.current).toHaveProperty("threadsError");
@@ -100,18 +99,16 @@ describe("useThreadSession", () => {
   });
 
   it("sendMessage delegates to useMessageStream", async () => {
-    const { result } = renderHook(() => useThreadSession(mockContext));
-
+    renderHook(() => useThreadSession(mockContext));
     await act(async () => {
-      await result.current.sendMessage("你好", "fast");
+      await result.current.sendMessage("ä½ å¥½", "fast");
     });
 
-    expect(mockSendMessage).toHaveBeenCalledWith("你好", "fast");
+    expect(mockSendMessage).toHaveBeenCalledWith("ä½ å¥½", "fast");
   });
 
   it("regenerate delegates to useMessageStream", async () => {
-    const { result } = renderHook(() => useThreadSession(mockContext));
-
+    renderHook(() => useThreadSession(mockContext));
     await act(async () => {
       await result.current.regenerate(2);
     });
@@ -120,14 +117,12 @@ describe("useThreadSession", () => {
   });
 
   it("createNewThread delegates to useThreadList", async () => {
-    const { result } = renderHook(() => useThreadSession(mockContext));
-
+    renderHook(() => useThreadSession(mockContext));
 expect(mockCreateNewThread).toHaveBeenCalled();
   });
 
   it("initial state has empty threads and null active thread", () => {
-    const { result } = renderHook(() => useThreadSession(mockContext));
-
+    renderHook(() => useThreadSession(mockContext));
     expect(result.current.activeThreadId).toBeNull();
     expect(result.current.threads).toEqual([]);
     expect(result.current.threadsLoading).toBe(false);

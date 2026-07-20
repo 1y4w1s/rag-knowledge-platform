@@ -7,7 +7,7 @@ import type { ChatMessage, UserChatMessage, AssistantChatMessage } from "@/compo
 vi.mock("@/components/chat/ThreadListPanel", () => ({
   ThreadListPanel: ({ onCreateThread }: { onCreateThread: () => void }) => (
     <div data-testid="thread-list-panel">
-      <button data-testid="new-chat-btn" onClick={onCreateThread}>ÐÂ½¨¶Ô»°</button>
+      <button data-testid="new-chat-btn" onClick={onCreateThread}>ÃÃÂ½Â¨Â¶ÃÂ»Â°</button>
     </div>
   ),
 }));
@@ -17,9 +17,9 @@ vi.mock("@/components/chat/ChatMessageList", () => ({
     <div data-testid="chat-message-list">
       {messages.map((m, i) => (
         <div key={i} data-testid={`msg-${i}`}>
-          {m.role === "user" ? `ÓÃ»§: ${m.content}` : `ÖúÊÖ: ${m.content}`}
+          {m.role === "user" ? `ÃÃÂ»Â§: ${m.content}` : `ÃÃºÃÃ: ${m.content}`}
           {m.role === "assistant" && onRegenerate && (
-            <button data-testid={`regenerate-${i}`} onClick={() => onRegenerate(i)}>ÖØÐÂÉú³É</button>
+            <button data-testid={`regenerate-${i}`} onClick={() => onRegenerate(i)}>ÃÃÃÃÃÃºÂ³Ã</button>
           )}
         </div>
       ))}
@@ -31,13 +31,13 @@ vi.mock("@/components/chat/ChatInput", () => ({
   ChatInput: ({ onSend, disabled }: { onSend: (msg: string) => void; disabled?: boolean }) => (
     <div data-testid="chat-input">
       <input data-testid="msg-input" disabled={disabled} />
-      <button data-testid="send-btn" onClick={() => { if (!disabled) onSend("ÄãºÃ"); }}>·¢ËÍ</button>
+      <button data-testid="send-btn" onClick={() => { if (!disabled) onSend("ÃÃ£ÂºÃ"); }}>Â·Â¢ÃÃ</button>
     </div>
   ),
 }));
 
 vi.mock("@/components/chat/ChatLoadingPanel", () => ({
-  ChatLoadingPanel: () => <div data-testid="loading-panel">¼ÓÔØÖÐ...</div>,
+  ChatLoadingPanel: () => <div data-testid="loading-panel">Â¼ÃÃÃÃÃ...</div>,
 }));
 
 vi.mock("@/components/chat/AgentModeSwitcher", () => ({
@@ -53,12 +53,12 @@ vi.mock("@/components/chat/ToolTimeline", () => ({
 }));
 
 function makeUserMsg(overrides: Partial<UserChatMessage> = {}): UserChatMessage {
-  return { role: "user", content: "Äê¼ÙÓÐ¼¸Ìì£¿", createdAt: "2026-07-18T10:00:00Z", ...overrides };
+  return { role: "user", content: "ÃÃªÂ¼ÃÃÃÂ¼Â¸ÃÃ¬Â£Â¿", createdAt: "2026-07-18T10:00:00Z", ...overrides };
 }
 
 function makeAssistantMsg(overrides: Partial<AssistantChatMessage> = {}): AssistantChatMessage {
   return {
-    role: "assistant", content: "5 Ìì", citations: [], expandedIndex: null,
+    role: "assistant", content: "5 ÃÃ¬", citations: [], expandedIndex: null,
     createdAt: "2026-07-18T10:00:05Z", streaming: false, ...overrides,
   };
 }
@@ -95,7 +95,7 @@ describe("ChatPageShell", () => {
         toolbar={defaultToolbar}
         scrollRef={{ current: null }}
       >
-        <div data-testid="extra-content">¶îÍâÄÚÈÝ</div>
+        <div data-testid="extra-content">Â¶Ã®ÃÃ¢ÃÃÃÃ</div>
       </ChatPageShell>,
     );
     expect(screen.getByTestId("thread-list-panel")).toBeTruthy();
@@ -132,8 +132,8 @@ describe("ChatPageShell", () => {
         scrollRef={{ current: null }}
       />,
     );
-    expect(screen.getByText("ÓÃ»§: Äê¼ÙÓÐ¼¸Ìì£¿")).toBeTruthy();
-    expect(screen.getByText("ÖúÊÖ: 5 Ìì")).toBeTruthy();
+    expect(screen.getByText("ÃÃÂ»Â§: ÃÃªÂ¼ÃÃÃÂ¼Â¸ÃÃ¬Â£Â¿")).toBeTruthy();
+    expect(screen.getByText("ÃÃºÃÃ: 5 ÃÃ¬")).toBeTruthy();
   });
 
   it("regenerate button calls onRegenerate callback", () => {
@@ -176,15 +176,15 @@ describe("ChatPageShell", () => {
       <ChatPageShell
         threadPanel={{ ...defaultThreadPanel, collapsed: true }}
         agentConfig={defaultAgentConfig}
-        chatState={{ ...defaultChatState, historyError: "¼ÓÔØÊ§°Ü", streamError: "¶Ô»°³ö´í" }}
+        chatState={{ ...defaultChatState, historyError: "Â¼ÃÃÃÃÂ§Â°Ã", streamError: "Â¶ÃÂ»Â°Â³Ã¶Â´Ã­" }}
         messageListConfig={defaultMessageListConfig}
         inputConfig={defaultInputConfig}
         toolbar={defaultToolbar}
         scrollRef={{ current: null }}
       />,
     );
-    expect(screen.getByText("¶Ô»°³ö´í")).toBeTruthy();
-    expect(screen.getByText("¼ÓÔØÊ§°Ü")).toBeTruthy();
+    expect(screen.getByText("Â¶ÃÂ»Â°Â³Ã¶Â´Ã­")).toBeTruthy();
+    expect(screen.getByText("Â¼ÃÃÃÃÂ§Â°Ã")).toBeTruthy();
   });
 
   it("disables input when disabled is true", () => {
@@ -195,7 +195,7 @@ describe("ChatPageShell", () => {
         agentConfig={defaultAgentConfig}
         chatState={defaultChatState}
         messageListConfig={defaultMessageListConfig}
-        inputConfig={{ disabled: true, onSend }}
+        inputConfig={{ disabled: true, onSend, draftRestore: undefined }}
         toolbar={defaultToolbar}
         scrollRef={{ current: null }}
       />,
