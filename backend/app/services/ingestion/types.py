@@ -34,6 +34,10 @@ class ChunkDraft:
 @dataclass
 class IngestionConfig:
     max_chars: int = 1200
-    min_chars: int = 400
+    min_chars: int = 80
     overlap_max_chars: int = 150
     pdf_batch_pages: int = 10
+    # B2：大表行窗 + 跨页合并（与 settings.table_chunk_split_enabled 对齐）
+    table_chunk_split_enabled: bool = True
+    table_row_overlap: int = 1
+    table_parent_max_chars: int = 8000

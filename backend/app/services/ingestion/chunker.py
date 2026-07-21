@@ -384,22 +384,22 @@ def structure_chunk(
 
             flush_prose()
 
-            result.append(
+            from app.services.ingestion.table_split import split_table_block
 
-                ChunkDraft(
-
-                    content=text,
-
-                    page_number=block.page_number,
-
-                    section_title=block.section_title,
-
-                    heading_path=block.heading_path,
-
-                    chunk_kind="table",
-
+            result.extend(
+                split_table_block(
+                    ParsedBlock(
+                        content=text,
+                        page_number=block.page_number,
+                        section_title=block.section_title,
+                        heading_path=block.heading_path,
+                        block_kind="table",
+                    ),
+                    max_chars=cfg.max_chars,
+                    row_overlap=cfg.table_row_overlap,
+                    parent_max_chars=cfg.table_parent_max_chars,
+                    enabled=cfg.table_chunk_split_enabled,
                 )
-
             )
 
             continue

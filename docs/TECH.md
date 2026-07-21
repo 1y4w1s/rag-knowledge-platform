@@ -647,13 +647,15 @@ flowchart LR
 |------|------|--------|
 | PDF（文字层） | **pdfplumber**（layout + 页码） | `page_number`；**跨页段落合并**（见 4.3.7） |
 | PDF（扫描件） | **PaddleOCR + pdf2image**（F4 ✅） | 同上；前 3 页累计可抽文字 &lt; 50 → OCR 分支 |
-| PDF（表格） | **pdfplumber.extract_tables()**（F3 ✅） | 追加 table block 到散文之后 |
+| PDF（表格） | **pdfplumber.extract_tables()**（F3 ✅）+ **B2 跨页合并 / 行窗** | 追加 table block；相邻同表可合并后再切窗 |
 | TXT / MD | UTF-8 / Header 解析 | 行号 / 标题层级 |
 | DOCX | python-docx | Heading 样式 + regex 兜底 |
 | **XLSX** | **openpyxl → 每 sheet 一条 MD 表格**（F1 ✅） | `section_title` = sheet 名 · `block_kind=table` |
 | **PPTX** | **python-pptx → 每 slide 一段散文**（F2 ✅） | `page_number` = slide 编号 · 备注追加「【备注】…」|
 
 **扫描 PDF（F4 ✅）**：前 `min(3, 页数)` 页 `extract_text` 去空白后总长 &lt; 50 → 走 `ocr_pdf_pages()` → `ParsedBlock`（带 `page_number`）→ **与文字层 PDF 相同** chunk/embed/对话 citation 链路。**不接多模态 vision API**（与 F5 分离）。`OCR_ENABLED=0` 或未装 Paddle → 仍 `failed` +「不支持扫描件」/「OCR 服务未启用」。单文件 **≤ `OCR_MAX_PAGES`（默认 30）** 页，超限 failed + 中文拆文件提示。实现见 `parser_pdf.py` · `ocr.py` · [`format-f4-ocr-plan.md`](tasks/format-f4-ocr-plan.md)。
+
+**大表 / 跨页表格（B2 ✅）**：PDF extract_tables 后对**页码连续、列数相同**的 table block 做保守合并（续页重复表头去重，或续页首行像数据则当数据拼上；异表头不合并）。所有来源超长 MD 表在 chunker 按**行窗**切分（每窗保留表头+分隔行，默认 overlap 1 行）；窗数≥2 且全文 ≤ TABLE_PARENT_MAX_CHARS（默认 8000）时建 parent（不入检索索引）。TABLE_CHUNK_SPLIT_ENABLED=0 可关（≈F3 旧行为）。**不改**检索默认与 OCR。实现见 	able_merge.py · 	able_split.py · [p0b-b2-table-chunk-plan.md](tasks/p0b-b2-table-chunk-plan.md)。
 
 **入库 batch**：PDF **每 10 页一批** 解析→切片→嵌入，防 2G OOM（见 4.3.7）。
 
@@ -669,6 +671,17 @@ flowchart LR
 | **开关** | `OCR_ENABLED=0` | 没装 Paddle 或不想占 CPU 时保持旧行为 | env=0 上传扫描件仍「不支持扫描件」 |
 
 **与多模态（F5）的区别**：F4 只把扫描页 **认成纯文本** 再走现有 RAG；**不调** vision LLM、不按 token 为「看图」付费。图表/照片里的语义理解、缩略图预览 → **F5 backlog（不做）**。
+
+
+#### 4.2.3 大白话：大表 / 跨页表格切分（B2）
+
+| 步骤 | 做什么 | 解决什么问题 | 怎么知道做对了 |
+|------|--------|--------------|----------------|
+| **大表/跨页表（B2）** | 同表跨页合并 + 超长表行窗（每窗带表头） | 整表一块向量糊、续页丢列名 | 跨页/大表单测绿；可关回退 |
+| **跨页合并** | 相邻页、同列数；表头相同去重，或续页首行像数据则拼上 | 续页没表头，问不到后半表 | 合成跨页夹具两页数据同块；异表头不合并 |
+| **行窗切分** | 超 max_chars 的 MD 表按数据行切窗，每窗带表头 | 整 sheet 一个向量太糊、易截断 | 大表多 	able leaf；后行在后窗；	est_table_chunk_b2 绿 |
+| **短 parent** | 多窗且全文不太长 → parent 存全文 | 生成侧需要看全表时有出处 | 超长跳过 parent，只留 leaf |
+| **开关** | TABLE_CHUNK_SPLIT_ENABLED=0 | 异常可回退 F3「一页一块、整表一切」 | 关后小表/旧测行为一致 |
 
 ### 4.3 切片策略（结构优先 + 专家修订 A，P0）
 
