@@ -187,8 +187,14 @@ def parse_pdf(path: Path, *, batch_pages: int = 10) -> list[ParsedBlock]:
 
             blocks.extend(_merge_cross_page_blocks(batch_blocks))
 
-    # Append table blocks extracted from PDF
+    # Append table blocks extracted from PDF（B2：可选跨页同表合并）
+    from app.core.config import settings
+
     table_blocks = _parse_pdf_tables_only(path, batch_pages=batch_pages)
+    if settings.table_chunk_split_enabled:
+        from app.services.ingestion.table_merge import merge_cross_page_tables
+
+        table_blocks = merge_cross_page_tables(table_blocks)
     blocks.extend(table_blocks)
 
     return blocks

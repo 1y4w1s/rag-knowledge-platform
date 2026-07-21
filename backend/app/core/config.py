@@ -53,6 +53,10 @@ class Settings(BaseSettings):
     rerank_input_top_n: int = 20
     ocr_enabled: bool = True
     ocr_max_pages: int = 30
+    # B2：大表行窗切分 + PDF 跨页同表合并；关则≈F3 旧行为
+    table_chunk_split_enabled: bool = True
+    table_parent_max_chars: int = 8000
+    table_row_overlap: int = 1
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_user: str = ""

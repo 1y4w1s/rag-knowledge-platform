@@ -314,7 +314,13 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
 
 
-        config = IngestionConfig()
+        from app.core.config import settings
+
+        config = IngestionConfig(
+            table_chunk_split_enabled=settings.table_chunk_split_enabled,
+            table_parent_max_chars=settings.table_parent_max_chars,
+            table_row_overlap=settings.table_row_overlap,
+        )
         parser_mode = _pdf_parser_mode(path, file_type)
         if parser_mode:
             logger.info(
