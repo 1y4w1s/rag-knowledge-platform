@@ -1,5 +1,6 @@
 """组织成员管理业务逻辑（Wave 5.4）。"""
 
+import logging
 from uuid import UUID
 
 from app.core.exceptions import ValidationError, NotFoundError, ConflictError, ForbiddenError
@@ -14,6 +15,8 @@ from app.models.organization_member import OrganizationMember
 from app.models.user import User
 from app.schemas.organization import OrganizationMemberCreate, OrganizationMemberResponse
 from app.services.audit.log import write_audit_log
+
+logger = logging.getLogger(__name__)
 
 
 async def list_organization_members(
@@ -85,6 +88,10 @@ async def add_organization_member(
     await db.commit()
     await db.refresh(membership)
 
+    logger.info(
+        "org member added: org_id=%s user_id=%s email=%s role=%s actor=%s",
+        org_id, user.id, user.email, membership.role.value, acting_user_id,
+    )
     return OrganizationMemberResponse(
         user_id=user.id,
         email=user.email,
@@ -155,6 +162,11 @@ async def remove_organization_member(
         membership.user.account_type = AccountType.personal
     await db.commit()
 
+    logger.info(
+        "org member removed: org_id=%s user_id=%s email=%s actor=%s",
+        org_id, user_id, membership.user.email, acting_admin_id,
+    )
+
 
 async def update_member_role(
     db: AsyncSession,
@@ -205,6 +217,11 @@ async def update_member_role(
     )
     await db.commit()
     await db.refresh(membership)
+
+    logger.info(
+        "org member role changed: org_id=%s user_id=%s email=%s old=%s new=%s actor=%s",
+        org_id, user_id, membership.user.email, old_role.value, new_role.value, acting_owner_id,
+    )
 
     return OrganizationMemberResponse(
         user_id=membership.user_id,
@@ -259,6 +276,11 @@ async def transfer_organization_ownership(
     await db.commit()
     await db.refresh(owner_membership)
     await db.refresh(target_membership)
+
+    logger.info(
+        "org ownership transferred: org_id=%s prev_owner=%s new_owner=%s actor=%s",
+        org_id, acting_owner_id, target_user_id, acting_owner_id,
+    )
 
     previous_owner = OrganizationMemberResponse(
         user_id=owner_membership.user_id,

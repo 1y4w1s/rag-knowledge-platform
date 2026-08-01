@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from app.services.rag.cjk import segment_cjk
 import logging
 
@@ -46,16 +47,14 @@ from app.services.ingestion.parser import parse_document
 from app.services.ingestion.parser_pdf import detect_scanned_pdf
 
 from app.services.ingestion.types import ChunkDraft, IngestionConfig
-
+from app.services.rag.embed_route import REASON_EMBEDDING_EN_FAILED, is_mostly_english
+from app.services.rag.entity_extractor import extract_entities_for_document
 
 
 logger = logging.getLogger(__name__)
 
-_OCR_USER_MESSAGES = frozenset(
+_PASSTHROUGH_MESSAGES = frozenset(
     {
-        "不支持扫描件",
-        "OCR 服务未启用",
-        "OCR 未识别到文字",
         "解析后无有效文本内容",
     }
 )
@@ -72,9 +71,30 @@ def _user_facing_ingestion_error(
     exc: BaseException, *, parser_mode: str | None
 ) -> str:
     """将入库异常转为用户可见中文文案，避免 OCR 失败落成泛化英文/500 描述。"""
+    from app.services.ingestion.ocr_errors import (
+        OCR_RUNTIME_ERROR,
+        OCR_USER_MESSAGES,
+        OcrFailure,
+        message_for,
+        reason_from_exception,
+    )
+
+    if isinstance(exc, OcrFailure):
+        return str(exc).strip() or message_for(exc.reason)
+
+    reason = reason_from_exception(exc)
+    if reason is not None:
+        text = str(exc).strip()
+        # 超页数等动态文案保留原句；其余走字典统一口径
+        if reason == "ocr_page_limit" and text.startswith("扫描页数超过上限"):
+            return text
+        return message_for(reason)
+
     if isinstance(exc, ValueError):
         message = str(exc).strip()
-        if message in _OCR_USER_MESSAGES or message.startswith("扫描页数超过上限"):
+        if message in _PASSTHROUGH_MESSAGES or message in OCR_USER_MESSAGES.values():
+            return message
+        if message.startswith("扫描页数超过上限"):
             return message
         if message.startswith("不支持的文件类型"):
             return message
@@ -82,19 +102,28 @@ def _user_facing_ingestion_error(
 
     if isinstance(exc, RuntimeError):
         message = str(exc).strip()
-        if message == "OCR 服务未启用":
-            return message
         if parser_mode == "ocr":
-            return "OCR 处理失败，请确认文件为清晰扫描件或稍后重试"
+            return message_for(OCR_RUNTIME_ERROR)
         return message or "文档处理失败，请稍后重试"
 
     if isinstance(exc, FileNotFoundError):
         return str(exc).strip() or "文件不存在"
 
     if parser_mode == "ocr":
-        return "OCR 处理失败，请确认文件为清晰扫描件或稍后重试"
+        return message_for(OCR_RUNTIME_ERROR)
 
     return "文档处理失败，请稍后重试"
+
+
+def _ingestion_failure_reason(exc: BaseException, *, parser_mode: str | None) -> str | None:
+    from app.services.ingestion.ocr_errors import reason_from_exception
+
+    reason = reason_from_exception(exc)
+    if reason is not None:
+        return reason
+    if parser_mode == "ocr":
+        return "ocr_runtime_error"
+    return None
 
 
 
@@ -115,6 +144,10 @@ async def _mark_failed(document_id: UUID, message: str) -> None:
         doc.error_message = message[:2000]
 
         doc.processing_completed_at = datetime.now(timezone.utc)
+
+        from app.services.ingestion.progress import clear_progress_fields
+
+        clear_progress_fields(doc)
 
         await db.commit()
 
@@ -315,8 +348,18 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
 
         from app.core.config import settings
+        from app.services.ingestion.progress import (
+            STAGE_CHUNKING,
+            STAGE_EMBEDDING,
+            STAGE_PARSING,
+            ProgressThrottler,
+            percent_for_ocr_page,
+            set_completed_progress,
+            update_document_progress,
+        )
 
         config = IngestionConfig(
+            max_chars=settings.chunk_max_chars,
             table_chunk_split_enabled=settings.table_chunk_split_enabled,
             table_parent_max_chars=settings.table_parent_max_chars,
             table_row_overlap=settings.table_row_overlap,
@@ -329,8 +372,38 @@ async def process_document_ingestion(document_id: UUID) -> None:
                 parser_mode,
             )
 
-        blocks = parse_document(path, file_type, pdf_batch_pages=config.pdf_batch_pages)
+        await update_document_progress(
+            document_id, stage=STAGE_PARSING, percent=10
+        )
 
+        loop = asyncio.get_running_loop()
+        throttler = ProgressThrottler(0.5)
+
+        def on_page(page_number: int, page_count: int) -> None:
+            if not throttler.allow(page_number, page_count):
+                return
+            fut = asyncio.run_coroutine_threadsafe(
+                update_document_progress(
+                    document_id,
+                    stage=STAGE_PARSING,
+                    percent=percent_for_ocr_page(page_number, page_count),
+                    detail=f"第 {page_number}/{page_count} 页",
+                ),
+                loop,
+            )
+            fut.result(timeout=60)
+
+        blocks = await asyncio.to_thread(
+            parse_document,
+            path,
+            file_type,
+            pdf_batch_pages=config.pdf_batch_pages,
+            on_page=on_page,
+        )
+
+        await update_document_progress(
+            document_id, stage=STAGE_CHUNKING, percent=50
+        )
         drafts = structure_chunk(blocks, config)
 
         if not drafts:
@@ -347,12 +420,17 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
         ]
 
+        await update_document_progress(
+            document_id, stage=STAGE_EMBEDDING, percent=70
+        )
         vectors = await try_embed_texts(embed_inputs)
         if vectors is None:
             logger.warning("embedding degraded: document=%s fallback to FTS-only", document_id)
             vectors = []
 
-
+        await update_document_progress(
+            document_id, stage=STAGE_EMBEDDING, percent=90
+        )
 
         async with SessionLocal() as db:
 
@@ -366,22 +444,34 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
             vectors_en = None
             full_text = " ".join(d.content for d in drafts if d.content)
-            ascii_chars = sum(1 for c in full_text if c.isascii() and c.isalpha())
-            total_chars = sum(1 for c in full_text if c.isalpha())
-            is_english = total_chars > 0 and (ascii_chars / total_chars) > 0.5
-            if is_english:
+            if is_mostly_english(full_text):
                 try:
                     vectors_en = await embed_texts(embed_inputs, provider="bge_en")
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning(
+                        "embedding_en failed: document=%s reason=%s err=%s",
+                        document_id,
+                        REASON_EMBEDDING_EN_FAILED,
+                        e,
+                    )
+                    vectors_en = None
 
             chunk_count = await _write_chunks(db, doc=doc, drafts=drafts, vectors=vectors, vectors_en=vectors_en)
+
+            # D1 GraphRAG：实体抽取（临时跳过：OOM 保护，评测 Hit@3 不需要实体图谱；恢复时删除此跳过）
+            if os.environ.get("SKIP_ENTITY_EXTRACT") == "1":
+                doc.entity_extracted_at = datetime.now(timezone.utc)
+            else:
+                await extract_entities_for_document(db, doc)
+                doc.entity_extracted_at = datetime.now(timezone.utc)
 
             doc.status = DocumentStatus.completed
 
             doc.chunk_count = chunk_count
 
             doc.processing_completed_at = datetime.now(timezone.utc)
+
+            set_completed_progress(doc)
 
             await db.commit()
 
@@ -397,10 +487,12 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
     except Exception as exc:
             user_message = _user_facing_ingestion_error(exc, parser_mode=parser_mode)
+            fail_reason = _ingestion_failure_reason(exc, parser_mode=parser_mode)
             logger.exception(
-            "ingestion failed: document=%s ingestion.parser=%s error=%s",
+            "ingestion failed: document=%s ingestion.parser=%s reason=%s error=%s",
             document_id,
             parser_mode or "default",
+            fail_reason or "unknown",
             user_message,
         )
             await _mark_failed(document_id, user_message)

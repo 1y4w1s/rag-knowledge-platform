@@ -43,6 +43,7 @@ def get_tongyi_client() -> httpx.AsyncClient:
         max_timeout = max(
             settings.embed_timeout_seconds,
             settings.rerank_timeout_seconds,
+            settings.llm_timeout_seconds,
         ) + 5.0
         _tongyi_client = _make_client(max_timeout)
         logger.info("初始化通义 HTTP 客户端（连接池=%d）", settings.http_max_connections)

@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,8 +14,8 @@ from app.core.deps import CurrentUser, KbAction, get_current_user, require_kb_ac
 from app.services.audit.log import write_audit_log
 from app.models.document import Document
 from app.models.enums import DocumentStatus
-from app.services.ingestion.tasks import ingest_document_task
-from pydantic import BaseModel
+from app.services.ingestion.enqueue import enqueue_document_ingestion
+from pydantic import BaseModel, Field, field_validator
 
 router = APIRouter(prefix="/batch", tags=["batch"])
 
@@ -24,10 +24,24 @@ class BatchDeleteRequest(BaseModel):
     kb_id: UUID
     doc_ids: list[UUID]
 
+    @field_validator("doc_ids")
+    @classmethod
+    def limit_doc_ids(cls, v: list[UUID]) -> list[UUID]:
+        if len(v) > 200:
+            raise ValueError("批量操作每次最多 200 个文档")
+        return v
+
 
 class BatchReIngestRequest(BaseModel):
     kb_id: UUID
     doc_ids: list[UUID]
+
+    @field_validator("doc_ids")
+    @classmethod
+    def limit_doc_ids(cls, v: list[UUID]) -> list[UUID]:
+        if len(v) > 200:
+            raise ValueError("批量操作每次最多 200 个文档")
+        return v
 
 
 class BatchResult(BaseModel):
@@ -85,6 +99,7 @@ async def batch_re_ingest(
     body: BatchReIngestRequest,
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
+    background_tasks: BackgroundTasks,
 ) -> BatchResult:
     """批量重置文档状态为 queued 并触发重新 ingestion。"""
     await require_kb_access(
@@ -106,6 +121,7 @@ async def batch_re_ingest(
     succeeded = 0
     failed = 0
     errors: list[dict] = []
+    pending_ids: list[UUID] = []
 
     for doc in docs:
         if doc.status == DocumentStatus.processing:
@@ -119,6 +135,9 @@ async def batch_re_ingest(
         doc.chunk_count = None
         doc.processing_started_at = None
         doc.processing_completed_at = None
+        from app.services.ingestion.progress import clear_progress_fields
+
+        clear_progress_fields(doc)
 
         await write_audit_log(
             db, action="document.retry",
@@ -128,11 +147,12 @@ async def batch_re_ingest(
             metadata={"filename": doc.filename, "batch": True},
         )
 
-        # 触发 Celery 任务
-        ingest_document_task.delay(str(doc.id))
+        pending_ids.append(doc.id)
         succeeded += 1
 
     await db.commit()
+    for doc_id in pending_ids:
+        await enqueue_document_ingestion(doc_id, background_tasks)
 
     return BatchResult(
         total=len(docs),

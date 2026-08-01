@@ -3,13 +3,12 @@
 ``adopt_draft_to_kb``：读 ``approval.payload_json["markdown"]`` → 在目标 kb 存储路径
 落 ``.md`` 文件 → **``_v2`` 冲突策略**（H4-6-A · 同名自动 ``_v2``）→
 CREATE ``documents``(queued) → 复用现网 upload 文本路径
-``background_tasks.add_task(process_document_ingestion)`` 触发 ingestion。
+``enqueue_document_ingestion`` 触发 ingestion（G1：与 upload 同策略）。
 
 签名 ``adopt_draft_to_kb(db, approval, kb) -> UUID`` 与 G4-3.1 的 stub **完全一致**
 （零改动调用方 ``resolve_adopt_approval``）；ingestion 入队所需的 ``BackgroundTasks``
 经请求级 ``ContextVar``（``_adopt_background_tasks``）注入 —— 由 ``resolve_adopt_approval``
-在 resolve 前绑定、resolve 后解绑，从而**不改动**本函数签名即可复用现网 upload 路径的
-``background_tasks.add_task(process_document_ingestion, doc.id)`` 写法。
+在 resolve 前绑定、resolve 后解绑，从而**不改动**本函数签名即可复用现网 upload 入队写法。
 
 等价现网：``upload_documents`` 的文本/md 创建分支（``Document(queued)`` + 入队 ingestion）。
 关键差异（H4-6-A）：upload 同名 → 409；adopt 同名 → 自动 ``_v2`` / ``_v3``…，不 409。
@@ -38,11 +37,11 @@ from app.models.document import Document
 from app.models.enums import DocumentStatus
 from app.models.knowledge_base import KnowledgeBase
 from app.services.documents.content_hash import sha256_hex
-from app.services.ingestion.pipeline import process_document_ingestion
+from app.services.documents.quota import assert_kb_quota_allows
+from app.services.ingestion.enqueue import enqueue_document_ingestion
 
 # 请求级 BackgroundTasks 持有者：resolve adopt 前由 ``resolve_adopt_approval`` 绑定当前
-# 请求的 ``BackgroundTasks``，本函数据此把 ``process_document_ingestion`` 入队，从而
-# 复用现网 upload 路径且**不改函数签名**。
+# 请求的 ``BackgroundTasks``，本函数据此入队 ingestion，从而复用现网 upload 路径且**不改函数签名**。
 _adopt_background_tasks: ContextVar[Optional[BackgroundTasks]] = ContextVar(
     "adopt_background_tasks", default=None
 )
@@ -116,14 +115,22 @@ async def adopt_draft_to_kb(
       2. ``_resolve_adopt_filename`` 解析文件名（同名 → ``_v2``）。
       3. 在 ``settings.upload_dir / kb.id / doc.id / {uuid}.md`` 落盘 Markdown 文本。
       4. 组装 ``Document(queued)``（file_type=md、uploaded_by=approval.user_id）并 flush。
-      5. ingestion 入队：若有绑定的 ``BackgroundTasks``（resolve 路径注入），
-         ``add_task(process_document_ingestion, doc.id)``（H4-4-A 异步）。
+      5. ingestion 入队：``enqueue_document_ingestion``（有 BT 则传入；G1 A-bt）。
     """
     markdown = _markdown_from_approval(approval)
     filename = await _resolve_adopt_filename(
         db, kb_id=kb.id, filename=approval.filename or "faq-draft.md"
     )
     content = markdown.encode("utf-8")
+
+    # NW-25：与 upload 共用总库闸（落盘前）
+    await assert_kb_quota_allows(
+        db,
+        kb.id,
+        len(content),
+        actor_user_id=approval.user_id,
+        filename=filename,
+    )
 
     doc_id = uuid.uuid4()
     storage_dir = Path(settings.upload_dir) / str(kb.id) / str(doc_id)
@@ -146,10 +153,9 @@ async def adopt_draft_to_kb(
     db.add(doc)
     await db.flush()
 
-    # ingestion 入队（H4-4-A 异步）：复用现网 upload 文本路径。
+    # ingestion 入队（H4-4-A 异步 · G1 统一 enqueue）。
     bt = _adopt_background_tasks.get()
-    if bt is not None:
-        bt.add_task(process_document_ingestion, doc.id)
+    await enqueue_document_ingestion(doc.id, bt)
 
     return doc.id
 

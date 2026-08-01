@@ -61,6 +61,14 @@ async def get_current_user(
             claims = await authenticate_api_key(db, raw_token)
     if claims is None:
         raise UnauthorizedError(detail="未提供认证凭据")
+
+    # R1：检查 JWT 是否已被吊销（仅限 JWT 认证，API Key 跳过）
+    if not getattr(request.state, "auth_token", None) or not claims.account_type:
+        from app.services.auth.token_revocation import is_token_revoked
+
+        if is_token_revoked(claims.user_id, claims.iat):
+            raise UnauthorizedError(detail="认证已过期，请重新登录")
+
     user = await db.get(User, claims.user_id)
     if user is None:
         raise UnauthorizedError(detail="用户不存在")
@@ -178,6 +186,23 @@ def require_org_role(*roles: OrgRole):
             raise ForbiddenError(detail="权限不足")
         return current_user
 
+    return _checker
+
+
+def require_org_scope(*roles: OrgRole):
+    """企业路由 + 路径 org_id：要求当前用户就是该 org 的指定角色（防跨租户越权，OWASP API1）。
+
+    与 ``require_org_role`` 的区别：额外校验路径里的 ``org_id`` 等于当前用户自身 org，
+    避免 A 组织 admin 把 URL 里的 org_id 换成 B 组织去枚举/注入/篡改 B 的角色等资源。
+    """
+    async def _checker(
+        org_id: UUID,
+        current_user: Annotated[CurrentUser, Depends(require_org_role(*roles))],
+    ) -> CurrentUser:
+        if current_user.org_id != org_id:
+            # 404 而非 403：不向越权者泄露「目标组织是否存在」
+            raise NotFoundError(detail="组织不存在")
+        return current_user
     return _checker
 
 

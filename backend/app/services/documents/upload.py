@@ -1,5 +1,6 @@
 """文档上传与列表（Wave 2.2）。"""
 
+import logging
 import uuid
 import re
 from pathlib import Path
@@ -20,8 +21,11 @@ from app.services.documents.content_hash import (
     assert_content_unique_in_kb,
     sha256_hex,
 )
-from app.services.ingestion.pipeline import process_document_ingestion
-from app.services.ingestion.tasks import ingest_document_task
+from app.services.documents.magic import assert_content_matches_extension
+from app.services.documents.quota import assert_kb_quota_allows
+from app.services.ingestion.enqueue import enqueue_document_ingestion
+
+logger = logging.getLogger(__name__)
 
 ALLOWED_EXTENSIONS: frozenset[str] = frozenset({".pdf", ".txt", ".md", ".docx", ".xlsx", ".pptx", ".png", ".jpg", ".jpeg"})
 
@@ -110,6 +114,7 @@ async def upload_documents(
     )
 
     created: list[DocumentResponse] = []
+    pending_ids: list[uuid.UUID] = []
     batch_names: set[str] = set()
     batch_hashes: set[str] = set()
 
@@ -134,6 +139,8 @@ async def upload_documents(
             raise ValidationError(
                 detail=f"文件「{display_name}」为空（0 字节），请添加内容后再上传",
             )
+        # NW-45：落盘前 magic 双检（≠ ClamAV；失败不建行）
+        assert_content_matches_extension(file_type, content)
         content_hash = sha256_hex(content)
         if content_hash in batch_hashes:
             raise ValidationError(
@@ -150,6 +157,16 @@ async def upload_documents(
             db,
             kb_id=kb_id,
             filename=original_name,
+        )
+
+        # NW-25：落盘前总库闸（覆盖净增 ≈ new_bytes；批内已 flush 计入 used）
+        await assert_kb_quota_allows(
+            db,
+            kb_id,
+            len(content),
+            actor_user_id=current_user.id,
+            filename=display_name,
+            ip=ip,
         )
 
         replacing = existing_doc_id is not None
@@ -201,6 +218,9 @@ async def upload_documents(
             existing_doc.chunk_count = None
             existing_doc.processing_started_at = None
             existing_doc.processing_completed_at = None
+            from app.services.ingestion.progress import clear_progress_fields
+
+            clear_progress_fields(existing_doc)
             existing_doc.file_size = len(content)
             existing_doc.content_sha256 = content_hash
         else:
@@ -255,11 +275,14 @@ async def upload_documents(
                 ip=ip,
             )
 
-        if settings.celery_task_always_eager_local:
-            background_tasks.add_task(process_document_ingestion, doc.id)
-        else:
-            ingest_document_task.delay(str(doc.id))
         created.append(DocumentResponse.model_validate(doc))
+        pending_ids.append(doc.id)
 
     await db.commit()
+    logger.info(
+        "documents uploaded: kb_id=%s actor=%s count=%d filenames=[%s]",
+        kb_id, current_user.id, len(created), ", ".join(d.filename for d in created),
+    )
+    for pending_id in pending_ids:
+        await enqueue_document_ingestion(pending_id, background_tasks)
     return created

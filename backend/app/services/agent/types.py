@@ -57,3 +57,19 @@ class AgentRunOutcome:
     capped: bool
     timed_out: bool
     steps: tuple[AgentStepRecord, ...]
+    low_confidence: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class ParseResult:
+    ok: bool
+    plan: list[ToolCallPlan] | None = None
+    error: str | None = None
+    llm_raw: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ValidatedPlan:
+    ok: bool
+    plan: list[ToolCallPlan] | None = None
+    violations: list[str] | None = None

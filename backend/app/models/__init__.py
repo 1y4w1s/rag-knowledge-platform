@@ -12,6 +12,7 @@ from app.models.custom_role import CustomRole
 from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
 from app.models.document_version import DocumentVersion
+from app.models.entity import Entity, EntityMention, Relation
 from app.models.enums import (
     AgentMode,
     AgentRunMode,
@@ -35,6 +36,7 @@ from app.models.org_unit import OrgUnit
 from app.models.org_unit_member import OrgUnitMember
 from app.models.organization import Organization
 from app.models.organization_invite_code import OrganizationInviteCode
+from app.models.password_reset import PasswordResetToken
 from app.models.organization_member import OrganizationMember
 from app.models.user import User
 from app.models.webhook import Webhook
@@ -69,10 +71,14 @@ __all__ = [
     "KbUnitGrant",
     "OrganizationInviteCode",
     "OrganizationMember",
+    "PasswordResetToken",
     "KnowledgeBase",
     "Document",
     "DocumentChunk",
     "DocumentVersion",
+    "Entity",
+    "EntityMention",
+    "Relation",
     "ChatFeedback",
     "ChatMessage",
     "ChatThread",

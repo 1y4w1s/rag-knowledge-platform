@@ -29,6 +29,9 @@ class KnowledgeBaseResponse(BaseModel):
     document_count: int = Field(default=0, ge=0)
     processing_count: int = Field(default=0, ge=0)
     failed_count: int = Field(default=0, ge=0)
+    # NW-25 I-2：仅详情 GET 回填；list/create/patch 保持 null
+    quota_used_bytes: int | None = None
+    quota_max_bytes: int | None = None
 
     model_config = {"from_attributes": True}
 
@@ -38,3 +41,22 @@ class KnowledgeBaseListResponse(BaseModel):
     total: int = Field(ge=0)
     limit: int = Field(ge=1, le=100)
     offset: int = Field(ge=0)
+
+
+class GraphNode(BaseModel):
+    id: str
+    label: str
+    type: str
+    title: str = ""
+
+
+class GraphEdge(BaseModel):
+    source: str
+    target: str
+    label: str = ""
+    type: str = ""
+
+
+class KnowledgeGraphResponse(BaseModel):
+    nodes: list[GraphNode] = Field(default_factory=list)
+    edges: list[GraphEdge] = Field(default_factory=list)

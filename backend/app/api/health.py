@@ -16,12 +16,20 @@ from app.core.degradation import (
 )
 from app.core.redis import get_redis
 from app.core.retry import get_breaker
+from app.services.ingestion.embed_health import probe_embed_readiness
 
 router = APIRouter(tags=["health"])
 
 logger = logging.getLogger(__name__)
 
-BREAKER_NAMES = ("deepseek_llm", "tongyi_rerank", "tongyi_embed")
+BREAKER_NAMES = (
+    "deepseek_llm",
+    "tongyi_llm",
+    "bge_rerank",
+    "tongyi_rerank",
+    "bge_embed",
+    "tongyi_embed",
+)
 
 
 async def _check_redis() -> bool:
@@ -94,11 +102,22 @@ async def health_detailed() -> dict:
 
     # API Key 状态（检查是否已配置，不实际调用 API）
     from app.core.config import settings
+    provider = settings.rerank_provider.lower()
+    if provider == "bge":
+        rerank_ready = settings.rerank_enabled
+    elif provider == "tongyi":
+        rerank_ready = bool(settings.tongyi_api_key) and settings.rerank_enabled
+    else:
+        rerank_ready = settings.rerank_enabled
+    embed_provider = settings.embedding_provider.lower()
+    embed_ready = embed_provider in ("bge", "bge_en", "mock") or bool(
+        settings.tongyi_api_key
+    )
     api_keys = {
         "deepseek": bool(settings.deepseek_api_key),
         "tongyi": bool(settings.tongyi_api_key),
-        "rerank": bool(settings.tongyi_api_key) and settings.rerank_enabled,
-        "embedding": bool(settings.tongyi_api_key),
+        "rerank": rerank_ready,
+        "embedding": embed_ready,
     }
 
     # 检索延迟追踪（P50/P95/P99）
@@ -120,10 +139,34 @@ async def health_detailed() -> dict:
     except Exception:
         disk = {"error": "无法获取磁盘信息"}
 
+    # status 仅看 DB + api_keys；ocr / embed / chat 块自报，不参与公式（NW-8 / B3 / NW-9）
+    from app.services.rag.chat_llm import resolve_chat_provider
+
+    from app.services.ops.maintenance_tracker import get_maintenance_status
+
     return {
         "status": "ok" if db_ok and all(api_keys.values()) else "degraded",
         "database": "ok" if db_ok else "error",
         "api_keys": api_keys,
         "latency": latency,
         "disk": disk,
+        "ocr": _ocr_health_block(),
+        "embed": await probe_embed_readiness(),
+        "chat": {"provider": resolve_chat_provider()},
+        "maintenance": get_maintenance_status(),
+    }
+
+
+def _ocr_health_block() -> dict:
+    """OCR 可选依赖就绪态；不参与整体 status（未装 ≠ degraded）。"""
+    from app.services.ingestion.ocr import (
+        has_ocr_python_deps,
+        is_ocr_enabled,
+        is_poppler_on_path,
+    )
+
+    return {
+        "enabled": is_ocr_enabled(),
+        "python_deps": has_ocr_python_deps(),
+        "poppler": is_poppler_on_path(),
     }

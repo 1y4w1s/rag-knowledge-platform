@@ -99,6 +99,7 @@ async def _retrieve_single_kb(
         query=query,
         top_k=top_k,
         visible_kb_ids=tool_scope.visible_kb_ids,
+        context=None,
     )
 
 

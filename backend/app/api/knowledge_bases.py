@@ -1,4 +1,4 @@
-"""知识库 API 路由（Wave 2.1）。"""
+"""Knowledge base API routes (Wave 2.1)."""
 
 from typing import Annotated
 from uuid import UUID
@@ -12,6 +12,8 @@ from app.core.deps import (
     CurrentUser,
     DepartmentIdQuery,
     get_current_user,
+    KbAction,
+    require_kb_access,
 )
 from app.services.org.scope import resolve_org_scope_for_workspace
 from app.services.workspace.scope import resolve_workspace
@@ -20,6 +22,7 @@ from app.schemas.knowledge_base import (
     KnowledgeBaseListResponse,
     KnowledgeBaseResponse,
     KnowledgeBaseUpdate,
+    KnowledgeGraphResponse,
 )
 from app.services.knowledge_base.crud import (
     create_knowledge_base,
@@ -28,6 +31,7 @@ from app.services.knowledge_base.crud import (
     update_knowledge_base,
 )
 from app.services.knowledge_base.listing import list_knowledge_bases
+from app.services.knowledge_base.graph import get_kb_graph
 
 router = APIRouter(prefix="/knowledge-bases", tags=["knowledge-bases"])
 
@@ -36,12 +40,12 @@ router = APIRouter(prefix="/knowledge-bases", tags=["knowledge-bases"])
 async def list_kbs(
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    workspace: Annotated[str | None, Query(description="工作区：personal 或组织 UUID")] = None,
+    workspace: Annotated[str | None, Query(description="Workspace: personal or org UUID")] = None,
     department_id: DepartmentIdQuery = None,
     limit: Annotated[int | None, Query(ge=1, le=100)] = None,
     offset: Annotated[int | None, Query(ge=0)] = None,
-    q: Annotated[str | None, Query(max_length=255, description="按名称/描述搜索")] = None,
-    sort: Annotated[str | None, Query(description="排序模式")] = None,
+    q: Annotated[str | None, Query(max_length=255, description="Search by name/description")] = None,
+    sort: Annotated[str | None, Query(description="Sort mode")] = None,
 ) -> KnowledgeBaseListResponse:
     scope = await resolve_workspace(db, current_user, workspace)
     org_scope = await resolve_org_scope_for_workspace(
@@ -63,7 +67,7 @@ async def create_kb(
     body: KnowledgeBaseCreate,
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
-    workspace: Annotated[str | None, Query(description="工作区：personal 或组织 UUID")] = None,
+    workspace: Annotated[str | None, Query(description="Workspace: personal or org UUID")] = None,
     department_id: DepartmentIdQuery = None,
 ) -> KnowledgeBaseResponse:
     scope = await resolve_workspace(db, current_user, workspace)
@@ -104,3 +108,18 @@ async def delete_kb(
     await delete_knowledge_base(
         db, current_user, kb_id, ip=get_client_ip(request)
     )
+
+
+@router.get("/{kb_id}/graph", response_model=KnowledgeGraphResponse)
+async def get_kb_graph_route(
+    kb_id: UUID,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    department_id: DepartmentIdQuery = None,
+) -> KnowledgeGraphResponse:
+    """Get entity-relation graph for a knowledge base."""
+    await require_kb_access(
+        kb_id=kb_id, action=KbAction.read,
+        current_user=current_user, db=db, department_id=department_id,
+    )
+    return await get_kb_graph(db, kb_id)

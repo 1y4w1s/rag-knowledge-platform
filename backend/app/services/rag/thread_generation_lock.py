@@ -6,6 +6,8 @@ import asyncio
 from collections.abc import AsyncIterator
 from uuid import UUID
 
+from fastapi import Request
+
 THREAD_GENERATION_BUSY_DETAIL = "上一条仍在生成"
 
 _active_thread_ids: set[UUID] = set()
@@ -30,10 +32,16 @@ async def release_thread_generation_lock(thread_id: UUID) -> None:
 async def wrap_stream_with_thread_generation_lock(
     thread_id: UUID,
     stream: AsyncIterator[str],
+    request: Request | None = None,
 ) -> AsyncIterator[str]:
-    """SSE 流结束时释放锁（含客户端断开 / 异常）。"""
+    """SSE 流结束时释放锁（含客户端断开 / 异常）。
+
+    可选传入 request 以检测客户端断开并提前终止，避免 LLM 算力浪费。
+    """
     try:
         async for frame in stream:
+            if request and await request.is_disconnected():
+                break
             yield frame
     finally:
         await release_thread_generation_lock(thread_id)

@@ -88,3 +88,28 @@ async def audit_message_sent(
             "retrieval_ms": retrieval_ms,
         },
     )
+
+
+async def audit_feedback_upserted(
+    db: AsyncSession,
+    *,
+    actor_user_id: UUID,
+    message_id: UUID,
+    feedback_id: UUID,
+    rating: int,
+    kb_id: UUID | None,
+) -> None:
+    """消息级 👍/👎 → chat.feedback_upserted（不含正文 / feedback_text）。"""
+    await write_audit_log(
+        db,
+        action="chat.feedback_upserted",
+        actor_user_id=actor_user_id,
+        resource_type="chat_feedback",
+        resource_id=feedback_id,
+        kb_id=kb_id,
+        metadata={
+            "message_id": str(message_id),
+            "feedback_id": str(feedback_id),
+            "rating": rating,
+        },
+    )

@@ -1,13 +1,16 @@
 ﻿"""注册 / 登录业务逻辑（Wave 1.1 + 4.2.2 username）。"""
 
-import re
-from time import monotonic
+from __future__ import annotations
+
 import uuid
 
-from fastapi import status
+import logging
+
 from app.core.exceptions import ValidationError, ConflictError, UnauthorizedError, RateLimitError
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
 
 from app.models.enums import AccountType, OrgRole, UnitRole
 from app.models.organization import Organization
@@ -17,11 +20,11 @@ from app.schemas.auth import LoginResponse, RegisterResponse, UserPublic
 from app.services.audit.log import write_audit_log
 from app.services.auth.jwt import create_access_token
 from app.services.auth.login_rate_limit import (
-    _lockout_remaining,
     _rate_limit_key,
     clear_login_failures,
     is_ip_login_rate_limited,
     is_login_rate_limited,
+    lockout_remaining,
     record_lockout_strike,
     record_login_failure,
 )
@@ -30,26 +33,16 @@ from app.services.auth.org_context import (
     resolve_unit_admin_unit_ids,
     resolve_user_units,
 )
-from app.services.auth.password import hash_password, verify_password
+from app.services.auth.password import hash_password, validate_password_strength, verify_password
 from app.services.auth.username import normalize_nickname, validate_username
+from app.services.observability.metrics_registry import inc_rate_limit_rejected
 from app.services.org.units import add_unit_member, create_org_root_unit
 from app.services.organization.invites import resolve_valid_invite
 
-MIN_PASSWORD_LEN = 8
-
 
 def _validate_password(password: str) -> None:
-    if len(password) < MIN_PASSWORD_LEN:
-        raise ValidationError(detail=f"password at least {MIN_PASSWORD_LEN} chars")
-    if not re.search(r"[A-Z]", password):
-        raise ValidationError(detail="password must contain an uppercase letter")
-    if not re.search(r"[a-z]", password):
-        raise ValidationError(detail="password must contain a lowercase letter")
-    if not re.search(r"[0-9]", password):
-        raise ValidationError(detail="password must contain a digit")
-    if not re.search(r"[!@#$%^&*(),.?\"{}|<>_\-+=~`\[\];'\\/]", password):
-        raise ValidationError(detail="password must contain a special character")
-
+    """兼容旧调用名；实现见 password.validate_password_strength。"""
+    validate_password_strength(password)
 
 def _user_public(
     user: User,
@@ -122,6 +115,8 @@ async def register_user(
         )
     )
     if existing:
+        conflict = "邮箱" if existing.email == normalized_email else "用户名"
+        logger.info("register conflict: %s=%s reason=%s_already_exists", conflict, normalized_email if conflict == "邮箱" else normalized_username, conflict)
         if existing.email == normalized_email:
             raise ConflictError("该邮箱已注册")
         raise ConflictError("该用户名已被使用")
@@ -181,6 +176,11 @@ async def register_user(
     await db.commit()
     await db.refresh(user)
 
+    logger.info(
+        "register success: user_id=%s email=%s account_type=%s org_id=%s role=%s",
+        user.id, normalized_email, account_type.value, org_id, org_role.value if org_role else None,
+    )
+
     primary_unit_id, unit_ids = await resolve_user_units(db, user.id)
     unit_admin_unit_ids = await resolve_unit_admin_unit_ids(db, user.id)
 
@@ -206,17 +206,18 @@ async def login_user(
 ) -> LoginResponse:
     user = await _find_user_by_identifier(db, identifier)
     if user is None or not verify_password(password, user.password_hash):
-        # 渐进式锁定期检查
         lockout_key = _rate_limit_key(ip, identifier)
-        remaining = _lockout_remaining(lockout_key, now=monotonic())
+        remaining = await lockout_remaining(lockout_key)
         if remaining > 0:
             mins = remaining // 60
             secs = remaining % 60
             msg = f"登录失败次数过多，请 {mins} 分 {secs} 秒后再试" if mins else f"登录失败次数过多，请 {secs} 秒后再试"
+            logger.info("login locked: identifier=%s ip=%s lockout_remaining=%ds", identifier, ip, remaining)
+            inc_rate_limit_rejected("login")
             raise RateLimitError(msg)
 
-        # IP 维度限流：同 IP 20 次/5min → 429
-        if is_ip_login_rate_limited(ip):
+        if await is_ip_login_rate_limited(ip):
+            logger.info("login ip_rate_limited: identifier=%s ip=%s", identifier, ip)
             try:
                 await write_audit_log(
                     db,
@@ -226,17 +227,18 @@ async def login_user(
                 )
                 await db.commit()
             except Exception:
-                pass  # 审计失败不阻断限流
+                pass
+            inc_rate_limit_rejected("login")
             raise RateLimitError("当前 IP 登录失败次数过多，请稍后重试")
 
-        # identifier 维度限流：5 次/15min → 429
-        if is_login_rate_limited(ip, identifier):
+        if await is_login_rate_limited(ip, identifier):
             lockout_key = _rate_limit_key(ip, identifier)
-            record_lockout_strike(lockout_key)
-            remaining = _lockout_remaining(lockout_key, now=monotonic())
+            await record_lockout_strike(lockout_key)
+            remaining = await lockout_remaining(lockout_key)
             mins = remaining // 60
             secs = remaining % 60
             msg = f"登录失败次数过多，请 {mins} 分 {secs} 秒后再试" if mins else f"登录失败次数过多，请 {secs} 秒后再试"
+            logger.info("login rate_limited: identifier=%s ip=%s strike_duration=%ds", identifier, ip, remaining)
             try:
                 await write_audit_log(
                     db,
@@ -246,9 +248,11 @@ async def login_user(
                 )
                 await db.commit()
             except Exception:
-                pass  # 审计失败不阻断限流
+                pass
+            inc_rate_limit_rejected("login")
             raise RateLimitError(msg)
-        record_login_failure(ip, identifier)
+        await record_login_failure(ip, identifier)
+        logger.info("login failed: identifier=%s ip=%s reason=bad_credentials", identifier, ip)
         await write_audit_log(
             db,
             action="auth.login_failed",
@@ -258,7 +262,7 @@ async def login_user(
         await db.commit()
         raise UnauthorizedError("用户名/邮箱或密码错误")
 
-    clear_login_failures(ip, identifier)
+    await clear_login_failures(ip, identifier)
 
     org_id, org_role, is_owner, custom_role_id, custom_role_is_admin = await resolve_org_context(db, user)
     primary_unit_id, unit_ids = await resolve_user_units(db, user.id)
@@ -271,6 +275,11 @@ async def login_user(
         org_role=org_role,
         custom_role_id=custom_role_id,
         custom_role_is_admin=custom_role_is_admin,
+    )
+
+    logger.info(
+        "login success: user_id=%s account_type=%s org_id=%s org_role=%s ip=%s",
+        user.id, user.account_type.value, org_id, org_role.value if org_role else None, ip,
     )
 
     await write_audit_log(

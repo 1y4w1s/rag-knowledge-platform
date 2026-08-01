@@ -17,6 +17,7 @@ from app.schemas.org_unit_member import (
     OrgUnitMemberUpdate,
 )
 from app.services.audit.log import write_audit_log
+from app.services.org.unit_member_auth import assert_not_last_unit_admin
 
 
 async def _get_unit_in_org(
@@ -202,6 +203,7 @@ async def update_unit_member(
     body: OrgUnitMemberUpdate,
     acting_user_id: UUID,
     ip: str | None = None,
+    allow_remove_last_admin: bool = False,
 ) -> OrgUnitMemberResponse:
     unit = await _get_unit_in_org(db, org_id, unit_id)
     membership = await _get_membership(db, unit_id, user_id)
@@ -211,6 +213,15 @@ async def update_unit_member(
             await _assert_org_member(db, org_id, user_id)
             raise ValidationError("用户未加入该部门")
         raise NotFoundError("该用户不是此部门成员")
+
+    if body.role is not None and body.role != membership.role:
+        await assert_not_last_unit_admin(
+            db,
+            unit_id=unit_id,
+            membership=membership,
+            allow_remove_last_admin=allow_remove_last_admin,
+            new_role=body.role,
+        )
 
     old_role = membership.role
     old_primary = membership.is_primary
@@ -269,11 +280,20 @@ async def remove_unit_member(
     user_id: UUID,
     acting_user_id: UUID,
     ip: str | None = None,
+    allow_remove_last_admin: bool = False,
 ) -> None:
     unit = await _get_unit_in_org(db, org_id, unit_id)
     membership = await _get_membership(db, unit_id, user_id)
     if membership is None:
         raise NotFoundError("该用户不是此部门成员")
+
+    await assert_not_last_unit_admin(
+        db,
+        unit_id=unit_id,
+        membership=membership,
+        allow_remove_last_admin=allow_remove_last_admin,
+        removing=True,
+    )
 
     was_primary = membership.is_primary
     await write_audit_log(

@@ -127,3 +127,59 @@ class DashboardStatsResponse(BaseModel):
         ge=0,
         description="visible 范围内 storage.cleanup_failed 审计累计条数（Plan-3E-6b / ORG-3.5）",
     )
+    usage_7d_user_questions: int = Field(
+        default=0,
+        ge=0,
+        description="近 7 日可见范围内 user 消息数（Eval-Ops M4 / NW-5）",
+    )
+    usage_7d_assistant_replies: int = Field(
+        default=0,
+        ge=0,
+        description="近 7 日可见范围内 assistant 消息数（Eval-Ops M4 / NW-5）",
+    )
+    estimated_api_cost_cny_7d: float | None = Field(
+        default=None,
+        description=(
+            "近 7 日对话 API 粗估（CNY）；个人空间或团队 Admin 可见；"
+            "Member 为 null（非计费，见 eval-M4-cost-model.md）"
+        ),
+    )
+    cost_estimate_note: str | None = Field(
+        default=None,
+        description="粗估 disclaimer；与 estimated_api_cost_cny_7d 同可见性",
+    )
+    chat_retention_days: int | None = Field(
+        default=None,
+        description=(
+            "当前 CHAT_RETENTION_DAYS（0=关）；个人空间或团队 Admin 可见；"
+            "Member 为 null（只读 · NW-44；改 TTL 仍靠 env，无设置页）"
+        ),
+    )
+    rate_limit_backend: str | None = Field(
+        default=None,
+        description=(
+            "当前 RATE_LIMIT_BACKEND（memory|redis）；个人或团队 Admin 可见；"
+            "Member 为 null（只读 · NW-46；改开关仍靠 env，无设置页）"
+        ),
+    )
+    citation_redact_enabled: bool | None = Field(
+        default=None,
+        description=(
+            "当前 CITATION_REDACT_ENABLED；个人或团队 Admin 可见；"
+            "Member 为 null（只读 · NW-46）"
+        ),
+    )
+    llm_context_redact_enabled: bool | None = Field(
+        default=None,
+        description=(
+            "当前 LLM_CONTEXT_REDACT_ENABLED；个人或团队 Admin 可见；"
+            "Member 为 null（只读 · NW-46）"
+        ),
+    )
+    kb_quota_max_bytes: int | None = Field(
+        default=None,
+        description=(
+            "当前 KB_QUOTA_MAX_BYTES（0=关总闸）；个人或团队 Admin 可见；"
+            "Member 为 null（只读 · NW-46）"
+        ),
+    )

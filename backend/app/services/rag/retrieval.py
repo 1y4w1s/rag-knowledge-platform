@@ -66,6 +66,8 @@ VECTOR_RECALL = settings.vector_recall_k
 FTS_RECALL = settings.fts_recall_k
 LLM_TOP_K = settings.llm_top_k
 TS_CONFIG = "simple"
+# 实验 M：复合题每子查询前置的结果数（实验：3 覆盖 ENT-014/098 命中，2 略紧）
+_COMPOSITE_PREPEND = 3
 
 logger = logging.getLogger(__name__)
 
@@ -282,40 +284,51 @@ async def _kb_composite_recall(
     visible_kb_ids: frozenset[UUID] | None,
     hide_admin_only: bool,
 ) -> tuple[list, dict, list]:
-    """实验 M：复合题专用召回——decompose 子查询分别检索后纯 RRF 融合。
+    """实验 M：复合题专用召回——decompose 子查询分别检索后前置融合。
 
     与 multi-query（近义改写变体）的区别：子查询是不同知识点/条件片段，
-    与原文互补而非重叠，因此用纯 RRF 参与排名竞争（additive_fusion=False），
-    让子查询命中的正确答案有机会进入 Top-K（Hit@3 评测可见）。
-    decompose 失败/无拆分时回落单问（multi_query 单变体路径，等价 single）。
+    与原文互补而非重叠。融合策略：子查询 fused Top-N **前置** + 原问 fused 接续
+    （去重），避免 RRF 排名压制子查询命中（实验测得 target rank 被压到 4-6，
+    Hit@3 评测不可见）。
+    decompose 失败/无拆分时回落单问（fused 仅原问路，等价 single）。
     """
     from app.services.rag.generation import decompose_query
-    from app.services.rag.multi_query import multi_query_kb_recall
 
+    # 1) 原问保底（vector+FTS RRF）
+    fused_base, merged, _v_ids, _f_ids, fts_rows = await _kb_single_hybrid(
+        db, kb_id=kb_id, query=query, top_n=top_n,
+        visible_kb_ids=visible_kb_ids, hide_admin_only=hide_admin_only,
+    )
+    base_ids = [cid for cid, _ in fused_base]
+    if not base_ids:
+        return fused_base, merged, fts_rows
+
+    # 2) decompose 子查询（检索导向 prompt，LLM）
     sub = await decompose_query(query)
-    subs = [s for s in sub if s.strip().lower() != query.strip().lower()]
-    injected = subs if subs else None
+    sub_queries = [s for s in sub if s.strip().lower() != query.strip().lower()]
 
-    t0 = time.perf_counter()
-    fused, merged, _variants = await multi_query_kb_recall(
-        db,
-        kb_id=kb_id,
-        query=query,
-        vector_limit=VECTOR_RECALL,
-        fts_limit=FTS_RECALL,
-        top_n=top_n,
-        visible_kb_ids=visible_kb_ids,
-        hide_admin_only=hide_admin_only,
-        injected_variants=injected,
-        additive_fusion=False,
-    )
-    get_tracker("retrieval.vector_recall").record((time.perf_counter() - t0) * 1000)
-    fts_rows = [r for r in merged.values() if r.fts_rank is not None]
+    # 3) 子查询 fused Top-N 前置（去重），原问 fused 接续
+    front: list[tuple[UUID, float]] = []
+    seen: set[UUID] = set()
+    for sq in sub_queries:
+        f2, m2, _v2, _f2, _fr2 = await _kb_single_hybrid(
+            db, kb_id=kb_id, query=sq, top_n=top_n,
+            visible_kb_ids=visible_kb_ids, hide_admin_only=hide_admin_only,
+        )
+        for cid, score in f2[: _COMPOSITE_PREPEND]:
+            if cid not in seen:
+                seen.add(cid)
+                front.append((cid, score))
+                if cid in m2:
+                    merged[cid] = m2[cid]
+        fts_rows = fts_rows + [r for r in _fr2 if r.chunk.id not in {x.chunk.id for x in fts_rows}]
+
+    final = front + [(cid, s) for cid, s in fused_base if cid not in seen]
     logger.info(
-        "composite recall kb query_len=%d sub_queries=%d top_n=%d",
-        len(query), len(injected or []), top_n,
+        "composite recall kb query_len=%d sub_queries=%d front=%d top_n=%d",
+        len(query), len(sub_queries), len(front), top_n,
     )
-    return fused, merged, fts_rows
+    return final[: top_n + len(front)], merged, fts_rows
 
 
 async def _ws_composite_recall(
@@ -331,34 +344,44 @@ async def _ws_composite_recall(
 ) -> tuple[list, dict, list]:
     """workspace 版复合题专用召回（口径同 _kb_composite_recall）。"""
     from app.services.rag.generation import decompose_query
-    from app.services.rag.multi_query import multi_query_workspace_recall
 
-    sub = await decompose_query(query)
-    subs = [s for s in sub if s.strip().lower() != query.strip().lower()]
-    injected = subs if subs else None
-
-    t0 = time.perf_counter()
-    fused, merged, _variants = await multi_query_workspace_recall(
-        db,
-        query=query,
-        scope=scope,
-        org_scope=org_scope,
-        vector_limit=VECTOR_RECALL,
-        fts_limit=FTS_RECALL,
-        top_n=top_n,
-        visible_kb_ids=visible_kb_ids,
-        hide_admin_only=hide_admin_only,
+    # 1) 原问保底
+    fused_base, merged, _v_ids, _f_ids, fts_rows = await _ws_single_hybrid(
+        db, query=query, scope=scope, org_scope=org_scope, top_n=top_n,
+        visible_kb_ids=visible_kb_ids, hide_admin_only=hide_admin_only,
         scope_clause=scope_clause,
-        injected_variants=injected,
-        additive_fusion=False,
     )
-    get_tracker("retrieval.vector_recall").record((time.perf_counter() - t0) * 1000)
-    fts_rows = [r for r in merged.values() if r.fts_rank is not None]
+    base_ids = [cid for cid, _ in fused_base]
+    if not base_ids:
+        return fused_base, merged, fts_rows
+
+    # 2) decompose 子查询
+    sub = await decompose_query(query)
+    sub_queries = [s for s in sub if s.strip().lower() != query.strip().lower()]
+
+    # 3) 子查询 fused Top-N 前置（去重），原问 fused 接续
+    front: list[tuple[UUID, float]] = []
+    seen: set[UUID] = set()
+    for sq in sub_queries:
+        f2, m2, _v2, _f2, _fr2 = await _ws_single_hybrid(
+            db, query=sq, scope=scope, org_scope=org_scope, top_n=top_n,
+            visible_kb_ids=visible_kb_ids, hide_admin_only=hide_admin_only,
+            scope_clause=scope_clause,
+        )
+        for cid, score in f2[: _COMPOSITE_PREPEND]:
+            if cid not in seen:
+                seen.add(cid)
+                front.append((cid, score))
+                if cid in m2:
+                    merged[cid] = m2[cid]
+        fts_rows = fts_rows + [r for r in _fr2 if r.chunk.id not in {x.chunk.id for x in fts_rows}]
+
+    final = front + [(cid, s) for cid, s in fused_base if cid not in seen]
     logger.info(
-        "composite recall ws query_len=%d sub_queries=%d top_n=%d",
-        len(query), len(injected or []), top_n,
+        "composite recall ws query_len=%d sub_queries=%d front=%d top_n=%d",
+        len(query), len(sub_queries), len(front), top_n,
     )
-    return fused, merged, fts_rows
+    return final[: top_n + len(front)], merged, fts_rows
 
 
 async def retrieve_chunks(
@@ -452,7 +475,7 @@ async def retrieve_chunks(
             injected_variants=hyde_variants,
         )
         used_multi = True
-    else:
+    elif not used_composite:
         # ── 首检：原始 query ──
         fused, merged, vector_top_ids, fts_top_ids, fts_rows_for_skip = (
             await _kb_single_hybrid(
@@ -488,6 +511,11 @@ async def retrieve_chunks(
     parent_contents = await load_parent_contents(db, [row.chunk for row in merged.values()])
     candidates = _build_candidates(fused, merged, parent_contents, kb_id, None)
 
+    # 实验 M：复合题跳过强制 rerank（bge-reranker 把 FAQ 段落型正确答案
+    # 洗出 top-3，破坏子查询前置结果）。实验 N 后 complex 不再强制 always
+    # （effective_rerank_for_strategy 透传 base_policy），此处 rerank_strategy=None
+    # 仍确保 composite 题即使全局 RERANK_POLICY=always 也跳过 rerank。
+    rerank_strategy = None if used_composite else strategy
     t0 = time.perf_counter()
     reranked, did_rerank = await _apply_rerank_policy(
         query,
@@ -496,7 +524,7 @@ async def retrieve_chunks(
         fts_rows_for_skip=fts_rows_for_skip,
         vector_top_ids=vector_top_ids,
         fts_top_ids=fts_top_ids,
-        strategy=strategy,
+        strategy=rerank_strategy,
     )
     get_tracker("retrieval.rerank").record((time.perf_counter() - t0) * 1000)
 
@@ -699,7 +727,7 @@ async def retrieve_workspace_chunks(
             injected_variants=hyde_variants,
         )
         fts_rows_for_skip = [r for r in merged.values() if r.fts_rank is not None]
-    else:
+    elif not used_composite:
         # B1 HyDE
         hyde_query: str | None = None
         if is_hyde_enabled():
@@ -749,6 +777,8 @@ async def retrieve_workspace_chunks(
     parent_contents = await load_parent_contents(db, [row.chunk for row in merged.values()])
     candidates = _build_candidates(fused, merged, parent_contents, None, chunk_kb=True)
 
+    # 实验 M：复合题跳过强制 rerank（同 KB 路径，避免洗掉子查询前置结果）
+    rerank_strategy = None if used_composite else strategy
     rerank_pool = _rerank_pool_size(top_k)
     reranked, _did = await _apply_rerank_policy(
         query,
@@ -757,7 +787,7 @@ async def retrieve_workspace_chunks(
         fts_rows_for_skip=fts_rows_for_skip,
         vector_top_ids=vector_top_ids,
         fts_top_ids=fts_top_ids,
-        strategy=strategy,
+        strategy=rerank_strategy,
     )
     diverse = apply_kb_diversity(reranked, query, top_k=top_k)
     return enforce_workspace_scope(diverse, visible_kb_ids=visible_kb_ids)

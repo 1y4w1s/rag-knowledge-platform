@@ -1,4 +1,4 @@
-"""审计日志查询（Plan-3E-1 后半）。"""
+"""审计日志查询（Plan-3E-1 后半 · NW-32 导出共用筛选）。"""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from datetime import datetime
 
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.sql import ColumnElement
 
 from app.core.deps import CurrentUser
 from app.core.exceptions import ForbiddenError
@@ -44,6 +45,51 @@ def _org_scope_clause(org_id: uuid.UUID):
         AuditLog.actor_user_id.in_(org_member_ids),
         AuditLog.kb_id.in_(org_kb_ids),
     )
+
+
+async def build_audit_filters(
+    db: AsyncSession,
+    org_id: uuid.UUID,
+    *,
+    action: str | None = None,
+    actor_user_id: uuid.UUID | None = None,
+    resource_type: str | None = None,
+    resource_id: uuid.UUID | None = None,
+    ip: str | None = None,
+    kb_id: uuid.UUID | None = None,
+    created_from: datetime | None = None,
+    created_to: datetime | None = None,
+) -> list[ColumnElement[bool]]:
+    """列表与导出共用的筛选子句（含 org scope）。"""
+    filters: list[ColumnElement[bool]] = [_org_scope_clause(org_id)]
+
+    if action is not None:
+        filters.append(AuditLog.action == action)
+
+    if actor_user_id is not None:
+        filters.append(AuditLog.actor_user_id == actor_user_id)
+
+    if resource_type is not None:
+        filters.append(AuditLog.resource_type == resource_type)
+
+    if resource_id is not None:
+        filters.append(AuditLog.resource_id == resource_id)
+
+    if ip is not None:
+        filters.append(AuditLog.ip == ip)
+
+    if kb_id is not None:
+        kb = await db.get(KnowledgeBase, kb_id)
+        if kb is None or kb.owner_org_id != org_id:
+            raise ForbiddenError("无权访问该知识库")
+        filters.append(AuditLog.kb_id == kb_id)
+
+    if created_from is not None:
+        filters.append(AuditLog.created_at >= created_from)
+    if created_to is not None:
+        filters.append(AuditLog.created_at <= created_to)
+
+    return filters
 
 
 async def _enrich_audit_items(
@@ -111,34 +157,18 @@ async def list_audit_logs(
     capped_limit = normalize_limit(limit)
     capped_offset = normalize_offset(offset)
 
-    filters = [_org_scope_clause(org_id)]
-
-    if action is not None:
-        filters.append(AuditLog.action == action)
-
-    if actor_user_id is not None:
-        filters.append(AuditLog.actor_user_id == actor_user_id)
-
-    if resource_type is not None:
-        filters.append(AuditLog.resource_type == resource_type)
-
-    if resource_id is not None:
-        filters.append(AuditLog.resource_id == resource_id)
-
-    if ip is not None:
-        filters.append(AuditLog.ip == ip)
-
-    if kb_id is not None:
-        kb = await db.get(KnowledgeBase, kb_id)
-        if kb is None or kb.owner_org_id != org_id:
-            raise ForbiddenError("无权访问该知识库")
-        filters.append(AuditLog.kb_id == kb_id)
-
-    if created_from is not None:
-        filters.append(AuditLog.created_at >= created_from)
-    if created_to is not None:
-        filters.append(AuditLog.created_at <= created_to)
-
+    filters = await build_audit_filters(
+        db,
+        org_id,
+        action=action,
+        actor_user_id=actor_user_id,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        ip=ip,
+        kb_id=kb_id,
+        created_from=created_from,
+        created_to=created_to,
+    )
     where = and_(*filters)
 
     total = int(
@@ -163,3 +193,55 @@ async def list_audit_logs(
         limit=capped_limit,
         offset=capped_offset,
     )
+
+
+async def collect_audit_logs(
+    db: AsyncSession,
+    admin: CurrentUser,
+    *,
+    max_rows: int,
+    action: str | None = None,
+    actor_user_id: uuid.UUID | None = None,
+    resource_type: str | None = None,
+    resource_id: uuid.UUID | None = None,
+    ip: str | None = None,
+    kb_id: uuid.UUID | None = None,
+    created_from: datetime | None = None,
+    created_to: datetime | None = None,
+) -> tuple[list[AuditLogResponse], int, bool]:
+    """按列表同源筛选拉取最多 max_rows 条（导出用）。
+
+    返回 (items, total_matched, truncated)。
+    """
+    assert admin.org_id is not None
+    cap = max(1, max_rows)
+
+    filters = await build_audit_filters(
+        db,
+        admin.org_id,
+        action=action,
+        actor_user_id=actor_user_id,
+        resource_type=resource_type,
+        resource_id=resource_id,
+        ip=ip,
+        kb_id=kb_id,
+        created_from=created_from,
+        created_to=created_to,
+    )
+    where = and_(*filters)
+
+    total = int(
+        await db.scalar(select(func.count()).select_from(AuditLog).where(where)) or 0
+    )
+
+    rows = await db.scalars(
+        select(AuditLog)
+        .where(where)
+        .order_by(AuditLog.created_at.desc())
+        .limit(cap)
+    )
+    items = await _enrich_audit_items(
+        db,
+        [AuditLogResponse.model_validate(row) for row in rows.all()],
+    )
+    return items, total, total > cap

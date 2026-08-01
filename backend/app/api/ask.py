@@ -13,6 +13,7 @@ from app.api.ask_common import (
     citation_visible_in_scope,
 )
 from app.core.database import get_db
+from app.core.request_ip import get_client_ip
 from app.core.deps import (
     CurrentUser,
     DepartmentIdQuery,
@@ -45,7 +46,9 @@ async def post_ask_chat(
     department_id: DepartmentIdQuery = None,
 ) -> StreamingResponse:
     """工作区流式问答：跨 visible 库检索 + 引用含库名。"""
-    enforce_api_rate_limit(ApiRateLimitKind.chat, current_user.id)
+    await enforce_api_rate_limit(
+        ApiRateLimitKind.chat, current_user.id, ip=get_client_ip(request)
+    )
 
     scope = await resolve_workspace(db, current_user, workspace)
     assert_team_business_allowed(current_user, scope)

@@ -9,7 +9,7 @@ from sqlalchemy.dialects.postgresql import ENUM, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
-from app.models.enums import MessageRole, ThreadKind
+from app.models.enums import MessageRole, MessageStatus, ThreadKind
 
 
 class ChatMessage(Base):
@@ -37,6 +37,12 @@ class ChatMessage(Base):
     role: Mapped[MessageRole] = mapped_column(
         ENUM(MessageRole, name="message_role", create_type=False),
         nullable=False,
+    )
+    status: Mapped[MessageStatus] = mapped_column(
+        ENUM(MessageStatus, name="message_status", create_type=False),
+        nullable=False,
+        default=MessageStatus.completed,
+        server_default=MessageStatus.completed.value,
     )
     content: Mapped[str] = mapped_column(Text, nullable=False)
     citations: Mapped[list[dict[str, Any]] | None] = mapped_column(

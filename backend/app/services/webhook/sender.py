@@ -10,7 +10,29 @@ from uuid import UUID
 
 import httpx
 
+from app.services.webhook.security import decrypt_secret
+from urllib.parse import urlparse
+
 logger = logging.getLogger(__name__)
+
+# 禁止的 SSRF 目标（与 api/webhooks.py 同步）
+_FORBIDDEN_HOSTS = frozenset({
+    "169.254.169.254", "metadata.google.internal", "100.100.100.200",
+    "localhost", "127.0.0.1", "0.0.0.0",
+    "[::1]", "[0:0:0:0:0:0:0:1]",
+})
+
+
+def _reject_ssrf_target(url: str) -> None:
+    """校验 URL 不指向内网/回环/元数据地址。"""
+    parsed = urlparse(url)
+    host = parsed.hostname or ""
+    if host.lower() in _FORBIDDEN_HOSTS:
+        raise ValueError(f"禁止的 webhook 目标: {host}")
+    if host.startswith("10.") or host.startswith("172.16.") or host.startswith("192.168."):
+        raise ValueError("webhook 目标不能为内网地址")
+    if parsed.scheme not in ("https", "http"):
+        raise ValueError("webhook 仅支持 HTTP/HTTPS")
 
 
 def _sign_payload(payload: bytes, secret: str) -> str:
@@ -30,6 +52,12 @@ async def send_webhook(
     Returns:
         True 表示发送成功，False 表示最终失败。
     """
+    _reject_ssrf_target(url)
+    # 尝试解密（兼容已有明文 secret，backfill 后全部加密）
+    try:
+        secret = decrypt_secret(secret)
+    except Exception:
+        pass  # 明文 secret，继续使用原值
     body = json.dumps(payload, ensure_ascii=False).encode()
     signature = _sign_payload(body, secret)
 

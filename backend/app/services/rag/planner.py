@@ -89,14 +89,18 @@ _MULTI_INTENT_PATTERN = re.compile(
 
 # 复合题判定（实验 M）：条件句中的关联词 / 连接词堆叠
 _COMPOSITE_COND_WORD = re.compile(r'(和|且|又|但|还|需要|同时|也|或)')
+# 并列/对比标记：答案通常在同一 chunk（对比表/并列问答），拆分反而拆散检索
+_COMPARE_MARKERS = ("分别", "区别", "对比", "比较")
 
 
 def is_composite_query(query: str) -> bool:
-    """复合题判定：多问号 / 条件组合 / 连接词堆叠。
+    """复合题判定：多问号 / 条件组合 / 连接词堆叠（排除并列对比）。
 
     复合题 = 需跨知识点或跨条件筛选取证的查询
     （如"1000用户+SSO+审计+预算3万"、"能退款吗？能退多少？"）。
     仅对命中者启用子查询拆分（实验 M），避免实验 J 全量 multi-query 的噪音。
+    并列/对比题（含"分别/区别/对比/比较"）答案通常在同一 chunk，拆分
+    会引入噪音（实测 ENT-059/072 回归），一律不判复合。
 
     Returns:
         True → 判定为复合题（后续走 decompose 子查询拆分路径）
@@ -110,7 +114,9 @@ def is_composite_query(query: str) -> bool:
     # 信号 2：条件句（如果/若）+ 条件词（和/且/又/但/需要…），且句长足够
     if ("如果" in q or "若" in q) and _COMPOSITE_COND_WORD.search(q) and len(q) >= 12:
         return True
-    # 信号 3：多意图连接词堆叠（"全量备份和增量备份分别…"）
+    # 信号 3：多意图连接词堆叠（"全量备份和增量备份分别…"）——但排除并列/对比
+    if any(m in q for m in _COMPARE_MARKERS):
+        return False
     conns = _MULTI_INTENT_PATTERN.findall(q)
     if len(conns) >= 2 and len(q) >= 15:
         return True
@@ -299,7 +305,14 @@ def adaptive_top_k(candidates: list[RetrievedChunk], query: str) -> int:
 def effective_rerank_for_strategy(
     strategy: RetrievalStrategy, base_policy: str
 ) -> str:
-    """B3：complex 策略强制 rerank，不受 RERANK_POLICY 影响。
+    """返回实际生效的精排策略：透传 base_policy（实验 N 收紧）。
+
+    B3 曾让 complex 强制 always，不受 RERANK_POLICY 影响。实验 N 诊断实锤：
+    bge-reranker 对 FAQ 段落型答案负排序——complex 非 composite 题 Hit@3
+    84%→68%（19 题中 5 题负排序、仅 2 题救回，净 -16pp）。且生产
+    rerank_policy=off 时该强制在 rerank_chunks 内部被短路成 no-op。
+    故回落：complex 与 medium/simple 一样透传 base_policy，全局由
+    RERANK_POLICY 控制（composite 题仍由 retrieval 侧 rerank_strategy=None 跳过）。
 
     Args:
         strategy: 自适应检索策略等级。
@@ -308,6 +321,5 @@ def effective_rerank_for_strategy(
     Returns:
         实际生效的精排策略。
     """
-    if strategy == RetrievalStrategy.complex:
-        return "always"
+    _ = strategy
     return base_policy

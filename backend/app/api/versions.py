@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -14,7 +14,7 @@ from app.models.document import Document
 from app.models.document_version import DocumentVersion
 from app.models.enums import DocumentStatus
 from app.services.audit.log import write_audit_log
-from app.services.ingestion.tasks import ingest_document_task
+from app.services.ingestion.enqueue import enqueue_document_ingestion
 from app.schemas.document import DocumentResponse
 from pydantic import BaseModel
 from datetime import datetime
@@ -67,6 +67,7 @@ async def restore_version(
     version_number: int,
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
+    background_tasks: BackgroundTasks,
 ) -> DocumentResponse:
     """回滚到指定历史版本。"""
     await require_kb_access(kb_id=kb_id, action=KbAction.write, current_user=current_user, db=db)
@@ -121,7 +122,6 @@ async def restore_version(
     await db.commit()
     await db.refresh(doc)
 
-    # 触发重新 ingestion
-    ingest_document_task.delay(str(doc.id))
+    await enqueue_document_ingestion(doc.id, background_tasks)
 
     return DocumentResponse.model_validate(doc)

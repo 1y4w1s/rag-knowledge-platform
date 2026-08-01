@@ -34,6 +34,9 @@ class Document(Base):
     )
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     chunk_count: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    processing_stage: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    progress_percent: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    progress_detail: Mapped[str | None] = mapped_column(String(64), nullable=True)
     processing_started_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
@@ -64,4 +67,7 @@ class Document(Base):
     )
     current_version: Mapped[int] = mapped_column(
         Integer, nullable=False, default=1
+    )
+    entity_extracted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
     )

@@ -1,5 +1,6 @@
 """账号设置业务逻辑（Wave 5.3 + WS-2-7 填码加入 / 离开团队）。"""
 
+import logging
 import uuid
 
 from sqlalchemy import select
@@ -18,10 +19,11 @@ from app.schemas.settings import (
     JoinTeamResponse,
     LeaveTeamResponse,
 )
+from app.services.auth.password import hash_password, validate_password_strength, verify_password
 from app.services.auth.org_context import resolve_org_context
-from app.services.auth.password import hash_password, verify_password
-from app.services.auth.service import _validate_password
 from app.services.organization.invites import resolve_valid_invite
+
+logger = logging.getLogger(__name__)
 
 
 async def get_account_settings(
@@ -60,7 +62,7 @@ async def change_password(
     if not verify_password(current_password, user.password_hash):
         raise ValidationError("当前密码不正确")
 
-    _validate_password(new_password)
+    validate_password_strength(new_password)
 
     if verify_password(new_password, user.password_hash):
         raise ValidationError("新密码不能与当前密码相同")
@@ -68,6 +70,12 @@ async def change_password(
     user.password_hash = hash_password(new_password)
     await db.commit()
 
+    from app.services.auth.token_revocation import revoke_user_tokens
+    revoke_user_tokens(current_user.id)
+
+    logger.info(
+        "password changed: user_id=%s", current_user.id,
+    )
     return ChangePasswordResponse()
 
 
@@ -104,6 +112,11 @@ async def join_team_with_invite(
     db.add(membership)
     await db.commit()
     await db.refresh(user)
+
+    logger.info(
+        "team joined: user_id=%s org_id=%s invite_code=***%s",
+        user.id, org.id, invite_code[-4:] if len(invite_code) >= 4 else "****",
+    )
 
     org_id, org_role, is_owner, _custom_role_id, _custom_role_is_admin = await resolve_org_context(db, user)
     account = await get_account_settings(
@@ -153,6 +166,10 @@ async def leave_team(
         user.account_type = AccountType.personal
     await db.commit()
     await db.refresh(user)
+
+    logger.info(
+        "team left: user_id=%s org_id=%s org_name=%s", current_user.id, current_user.org_id, org_name,
+    )
 
     account = await get_account_settings(
         db,

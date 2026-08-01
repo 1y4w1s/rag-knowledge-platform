@@ -1,8 +1,9 @@
-﻿"""多格式文档解析（TECH-4.2）。"""
+"""多格式文档解析（TECH-4.2）。"""
 
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from pathlib import Path
 
 from app.services.ingestion.parser_pdf import (
@@ -323,7 +324,13 @@ def parse_pptx(path: Path) -> list[ParsedBlock]:
     return blocks
 
 
-def parse_document(path: Path, file_type: str, *, pdf_batch_pages: int = 10) -> list[ParsedBlock]:
+def parse_document(
+    path: Path,
+    file_type: str,
+    *,
+    pdf_batch_pages: int = 10,
+    on_page: Callable[[int, int], None] | None = None,
+) -> list[ParsedBlock]:
     ext = file_type.lower().lstrip(".")
 
     # 魔数检测：文件扩展名与实际内容是否匹配
@@ -342,21 +349,32 @@ def parse_document(path: Path, file_type: str, *, pdf_batch_pages: int = 10) -> 
     if ext == "pdf":
         if detect_scanned_pdf(path):
             from app.services.ingestion.ocr import is_ocr_enabled, is_ocr_runtime_available
+            from app.services.ingestion.ocr_errors import OCR_DEPS_MISSING, OCR_DISABLED, raise_ocr
 
             if not is_ocr_enabled():
-                raise ValueError("不支持扫描件")
+                raise_ocr(OCR_DISABLED)
             if not is_ocr_runtime_available():
-                raise ValueError("OCR 服务未启用")
-            return parse_pdf_ocr(path)
+                raise_ocr(OCR_DEPS_MISSING)
+            return parse_pdf_ocr(path, on_page=on_page)
 
         blocks = parse_pdf(path, batch_pages=pdf_batch_pages)
         if not blocks:
             # 文字层为空时尝试 OCR fallback
             from app.services.ingestion.ocr import is_ocr_enabled, is_ocr_runtime_available
-            if is_ocr_enabled() and is_ocr_runtime_available():
-                blocks = parse_pdf_ocr(path)
+            from app.services.ingestion.ocr_errors import (
+                OCR_DEPS_MISSING,
+                OCR_DISABLED,
+                OCR_EMPTY,
+                raise_ocr,
+            )
+
+            if not is_ocr_enabled():
+                raise_ocr(OCR_DISABLED)
+            if not is_ocr_runtime_available():
+                raise_ocr(OCR_DEPS_MISSING)
+            blocks = parse_pdf_ocr(path, on_page=on_page)
             if not blocks:
-                raise ValueError("不支持扫描件")
+                raise_ocr(OCR_EMPTY)
         return blocks
     if ext == "txt":
         return parse_txt(_read_text_with_fallback(path))
@@ -379,14 +397,55 @@ IMAGE_EXTENSIONS = {"png", "jpg", "jpeg"}
 def parse_image_ocr(path: Path) -> list[ParsedBlock]:
     """图片文件走 OCR 识别。"""
     from app.services.ingestion.ocr import is_ocr_enabled, is_ocr_runtime_available, ocr_image_path
+    from app.services.ingestion.ocr_errors import (
+        OCR_DEPS_MISSING,
+        OCR_DISABLED,
+        OCR_EMPTY,
+        raise_ocr,
+    )
 
     if not is_ocr_enabled():
-        raise ValueError("OCR 未启用")
+        raise_ocr(OCR_DISABLED)
     if not is_ocr_runtime_available():
-        raise ValueError("OCR 服务未安装")
+        raise_ocr(OCR_DEPS_MISSING)
 
     page_number, text = ocr_image_path(path)
     cleaned = text.strip()
+
+    # C1-2：Vision LLM 图片描述增强（即使 OCR 空也尝试）
+    if path and path.exists():
+        try:
+            from app.services.rag.chat_vision import complete_chat_vision_sync
+
+            enriched = _enrich_with_vision_sync(path, cleaned)
+            if enriched:
+                cleaned = enriched
+        except Exception:
+            pass  # vision 失败不阻塞入库
+
     if not cleaned:
-        raise ValueError("OCR 未识别到文字")
+        raise_ocr(OCR_EMPTY)
     return [ParsedBlock(content=cleaned, page_number=page_number)]
+
+
+def _enrich_with_vision_sync(image_path: Path, ocr_text: str) -> str:
+    """同步版 Vision LLM 分析图片。"""
+    import base64
+    import mimetypes
+    from app.services.rag.chat_vision import complete_chat_vision_sync
+
+    with open(image_path, "rb") as f:
+        b64 = base64.b64encode(f.read()).decode()
+    mime = mimetypes.guess_type(str(image_path))[0] or "image/png"
+
+    messages = [
+        {"role": "system", "content": "你是一个图片分析助手。"},
+        {"role": "user", "content": [
+            {"type": "image_url", "image_url": {"url": f"data:{mime};base64,{b64}"}},
+            {"type": "text", "text": "请详细描述这张图片的关键信息。含表格的请用 Markdown 表格格式输出。"},
+        ]},
+    ]
+    description = complete_chat_vision_sync(messages)
+    if not description:
+        return ocr_text
+    return f"{ocr_text}\n\n[图片描述]\n{description}"

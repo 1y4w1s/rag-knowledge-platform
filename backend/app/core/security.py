@@ -1,6 +1,8 @@
 """JWT Bearer 鉴权中间件（Wave 1.2）。
 
-除 register / login / health 及 OpenAPI 文档外，所有 ``/api/v1/*`` 须携带有效 Bearer token。
+默认拒绝：仅 ``_is_public_path`` 显式白名单内的路径免 JWT，其余一律要求鉴权。
+白名单成员必须显式列出——任何新挂载且不在名单内的路由都会自动要求 JWT，
+杜绝「非 /api/v1 前缀即匿名公开」的越权暴露（原反向默认公开逻辑已移除）。
 """
 
 from dataclasses import dataclass
@@ -24,6 +26,7 @@ class AuthenticationError(Exception):
 class TokenClaims:
     user_id: UUID
     account_type: AccountType
+    iat: float | None = None  # JWT 签发时间戳（用于吊销检查）
     org_id: UUID | None = None
     org_role: OrgRole | None = None
     custom_role_id: UUID | None = None
@@ -33,7 +36,7 @@ class TokenClaims:
 def decode_access_token(token: str) -> TokenClaims:
     """解析并校验 access token；失败抛 AuthenticationError。"""
     try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=[JWT_ALGORITHM])
+        payload = jwt.decode(token, settings.jwt_secret, algorithms=[JWT_ALGORITHM], leeway=30)
     except jwt.ExpiredSignatureError as exc:
         raise AuthenticationError("认证已过期") from exc
     except jwt.InvalidTokenError as exc:
@@ -66,6 +69,7 @@ def decode_access_token(token: str) -> TokenClaims:
     return TokenClaims(
         user_id=user_id,
         account_type=account_type,
+        iat=payload.get("iat"),
         org_id=org_id,
         org_role=org_role,
         custom_role_id=custom_role_id,
@@ -89,15 +93,23 @@ _PUBLIC_EXACT_PATHS = frozenset(
 
 
 def _is_public_path(path: str) -> bool:
+    """默认拒绝：仅显式白名单免 JWT，其余一律要求鉴权。
+
+    白名单成员必须显式列出；任何新挂载且不在名单内的路由都会自动要求 JWT，
+    避免「非 /api/v1 前缀即匿名公开」的越权暴露。
+    """
     if path in _PUBLIC_EXACT_PATHS:
+        # 生产环境关闭 OpenAPI Schema 匿名暴露（R3）；main.py 同时设 openapi_url=None。
+        if path == "/openapi.json" and settings.environment == "production":
+            return False
         return True
-    if path.startswith("/docs/"):
+    if path.startswith("/docs/"):  # 开发期 Swagger 资产（生产 docs_url=None 已 404）
         return True
-    if path.startswith("/api/v1/internal/"):
+    if path.startswith("/health"):  # 探针：/health /live /ready /detailed
         return True
-    if path.startswith("/api/v1/evaluations/"):
+    if path == "/metrics":  # 路由级静态令牌鉴权（P0-3），免用户 JWT
         return True
-    return not path.startswith("/api/v1/")
+    return False  # 默认拒绝
 
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):

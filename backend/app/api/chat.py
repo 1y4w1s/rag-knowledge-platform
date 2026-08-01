@@ -10,6 +10,7 @@ from app.api.disconnect_guard import with_disconnect_guard
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.request_ip import get_client_ip
 from app.core.deps import (
     CurrentUser,
     DepartmentIdQuery,
@@ -51,7 +52,9 @@ async def post_chat(
     db: Annotated[AsyncSession, Depends(get_db)],
     department_id: DepartmentIdQuery = None,
 ) -> StreamingResponse:
-    enforce_api_rate_limit(ApiRateLimitKind.chat, current_user.id)
+    await enforce_api_rate_limit(
+        ApiRateLimitKind.chat, current_user.id, ip=get_client_ip(request)
+    )
 
     kb = await require_kb_access(
         kb_id=kb_id,
@@ -67,7 +70,7 @@ async def post_chat(
         visible_kb_ids = org_scope.visible_kb_ids
 
     return StreamingResponse(
-        with_disconnect_guard(request, stream_chat_events(
+        _with_sse_slot(current_user.id, with_disconnect_guard(request, stream_chat_events(
             db,
             kb_id=kb_id,
             user_id=current_user.id,
@@ -78,6 +81,7 @@ async def post_chat(
                 and current_user.org_role == "member"
             ),
             thread_id=body.thread_id,
+        ),
         ),
         ),
         media_type="text/event-stream",
@@ -100,7 +104,9 @@ async def get_chat_messages(
         )
 
     _assert_kb_ownership(kb, current_user)
-    _assert_kb_action_allowed(current_user, KbAction.read)
+    await _assert_kb_action_allowed(
+        current_user, KbAction.read, db=db, kb_id=kb_id
+    )
 
     kb_visible = await is_kb_visible_in_org_scope(
         db, current_user, kb, department_id=department_id

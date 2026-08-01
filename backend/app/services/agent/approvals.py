@@ -20,17 +20,21 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import BackgroundTasks, HTTPException, status
-from app.core.exceptions import NotFoundError, ConflictError
+from app.core.exceptions import NotFoundError, ConflictError, ServiceError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import CurrentUser, KbAction, require_kb_access
 from app.models.agent_approval import AgentApproval
-from app.models.enums import AccountType, ApprovalStatus, OrgRole
+from app.models.document import Document
+from app.models.enums import AccountType, ApprovalKind, ApprovalStatus, OrgRole
 from app.services.agent.adopt import (
     adopt_draft_to_kb,
     bind_adopt_background_tasks,
     unbind_adopt_background_tasks,
 )
+from app.services.documents.lifecycle import _soft_delete_no_commit
+from app.services.documents.trash import _restore_no_commit
+from sqlalchemy import select
 from app.services.audit.agent import (
     audit_agent_approval_adopted,
     audit_agent_approval_cancelled,
@@ -69,7 +73,7 @@ async def resolve_adopt_approval(
             current_user=current_user,
             db=db,
         )
-    except HTTPException as e:
+    except (HTTPException, ServiceError) as e:
         if e.status_code == status.HTTP_404_NOT_FOUND:
             e.audit_reason = "grant_revoked"  # kb 不存在
         elif e.status_code == status.HTTP_403_FORBIDDEN:
@@ -90,19 +94,17 @@ async def resolve_adopt_approval(
         exc.audit_reason = "not_pending"  # G4-3.5 denied 归因
         raise exc
 
-    # 写库（H4-4-A 异步：立刻返回 document_id，ingestion 后台跑）。
-    # 绑定请求级 BackgroundTasks 供 adopt_draft_to_kb 入队 ingestion（G4-3.2），
-    # 不改变其 (db, approval, kb) 签名。
-    bind_token = (
-        bind_adopt_background_tasks(background_tasks)
-        if background_tasks is not None
-        else None
-    )
-    try:
-        document_id = await adopt_draft_to_kb(db, approval, kb)
-    finally:
-        if bind_token is not None:
-            unbind_adopt_background_tasks(bind_token)
+    # 写库（按 kind 分发 · 同事务 · 不提交；caller 统一 commit）。
+    if approval.kind == ApprovalKind.adopt_faq:
+        document_id = await _resolve_adopt_faq(
+            db, approval=approval, kb=kb, background_tasks=background_tasks
+        )
+    else:
+        # delete_document / restore_document：二次校验 + 执行（H3 软删 / 回收站恢复）
+        document_id = await _resolve_document_write(
+            db, approval=approval, current_user=current_user
+        )
+
     approval.status = ApprovalStatus.adopted
     approval.document_id = document_id
     approval.resolved_at = datetime.now(timezone.utc)
@@ -120,6 +122,70 @@ async def resolve_adopt_approval(
         )
     )
     return approval
+
+
+async def _resolve_adopt_faq(
+    db: AsyncSession,
+    *,
+    approval: AgentApproval,
+    kb,
+    background_tasks: Optional[BackgroundTasks] = None,
+) -> UUID:
+    """adopt_faq 采纳：adopt_draft_to_kb 落库 + 异步 ingestion（H4-4-A）。"""
+    bind_token = (
+        bind_adopt_background_tasks(background_tasks)
+        if background_tasks is not None
+        else None
+    )
+    try:
+        document_id = await adopt_draft_to_kb(db, approval, kb)
+    finally:
+        if bind_token is not None:
+            unbind_adopt_background_tasks(bind_token)
+    return document_id
+
+
+async def _resolve_document_write(
+    db: AsyncSession,
+    *,
+    approval: AgentApproval,
+    current_user: CurrentUser,
+) -> UUID:
+    """delete_document / restore_document 采纳：二次校验 + 执行（同事务，不提交）。
+
+    权限/归属已由 resolve_adopt_approval 顶部 require_kb_access(write) 校验；
+    此处仅按状态取目标文档并复用底层 no_commit 变体（保留 processing / 同名冲突检查）。
+    """
+    document_id = approval.document_id
+    if approval.kind == ApprovalKind.delete_document:
+        doc = await db.scalar(
+            select(Document).where(
+                Document.id == document_id,
+                Document.kb_id == approval.kb_id,
+                Document.deleted_at.is_(None),
+            )
+        )
+        if doc is None:
+            raise NotFoundError("目标文档不存在或非 active 状态")
+        await _soft_delete_no_commit(
+            db, doc, actor_user_id=current_user.id, kb_id=approval.kb_id, ip=None
+        )
+    elif approval.kind == ApprovalKind.restore_document:
+        doc = await db.scalar(
+            select(Document).where(
+                Document.id == document_id,
+                Document.kb_id == approval.kb_id,
+                Document.deleted_at.is_not(None),
+            )
+        )
+        if doc is None:
+            raise NotFoundError("目标文档不在回收站中")
+        await _restore_no_commit(
+            db, doc, actor_user_id=current_user.id, kb_id=approval.kb_id, ip=None
+        )
+    else:
+        raise ValidationError(detail="未知审批类型")
+    return document_id
 
 
 async def resolve_cancel_approval(
@@ -156,7 +222,7 @@ async def resolve_cancel_approval(
                 current_user=current_user,
                 db=db,
             )
-        except HTTPException as e:
+        except (HTTPException, ServiceError) as e:
             if e.status_code == status.HTTP_404_NOT_FOUND:
                 e.audit_reason = "grant_revoked"  # kb 不存在
             elif e.status_code == status.HTTP_403_FORBIDDEN:

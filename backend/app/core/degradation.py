@@ -174,9 +174,9 @@ def assess_degradation() -> DegradationLevel:
     if not settings.degradation_enabled:
         return apply_stabilization(DegradationLevel.NORMAL)
 
-    llm_ok = _breaker_health(get_breaker("deepseek_llm"))
-    rerank_ok = _breaker_health(get_breaker("tongyi_rerank"))
-    embed_ok = _breaker_health(get_breaker("tongyi_embed"))
+    llm_ok = _breaker_health(get_breaker(_active_chat_breaker_name()))
+    rerank_ok = _rerank_breaker_ok()
+    embed_ok = _embed_breaker_ok()
 
     # 多服务同时熔断 → L4
     degraded_count = sum(not ok for ok in (llm_ok, rerank_ok, embed_ok))
@@ -192,6 +192,36 @@ def assess_degradation() -> DegradationLevel:
         return apply_stabilization(DegradationLevel.RERANK_DOWN)
 
     return apply_stabilization(DegradationLevel.NORMAL)
+
+
+def _active_chat_breaker_name() -> str:
+    """按 CHAT_PROVIDER 选择 LLM 熔断器（NW-9）。"""
+    from app.services.rag.chat_llm import resolve_chat_provider
+
+    return "tongyi_llm" if resolve_chat_provider() == "tongyi" else "deepseek_llm"
+
+
+def _rerank_breaker_ok() -> bool:
+    """按当前 rerank provider 检查对应熔断器。"""
+    provider = settings.rerank_provider.lower()
+    if provider == "bge":
+        return _breaker_health(get_breaker("bge_rerank"))
+    if provider == "tongyi":
+        return _breaker_health(get_breaker("tongyi_rerank"))
+    # mock / 关闭：视为健康（不触发 L2）
+    return True
+
+
+def _embed_breaker_ok() -> bool:
+    """按当前 embedding provider 检查对应熔断器。"""
+    provider = settings.embedding_provider.lower()
+    if provider == "bge":
+        return _breaker_health(get_breaker("bge_embed"))
+    if provider == "bge_en":
+        return _breaker_health(get_breaker("bge_en_embed"))
+    if provider == "tongyi":
+        return _breaker_health(get_breaker("tongyi_embed"))
+    return True
 
 
 # ── 降级行为描述 ──────────────────────────────────────────────────────

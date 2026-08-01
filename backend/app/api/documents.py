@@ -89,6 +89,7 @@ async def get_trash(
 async def restore_document_route(
     kb_id: UUID,
     doc_id: UUID,
+    request: Request,
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> DocumentResponse:
@@ -98,7 +99,13 @@ async def restore_document_route(
     await require_kb_access(
         kb_id=kb_id, action=KbAction.write, current_user=current_user, db=db
     )
-    return await _restore(db, kb_id, doc_id)
+    return await _restore(
+        db,
+        kb_id,
+        doc_id,
+        actor_user_id=current_user.id,
+        ip=get_client_ip(request),
+    )
 
 
 @router.delete("/{doc_id}/permanent", status_code=204)
@@ -143,7 +150,9 @@ async def post_documents(
     files: Annotated[list[UploadFile], File(...)],
     visibility: Annotated[DocumentVisibility | None, Query()] = None,
 ) -> DocumentUploadResponse:
-    enforce_api_rate_limit(ApiRateLimitKind.upload, current_user.id)
+    await enforce_api_rate_limit(
+        ApiRateLimitKind.upload, current_user.id, ip=get_client_ip(request)
+    )
 
     docs = await upload_documents(
         db,

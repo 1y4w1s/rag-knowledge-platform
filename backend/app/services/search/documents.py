@@ -41,6 +41,12 @@ def normalize_limit(raw: int | None) -> int:
     return min(max(raw, 1), MAX_LIMIT)
 
 
+def normalize_offset(raw: int | None) -> int:
+    if raw is None:
+        return 0
+    return max(raw, 0)
+
+
 def kb_scope_clause(
     scope: WorkspaceScope,
     org_scope: OrgScope | None,
@@ -61,11 +67,14 @@ async def search_documents_by_filename(
     query: str,
     limit: int,
     *,
+    offset: int = 0,
     org_scope: OrgScope | None = None,
     hide_admin_only: bool = False,
     kb_id: uuid.UUID | None = None,
 ) -> SearchDocumentsResponse:
     """在当前 workspace 内按文件名子串搜索文档。"""
+    capped_limit = normalize_limit(limit)
+    capped_offset = normalize_offset(offset)
     scope_clause = kb_scope_clause(scope, org_scope)
     pattern = f"%{_escape_ilike(query)}%"
 
@@ -95,7 +104,9 @@ async def search_documents_by_filename(
     total_count = int(total or 0)
 
     rows = await db.execute(
-        base.order_by(Document.created_at.desc()).limit(limit)
+        base.order_by(Document.created_at.desc(), Document.id.desc())
+        .offset(capped_offset)
+        .limit(capped_limit)
     )
 
     items = [
@@ -115,5 +126,7 @@ async def search_documents_by_filename(
         items=items,
         query=query,
         total=total_count,
+        limit=capped_limit,
+        offset=capped_offset,
         mode="filename",
     )

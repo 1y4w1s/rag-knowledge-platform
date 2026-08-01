@@ -1,5 +1,6 @@
 """知识库 CRUD 业务逻辑（Wave 2.1）。"""
 
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from uuid import UUID
@@ -19,11 +20,15 @@ from app.schemas.knowledge_base import (
 from app.services.knowledge_base.names import assert_kb_name_available
 from app.services.audit.log import write_audit_log
 from app.services.storage.cleaner import remove_kb_tree
+from app.core.config import settings
+from app.services.documents.quota import used_bytes_for_kb
 from app.services.knowledge_base.org_assignment import (
     assert_can_create_org_kb,
     resolve_and_validate_kb_org_unit_id,
 )
 from app.services.workspace.scope import WorkspaceKind, WorkspaceScope
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -34,7 +39,13 @@ class KbDocumentStats:
     failed_count: int
 
 
-def _kb_to_response(kb: KnowledgeBase, stats: KbDocumentStats) -> KnowledgeBaseResponse:
+def _kb_to_response(
+    kb: KnowledgeBase,
+    stats: KbDocumentStats,
+    *,
+    quota_used_bytes: int | None = None,
+    quota_max_bytes: int | None = None,
+) -> KnowledgeBaseResponse:
     return KnowledgeBaseResponse(
         id=kb.id,
         name=kb.name,
@@ -47,6 +58,8 @@ def _kb_to_response(kb: KnowledgeBase, stats: KbDocumentStats) -> KnowledgeBaseR
         document_count=stats.document_count,
         processing_count=stats.processing_count,
         failed_count=stats.failed_count,
+        quota_used_bytes=quota_used_bytes,
+        quota_max_bytes=quota_max_bytes,
     )
 
 
@@ -150,6 +163,10 @@ async def create_knowledge_base(
     db.add(kb)
     await db.commit()
     await db.refresh(kb)
+    logger.info(
+        "kb created: kb_id=%s name=%s scope=%s org_unit_id=%s",
+        kb.id, name, scope.kind.value, kb.org_unit_id,
+    )
     return _kb_to_response(kb, _empty_kb_stats(kb))
 
 
@@ -170,7 +187,16 @@ async def get_knowledge_base(
     kb = await db.get(KnowledgeBase, kb_id)
     assert kb is not None
     stats = await _kb_document_stats_for_kb(db, kb)
-    return _kb_to_response(kb, stats)
+    limit = int(settings.kb_quota_max_bytes)
+    if limit <= 0:
+        return _kb_to_response(kb, stats)
+    used = await used_bytes_for_kb(db, kb_id)
+    return _kb_to_response(
+        kb,
+        stats,
+        quota_used_bytes=used,
+        quota_max_bytes=limit,
+    )
 
 
 async def update_knowledge_base(
@@ -234,6 +260,8 @@ async def delete_knowledge_base(
     )
     await db.delete(kb)
     await db.commit()
+
+    logger.info("kb deleted: kb_id=%s name=%s actor=%s", kb_id, kb_name, current_user.id)
 
     cleanup = remove_kb_tree(kb_id)
     if cleanup.file_errors + cleanup.tree_errors > 0:

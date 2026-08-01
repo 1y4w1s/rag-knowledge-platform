@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Callable
 from pathlib import Path
 
 from app.services.ingestion.types import ParsedBlock
@@ -113,7 +114,8 @@ def _parse_pdf_tables_only(path: Path, *, batch_pages: int = 10) -> list[ParsedB
     return blocks
 
 
-def parse_pdf(path: Path, *, batch_pages: int = 10) -> list[ParsedBlock]:
+def _extract_pdf_pages_lines(path: Path) -> list[list[str]]:
+    """一次性抽出各页文本行后关闭文件，避免整本页对象常驻内存。"""
     import pdfplumber
 
     try:
@@ -121,75 +123,89 @@ def parse_pdf(path: Path, *, batch_pages: int = 10) -> list[ParsedBlock]:
     except pdfplumber.pdfminer.pdfparser.PDFEncryptionError:
         raise ValueError("文件已加密，请解密后上传")
 
+    pages_lines: list[list[str]] = []
+    with pdf_file as pdf:
+        for page in pdf.pages:
+            pages_lines.append((page.extract_text() or "").splitlines())
+    return pages_lines
+
+
+def _blocks_from_pages_lines(pages_lines: list[list[str]]) -> list[ParsedBlock]:
+    """按页行 → 章节缓冲 → 跨页合并（散文块）。"""
     blocks: list[ParsedBlock] = []
     heading_stack: list[str] = []
     doc_title: str | None = None
+    page_blocks: list[ParsedBlock] = []
 
-    with pdf_file as pdf:
-        if not pdf.pages:
-            return []
+    for page_idx, lines in enumerate(pages_lines):
+        page_number = page_idx + 1
+        buffer: list[str] = []
+        current_meta = ParsedBlock(content="")
 
-        for batch_start in range(0, len(pdf.pages), batch_pages):
-            batch_end = min(batch_start + batch_pages, len(pdf.pages))
-            batch_blocks: list[ParsedBlock] = []
+        def flush() -> None:
+            nonlocal buffer, current_meta
+            if not buffer:
+                return
+            text = "\n".join(buffer).strip()
+            if text:
+                page_blocks.append(
+                    ParsedBlock(
+                        content=text,
+                        page_number=page_number,
+                        section_title=current_meta.section_title,
+                        heading_path=current_meta.heading_path,
+                    )
+                )
+            buffer = []
 
-            for page_idx in range(batch_start, batch_end):
-                page = pdf.pages[page_idx]
-                page_number = page_idx + 1
-                lines = (page.extract_text() or "").splitlines()
-                buffer: list[str] = []
-                current_meta = ParsedBlock(content="")
-
-                def flush() -> None:
-                    nonlocal buffer, current_meta
-                    if not buffer:
-                        return
-                    text = "\n".join(buffer).strip()
-                    if text:
-                        batch_blocks.append(
-                            ParsedBlock(
-                                content=text,
-                                page_number=page_number,
-                                section_title=current_meta.section_title,
-                                heading_path=current_meta.heading_path,
-                            )
-                        )
-                    buffer = []
-
-                for raw_line in lines:
-                    line = raw_line.strip()
-                    if not line:
-                        flush()
-                        continue
-
-                    if CHAPTER_RE.match(line):
-                        flush()
-                        title = re.sub(r"^#+\s*", "", line)
-                        if doc_title is None:
-                            doc_title = title
-                            heading_stack = [title]
-                        elif title != doc_title:
-                            if title.startswith("Chapter") or title.startswith("第"):
-                                heading_stack = [doc_title, title]
-                            else:
-                                heading_stack = [doc_title] + [title]
-                        current_meta = ParsedBlock(
-                            content="",
-                            page_number=page_number,
-                            section_title=title,
-                            heading_path=">".join(heading_stack),
-                        )
-                        continue
-
-                    buffer.append(line)
-
+        for raw_line in lines:
+            line = raw_line.strip()
+            if not line:
                 flush()
+                continue
 
-            blocks.extend(_merge_cross_page_blocks(batch_blocks))
+            if CHAPTER_RE.match(line):
+                flush()
+                title = re.sub(r"^#+\s*", "", line)
+                if doc_title is None:
+                    doc_title = title
+                    heading_stack = [title]
+                elif title != doc_title:
+                    if title.startswith("Chapter") or title.startswith("第"):
+                        heading_stack = [doc_title, title]
+                    else:
+                        heading_stack = [doc_title] + [title]
+                current_meta = ParsedBlock(
+                    content="",
+                    page_number=page_number,
+                    section_title=title,
+                    heading_path=">".join(heading_stack),
+                )
+                continue
+
+            buffer.append(line)
+
+        flush()
+
+    blocks.extend(_merge_cross_page_blocks(page_blocks))
+    return blocks
+
+
+def parse_pdf(path: Path, *, batch_pages: int = 10) -> list[ParsedBlock]:
+    from app.core.config import settings
+    from app.services.ingestion.pdf_denoise import denoise_pages_lines
+
+    pages_lines = _extract_pdf_pages_lines(path)
+    if not pages_lines:
+        return []
+
+    pages_lines = denoise_pages_lines(
+        pages_lines,
+        enabled=settings.pdf_layout_denoise_enabled,
+    )
+    blocks = _blocks_from_pages_lines(pages_lines)
 
     # Append table blocks extracted from PDF（B2：可选跨页同表合并）
-    from app.core.config import settings
-
     table_blocks = _parse_pdf_tables_only(path, batch_pages=batch_pages)
     if settings.table_chunk_split_enabled:
         from app.services.ingestion.table_merge import merge_cross_page_tables
@@ -200,12 +216,16 @@ def parse_pdf(path: Path, *, batch_pages: int = 10) -> list[ParsedBlock]:
     return blocks
 
 
-def parse_pdf_ocr(path: Path) -> list[ParsedBlock]:
+def parse_pdf_ocr(
+    path: Path,
+    *,
+    on_page: Callable[[int, int], None] | None = None,
+) -> list[ParsedBlock]:
     """扫描 PDF：按页 OCR → ``ParsedBlock``，再跨页合并。"""
     from app.services.ingestion.ocr import ocr_pdf_pages
 
     page_blocks: list[ParsedBlock] = []
-    for page_number, text in ocr_pdf_pages(path):
+    for page_number, text in ocr_pdf_pages(path, on_page=on_page):
         cleaned = text.strip()
         if cleaned:
             page_blocks.append(
@@ -213,6 +233,8 @@ def parse_pdf_ocr(path: Path) -> list[ParsedBlock]:
             )
 
     if not page_blocks:
-        raise ValueError("OCR 未识别到文字")
+        from app.services.ingestion.ocr_errors import OCR_EMPTY, raise_ocr
+
+        raise_ocr(OCR_EMPTY)
 
     return _merge_cross_page_blocks(page_blocks)

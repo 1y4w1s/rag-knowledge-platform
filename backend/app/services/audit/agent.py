@@ -225,3 +225,121 @@ async def audit_agent_approval_denied(
             "reason": reason,
         },
     )
+
+
+async def audit_llm_plan_fallback(
+    db: AsyncSession,
+    *,
+    actor_user_id: UUID,
+    run_id: UUID,
+    reason: str,
+    llm_raw: str | None = None,
+) -> None:
+    """LLM planner 降级事件 → agent.llm_plan_fallback。
+
+    action = "agent.llm_plan_fallback"
+    metadata 含 reason + llm_raw 截断（≤500 字符）。
+    """
+    metadata: dict[str, str | int] = {
+        "run_id": str(run_id),
+        "reason": reason,
+    }
+    if llm_raw:
+        metadata["llm_raw_snippet"] = llm_raw[:500]
+    await write_audit_log(
+        db,
+        action="agent.llm_plan_fallback",
+        actor_user_id=actor_user_id,
+        resource_type="agent_run",
+        resource_id=run_id,
+        metadata=metadata,
+    )
+
+
+async def audit_llm_plan_success(
+    db: AsyncSession,
+    *,
+    actor_user_id: UUID,
+    run_id: UUID,
+    tool_count: int,
+    llm_raw: str | None = None,
+) -> None:
+    """LLM planner 成功生成 plan → agent.llm_plan_success。
+
+    action = "agent.llm_plan_success"
+    metadata 含 tool_count + llm_raw 截断（≤500 字符）。
+    """
+    metadata: dict[str, str | int] = {
+        "run_id": str(run_id),
+        "tool_count": tool_count,
+    }
+    if llm_raw:
+        metadata["llm_raw_snippet"] = llm_raw[:500]
+    await write_audit_log(
+        db,
+        action="agent.llm_plan_success",
+        actor_user_id=actor_user_id,
+        resource_type="agent_run",
+        resource_id=run_id,
+        metadata=metadata,
+    )
+
+
+async def audit_agent_reflection(
+    db: AsyncSession,
+    *,
+    actor_user_id: UUID,
+    run_id: UUID,
+    signal: str,
+    new_query: str | None = None,
+) -> None:
+    """Agent 反思事件 → agent.reflection。"""
+    metadata: dict[str, str | int | None] = {
+        "run_id": str(run_id),
+        "signal": signal,
+    }
+    if new_query:
+        metadata["new_query"] = new_query[:200]
+    await write_audit_log(
+        db,
+        action="agent.reflection",
+        actor_user_id=actor_user_id,
+        resource_type="agent_run",
+        resource_id=run_id,
+        metadata=metadata,
+    )
+
+
+async def audit_agent_memory_write(
+    db: AsyncSession,
+    *,
+    actor_user_id: UUID,
+    memory_id: UUID,
+    key: str,
+    memory_type: str,
+    confidence: float,
+) -> None:
+    """记忆写入审计事件 → agent.memory_write。
+
+    红线：绝不输出 memory value 原文，仅记录 key + type + confidence_range。
+    confidence_range 离散化为 < 0.3 / 0.3-0.7 / > 0.7。
+    """
+    if confidence < 0.3:
+        confidence_range = "low"
+    elif confidence > 0.7:
+        confidence_range = "high"
+    else:
+        confidence_range = "medium"
+    await write_audit_log(
+        db,
+        action="agent.memory_write",
+        actor_user_id=actor_user_id,
+        resource_type="agent_memory",
+        resource_id=memory_id,
+        metadata={
+            "memory_id": str(memory_id),
+            "key": key,
+            "memory_type": memory_type,
+            "confidence_range": confidence_range,
+        },
+    )

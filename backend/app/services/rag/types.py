@@ -18,6 +18,7 @@ class RetrievedChunk:
     similarity: float
     parent_content: str | None = None
     kb_name: str | None = None
+    rrf_score: float | None = None
 
 
 @dataclass(slots=True)

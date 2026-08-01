@@ -1,8 +1,7 @@
-"""RAG 对话编排：检索 → 相关性 gate → SSE → 落库（Wave 3.1～3.3）。"""
+"""RAG 对话编排：检索 → 相关性 gate → SSE → 落库（Wave 3.1～3.3 · E1 多轮）。"""
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import time
@@ -12,84 +11,37 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.services.rag.engine import ChatEngine
-from app.services.rag.generation import (
-    build_messages,
-    compress_history,
-    contextualize_query,
-    decompose_query,
-    expand_queries,
-    rewrite_query,
-    stream_deepseek_tokens,
-    stream_no_context_reply,
-)
-from app.services.org.scope import OrgScope
-from app.services.rag.persistence import (
-    list_thread_messages,
-    save_chat_turn,
-    save_workspace_chat_turn,
-)
-from app.services.rag.relevance import filter_relevant_chunks
-from app.services.rag.dedup import dedup_and_compress
-from app.services.rag.retrieval import (
-    RetrievedChunk,
-    chunk_to_citation,
-    retrieve_chunks,
-    retrieve_workspace_chunks,
-    workspace_chunk_to_citation,
-)
-from app.services.rag.safety_filter import input_safety_check, output_safety_check
-from app.core.otel import get_tracer
 from app.core.config import settings
-from app.core.degradation import (
-    assess_degradation,
-    degradation_label,
-    degradation_message,
-)
+from app.services.observability.metrics_registry import inc_chats_total
+from app.services.org.scope import OrgScope
+from app.services.rag.engine import ChatEngine
+from app.services.rag.generation import verify_answer
+from app.services.rag.persistence import save_workspace_chat_turn
+from app.services.rag.safety_filter import output_safety_check
+from app.services.rag.sse_concurrency import try_acquire_sse_slot, release_sse_slot
+
+
+async def _with_sse_slot(
+    user_id: UUID,
+    stream: AsyncIterator[str],
+) -> AsyncIterator[str]:
+    """SSE 流式包装：持有 slot 期间流式输出，结束后释放。"""
+    slot_ok = await try_acquire_sse_slot(user_id)
+    if not slot_ok:
+        yield _sse_event("error", {"detail": "同时进行的对话过多，请等待当前对话完成"})
+        return
+    try:
+        async for item in stream:
+            yield item
+    finally:
+        await release_sse_slot(user_id)
 from app.services.workspace.scope import WorkspaceScope
 
 logger = logging.getLogger(__name__)
 
-# 问候/闲聊查询（无需检索，直接 LLM）
-_GREETING_PATTERNS = frozenset({
-    "你好", "您好", "嗨", "hello", "hi", "hey",
-    "谢谢", "感谢", "thank",
-    "再见", "拜拜", "bye",
-    "在吗", "在不在",
-    "你是谁", "你叫什么",
-})
-
-
-def _is_greeting(query: str) -> bool:
-    """判断用户输入是否为问候/闲聊（无需检索）。"""
-    q = query.strip().lower()
-    if len(q) <= 2:
-        return True
-    if len(q) <= 4 and q in _GREETING_PATTERNS:
-        return True
-    if q in _GREETING_PATTERNS:
-        return True
-    return False
-
 
 def _sse_event(event: str, data: dict) -> str:
     return f"event: {event}\ndata: {json.dumps(data, ensure_ascii=False)}\n\n"
-
-
-async def _timed_retrieve_chunks(db: AsyncSession, *, kb_id: UUID, query: str, visible_kb_ids: frozenset[UUID] | None = None, hide_admin_only: bool = False, top_k: int = 5) -> list:
-    """retrieve_chunks 的超时包装。"""
-    return await asyncio.wait_for(
-        retrieve_chunks(db, kb_id=kb_id, query=query, top_k=top_k, visible_kb_ids=visible_kb_ids, hide_admin_only=hide_admin_only),
-        timeout=settings.retrieval_timeout_seconds,
-    )
-
-
-async def _timed_retrieve_workspace_chunks(db: AsyncSession, *, query: str, scope: object, org_scope: object | None = None, hide_admin_only: bool = False, top_k: int = 5) -> list:
-    """retrieve_workspace_chunks 的超时包装。"""
-    return await asyncio.wait_for(
-        retrieve_workspace_chunks(db, query=query, scope=scope, org_scope=org_scope, top_k=top_k, hide_admin_only=hide_admin_only),
-        timeout=settings.retrieval_timeout_seconds,
-    )
 
 
 async def stream_chat_events(
@@ -102,10 +54,64 @@ async def stream_chat_events(
     thread_id: UUID | None = None,
     hide_admin_only: bool = False,
 ) -> AsyncIterator[str]:
-    """生成 SSE 帧：citation → token → done；无依据走拒绝分支；结束后落库。"""
-    engine = ChatEngine(db, user_id=user_id, message=message, kb_id=kb_id, thread_id=thread_id)
-    async for event in engine.stream():
-        yield _sse_event(event["event"], event.get("data", {}))
+    """库内 fast SSE：citation → token → done；thread 内多轮记忆。"""
+    inc_chats_total()
+
+    # 用户级 SSE 并发限制
+    if not await try_acquire_sse_slot(user_id):
+        raise asyncio.CancelledError("SSE concurrency limit exceeded")
+
+    # 提前落库 pending 消息（SSE 中断时保留已生成内容）
+    from app.services.rag.persistence import create_pending_message, finalize_message
+    from app.models.enums import MessageStatus, ThreadKind
+    from app.services.rag.thread_persistence import resolve_thread_for_message
+
+    thread = await resolve_thread_for_message(
+        db,
+        thread_id=thread_id,
+        thread_kind=ThreadKind.knowledge_base,
+        kb_id=kb_id,
+        user_id=user_id,
+    )
+    pending_msg = await create_pending_message(
+        db,
+        thread_id=thread.id,
+        user_id=user_id,
+        query=message,
+        thread_kind=ThreadKind.knowledge_base,
+        kb_id=kb_id,
+    )
+    assistant_message_id = pending_msg.id
+    await db.commit()
+
+    engine = ChatEngine(
+        db,
+        user_id=user_id,
+        message=message,
+        kb_id=kb_id,
+        thread_id=thread_id or thread.id,
+        visible_kb_ids=visible_kb_ids,
+        hide_admin_only=hide_admin_only,
+        assistant_message_id=assistant_message_id,
+    )
+    try:
+        async for event in engine.stream():
+            yield _sse_event(event["event"], event.get("data", {}))
+    except GeneratorExit:
+        # SSE 中断 → 保存已生成的 partial answer
+        partial = engine.collected_text
+        if partial:
+            await finalize_message(
+                db, assistant_message_id,
+                content=partial,
+                citations=list(engine.citations) if engine.citations else [],
+                status=MessageStatus.interrupted,
+            )
+        raise
+    finally:
+        await release_sse_slot(user_id)
+
+
 async def stream_workspace_chat_events(
     db: AsyncSession,
     *,
@@ -117,27 +123,84 @@ async def stream_workspace_chat_events(
     thread_id: UUID | None = None,
     hide_admin_only: bool = False,
 ) -> AsyncIterator[str]:
-    """工作区对话：跨库检索 → gate → SSE（含 kb_name）→ workspace 落库。"""
-    engine = ChatEngine(db, user_id=user_id, message=message, thread_id=thread_id,
-                        scope=scope, org_scope=org_scope, skip_save=True)
+    """工作区 fast SSE：跨库检索 → engine 编排 → workspace 落库。"""
+    inc_chats_total()
+
+    # 提前落库 pending 消息（防止 SSE 中断后丢问句）
+    from app.services.rag.persistence import (
+        create_pending_message,
+        finalize_message,
+    )
+    from app.services.rag.thread_persistence import (
+        resolve_thread_for_message,
+        normalize_workspace_department_key,
+    )
+    from app.models.enums import MessageStatus, ThreadKind
+
+    department_key = normalize_workspace_department_key(department_id)
+    thread = await resolve_thread_for_message(
+        db,
+        thread_id=thread_id,
+        thread_kind=ThreadKind.workspace,
+        kb_id=None,
+        user_id=user_id,
+        workspace_kind=scope.kind,
+        workspace_org_id=scope.org_id,
+        department_key=department_key,
+    )
+    pending_msg = await create_pending_message(
+        db,
+        thread_id=thread.id,
+        user_id=user_id,
+        query=message,
+        thread_kind=ThreadKind.workspace,
+        workspace_kind=scope.kind.value,
+        workspace_org_id=scope.org_id,
+        workspace_department_key=department_key,
+    )
+    assistant_message_id = pending_msg.id
+
+    engine = ChatEngine(
+        db,
+        user_id=user_id,
+        message=message,
+        thread_id=thread_id,
+        scope=scope,
+        org_scope=org_scope,
+        skip_save=True,
+        hide_admin_only=hide_admin_only,
+        assistant_message_id=assistant_message_id,
+    )
     t0 = time.perf_counter()
     answer_parts: list[str] = []
-    engine_citations: list[dict] = []
-    async for event in engine.stream():
-        if event["event"] == "token":
-            answer_parts.append(event["data"]["text"])
-        if event["event"] == "done":
-            continue
-        yield _sse_event(event["event"], event.get("data", {}))
-        if event["event"] == "citations":
-            engine_citations = event["data"]
+    try:
+        async for event in engine.stream():
+            if event["event"] == "token":
+                answer_parts.append(event["data"].get("text", ""))
+            if event["event"] == "done":
+                continue
+            yield _sse_event(event["event"], event.get("data", {}))
+    except GeneratorExit:
+        # SSE 中断 → 保存已生成的 partial answer
+        partial = engine.collected_text or "".join(answer_parts)
+        if partial:
+            await finalize_message(
+                db, assistant_message_id,
+                content=partial,
+                citations=list(engine.citations) if engine.citations else [],
+                status=MessageStatus.interrupted,
+                retrieval_duration_ms=int((time.perf_counter() - t0) * 1000),
+            )
+        raise  # 继续传播 GeneratorExit
 
     assistant_content = "".join(answer_parts)
+    citations = list(engine.citations)
     safe_out, reasons = output_safety_check(assistant_content)
     if settings.self_verify_enabled and assistant_content and engine.chunks:
-        from app.services.rag.generation import verify_answer
         try:
-            verified, corrected = await verify_answer(assistant_content, engine.chunks, message)
+            verified, corrected = await verify_answer(
+                assistant_content, engine.chunks, message
+            )
             if not verified and corrected:
                 assistant_content = corrected
                 yield _sse_event("correction", {"text": corrected})
@@ -146,19 +209,32 @@ async def stream_workspace_chat_events(
     if not safe_out:
         logger.warning("LLM 输出安全违规（workspace chat）: reasons=%s", reasons)
 
-    retrieval_duration_ms = int((time.perf_counter() - t0) * 1000)
-    message_id = uuid.uuid4()
-    await save_workspace_chat_turn(
-        db,
-        user_id=user_id,
-        workspace_kind=scope.kind,
-        workspace_org_id=scope.org_id,
-        department_id=department_id,
-        user_content=message,
-        assistant_content=assistant_content,
-        citations=engine_citations,
-        assistant_message_id=message_id,
-        retrieval_duration_ms=retrieval_duration_ms,
-        thread_id=thread_id,
+    # 使用预创建的 pending message_id，避免重复创建
+    await finalize_message(
+        db, assistant_message_id,
+        content=assistant_content,
+        citations=citations,
+        status=MessageStatus.completed,
+        retrieval_duration_ms=int((time.perf_counter() - t0) * 1000),
     )
-    yield _sse_event("done", {"message_id": str(message_id), "citations": engine_citations})
+
+    # 同时创建 user 消息
+    from app.models.chat_message import ChatMessage as ChatMessageModel
+    db.add(ChatMessageModel(
+        thread_kind=ThreadKind.workspace,
+        kb_id=None,
+        user_id=user_id,
+        thread_id=thread.id,
+        role=MessageRole.user,
+        content=message,
+        status=MessageStatus.completed,
+        workspace_kind=scope.kind.value,
+        workspace_org_id=scope.org_id,
+        workspace_department_key=department_key,
+    ))
+    await db.commit()
+
+    yield _sse_event(
+        "done",
+        {"message_id": str(assistant_message_id), "citations": citations},
+    )

@@ -9,11 +9,12 @@ from app.core.exceptions import (
     ForbiddenError,
     NotFoundError,
 )
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.request_ip import get_client_ip
 from app.core.deps import (
     CurrentUser,
     DepartmentIdQuery,
@@ -40,11 +41,14 @@ from app.services.auth.api_rate_limit import ApiRateLimitKind, enforce_api_rate_
 from app.services.org.scope import can_user_adopt_kb, resolve_org_scope
 from app.services.agent.dispatch import (
     build_kb_tool_scope,
+    create_document_write_planner,
     create_edit_tool_planner,
     create_tool_planner,
+    detect_write_intent,
     workspace_scope_for_kb,
 )
 from app.services.agent.stream import (
+    stream_agent_document_write_events,
     stream_agent_kb_edit_events,
     stream_agent_kb_events,
 )
@@ -218,13 +222,16 @@ async def delete_kb_thread_api(
 async def post_kb_thread_chat(
     kb_id: UUID,
     thread_id: UUID,
+    request: Request,
     body: ChatRequest,
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
     department_id: DepartmentIdQuery = None,
 ) -> StreamingResponse:
     """指定 thread 内库内流式问答（G2-1.3 · 显式 thread_id 落库）。"""
-    enforce_api_rate_limit(ApiRateLimitKind.chat, current_user.id)
+    await enforce_api_rate_limit(
+        ApiRateLimitKind.chat, current_user.id, ip=get_client_ip(request)
+    )
 
     kb = await _require_kb_read_access(
         db, kb_id=kb_id, current_user=current_user, department_id=department_id
@@ -247,7 +254,29 @@ async def post_kb_thread_chat(
 
     sse_headers = SSE_HEADERS
 
-    if body.mode == AgentMode.edit:
+    if body.mode == AgentMode.document_write:
+        # G5 · 文档操作模式（库内）：默认目标库 = 路径 kb（同 G4-E19）。
+        # 仅 Admin/Owner 可进入（写权限门禁 · RBAC 维持）；Member → 403。
+        if not can_user_adopt_kb(current_user, kb, org_scope):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="仅知识库管理员可发起文档写操作",
+            )
+        stream = stream_agent_document_write_events(
+            db,
+            kb_id=kb_id,
+            user_id=current_user.id,
+            message=body.message,
+            thread_id=thread_id,
+            workspace=workspace_scope_for_kb(kb, user_id=current_user.id),
+            tool_scope=build_kb_tool_scope(kb_id, visible_kb_ids),
+            planner=create_document_write_planner(body.message, default_kb_id=kb_id),
+            org_scope=org_scope,
+            can_adopt=True,
+            save_turn=save_chat_turn,
+            save_kwargs={"kb_id": kb_id, "thread_id": thread_id},
+        )
+    elif body.mode == AgentMode.edit:
         # G4-2.3 · 库内编辑：默认目标库 = 路径 kb（G4-E19 / H4-2-B）。
         # planner 经 default_kb_id 截断到路径 kb，generate_faq_draft 落到正确库。
         stream = stream_agent_kb_edit_events(
@@ -271,25 +300,67 @@ async def post_kb_thread_chat(
             thread_id=thread_id,
             workspace=workspace_scope_for_kb(kb, user_id=current_user.id),
             tool_scope=build_kb_tool_scope(kb_id, visible_kb_ids),
-            planner=create_tool_planner(body.message),
+            planner=create_tool_planner(body.message, default_kb_id=kb_id),
             org_scope=org_scope,
         )
     else:
-        stream = stream_chat_events(
-            db,
-            kb_id=kb_id,
-            user_id=current_user.id,
-            message=body.message,
-            visible_kb_ids=visible_kb_ids,
-            thread_id=thread_id,
-            hide_admin_only=(
-                current_user.account_type.value == "enterprise"
-                and current_user.org_role == "member"
-            ),
+        # B 路径自动识别（fast 模式 · 仅库管理员）：命中写意图 → 走文档操作/编辑流，
+        # 否则普通库内问答。Member / 疑问句 / 无具体文档名 → 不触发（情景 4-7）。
+        intent = (
+            detect_write_intent(body.message)
+            if can_user_adopt_kb(current_user, kb, org_scope)
+            else None
         )
+        if intent is not None and intent.operation in ("delete", "restore"):
+            stream = stream_agent_document_write_events(
+                db,
+                kb_id=kb_id,
+                user_id=current_user.id,
+                message=body.message,
+                thread_id=thread_id,
+                workspace=workspace_scope_for_kb(kb, user_id=current_user.id),
+                tool_scope=build_kb_tool_scope(kb_id, visible_kb_ids),
+                planner=create_document_write_planner(
+                    body.message, default_kb_id=kb_id
+                ),
+                org_scope=org_scope,
+                can_adopt=True,
+                double_confirm=True,
+                save_turn=save_chat_turn,
+                save_kwargs={"kb_id": kb_id, "thread_id": thread_id},
+            )
+        elif intent is not None and intent.operation == "create":
+            # 创建草稿 → 复用库内编辑流（generate_faq_draft → approval_required）
+            stream = stream_agent_kb_edit_events(
+                db,
+                kb_id=kb_id,
+                user_id=current_user.id,
+                message=body.message,
+                thread_id=thread_id,
+                workspace=workspace_scope_for_kb(kb, user_id=current_user.id),
+                tool_scope=build_kb_tool_scope(kb_id, visible_kb_ids),
+                planner=create_edit_tool_planner(
+                    body.message, default_kb_id=kb_id
+                ),
+                org_scope=org_scope,
+                can_adopt=can_user_adopt_kb(current_user, kb, org_scope),
+            )
+        else:
+            stream = stream_chat_events(
+                db,
+                kb_id=kb_id,
+                user_id=current_user.id,
+                message=body.message,
+                visible_kb_ids=visible_kb_ids,
+                thread_id=thread_id,
+                hide_admin_only=(
+                    current_user.account_type.value == "enterprise"
+                    and current_user.org_role == "member"
+                ),
+            )
 
     return StreamingResponse(
-        wrap_stream_with_thread_generation_lock(thread_id, stream),
+        wrap_stream_with_thread_generation_lock(thread_id, stream, request=request),
         media_type="text/event-stream",
         headers=sse_headers,
     )
@@ -310,7 +381,9 @@ async def get_kb_thread_messages(
         raise NotFoundError(detail="知识库不存在")
 
     _assert_kb_ownership(kb, current_user)
-    _assert_kb_action_allowed(current_user, KbAction.read)
+    await _assert_kb_action_allowed(
+        current_user, KbAction.read, db=db, kb_id=kb_id
+    )
 
     kb_visible = await is_kb_visible_in_org_scope(
         db, current_user, kb, department_id=department_id

@@ -51,18 +51,20 @@ class GrantPermission(str, Enum):
 
 
 class AgentMode(str, Enum):
-    """Agent 对话模式（G3/G4 · API fast|thorough|edit；fast 不创建 agent_run）。"""
+    """Agent 对话模式（G3/G4 · API fast|thorough|edit|document_write；fast 不创建 agent_run）。"""
 
     fast = "fast"
     thorough = "thorough"
     edit = "edit"
+    document_write = "document_write"
 
 
 class AgentRunMode(str, Enum):
-    """agent_runs.mode 落库值（G3 thorough · G4 edit）。"""
+    """agent_runs.mode 落库值（G3 thorough · G4 edit · G5 document_write）。"""
 
     thorough = "thorough"
     edit = "edit"
+    document_write = "document_write"
 
 
 class AgentRunStatus(str, Enum):
@@ -79,9 +81,11 @@ class AgentStepStatus(str, Enum):
 
 
 class ApprovalKind(str, Enum):
-    """agent_approvals.kind（G4-min 仅 adopt_faq）。"""
+    """agent_approvals.kind（G4-min adopt_faq · G5 delete/restore 文档写操作）。"""
 
     adopt_faq = "adopt_faq"
+    delete_document = "delete_document"
+    restore_document = "restore_document"
 
 
 class ApprovalStatus(str, Enum):
@@ -98,3 +102,11 @@ class DocumentVisibility(str, Enum):
 
     everyone = "everyone"
     admin_only = "admin_only"
+
+
+class MessageStatus(str, Enum):
+    """对话消息状态（SSE 中断处理）。"""
+
+    pending = "pending"
+    completed = "completed"
+    interrupted = "interrupted"

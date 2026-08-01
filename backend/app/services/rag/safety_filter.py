@@ -25,6 +25,16 @@ _BLOCKED_INPUT_PATTERNS: list[re.Pattern] = [
     re.compile(r"儿童(色情|性)", re.IGNORECASE),
 ]
 
+# M11：提示注入检测（system prompt 越狱 / 角色扮演劫持）
+_PROMPT_INJECTION_PATTERNS: list[re.Pattern] = [
+    re.compile(r"忽略(上面的|所有的|之前的|系统的)?(指令|提示|要求|规则|设定)", re.IGNORECASE),
+    re.compile(r"ignore\s+(all\s+)?(previous|above|system)\s+(instructions|prompts|commands|rules)", re.IGNORECASE),
+    re.compile(r"你(现在|接下来|被要求)(需要|必须|可以)(输出|说出|写出|扮演)", re.IGNORECASE),
+    re.compile(r"you\s+(are\s+now|will\s+now|must\s+now)\s+(a\s+)?(different|new|hacker|unrestricted)", re.IGNORECASE),
+    re.compile(r"不用(遵守|遵循|管)(规则|限制|约束)", re.IGNORECASE),
+    re.compile(r"disregard|do\s+not\s+follow|bypass\s+(restrictions|safeguards|rules)", re.IGNORECASE),
+]
+
 # 输出侧：应被拦截的重度有害内容关键词
 _BLOCKED_OUTPUT_PATTERNS: list[re.Pattern] = [
     re.compile(r"(制作|配方|步骤).*(炸弹|冰毒|海洛因)", re.IGNORECASE),
@@ -58,6 +68,10 @@ def input_safety_check(text: str) -> tuple[bool, str | None]:
     for pattern in _BLOCKED_INPUT_PATTERNS:
         if pattern.search(text):
             logger.warning("输入安全拦截: pattern=%s, text=%s", pattern.pattern, text[:80])
+            return False, SAFETY_BLOCK_REPLY
+    for pattern in _PROMPT_INJECTION_PATTERNS:
+        if pattern.search(text):
+            logger.warning("提示注入拦截: pattern=%s, text=%s", pattern.pattern, text[:80])
             return False, SAFETY_BLOCK_REPLY
     return True, None
 

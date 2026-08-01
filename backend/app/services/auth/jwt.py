@@ -10,7 +10,6 @@ from app.core.config import settings
 from app.models.enums import AccountType, OrgRole
 
 JWT_ALGORITHM = "HS256"
-ACCESS_TOKEN_HOURS = 24
 
 
 def create_access_token(
@@ -27,7 +26,7 @@ def create_access_token(
         "sub": str(user_id),
         "account_type": account_type.value,
         "iat": now,
-        "exp": now + timedelta(hours=ACCESS_TOKEN_HOURS),
+        "exp": now + timedelta(hours=settings.access_token_expire_hours),
     }
     if account_type == AccountType.enterprise:
         if org_id is None or org_role is None:

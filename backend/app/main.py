@@ -28,8 +28,10 @@ from app.api.ask_threads import router as ask_threads_router
 from app.api.kb_threads import router as kb_threads_router
 from app.api.audit import router as audit_router
 from app.api.auth import router as auth_router
+from app.api.kb_inventory import router as kb_inventory_router
 from app.api.batch import router as batch_router
 from app.api.api_keys import router as api_keys_router
+from app.api.backfill import router as backfill_router
 from app.api.chat import router as chat_router
 from app.api.dashboard import router as dashboard_router
 from app.api.documents import router as documents_router
@@ -53,8 +55,41 @@ from app.core.logging import get_trace_id, setup_logging, set_trace_id, set_user
 from app.core.otel import setup_otel
 import logging
 from app.core.security import JWTAuthMiddleware
+from app.api.middleware.rate_limit import RateLimitMiddleware
 from app.core.exception_handlers import EXCEPTION_HANDLERS
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+
+
+MAX_BODY_BYTES = 10 * 1024 * 1024  # 10MB
+
+
+class MaxBodySizeMiddleware(BaseHTTPMiddleware):
+    """限制请求体大小（防止内存 DOS）；跳过上传端点（由 upload.py 文件级校验）。"""
+    _SKIP_PATHS = frozenset({
+        "/api/v1/auth/register",
+        "/api/v1/auth/login",
+        "/api/v1/auth/reset-password",
+    })
+
+    async def dispatch(self, request, call_next):
+        path = request.url.path
+        # 公开认证路径可能无 Content-Length 但仍需放行
+        if path in self._SKIP_PATHS:
+            return await call_next(request)
+        content_length = request.headers.get("content-length")
+        if content_length:
+            try:
+                size = int(content_length)
+                if size > MAX_BODY_BYTES:
+                    return JSONResponse(
+                        status_code=413,
+                        content={"detail": f"请求体过大，上限 {MAX_BODY_BYTES // (1024*1024)}MB"},
+                    )
+            except (ValueError, TypeError):
+                pass
+        # upload 端点在 UploadFile 层由 upload.py 的 _read_upload_with_size_limit 校验
+        return await call_next(request)
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -83,12 +118,26 @@ app = FastAPI(
     version="0.12.0",
     docs_url="/docs" if settings.environment == "development" else None,
     redoc_url="/redoc" if settings.environment == "development" else None,
+    openapi_url="/openapi.json" if settings.environment != "production" else None,
 )
 
 setup_logging()
 setup_otel(app)
 
 logger = logging.getLogger(__name__)
+
+
+@app.on_event("startup")
+async def prewarm_models():
+    """预加载 BGE 模型，避免首次请求等待 30s 模型加载。"""
+    try:
+        if settings.embedding_provider == "bge":
+            from app.services.ingestion.embedder import _embed_bge
+            logger.info("预热 BGE 嵌入模型...")
+            await _embed_bge(["ping"])
+            logger.info("BGE 嵌入模型预热完成")
+    except Exception as e:
+        logger.warning("BGE 模型预热失败（不影响启动）: %s", e)
 
 
 def _check_production_guard() -> None:
@@ -103,10 +152,29 @@ def _check_production_guard() -> None:
             "❌ JWT_SECRET 长度不足 32 字符，请使用更长的密钥。"
             "\n   生产环境建议：openssl rand -hex 32"
         )
-    if not settings.deepseek_api_key:
-        logger.warning("⚠️  DEEPSEEK_API_KEY 未配置，LLM 对话功能不可用。")
+    from app.services.rag.chat_llm import active_chat_api_key_configured, resolve_chat_provider
+
+    if not active_chat_api_key_configured():
+        provider = resolve_chat_provider()
+        if provider == "tongyi":
+            logger.warning(
+                "⚠️  CHAT_PROVIDER=tongyi 但 TONGYI_API_KEY 未配置，LLM 对话功能不可用。"
+            )
+        else:
+            logger.warning("⚠️  DEEPSEEK_API_KEY 未配置，LLM 对话功能不可用。")
     if not settings.tongyi_api_key and settings.embedding_provider == "tongyi":
         logger.warning("⚠️  TONGYI_API_KEY 未配置，嵌入/rerank 功能不可用。")
+    try:
+        from app.services.ingestion.ocr import has_ocr_python_deps, is_ocr_enabled
+
+        if is_ocr_enabled() and not has_ocr_python_deps():
+            logger.warning(
+                "OCR_ENABLED=1 但未安装 PaddleOCR/pdf2image："
+                "扫描件入库将 failed（reason=ocr_deps_missing）。"
+                "可装 requirements-ocr.txt，或设 OCR_ENABLED=0。"
+            )
+    except Exception:
+        logger.debug("OCR 启动探测跳过", exc_info=True)
     logger.info("✅ 安全守卫检查通过，环境=%s", settings.environment)
 
 
@@ -131,10 +199,12 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Trace-ID", "X-Request-ID"],
 )
+app.add_middleware(MaxBodySizeMiddleware)
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimitMiddleware)
 app.add_middleware(TraceIdMiddleware)
 app.add_middleware(JWTAuthMiddleware)
 
@@ -146,6 +216,7 @@ app.include_router(health_router)
 app.include_router(internal_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(audit_router, prefix="/api/v1")
+app.include_router(kb_inventory_router, prefix="/api/v1")
 app.include_router(organization_router, prefix="/api/v1")
 app.include_router(org_units_router, prefix="/api/v1")
 app.include_router(org_unit_members_router, prefix="/api/v1")
@@ -163,6 +234,7 @@ app.include_router(roles_router, prefix="/api/v1")
 app.include_router(search_router, prefix="/api/v1")
 app.include_router(settings_router, prefix="/api/v1")
 app.include_router(api_keys_router, prefix="/api/v1")
+app.include_router(backfill_router, prefix="/api/v1")
 app.include_router(batch_router, prefix="/api/v1")
 app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(versions_router, prefix="/api/v1")

@@ -46,7 +46,9 @@ async def resolve_citation(
         raise NotFoundError("知识库不存在")
 
     _assert_kb_ownership(kb, current_user)
-    _assert_kb_action_allowed(current_user, KbAction.read)
+    await _assert_kb_action_allowed(
+        current_user, KbAction.read, db=db, kb_id=kb_id
+    )
 
     if not await is_kb_visible_in_org_scope(
         db, current_user, kb, department_id=department_id
@@ -59,7 +61,7 @@ async def resolve_citation(
         )
 
     doc = await db.get(Document, document_id)
-    if doc is None or doc.kb_id != kb_id:
+    if doc is None or doc.kb_id != kb_id or getattr(doc, "deleted_at", None) is not None:
         return CitationResolveResponse(
             document_id=document_id,
             chunk_id=chunk_id,

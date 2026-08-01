@@ -9,14 +9,19 @@ from uuid import UUID
 from sqlalchemy import ColumnElement, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.models.document_chunk import DocumentChunk
+from app.services.rag.redact import mask_pii
 from app.services.rag.types import RetrievedChunk, _RecallRow
 
 logger = logging.getLogger(__name__)
 
 
 def excerpt(content: str, max_len: int = 200) -> str:
+    """先脱敏（可关）再截断；SEC-5 / NW-27。"""
     text = content.strip()
+    if settings.citation_redact_enabled:
+        text = mask_pii(text)
     if len(text) <= max_len:
         return text
     return text[: max_len - 1] + "…"

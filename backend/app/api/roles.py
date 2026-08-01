@@ -10,31 +10,56 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.deps import CurrentUser, get_current_user, require_org_role
+from app.core.deps import CurrentUser, get_current_user, require_org_role, require_org_scope
 from app.models.enums import OrgRole
 from app.models.custom_role import CustomRole
 from app.models.organization_member import OrganizationMember
-from pydantic import BaseModel
+from app.services.audit.log import write_audit_log
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 
 
 router = APIRouter(prefix="/orgs/{org_id}/roles", tags=["roles"])
 
-OrgAdmin = Annotated[CurrentUser, Depends(require_org_role(OrgRole.admin))]
+OrgAdmin = Annotated[CurrentUser, Depends(require_org_scope(OrgRole.admin))]
 
 
 class RoleCreate(BaseModel):
-    name: str
-    description: str | None = None
+    name: str = Field(min_length=1, max_length=128)
+    description: str | None = Field(default=None, max_length=500)
     is_admin_level: bool = False
     permissions: dict = {}
 
+    @field_validator("permissions")
+    @classmethod
+    def validate_permissions(cls, v: dict) -> dict:
+        allowed_values = {"read", "write", "admin", "deny"}
+        for key, val in v.items():
+            if not isinstance(key, str):
+                raise ValueError(f"权限键必须为字符串: {key}")
+            if val not in allowed_values:
+                raise ValueError(f"权限值必须为 {allowed_values}，实际: {val}")
+        return v
+
 
 class RoleUpdate(BaseModel):
-    name: str | None = None
-    description: str | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=128)
+    description: str | None = Field(default=None, max_length=500)
     is_admin_level: bool | None = None
     permissions: dict | None = None
+
+    @field_validator("permissions")
+    @classmethod
+    def validate_permissions(cls, v: dict | None) -> dict | None:
+        if v is None:
+            return v
+        allowed_values = {"read", "write", "admin", "deny"}
+        for key, val in v.items():
+            if not isinstance(key, str):
+                raise ValueError(f"权限键必须为字符串: {key}")
+            if val not in allowed_values:
+                raise ValueError(f"权限值必须为 {allowed_values}，实际: {val}")
+        return v
 
 
 class RoleResponse(BaseModel):
@@ -77,6 +102,17 @@ async def create_role(
     db.add(role)
     await db.commit()
     await db.refresh(role)
+
+    await write_audit_log(
+        db,
+        action="role.create",
+        actor_user_id=admin.id,
+        resource_type="role",
+        resource_id=role.id,
+        metadata={"name": role.name, "is_admin_level": role.is_admin_level},
+    )
+    await db.commit()
+
     return RoleResponse.model_validate(role)
 
 
@@ -101,6 +137,17 @@ async def update_role(
         role.permissions = body.permissions
     await db.commit()
     await db.refresh(role)
+
+    await write_audit_log(
+        db,
+        action="role.update",
+        actor_user_id=admin.id,
+        resource_type="role",
+        resource_id=role_id,
+        metadata={"name": role.name},
+    )
+    await db.commit()
+
     return RoleResponse.model_validate(role)
 
 
@@ -117,4 +164,15 @@ async def delete_role(
         raise HTTPException(status_code=404, detail="角色不存在")
     await db.delete(role)
     await db.commit()
+
+    await write_audit_log(
+        db,
+        action="role.delete",
+        actor_user_id=admin.id,
+        resource_type="role",
+        resource_id=role_id,
+        metadata={"name": role.name},
+    )
+    await db.commit()
+
     return Response(status_code=204)

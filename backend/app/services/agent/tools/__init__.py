@@ -57,6 +57,21 @@ from app.services.agent.tools.generate_faq_draft import (
     GenerateFaqDraftToolResult,
     run_generate_faq_draft,
 )
+from app.services.agent.tools.document_write import (
+    DocumentWriteFailure,
+    DocumentWriteProposal,
+    DocumentWriteToolResult,
+    run_delete_document,
+    run_restore_document,
+)
+from app.services.agent.tools.web_search import (
+    WebSearchResult,
+    web_search,
+)
+from app.services.agent.tools.sql_query import (
+    QueryResult,
+    sql_query,
+)
 from app.services.agent.tools.registry import (
     ALL_AGENT_TOOL_NAMES,
     READ_ONLY_TOOL_NAMES,
@@ -131,7 +146,16 @@ __all__ = [
     "run_get_chunk_excerpt",
     "run_grep_in_document",
     "run_generate_faq_draft",
+    "DocumentWriteFailure",
+    "DocumentWriteProposal",
+    "DocumentWriteToolResult",
+    "run_delete_document",
+    "run_restore_document",
     "run_list_knowledge_bases",
     "run_search_documents",
     "run_semantic_search",
+    "WebSearchResult",
+    "web_search",
+    "QueryResult",
+    "sql_query",
 ]

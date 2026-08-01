@@ -16,9 +16,10 @@ from app.core.rag_baseline import (
 from app.models.audit_log import AuditLog
 from app.models.chat_message import ChatMessage
 from app.models.document import Document
-from app.models.enums import DocumentStatus, MessageRole
+from app.models.enums import DocumentStatus, MessageRole, OrgRole
 from app.models.knowledge_base import KnowledgeBase
 from app.models.organization_member import OrganizationMember
+from app.schemas.auth import UserPublic
 from app.schemas.dashboard import DashboardStatsResponse, DocumentStatusCounts
 from app.services.dashboard.aggregates import (
     _deleted_kb_audit_scope_clause,
@@ -27,8 +28,28 @@ from app.services.dashboard.aggregates import (
     build_recent_activities,
     build_recent_threads,
 )
+from app.services.dashboard.cost_estimate import (
+    COST_ESTIMATE_NOTE,
+    estimate_chat_cost_cny_7d,
+)
 from app.services.org.scope import OrgScope
 from app.services.workspace.scope import WorkspaceKind, WorkspaceScope
+
+
+def _can_see_cost_estimate(
+    scope: WorkspaceScope,
+    current_user: UserPublic | None,
+) -> bool:
+    """个人空间可见；团队空间仅 Owner/Admin/自定义 Admin。"""
+    if scope.kind == WorkspaceKind.personal:
+        return True
+    if current_user is None:
+        return False
+    return bool(
+        current_user.is_owner
+        or current_user.org_role == OrgRole.admin
+        or current_user.custom_role_is_admin
+    )
 
 
 def _kb_scope_clause(
@@ -70,6 +91,7 @@ async def get_dashboard_stats(
     scope: WorkspaceScope,
     *,
     org_scope: OrgScope | None = None,
+    current_user: UserPublic | None = None,
 ) -> DashboardStatsResponse:
     scope_clause = _kb_scope_clause(scope, org_scope)
     scope_label = (
@@ -176,6 +198,48 @@ async def get_dashboard_stats(
     )
     chat_message_count = int(chat_count or 0)
 
+    usage_user = await db.scalar(
+        select(func.count(ChatMessage.id))
+        .join(KnowledgeBase, ChatMessage.kb_id == KnowledgeBase.id)
+        .where(
+            scope_clause,
+            ChatMessage.role == MessageRole.user,
+            ChatMessage.created_at >= seven_days_ago,
+        )
+    )
+    usage_assistant = await db.scalar(
+        select(func.count(ChatMessage.id))
+        .join(KnowledgeBase, ChatMessage.kb_id == KnowledgeBase.id)
+        .where(
+            scope_clause,
+            ChatMessage.role == MessageRole.assistant,
+            ChatMessage.created_at >= seven_days_ago,
+        )
+    )
+    usage_7d_user_questions = int(usage_user or 0)
+    usage_7d_assistant_replies = int(usage_assistant or 0)
+
+    estimated_api_cost_cny_7d: float | None = None
+    cost_estimate_note: str | None = None
+    chat_retention_days: int | None = None
+    rate_limit_backend: str | None = None
+    citation_redact_enabled: bool | None = None
+    llm_context_redact_enabled: bool | None = None
+    kb_quota_max_bytes: int | None = None
+    if _can_see_cost_estimate(scope, current_user):
+        from app.core.config import settings
+        from app.services.auth.rate_limit_store import get_rate_limit_backend
+
+        estimated_api_cost_cny_7d = estimate_chat_cost_cny_7d(
+            usage_7d_assistant_replies
+        )
+        cost_estimate_note = COST_ESTIMATE_NOTE
+        chat_retention_days = int(settings.chat_retention_days)
+        rate_limit_backend = get_rate_limit_backend()
+        citation_redact_enabled = bool(settings.citation_redact_enabled)
+        llm_context_redact_enabled = bool(settings.llm_context_redact_enabled)
+        kb_quota_max_bytes = int(settings.kb_quota_max_bytes)
+
     avg_retrieval = await db.scalar(
         select(func.avg(ChatMessage.retrieval_duration_ms))
         .join(KnowledgeBase, ChatMessage.kb_id == KnowledgeBase.id)
@@ -242,4 +306,13 @@ async def get_dashboard_stats(
         question_trend=question_trend,
         format_distribution=format_distribution,
         recent_threads=recent_threads,
+        usage_7d_user_questions=usage_7d_user_questions,
+        usage_7d_assistant_replies=usage_7d_assistant_replies,
+        estimated_api_cost_cny_7d=estimated_api_cost_cny_7d,
+        cost_estimate_note=cost_estimate_note,
+        chat_retention_days=chat_retention_days,
+        rate_limit_backend=rate_limit_backend,
+        citation_redact_enabled=citation_redact_enabled,
+        llm_context_redact_enabled=llm_context_redact_enabled,
+        kb_quota_max_bytes=kb_quota_max_bytes,
     )

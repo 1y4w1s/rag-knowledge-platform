@@ -1,4 +1,4 @@
-"""点赞/点踩反馈 API。"""
+"""点赞/点踩反馈 API（NW-10：默认隐藏 UX；只记元数据）。"""
 
 from __future__ import annotations
 
@@ -9,7 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.deps import CurrentUser, get_current_user
+from app.core.deps import CurrentUser, KbAction, get_current_user, require_kb_access
+from app.models.enums import AccountType, OrgRole
 from app.schemas.feedback import (
     FeedbackCreate,
     FeedbackListResponse,
@@ -27,16 +28,27 @@ from app.services.rag.feedback import (
 router = APIRouter(prefix="/feedback", tags=["feedback"])
 
 
+def _can_aggregate_feedback(user: CurrentUser) -> bool:
+    """Owner / 组织 Admin / 自定义 admin 级可看聚合（非仅本人）。"""
+    if user.is_owner:
+        return True
+    if user.org_role == OrgRole.admin:
+        return True
+    if user.custom_role_is_admin:
+        return True
+    return False
+
+
 @router.post("", response_model=FeedbackResponse, status_code=201)
 async def submit_feedback(
     body: FeedbackCreate,
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> FeedbackResponse:
-    """提交或更新对某条消息的点赞/点踩。
+    """提交或更新对某条助手消息的点赞/点踩。
 
     每人每消息只能有一条反馈；重复提交会更新 rating。
-    消息必须属于当前用户。
+    消息必须属于当前用户且 role=assistant。
     """
     try:
         fb = await upsert_feedback(
@@ -57,7 +69,7 @@ async def get_feedback(
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> FeedbackResponse | None:
-    """查看当前用户对某条消息的反馈。无反馈时返回 null。"""
+    """查看当前用户对某消息的反馈。无反馈时返回 null。"""
     fb = await get_message_feedback(db, message_id=message_id, user_id=current_user.id)
     return FeedbackResponse.model_validate(fb) if fb else None
 
@@ -68,8 +80,38 @@ async def feedback_stats(
     db: Annotated[AsyncSession, Depends(get_db)],
     kb_id: uuid.UUID | None = None,
 ) -> FeedbackStatsResponse:
-    """获取当前用户的反馈统计。可选按 kb_id 过滤。"""
-    stats = await get_feedback_stats(db, user_id=current_user.id, kb_id=kb_id)
+    """反馈统计。
+
+    Member / 个人：仅本人。
+    Owner/Admin：不绑 user_id；可选 kb_id（须可读该库）；无 kb 时按组织范围聚合。
+    """
+    if kb_id is not None:
+        await require_kb_access(
+            kb_id=kb_id,
+            action=KbAction.read,
+            current_user=current_user,
+            db=db,
+        )
+
+    if _can_aggregate_feedback(current_user):
+        org_id = (
+            current_user.org_id
+            if current_user.account_type == AccountType.enterprise
+            else None
+        )
+        stats = await get_feedback_stats(
+            db,
+            user_id=None,
+            kb_id=kb_id,
+            org_id=None if kb_id is not None else org_id,
+        )
+    else:
+        stats = await get_feedback_stats(
+            db,
+            user_id=current_user.id,
+            kb_id=kb_id,
+            org_id=None,
+        )
     return FeedbackStatsResponse(**stats)
 
 

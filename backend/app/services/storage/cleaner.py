@@ -72,3 +72,24 @@ def remove_kb_tree(kb_id: uuid.UUID) -> CleanupResult:
         logger.warning("delete kb: failed to rmtree %s", kb_dir, exc_info=True)
 
     return CleanupResult(tree_errors=tree_errors)
+
+
+def unlink_file(path: Path, *, root: Path | None = None) -> CleanupResult:
+    """安全删除单文件（H2 O3）；须落在 upload 根内，失败只计数。"""
+    file_errors = 0
+    resolved = path.resolve()
+    base = (root or Path(settings.upload_dir)).resolve()
+    try:
+        resolved.relative_to(base)
+    except ValueError:
+        logger.warning("unlink_file refused escaped path %s", resolved)
+        return CleanupResult(file_errors=1)
+
+    try:
+        if resolved.is_file():
+            resolved.unlink()
+    except OSError:
+        file_errors += 1
+        logger.warning("unlink_file failed %s", resolved, exc_info=True)
+
+    return CleanupResult(file_errors=file_errors)

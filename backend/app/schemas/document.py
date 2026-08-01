@@ -17,6 +17,9 @@ class DocumentResponse(BaseModel):
     status: DocumentStatus
     error_message: str | None
     chunk_count: int | None
+    processing_stage: str | None = None
+    progress_percent: int | None = None
+    progress_detail: str | None = None
     processing_started_at: datetime | None
     processing_completed_at: datetime | None
     uploaded_by: UUID | None

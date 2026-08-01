@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from datetime import datetime, timezone
 from uuid import UUID
@@ -13,6 +14,79 @@ from app.models.chat_thread import ChatThread
 from app.models.enums import ThreadKind, ThreadStatus
 from app.services.audit.chat import audit_thread_archived, audit_thread_created
 from app.services.workspace.scope import WorkspaceKind
+
+_THREAD_LIST_CACHE_TTL = 60  # 秒
+
+try:
+    from app.core.redis import get_redis as _get_redis
+except ImportError:
+    _get_redis = None
+
+
+async def _cache_thread_list(key: str, threads: list[ChatThread]) -> None:
+    """将 thread 列表写入 Redis 缓存（静默失败）。"""
+    if _get_redis is None:
+        return
+    try:
+        redis = await _get_redis()
+        data = [{
+            "id": str(t.id),
+            "title": t.title,
+            "status": t.status.value if t.status else None,
+            "created_at": t.created_at.isoformat() if t.created_at else None,
+            "updated_at": t.updated_at.isoformat() if t.updated_at else None,
+            "last_message_at": t.last_message_at.isoformat() if t.last_message_at else None,
+        } for t in threads]
+        import json
+        await redis.setex(key, _THREAD_LIST_CACHE_TTL, json.dumps(data))
+    except Exception:
+        pass
+
+
+async def _load_cached_threads(key: str) -> list[ChatThread] | None:
+    """从 Redis 读取缓存的 thread 列表（静默失败返回 None）。"""
+    if _get_redis is None:
+        return None
+    try:
+        redis = await _get_redis()
+        raw = await redis.get(key)
+        if raw is None:
+            return None
+        import json
+        data = json.loads(raw)
+        from app.models.chat_thread import ChatThread as CT
+        return [CT(**{k: v for k, v in item.items() if k != "last_message_at"}) for item in data]
+    except Exception:
+        return None
+
+
+async def invalidate_thread_list_cache(user_id: UUID, thread_kind: ThreadKind, kb_id: UUID | None = None) -> None:
+    """删除用户在某 scope 下的 thread 列表缓存。"""
+    if _get_redis is None:
+        return
+    try:
+        prefix = f"tl:{user_id}:{thread_kind.value}"
+        suffix = str(kb_id) if kb_id else "*"
+        redis = await _get_redis()
+        keys = await redis.keys(f"{prefix}:{suffix}")
+        if keys:
+            await redis.delete(*keys)
+    except Exception:
+        pass
+
+
+async def _invalidate_cache_for_thread(thread_id: UUID) -> None:
+    """读取 thread 信息后失效其列表缓存。"""
+    # 从 DB 读取 thread 信息（需要独立 session）
+    try:
+        from app.core.database import SessionLocal
+        async with SessionLocal() as db:
+            t = await db.get(ChatThread, thread_id)
+            if t is None:
+                return
+            await invalidate_thread_list_cache(t.user_id, t.thread_kind, t.kb_id)
+    except Exception:
+        pass
 
 DEFAULT_THREAD_TITLE = "历史对话"
 NEW_THREAD_TITLE = ""
@@ -82,6 +156,8 @@ async def touch_thread(
         .where(ChatThread.id == thread_id)
         .values(last_message_at=ts, updated_at=ts)
     )
+    # 异步失效缓存（不等待完成）
+    asyncio.ensure_future(_invalidate_cache_for_thread(thread_id))
 
 
 # ── 合并 CRUD（code-refactor-B）：thread_kind 参数化 KB/Workspace ──
@@ -182,6 +258,16 @@ async def list_threads(
 ) -> list[ChatThread]:
     """返回 thread 列表（默认仅 active，按 last_message_at 倒序）。"""
     capped = max(1, min(limit, 100))
+
+    # 构建缓存 key
+    cache_key = f"tl:{user_id}:{thread_kind.value}:{kb_id if thread_kind == ThreadKind.knowledge_base else f'{workspace_kind.value}:{workspace_org_id}:{normalize_workspace_department_key(department_id)}'}"
+
+    # 尝试缓存
+    if not include_archived:
+        cached = await _load_cached_threads(cache_key)
+        if cached is not None:
+            return cached
+
     stmt = select(ChatThread).where(ChatThread.thread_kind == thread_kind).where(ChatThread.user_id == user_id)
     if thread_kind == ThreadKind.knowledge_base:
         stmt = stmt.where(ChatThread.kb_id == kb_id)
@@ -204,7 +290,10 @@ async def list_threads(
             ChatThread.created_at.desc(),
         ).limit(capped)
     )
-    return list(result.scalars().all())
+    threads = list(result.scalars().all())
+    if not include_archived:
+        await _cache_thread_list(cache_key, threads)
+    return threads
 
 
 async def create_thread(

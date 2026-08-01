@@ -43,8 +43,30 @@ _MAX_SIZE: int = 5000
 _TTL_SECONDS: int = 300
 
 
+def _effective_ttl() -> int:
+    """从配置读取 TTL（同时允许 env 覆盖 for 单测）。"""
+    from app.core.config import settings
+    return settings.query_cache_ttl_seconds
+
+
+def _effective_max_size() -> int:
+    from app.core.config import settings
+    return settings.query_cache_max_size
+
+
 def _cache_key(kb_id: UUID, query: str) -> str:
-    raw = f"{kb_id}|{query.strip().lower()}"
+    # 带上 rewrite / clause-route / rerank 策略，避免开/关后命中错误缓存
+    from app.services.rag.planner import (
+        effective_query_rewrite_policy,
+        effective_rerank_policy,
+    )
+
+    rw_pol = effective_query_rewrite_policy()
+    rw = {"off": "off", "always": "always", "conditional": "cond"}.get(rw_pol, rw_pol)
+    cr = "1" if settings.clause_route_enabled else "0"
+    pol = effective_rerank_policy()
+    rr = {"off": "off", "always": "always", "conditional": "cond"}.get(pol, pol)
+    raw = f"{kb_id}|{query.strip().lower()}|rw={rw}|cr={cr}|rr={rr}"
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
@@ -59,18 +81,22 @@ async def get_query_cache(kb_id: UUID, query: str) -> list | None:
             data = await r.get(key)
             if data:
                 cached_at, chunks = json.loads(data)
-                if time.monotonic() - cached_at < _TTL_SECONDS:
+                if time.monotonic() - cached_at < _effective_ttl():
+                    _inc_cache_hit("query_chunks")
                     return chunks
         except Exception as e:
             logger.warning("Redis 读取失败，回退 memory: %s", e)
 
     entry = _cache.get(key)
     if entry is None:
+        _inc_cache_miss("query_chunks")
         return None
     ts, chunks = entry
-    if time.monotonic() - ts > _TTL_SECONDS:
+    if time.monotonic() - ts > _effective_ttl():
         del _cache[key]
+        _inc_cache_miss("query_chunks")
         return None
+    _inc_cache_hit("query_chunks")
     return chunks
 
 
@@ -83,13 +109,13 @@ async def set_query_cache(kb_id: UUID, query: str, chunks: list) -> None:
             from app.core.redis import get_redis
             r = await get_redis()
             data = json.dumps([time.monotonic(), chunks])
-            await r.setex(key, _TTL_SECONDS, data)
+            await r.setex(key, _effective_ttl(), data)
             return
         except Exception as e:
             logger.warning("Redis 写入失败，回退 memory: %s", e)
 
     _cache[key] = (time.monotonic(), chunks)
-    if len(_cache) > _MAX_SIZE:
+    if len(_cache) > _effective_max_size():
         _cache.popitem(last=False)
 
 
@@ -142,3 +168,148 @@ def set_query_cache_enabled(enabled: bool) -> None:
     if not enabled:
         import asyncio
         asyncio.create_task(clear_query_cache())
+
+
+# ── LLM 响应缓存 ──────────────────────────────────────────────────
+
+_CACHE_HIT_TOTAL: dict[str, int] = {}
+
+
+def _reset_cache_hit_counters() -> None:
+    """仅测试用。"""
+    _CACHE_HIT_TOTAL.clear()
+
+
+def cache_hit_snapshot() -> dict[str, int]:
+    """返回 {kind: count}，kind=query_chunks|llm_response。"""
+    return dict(_CACHE_HIT_TOTAL)
+
+
+def _inc_cache_hit(kind: str) -> None:
+    _CACHE_HIT_TOTAL[kind] = _CACHE_HIT_TOTAL.get(kind, 0) + 1
+
+
+def _inc_cache_miss(kind: str) -> None:
+    _CACHE_HIT_TOTAL[f"{kind}_miss"] = _CACHE_HIT_TOTAL.get(f"{kind}_miss", 0) + 1
+
+
+class AsyncLLMResponseCache:
+    """LLM 响应缓存（精确匹配 messages 列表）。
+
+    双后端：memory（默认，进程内 LRU）/ redis（多副本共享）。
+    key = sha256(kb_id/workspace + messages_json)，自动含 chunk 内容差异。
+    写入点在 LLM 成功返回后；拒答不缓存。
+    """
+
+    def __init__(self) -> None:
+        self._memory: OrderedDict[str, tuple[float, dict]] = OrderedDict()
+
+    def _backend(self) -> str:
+        return _get_backend()
+
+    def _cache_key(
+        self,
+        kb_id: str | None,
+        workspace: str,
+        messages: list[dict[str, str]],
+    ) -> str:
+        prefix = kb_id or f"ws:{workspace}"
+        raw = f"{prefix}|{json.dumps(messages, ensure_ascii=False, sort_keys=True)}"
+        return f"llm:{hashlib.sha256(raw.encode('utf-8')).hexdigest()}"
+
+    async def get(
+        self,
+        kb_id: str | None,
+        workspace: str,
+        messages: list[dict[str, str]],
+    ) -> dict | None:
+        """返回 {content, citations, confidence} 或 None。"""
+        ttl = settings.llm_response_cache_ttl_seconds
+        if ttl <= 0:
+            return None
+        key = self._cache_key(kb_id, workspace, messages)
+
+        if self._backend() == "redis":
+            try:
+                from app.core.redis import get_redis
+                r = await get_redis()
+                data = await r.get(key)
+                if data:
+                    cached_at, payload = json.loads(data)
+                    if time.monotonic() - cached_at < ttl:
+                        _inc_cache_hit("llm_response")
+                        return payload
+            except Exception as e:
+                logger.warning("Redis LLM 缓存读失败，回退 memory: %s", e)
+
+        entry = self._memory.get(key)
+        if entry is None:
+            _inc_cache_miss("llm_response")
+            return None
+        ts, payload = entry
+        if time.monotonic() - ts > ttl:
+            del self._memory[key]
+            _inc_cache_miss("llm_response")
+            return None
+        _inc_cache_hit("llm_response")
+        return payload
+
+    async def set(
+        self,
+        kb_id: str | None,
+        workspace: str,
+        messages: list[dict[str, str]],
+        payload: dict,
+    ) -> None:
+        """写入 LLM 响应缓存。payload = {content, citations, confidence}。"""
+        ttl = settings.llm_response_cache_ttl_seconds
+        if ttl <= 0:
+            return
+        key = self._cache_key(kb_id, workspace, messages)
+
+        if self._backend() == "redis":
+            try:
+                from app.core.redis import get_redis
+                r = await get_redis()
+                data = json.dumps([time.monotonic(), payload])
+                await r.setex(key, ttl, data)
+                return
+            except Exception as e:
+                logger.warning("Redis LLM 缓存写失败，回退 memory: %s", e)
+
+        self._memory[key] = (time.monotonic(), payload)
+        if len(self._memory) > _effective_max_size():
+            self._memory.popitem(last=False)
+
+    async def clear(self, kb_id: str | None = None) -> int:
+        """清空 LLM 响应缓存（可选按 kb_id 前缀）。返回清除条目数。"""
+        cleared = 0
+        if self._backend() == "redis":
+            try:
+                from app.core.redis import get_redis
+                r = await get_redis()
+                prefix = f"llm:{kb_id[:8]}" if kb_id else "llm:"
+                keys = await r.keys(f"{prefix}*")
+                if keys:
+                    await r.delete(*keys)
+                    cleared = len(keys)
+                return cleared
+            except Exception as e:
+                logger.warning("Redis LLM 缓存清空失败: %s", e)
+                return 0
+
+        if kb_id:
+            prefix = kb_id[:8]
+            keys = [k for k in self._memory if prefix in k]
+            for k in keys:
+                del self._memory[k]
+            cleared = len(keys)
+        else:
+            cleared = len(self._memory)
+            self._memory.clear()
+        logger.info("LLM 响应缓存清空: %d 条", cleared)
+        return cleared
+
+
+# 全局单例
+llm_response_cache = AsyncLLMResponseCache()

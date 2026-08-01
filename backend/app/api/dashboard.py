@@ -31,4 +31,6 @@ async def read_dashboard_stats(
     org_scope = await resolve_org_scope_for_workspace(
         db, current_user, scope, department_id=department_id
     )
-    return await get_dashboard_stats(db, scope, org_scope=org_scope)
+    return await get_dashboard_stats(
+        db, scope, org_scope=org_scope, current_user=current_user
+    )

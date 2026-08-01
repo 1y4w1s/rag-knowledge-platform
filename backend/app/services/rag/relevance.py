@@ -10,7 +10,38 @@ from app.services.rag.types import RetrievedChunk
 _CJK_RUN = re.compile(r"[\u4e00-\u9fff]+")
 _LATIN_TERM = re.compile(r"[A-Za-z0-9_]{4,}")
 
-SIMILARITY_FALLBACK_THRESHOLD = 0.45  # 字面匹配失败时的语义兜底阈值
+# 问句虚词 / 万能实体：单独命中不足以构成「有依据」（AC-4：公司火星/上市）
+_OVERLAP_STOPWORDS = frozenset(
+    {
+        "公司",
+        "什么",
+        "怎么",
+        "如何",
+        "是否",
+        "可以",
+        "政策",
+        "计划",
+        "相关",
+        "内容",
+        "问题",
+        "一下",
+        "这个",
+        "那个",
+        "哪些",
+        "多少",
+        "有没有",
+        "the",
+        "what",
+        "which",
+        "where",
+        "when",
+        "how",
+        "does",
+        "company",
+        "policy",
+        "plan",
+    }
+)
 
 
 def _significant_terms(query: str) -> list[str]:
@@ -24,7 +55,7 @@ def _significant_terms(query: str) -> list[str]:
                 continue
             for i in range(len(run) - size + 1):
                 terms.append(run[i : i + size])
-    return terms
+    return [t for t in terms if t.lower() not in _OVERLAP_STOPWORDS]
 
 
 def query_overlaps_chunk(query: str, chunk: RetrievedChunk) -> bool:
@@ -50,10 +81,10 @@ def _vector_scores_universally_weak(chunks: list[RetrievedChunk]) -> bool:
     不应触发「弱向量」拒答逻辑。
     """
     threshold = settings.retrieval_min_top1_similarity
-    scored = [c for c in chunks if c.similarity and c.similarity > 0.0]
+    scored = [c for c in chunks if getattr(c, "similarity", 0.0) and getattr(c, "similarity", 0.0) > 0.0]
     if not scored:
         return False
-    return all(c.similarity < threshold for c in scored)
+    return all(getattr(c, "similarity", 0.0) < threshold for c in scored)
 
 
 def has_relevant_context(chunks: list[RetrievedChunk], query: str) -> bool:
@@ -72,8 +103,8 @@ def has_relevant_context(chunks: list[RetrievedChunk], query: str) -> bool:
         return True
 
     # 字面不匹配 → 语义兜底：检查向量相似度
-    max_sim = max(c.similarity for c in top3)
-    if max_sim >= SIMILARITY_FALLBACK_THRESHOLD:
+    max_sim = max(getattr(c, "similarity", 0.0) for c in top3)
+    if max_sim >= settings.relevance_similarity_fallback:
         return True
 
     return False
@@ -88,11 +119,22 @@ def filter_relevant_chunks(
     chunks: list[RetrievedChunk],
     query: str,
 ) -> list[RetrievedChunk]:
-    """逐 chunk 相关性过滤：零词面重叠的 chunk 丢弃。
+    """逐 chunk 相关性过滤：零词面重叠的 chunk 丢弃，灰色带语义兜底。
+
+    保留规则：
+    - 词面重叠 → 保留
+    - 无词面重叠但 0.45 ≤ similarity < 0.9 → 保留（灰色带语义兜底，修复复合题跨章节）
+    - 无词面重叠且 similarity ≥ 0.9 → 丢弃（AC-4：高相似假阳性防线）
 
     与旧版的区别：旧版是 all-or-nothing（全部丢弃或全部保留）；
     新版逐 chunk 检查，不相关的 chunk 单独丢弃，保留部分相关结果。
     """
     if not chunks:
         return []
-    return [c for c in chunks if query_overlaps_chunk(query, c)]
+    lo = settings.relevance_similarity_fallback
+    hi = settings.relevance_high_sim_reject
+    return [
+        c for c in chunks
+        if query_overlaps_chunk(query, c)
+        or (c.similarity and lo <= c.similarity < hi)
+    ]

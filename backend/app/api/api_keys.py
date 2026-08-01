@@ -1,7 +1,8 @@
-"""API Key 管理端点（API Key 管理）。"""
+﻿"""API Key 管理端点（API Key 管理）。"""
 
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import datetime, timezone
 from typing import Annotated
@@ -16,11 +17,11 @@ from app.core.database import get_db
 from app.core.deps import get_current_user, CurrentUser
 from app.models.api_key import ApiKey
 from app.services.auth.api_key_auth import generate_api_key, hash_api_key
+from app.services.audit.log import write_audit_log
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api-keys", tags=["api-keys"])
 
-
-# ── Schemas ─────────────────────────────────────────────
 
 class ApiKeyCreateRequest(BaseModel):
     name: str
@@ -51,8 +52,6 @@ class ApiKeyListResponse(BaseModel):
     items: list[ApiKeyItem]
 
 
-# ── Endpoints ───────────────────────────────────────────
-
 @router.post("", response_model=ApiKeyCreateResponse, status_code=201)
 async def create_api_key(
     body: ApiKeyCreateRequest,
@@ -72,6 +71,16 @@ async def create_api_key(
         is_active=True,
     )
     db.add(api_key)
+    await db.flush()
+
+    await write_audit_log(
+        db,
+        action="api_key.create",
+        actor_user_id=current_user.id,
+        resource_type="api_key",
+        resource_id=api_key.id,
+        metadata={"name": body.name, "prefix": prefix},
+    )
     await db.flush()
 
     return ApiKeyCreateResponse(
@@ -135,3 +144,13 @@ async def delete_api_key(
 
     api_key.is_active = False
     await db.flush()
+
+    await write_audit_log(
+        db,
+        action="api_key.delete",
+        actor_user_id=current_user.id,
+        resource_type="api_key",
+        resource_id=key_id,
+        metadata={"name": api_key.name, "prefix": api_key.prefix},
+    )
+    await db.commit()

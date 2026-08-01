@@ -11,7 +11,6 @@ from app.models.document_chunk import DocumentChunk
 from app.models.enums import DocumentVisibility
 from app.services.rag.cjk import segment_cjk
 from app.services.rag.types import _RecallRow
-import re
 
 TS_CONFIG = "simple"
 
@@ -24,13 +23,6 @@ def _has_special_chars(query: str) -> bool:
 
 def _escape_ilike(value: str) -> str:
     return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
-
-
-def _sanitize_tokens(tokens: list[str]) -> list[str]:
-    """过滤可能引起 PostgreSQL tsquery 解析错误的 token。"""
-    # tsquery 保留字符: & | ! ( )
-    forbidden = re.compile(r"[&|!()'\"`]")
-    return [t for t in tokens if t.strip() and not forbidden.search(t)]
 
 
 def _visible_kb_clause(visible_kb_ids: frozenset | None):
@@ -76,9 +68,11 @@ async def _fts_recall_kb(
     hide_admin_only: bool = False,
 ) -> list[_RecallRow]:
     tokens = segment_cjk(query).split()
-    tokens = [t for t in tokens if t.strip() and not any(ch in t for ch in '&|!()')]
+    tokens = [t for t in tokens if t.strip()]
     if tokens:
-        ts_query = func.to_tsquery(TS_CONFIG, " | ".join(tokens))
+        # 用单引号包裹每个 token 以转义 tsquery 特殊字符（& | ! : ( ) 等）
+        escaped = [t.replace("'", "''") for t in tokens]
+        ts_query = func.to_tsquery(TS_CONFIG, " | ".join(f"'{t}'" for t in escaped))
     else:
         ts_query = func.plainto_tsquery(TS_CONFIG, query)
     rank = func.ts_rank_cd(DocumentChunk.content_tsv, ts_query).label("fts_rank")
@@ -119,9 +113,11 @@ async def _fts_recall_workspace(
     hide_admin_only: bool = False,
 ) -> list[_RecallRow]:
     tokens = segment_cjk(query).split()
-    tokens = [t for t in tokens if t.strip() and not any(ch in t for ch in '&|!()')]
+    tokens = [t for t in tokens if t.strip()]
     if tokens:
-        ts_query = func.to_tsquery(TS_CONFIG, " | ".join(tokens))
+        # 用单引号包裹每个 token 以转义 tsquery 特殊字符（& | ! : ( ) 等）
+        escaped = [t.replace("'", "''") for t in tokens]
+        ts_query = func.to_tsquery(TS_CONFIG, " | ".join(f"'{t}'" for t in escaped))
     else:
         ts_query = func.plainto_tsquery(TS_CONFIG, query)
     rank = func.ts_rank_cd(DocumentChunk.content_tsv, ts_query).label("fts_rank")

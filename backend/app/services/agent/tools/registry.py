@@ -12,6 +12,8 @@ class ReadOnlyToolName(str, Enum):
     get_chunk_excerpt = "get_chunk_excerpt"
     grep_in_document = "grep_in_document"
     compare_chunks = "compare_chunks"
+    web_search = "web_search"
+    sql_query = "sql_query"
 
 
 READ_ONLY_TOOL_NAMES: frozenset[str] = frozenset(
@@ -32,6 +34,10 @@ class AgentToolName(str, Enum):
     grep_in_document = "grep_in_document"
     compare_chunks = "compare_chunks"
     generate_faq_draft = "generate_faq_draft"
+    delete_document = "delete_document"
+    restore_document = "restore_document"
+    web_search = "web_search"
+    sql_query = "sql_query"
 
 
 ALL_AGENT_TOOL_NAMES: frozenset[str] = frozenset(

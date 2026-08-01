@@ -3,10 +3,11 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.request_ip import get_client_ip
 from app.core.deps import (
     CurrentUser,
     DepartmentIdQuery,
@@ -18,6 +19,7 @@ from app.schemas.search import SearchDocumentsResponse, SearchMode
 from app.services.search.content import search_documents_by_content
 from app.services.search.documents import (
     normalize_limit,
+    normalize_offset,
     search_documents_by_filename,
     validate_search_query,
 )
@@ -28,6 +30,7 @@ router = APIRouter(prefix="/search", tags=["search"])
 
 @router.get("/documents", response_model=SearchDocumentsResponse)
 async def search_documents(
+    request: Request,
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
     q: Annotated[str, Query(description="搜索关键词，1～200 字符")],
@@ -38,10 +41,13 @@ async def search_documents(
         Query(description="filename=文件名子串；content=PDF/文档正文"),
     ] = "filename",
     limit: Annotated[int | None, Query(ge=1, le=50, description="最大返回条数")] = None,
+    offset: Annotated[int | None, Query(ge=0, description="分页偏移")] = None,
     department_id: DepartmentIdQuery = None,
 ) -> SearchDocumentsResponse:
     """跨库文档搜索：文件名子串或正文 tsvector（同 workspace 聚合）。"""
-    enforce_api_rate_limit(ApiRateLimitKind.search, current_user.id)
+    await enforce_api_rate_limit(
+        ApiRateLimitKind.search, current_user.id, ip=get_client_ip(request)
+    )
     scope = await resolve_workspace(db, current_user, workspace)
     org_scope = await resolve_org_scope_for_workspace(
         db, current_user, scope, department_id=department_id
@@ -55,6 +61,7 @@ async def search_documents(
         ) from exc
 
     effective_limit = normalize_limit(limit)
+    effective_offset = normalize_offset(offset)
     hide_admin_only = (
         current_user.account_type.value == "enterprise"
         and current_user.org_role == "member"
@@ -72,6 +79,7 @@ async def search_documents(
             scope,
             query,
             effective_limit,
+            offset=effective_offset,
             org_scope=org_scope,
             hide_admin_only=hide_admin_only,
             kb_id=kb_id_uuid,
@@ -81,6 +89,7 @@ async def search_documents(
         scope,
         query,
         effective_limit,
+        offset=effective_offset,
         org_scope=org_scope,
         hide_admin_only=hide_admin_only,
         kb_id=kb_id_uuid,

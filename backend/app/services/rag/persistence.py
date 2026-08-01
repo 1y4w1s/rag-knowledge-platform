@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.chat_message import ChatMessage
 from app.models.chat_thread import ChatThread
-from app.models.enums import MessageRole, ThreadKind
+from app.models.enums import MessageRole, MessageStatus, ThreadKind
 from app.services.audit.chat import audit_message_sent
 from app.services.rag.thread_persistence import (
     maybe_autotitle_thread_from_first_message,
@@ -69,6 +69,57 @@ async def _save_turn(
     )
     await db.commit()
     return assistant_id
+
+
+async def create_pending_message(
+    db: AsyncSession,
+    *,
+    thread_id: UUID,
+    user_id: UUID,
+    query: str,
+    thread_kind: ThreadKind = ThreadKind.knowledge_base,
+    kb_id: UUID | None = None,
+    workspace_kind: str | None = None,
+    workspace_org_id: UUID | None = None,
+    workspace_department_key: str | None = None,
+) -> ChatMessage:
+    """提前落库用户问句（status=pending），防止 SSE 中断后丢问句。"""
+    msg = ChatMessage(
+        thread_kind=thread_kind,
+        kb_id=kb_id,
+        user_id=user_id,
+        thread_id=thread_id,
+        role=MessageRole.assistant,
+        content="",
+        status=MessageStatus.pending,
+        workspace_kind=workspace_kind,
+        workspace_org_id=workspace_org_id,
+        workspace_department_key=workspace_department_key,
+    )
+    db.add(msg)
+    await db.flush()
+    return msg
+
+
+async def finalize_message(
+    db: AsyncSession,
+    message_id: UUID,
+    *,
+    content: str,
+    citations: list[dict],
+    status: MessageStatus = MessageStatus.completed,
+    retrieval_duration_ms: int | None = None,
+) -> None:
+    """生成完成后更新消息内容、引用和状态。"""
+    msg = await db.get(ChatMessage, message_id)
+    if msg is None:
+        return
+    msg.content = content
+    msg.citations = citations or []
+    msg.status = status
+    if retrieval_duration_ms is not None:
+        msg.retrieval_duration_ms = retrieval_duration_ms
+    await db.commit()
 
 
 async def save_kb_chat_turn(
