@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { AuditExportActions } from "@/components/admin/AuditExportActions";
 import {
   AuditLogFilters,
   buildAuditQueryFromFilters,
@@ -13,7 +14,12 @@ import { DocumentListPagination } from "@/components/knowledge-bases/DocumentLis
 import { AlertBanner } from "@/components/ui/AlertBanner";
 import { SectionTitle } from "@/components/common/SectionTitle";
 import { Button } from "@/components/ui/button";
-import { fetchAuditLogs, type AuditLog } from "@/lib/audit-api";
+import {
+  downloadAuditExport,
+  fetchAuditLogs,
+  type AuditExportFormat,
+  type AuditLog,
+} from "@/lib/audit-api";
 
 const PAGE_SIZE = 20;
 const shell = "mx-auto max-w-[1180px] px-7 pb-16 pt-7";
@@ -25,7 +31,9 @@ export function AdminAuditPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState<AuditExportFormat | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
   const [draftFilters, setDraftFilters] =
     useState<AuditLogFilterValues>(EMPTY_AUDIT_FILTERS);
   const [appliedFilters, setAppliedFilters] =
@@ -75,6 +83,25 @@ export function AdminAuditPage() {
     document.title = "操作审计 · 睿阁";
   }, [loadLogs]);
 
+  const handleExport = useCallback(
+    async (fileFormat: AuditExportFormat) => {
+      setExporting(fileFormat);
+      setExportError(null);
+      try {
+        const { limit: _limit, offset: _offset, ...exportQuery } =
+          buildAuditQueryFromFilters(appliedFilters, 1, PAGE_SIZE);
+        void _limit;
+        void _offset;
+        await downloadAuditExport(exportQuery, fileFormat);
+      } catch (err) {
+        setExportError(err instanceof Error ? err.message : "导出失败");
+      } finally {
+        setExporting(null);
+      }
+    },
+    [appliedFilters],
+  );
+
   if (loading) {
     return (
       <div className={`${shell} space-y-4`}>
@@ -108,17 +135,26 @@ export function AdminAuditPage() {
         en="AUDIT"
         tone="quiet"
         trailing={
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={refreshing}
-            onClick={() => void loadLogs({ silent: true })}
-          >
-            {refreshing ? "刷新中…" : "刷新"}
-          </Button>
+          <AuditExportActions
+            exporting={exporting}
+            refreshing={refreshing}
+            onExport={(fmt) => void handleExport(fmt)}
+            onRefresh={() => void loadLogs({ silent: true })}
+          />
         }
       />
+
+      {exportError ? (
+        <AlertBanner
+          action={
+            <Button type="button" variant="outline" size="sm" onClick={() => setExportError(null)}>
+              关闭
+            </Button>
+          }
+        >
+          {exportError}
+        </AlertBanner>
+      ) : null}
 
       <AuditLogFilters
         values={draftFilters}

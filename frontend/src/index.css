@@ -1099,6 +1099,23 @@
     @apply transition-colors duration-200 hover:border-[rgba(166,139,107,0.45)] hover:bg-white;
   }
 
+  /* GX-2026-07 · 搜索空态推荐关键词 */
+  .kb-result-empty-suggestions {
+    @apply mt-6 flex flex-col items-center gap-2.5;
+  }
+
+  .kb-suggestion-label {
+    @apply text-xs font-medium text-[var(--mut)];
+  }
+
+  .kb-suggestion-tags {
+    @apply flex flex-wrap justify-center gap-2;
+  }
+
+  .kb-suggestion-tag {
+    @apply inline-flex items-center rounded-full border border-[var(--line2)] bg-white px-3 py-1 text-xs font-medium text-[var(--fg)] transition-colors duration-150 hover:border-[rgba(166,139,107,0.45)] hover:bg-[color-mix(in_srgb,var(--line)_30%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand)];
+  }
+
   .card-lift {
     transition:
       transform 160ms ease,
@@ -1677,6 +1694,19 @@
     @apply bg-muted;
   }
 
+  /* E2：chunk_stale 弱灰态（仍可展开） */
+  .cite-chip-stale {
+    @apply opacity-70;
+  }
+
+  .cite-chip-stale .cite-chip-num {
+    @apply bg-muted;
+  }
+
+  .cite-chip-status {
+    @apply ml-1 text-[0.625rem] font-medium text-[var(--status-err-text)];
+  }
+
   .cite-preview {
     @apply mt-2.5 overflow-hidden rounded-xl border border-[color-mix(in_srgb,var(--action)_16%,var(--line2))] bg-[var(--surf)] p-3.5 text-[0.8125rem] leading-[1.6] text-[var(--text)];
     animation: cite-expand 0.2s ease-out;
@@ -1760,6 +1790,18 @@
 
   .approval-card-error {
     @apply mt-2 text-[0.72rem] text-[var(--status-err-text)];
+  }
+
+  .approval-card-confirm-warning {
+    @apply mt-3 rounded-lg border border-[var(--status-amber)] bg-[var(--status-amber-bg)] px-3 py-2 text-[0.72rem] leading-relaxed text-[var(--status-amber-text)];
+  }
+
+  .clarify-options {
+    @apply mt-3 flex flex-col gap-2;
+  }
+
+  .clarify-option-btn {
+    @apply w-full rounded-lg border border-[var(--line2)] bg-[var(--surf)] px-3 py-2 text-left text-[0.78rem] text-[var(--text)] transition-colors duration-150 hover:border-[var(--action)] hover:bg-[color-mix(in_srgb,var(--action)_8%,var(--surf))];
   }
 
   .chat-input-wrap {

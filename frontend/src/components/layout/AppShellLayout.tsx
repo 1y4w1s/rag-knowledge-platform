@@ -29,6 +29,8 @@ const HIDE_BREADCRUMB_PREFIXES = [
   "/admin",
   "/chat",
   "/ask",
+  "/about",
+  "/help",
 ];
 
 function AppShellContent() {

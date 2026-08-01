@@ -19,6 +19,8 @@ const API_BASE = "/api/v1";
 
 export type SearchMode = "filename" | "content";
 
+export const SEARCH_PAGE_SIZE = 20;
+
 export interface SearchDocumentItem {
   doc_id: string;
   filename: string;
@@ -35,32 +37,40 @@ export interface SearchDocumentsResponse {
   items: SearchDocumentItem[];
   query: string;
   total: number;
+  limit: number;
+  offset: number;
   mode: SearchMode;
 }
 
-export function fetchSearchDocuments(): Promise<SearchDocumentsResponse>;
-export function fetchSearchDocuments(
-  q: string,
-  scope: ScopeFetchOptions,
-  mode?: SearchMode,
-): Promise<SearchDocumentsResponse | null>;
+export interface FetchSearchDocumentsParams {
+  q: string;
+  scope: ScopeFetchOptions;
+  mode?: SearchMode;
+  limit?: number;
+  offset?: number;
+  kbId?: string;
+}
+
 export async function fetchSearchDocuments(
-  q?: string,
-  scope?: ScopeFetchOptions,
-  mode: SearchMode = "filename",
+  params: FetchSearchDocumentsParams,
 ): Promise<SearchDocumentsResponse | null> {
   const token = getAccessToken();
   if (!token) throw new Error("未登录");
 
-  const trimmed = (q ?? "").trim();
+  const trimmed = params.q.trim();
   if (trimmed.length < 1) {
     throw new Error("请输入搜索关键词");
   }
 
-  const params = new URLSearchParams({ q: trimmed, mode });
+  const mode = params.mode ?? "filename";
+  const query = new URLSearchParams({ q: trimmed, mode });
+  if (params.limit != null) query.set("limit", String(params.limit));
+  if (params.offset != null) query.set("offset", String(params.offset));
+  if (params.kbId) query.set("kb_id", params.kbId);
+
   const base = appendScopeQuery(
-    `${API_BASE}/search/documents?${params.toString()}`,
-    scope,
+    `${API_BASE}/search/documents?${query.toString()}`,
+    params.scope,
   );
 
   const res = await fetch(base, {
@@ -84,6 +94,6 @@ export async function fetchSearchDocuments(
   }
 
   const data = (await res.json()) as SearchDocumentsResponse;
-  if (isStaleScopeFetch(scope)) return null;
+  if (isStaleScopeFetch(params.scope)) return null;
   return data;
 }

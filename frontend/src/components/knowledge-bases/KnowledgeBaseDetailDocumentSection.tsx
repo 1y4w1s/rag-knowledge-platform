@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from "react";
+import { useMemo, useRef, useState, type ChangeEvent } from "react";
 
 import { DocumentListFiltersEmptyPanel } from "@/components/knowledge-bases/DocumentListFiltersEmptyPanel";
 import { DocumentListPagination } from "@/components/knowledge-bases/DocumentListPagination";
@@ -10,6 +10,7 @@ import {
   DocumentSearchEmptyPanel,
 } from "@/components/knowledge-bases/DocumentListToolbar";
 import { DocumentTable } from "@/components/knowledge-bases/DocumentTable";
+import { KbContentSearchResults } from "@/components/knowledge-bases/KbContentSearchResults";
 import { EmptyStateV44, KBDETAIL_SCENE } from "@/components/ui/EmptyState";
 import { MemberReadOnlyHint } from "@/components/knowledge-bases/MemberReadOnlyHint";
 import { SectionTitle } from "@/components/common/SectionTitle";
@@ -17,10 +18,12 @@ import { AlertBanner } from "@/components/ui/AlertBanner";
 import { Button } from "@/components/ui/button";
 import { TrashDialog } from "@/components/knowledge-bases/TrashDialog";
 import { useAuth } from "@/lib/auth-context";
+import { parseDocumentSearchMode } from "@/lib/document-search-mode";
 import { updateDocumentVisibility, type Document, DOCUMENT_PAGE_SIZE } from "@/lib/document-api";
 import type { DocumentListFilters } from "@/lib/document-advanced-filter";
 import type { DocumentSortMode } from "@/lib/document-list-utils";
 import type { DocumentStatusFilter } from "@/lib/document-status-filter";
+import { useKbContentSearch } from "@/lib/use-kb-content-search";
 
 type KnowledgeBaseDetailDocumentSectionProps = {
   kbId: string;
@@ -89,6 +92,13 @@ export function KnowledgeBaseDetailDocumentSection({
   const [trashOpen, setTrashOpen] = useState(false);
   const [pendingVisibilityId, setPendingVisibilityId] = useState<string | null>(null);
 
+  const searchMode = useMemo(
+    () => parseDocumentSearchMode(search),
+    [search],
+  );
+  const isContentMode = searchMode === "content";
+  const contentSearch = useKbContentSearch(kbId, documentQuery, isContentMode);
+
   async function handleVisibilityChange(docId: string, visibility: "everyone" | "admin_only") {
     setPendingVisibilityId(docId);
     try {
@@ -110,6 +120,13 @@ export function KnowledgeBaseDetailDocumentSection({
     event.target.value = "";
     if (files.length > 0) onUpload(files);
   }
+
+  const sectionCount = isContentMode
+    ? contentSearch.hasQuery
+      ? contentSearch.total
+      : total
+    : total;
+
   return (
     <>
       {inlineError && (
@@ -128,7 +145,7 @@ export function KnowledgeBaseDetailDocumentSection({
 
       {!uploadAllowed && <MemberReadOnlyHint />}
 
-      {total === 0 && !statusFilter && !hasListFilters ? (
+      {total === 0 && !statusFilter && !hasListFilters && !isContentMode ? (
         <>
           <EmptyStateV44
             scene={{
@@ -161,7 +178,7 @@ export function KnowledgeBaseDetailDocumentSection({
           <SectionTitle
             label="文档"
             en="DOCUMENTS"
-            count={total}
+            count={sectionCount}
             tone="quiet"
             trailing={
               uploadAllowed ? (
@@ -180,12 +197,31 @@ export function KnowledgeBaseDetailDocumentSection({
             pathname={pathname}
             search={search}
             query={documentQuery}
+            searchMode={searchMode}
             statusFilter={statusFilter}
             sortMode={sortMode}
             onSortChange={onSortChange}
           />
 
-          {statusFilter && displayDocuments.length === 0 ? (
+          {isContentMode ? (
+            <KbContentSearchResults
+              kbId={kbId}
+              query={documentQuery}
+              items={contentSearch.items}
+              total={contentSearch.total}
+              page={contentSearch.page}
+              pageCount={contentSearch.pageCount}
+              pageSize={contentSearch.pageSize}
+              loading={contentSearch.loading}
+              error={contentSearch.error}
+              hasQuery={contentSearch.hasQuery}
+              clearTo={clearSearchTo}
+              pathname={pathname}
+              search={search}
+              onPageChange={contentSearch.goToPage}
+              onRetry={() => contentSearch.goToPage(contentSearch.page)}
+            />
+          ) : statusFilter && displayDocuments.length === 0 ? (
             <DocumentFilterEmptyPanel
               filter={statusFilter}
               clearTo={clearFilterTo}
@@ -199,6 +235,8 @@ export function KnowledgeBaseDetailDocumentSection({
             <DocumentSearchEmptyPanel
               query={documentQuery}
               clearTo={clearSearchTo}
+              pathname={pathname}
+              search={search}
             />
           ) : (
             <>

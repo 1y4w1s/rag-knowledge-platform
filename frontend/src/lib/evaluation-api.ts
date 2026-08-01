@@ -86,3 +86,38 @@ export async function fetchEvaluationRuns(dataset?: string, mode?: string, limit
   const resp = await fetch(url, { headers });
   return handleResponse<EvaluationRun[]>(resp);
 }
+
+
+// ── RAGAS 评分 ──
+
+export interface RagasRunEntry {
+  run_id: string;
+  timestamp: string;
+  faithfulness: number | null;
+  hallucination_rate: number | null;
+  context_precision?: number | null;
+  context_recall?: number | null;
+  total: number;
+  valid: number;
+  skipped: number;
+  filename: string;
+}
+
+export interface RagasDataset {
+  name: string;
+  display_name: string;
+  runs: RagasRunEntry[];
+}
+
+export interface RagasScoresResponse {
+  datasets: RagasDataset[];
+  metrics_available: string[];
+  context_datasets_available?: string[];
+  note?: string;
+}
+
+export async function fetchRagasScores(): Promise<RagasScoresResponse> {
+  const headers = await authHeaders();
+  const resp = await fetch(API_BASE + "/evaluations/ragas-scores", { headers });
+  return handleResponse<RagasScoresResponse>(resp);
+}

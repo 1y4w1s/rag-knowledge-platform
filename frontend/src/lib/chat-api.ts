@@ -10,9 +10,33 @@ import {
   ChatMessagesResponseSchema,
   CitationResolveResultSchema,
   CitationSchema,
+  ClarifyPayloadSchema,
+  ProposalPreviewPayloadSchema,
   ToolResultPayloadSchema,
   ToolStartPayloadSchema,
 } from "@/lib/chat-schemas";
+import type { CitationSourceStatus } from "@/lib/citation-status";
+
+export type { CitationSourceStatus } from "@/lib/citation-status";
+export {
+  canLinkToCitationPreview,
+  CHUNK_STALE_CHIP_LABEL,
+  CHUNK_STALE_LABEL,
+  CITATION_RESOLVE_FAILED_LABEL,
+  CITATION_STALE_NOTICE_CHUNK_STALE,
+  CITATION_STALE_NOTICE_DELETED,
+  CITATION_STALE_NOTICE_INACCESSIBLE,
+  citationChipStatusLabel,
+  citationChipTitle,
+  citationStaleMessageNotice,
+  isCitationChipUnavailable,
+  isCitationExpandBlocked,
+  isCitationInaccessible,
+  SOURCE_DELETED_CHIP_LABEL,
+  SOURCE_DELETED_LABEL,
+  SOURCE_INACCESSIBLE_CHIP_LABEL,
+  SOURCE_INACCESSIBLE_LABEL,
+} from "@/lib/citation-status";
 
 const API_BASE = "/api/v1";
 
@@ -29,17 +53,6 @@ export interface Citation {
   kb_name?: string | null;
   source_status?: CitationSourceStatus | null;
 }
-
-export type CitationSourceStatus =
-  | "available"
-  | "document_deleted"
-  | "chunk_stale"
-  | "source_inaccessible";
-
-export const SOURCE_DELETED_LABEL = "源文档已删除";
-export const CHUNK_STALE_LABEL = "原文片段已失效（文档已更新）";
-export const SOURCE_INACCESSIBLE_LABEL =
-  "该引用已不可访问（权限或资料库已变更）";
 
 export interface CitationResolveResult {
   document_id: string;
@@ -76,6 +89,40 @@ export interface ApprovalState {
   citations: Citation[];
   can_adopt: boolean;
   status: "pending" | "adopted" | "cancelled";
+  /** G5 · 文档操作提案转审批后保留 operation，用于终态文案（删除/恢复） */
+  operation?: "delete" | "restore";
+}
+
+/** G5 · 文档操作提案预览载荷（SSE proposal_preview · 后端不建 pending） */
+export interface ProposalPreviewPayload {
+  operation: "delete" | "restore";
+  document_id: string;
+  kb_id: string;
+  filename: string;
+  kb_name: string;
+  impact: string;
+  conflict: string | null;
+  run_id: string;
+  can_adopt: boolean;
+  /** B 路径（fast 模式自动识别）需两次点击确认 */
+  double_confirm?: boolean;
+}
+
+/** G5 · 前端驱动的提案状态（存入 assistant message · 不落地后端） */
+export type ProposalState = ProposalPreviewPayload;
+
+/** G5 · 歧义澄清单个候选（SSE clarify · 情景 5） */
+export interface ClarifyOption {
+  document_id: string;
+  filename: string;
+  kb_id: string;
+}
+
+/** G5 · 歧义澄清载荷（SSE clarify · 用户点选后回 POST clarify 取提案） */
+export interface ClarifyPayload {
+  operation: "delete" | "restore";
+  run_id: string;
+  options: ClarifyOption[];
 }
 
 export interface ChatMessagesResponse {
@@ -91,6 +138,8 @@ export interface HistoryMessage {
   approval_id?: string | null;
   approval_status?: Record<string, unknown> | null;
   created_at: string;
+  /** 038 · 消息状态 */
+  status?: "pending" | "completed" | "interrupted";
 }
 
 export interface ChatStreamHandlers {
@@ -102,6 +151,10 @@ export interface ChatStreamHandlers {
   onAgentBudget?: (payload: import("@/lib/agent-stream").AgentBudgetPayload) => void;
   /** G4-4.3: 编辑模式 SSE approval_required 事件 */
   onApprovalRequired?: (payload: ApprovalRequiredPayload) => void;
+  /** G5: 文档操作模式 SSE proposal_preview 事件（先提案后确认提交） */
+  onProposalPreview?: (payload: ProposalPreviewPayload) => void;
+  /** G5: 文档名歧义澄清事件（情景 5 · 多篇命中 → 用户点选） */
+  onClarify?: (payload: ClarifyPayload) => void;
 }
 
 export function dispatchChatSseBlock(
@@ -169,6 +222,23 @@ export function dispatchChatSseBlock(
         parsed.error,
       );
     }
+  } else if (eventName === "proposal_preview") {
+    const parsed = ProposalPreviewPayloadSchema.safeParse(data);
+    if (parsed.success) {
+      handlers.onProposalPreview?.(parsed.data);
+    } else {
+      console.warn(
+        "chat-api: invalid proposal_preview SSE data",
+        parsed.error,
+      );
+    }
+  } else if (eventName === "clarify") {
+    const parsed = ClarifyPayloadSchema.safeParse(data);
+    if (parsed.success) {
+      handlers.onClarify?.(parsed.data);
+    } else {
+      console.warn("chat-api: invalid clarify SSE data", parsed.error);
+    }
   }
 }
 
@@ -204,46 +274,33 @@ export function formatCitationLabel(
   return parts.join(" · ");
 }
 
+/** F2：去重后的非空库名（保持首次出现序）。 */
+export function distinctCitationKbNames(citations: Citation[]): string[] {
+  const seen = new Set<string>();
+  const names: string[] = [];
+  for (const citation of citations) {
+    const name = citation.kb_name?.trim();
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    names.push(name);
+  }
+  return names;
+}
+
+/** F2：≥2 个库时的消息级边界摘要。 */
+export function citationKbBoundaryNotice(
+  citations: Citation[],
+): string | null {
+  const names = distinctCitationKbNames(citations);
+  if (names.length < 2) return null;
+  return `本回答引用：${names.join(" · ")}`;
+}
+
 export function resolveKbIdForCitation(
   pageKbId: string,
   citation: Citation,
 ): string {
   return citation.kb_id ?? pageKbId;
-}
-
-export function isCitationExpandBlocked(citation: Citation): boolean {
-  return citation.source_status === "source_inaccessible";
-}
-
-export function isCitationChipUnavailable(citation: Citation): boolean {
-  return (
-    citation.source_status === "source_inaccessible" ||
-    citation.source_status === "document_deleted"
-  );
-}
-
-export function citationChipTitle(citation: Citation): string | undefined {
-  if (citation.source_status === "document_deleted") {
-    return SOURCE_DELETED_LABEL;
-  }
-  if (citation.source_status === "source_inaccessible") {
-    return SOURCE_INACCESSIBLE_LABEL;
-  }
-  if (citation.source_status === "chunk_stale") {
-    return CHUNK_STALE_LABEL;
-  }
-  return undefined;
-}
-
-export function canLinkToCitationPreview(citation: Citation): boolean {
-  return (
-    citation.source_status !== "document_deleted" &&
-    citation.source_status !== "source_inaccessible"
-  );
-}
-
-export function isCitationInaccessible(citation: Citation): boolean {
-  return citation.source_status === "source_inaccessible";
 }
 
 export function previewPathForCitation(
@@ -355,4 +412,82 @@ export async function streamChat(
   if (buffer.trim()) {
     dispatchChatSseBlock(buffer, handlers);
   }
+}
+
+export interface SubmitDocumentWriteInput {
+  thread_id: string;
+  kb_id: string;
+  document_id: string;
+  operation: "delete" | "restore";
+  run_id: string;
+}
+
+export interface SubmitDocumentWriteResponse {
+  approval_id: string;
+  status: string;
+}
+
+/** G5 · 确认文档操作提案 → 建 AgentApproval(pending)。 */
+export async function submitDocumentWrite(
+  input: SubmitDocumentWriteInput,
+): Promise<SubmitDocumentWriteResponse> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/agent/document-write/submit`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      thread_id: input.thread_id,
+      kb_id: input.kb_id,
+      document_id: input.document_id,
+      operation: input.operation,
+      run_id: input.run_id,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(await parseApiError(res));
+  }
+  const data = (await res.json()) as SubmitDocumentWriteResponse;
+  return data;
+}
+
+export interface ClarifyDocumentWriteInput {
+  thread_id: string;
+  document_id: string;
+  operation: "delete" | "restore";
+}
+
+/**
+ * G5 · 歧义澄清（情景 5）：用户点选目标文档后，回 POST 取回结构化提案（同 proposal_preview）。
+ * 返回的 ProposalPreviewPayload 直接驱动提案卡（double_confirm 恒为 true）。
+ */
+export async function clarifyDocumentWrite(
+  input: ClarifyDocumentWriteInput,
+): Promise<ProposalPreviewPayload> {
+  const token = getAccessToken();
+  if (!token) throw new Error("未登录");
+
+  const res = await fetch(`${API_BASE}/agent/document-write/clarify`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      thread_id: input.thread_id,
+      document_id: input.document_id,
+      operation: input.operation,
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(await parseApiError(res));
+  }
+  const data = (await res.json()) as ProposalPreviewPayload;
+  return data;
 }

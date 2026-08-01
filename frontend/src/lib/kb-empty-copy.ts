@@ -1,5 +1,13 @@
 import type { DocumentStatusFilter } from "@/lib/document-status-filter";
 
+/** GX-2026-07 · 搜索空态推荐关键词（统一源，改一处即同步全部入口） */
+export const DEFAULT_SEARCH_SUGGESTIONS = [
+  "方案",
+  "报告",
+  "规范",
+  "通知",
+] as const;
+
 /** Plan-11/2B · 筛选无结果标题（对齐 2.1 验收：「没有失败的文档」） */
 export function getFilterEmptyTitle(filter: DocumentStatusFilter): string {
   return filter === "processing"

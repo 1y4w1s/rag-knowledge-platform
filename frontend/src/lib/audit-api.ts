@@ -53,9 +53,10 @@ function authHeaders(): HeadersInit {
   return { Authorization: `Bearer ${token}` };
 }
 
-export async function fetchAuditLogs(
-  query: AuditLogQuery = {},
-): Promise<AuditLogListResponse> {
+function auditQueryParams(
+  query: AuditLogQuery,
+  extras?: Record<string, string>,
+): URLSearchParams {
   const params = new URLSearchParams();
   if (query.limit != null) params.set("limit", String(query.limit));
   if (query.offset != null) params.set("offset", String(query.offset));
@@ -65,13 +66,47 @@ export async function fetchAuditLogs(
   if (query.ip) params.set("ip", query.ip);
   if (query.created_from) params.set("created_from", query.created_from);
   if (query.created_to) params.set("created_to", query.created_to);
+  if (extras) {
+    for (const [key, value] of Object.entries(extras)) {
+      params.set(key, value);
+    }
+  }
+  return params;
+}
 
-  const qs = params.toString();
+export async function fetchAuditLogs(
+  query: AuditLogQuery = {},
+): Promise<AuditLogListResponse> {
+  const qs = auditQueryParams(query).toString();
   const url = `${API_BASE}/admin/audit-logs${qs ? `?${qs}` : ""}`;
 
   const res = await fetch(url, { headers: authHeaders() });
   if (!res.ok) throw new Error(await parseAuditError(res));
   return (await res.json()) as AuditLogListResponse;
+}
+
+export type AuditExportFormat = "csv" | "json";
+
+/** 按当前筛选下载导出文件（无分页；服务端最多 5000 条）。 */
+export async function downloadAuditExport(
+  query: Omit<AuditLogQuery, "limit" | "offset">,
+  fileFormat: AuditExportFormat,
+): Promise<void> {
+  const params = auditQueryParams(query, { format: fileFormat });
+  const url = `${API_BASE}/admin/audit-logs/export?${params.toString()}`;
+
+  const res = await fetch(url, { headers: authHeaders() });
+  if (!res.ok) throw new Error(await parseAuditError(res));
+
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = objectUrl;
+  anchor.download = fileFormat === "json" ? "audit-logs.json" : "audit-logs.csv";
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(objectUrl);
 }
 
 export function formatAuditTimestamp(iso: string): string {

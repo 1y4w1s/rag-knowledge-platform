@@ -143,7 +143,47 @@ export function DocumentTable({
                 {formatChunkCount(doc)}
               </td>
               <td>
-                <DocumentStatusBadge status={doc.status} />
+                <div className="flex max-w-[11rem] flex-col gap-0.5">
+                  <DocumentStatusBadge
+                    status={doc.status}
+                    processingStage={doc.processing_stage}
+                    progressDetail={doc.progress_detail}
+                  />
+                  {doc.status === "processing" &&
+                  doc.progress_percent != null &&
+                  doc.progress_percent < 100 ? (
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-1.5 w-16 overflow-hidden rounded-full bg-[var(--card-edge)]">
+                        <div
+                          className="h-full rounded-full transition-all duration-200"
+                          style={{
+                            width: `${doc.progress_percent}%`,
+                            background: "var(--brand-grad)",
+                          }}
+                        />
+                      </div>
+                      <span className="font-mono text-[0.68rem] tabular-nums text-muted">
+                        {doc.progress_percent}%
+                      </span>
+                    </div>
+                  ) : null}
+                  {doc.status === "processing" && doc.progress_detail ? (
+                    <span
+                      className="line-clamp-1 text-[0.68rem] leading-snug text-muted"
+                      title={doc.progress_detail}
+                    >
+                      {doc.progress_detail}
+                    </span>
+                  ) : null}
+                  {doc.status === "failed" && doc.error_message ? (
+                    <span
+                      className="line-clamp-2 text-[0.68rem] leading-snug text-muted"
+                      title={doc.error_message}
+                    >
+                      {doc.error_message}
+                    </span>
+                  ) : null}
+                </div>
               </td>
               <td>
                 <span

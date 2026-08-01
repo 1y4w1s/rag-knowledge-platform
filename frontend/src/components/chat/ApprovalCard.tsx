@@ -50,7 +50,13 @@ export function ApprovalCard({
               approval.status === "cancelled" && "approval-card-status-cancelled",
             )}
           >
-            {approval.status === "adopted" ? "已采纳" : "已取消"}
+            {approval.status === "cancelled"
+              ? "已取消"
+              : approval.operation === "delete"
+                ? "已删除"
+                : approval.operation === "restore"
+                  ? "已恢复"
+                  : "已采纳"}
           </span>
         )}
       </div>

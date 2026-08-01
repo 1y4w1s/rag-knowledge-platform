@@ -8,8 +8,10 @@ import {
   Users,
   UsersRound,
   ClipboardList,
+  Package,
   UserCircle,
   CircleHelp,
+  UserCog,
 } from "lucide-react";
 
 import { RuigeLogo } from "@/components/brand/RuigeLogo";
@@ -24,6 +26,7 @@ import { UserAvatarMenu } from "@/components/layout/UserAvatarMenu";
 
 import { useAuth } from "@/lib/auth-context";
 import { useMobileDrawer } from "@/lib/mobile-drawer-context";
+import { canManageOwnUnitMembers } from "@/lib/org-permissions";
 import { cn } from "@/lib/utils";
 import { useWorkspace } from "@/lib/workspace-context";
 
@@ -60,6 +63,8 @@ export function AppSidebar() {
   const showAdminNav = isTeamWorkspace && isOrgAdmin;
   const showMemberNav =
     isTeamWorkspace && Boolean(user?.org_id) && !isOrgAdmin;
+  const showUnitAdminMembersNav =
+    isTeamWorkspace && canManageOwnUnitMembers(user);
 
   return (
     <aside
@@ -119,7 +124,20 @@ export function AppSidebar() {
               label="操作审计"
               icon={<ClipboardList className="h-[21px] w-[21px]" />}
             />
+            <RailNavItem
+              to="/admin/kb-inventory"
+              label="资产清单"
+              icon={<Package className="h-[21px] w-[21px]" />}
+            />
           </>
+        ) : null}
+
+        {showUnitAdminMembersNav ? (
+          <RailNavItem
+            to="/organization/my-unit-members"
+            label="我的部门成员"
+            icon={<UserCog className="h-[21px] w-[21px]" />}
+          />
         ) : null}
 
         {showMemberNav ? (

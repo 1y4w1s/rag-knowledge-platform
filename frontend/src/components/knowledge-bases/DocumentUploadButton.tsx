@@ -48,7 +48,7 @@ export function DocumentUploadButton({
         onClick={() => inputRef.current?.click()}
       >
         <Upload className="h-3.5 w-3.5" aria-hidden />
-        {uploading ? `上传中 ${uploadProgress}%` : "上传文档"}
+        {uploading ? `传输中 ${uploadProgress}%` : "上传文档"}
       </Button>
       {uploading && (
         <div className="flex items-center gap-2 text-xs text-[var(--mut)]">

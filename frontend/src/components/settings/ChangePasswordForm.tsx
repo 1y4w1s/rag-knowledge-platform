@@ -6,6 +6,7 @@ import { SettingsFormCard } from "@/components/settings/SettingsFormCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { passwordStrengthError } from "@/lib/auth-form-validation";
 import { cn } from "@/lib/utils";
 
 interface ChangePasswordFormProps {
@@ -91,10 +92,9 @@ export function ChangePasswordForm({ onSubmit }: ChangePasswordFormProps) {
   function validate(): FieldErrors {
     const next: FieldErrors = {};
     if (!currentPassword.trim()) next.currentPassword = "请输入当前密码";
-    if (!newPassword.trim()) {
-      next.newPassword = "请输入新密码";
-    } else if (newPassword.length < 8) {
-      next.newPassword = "新密码至少 8 位";
+    const pwErr = passwordStrengthError(newPassword);
+    if (pwErr) {
+      next.newPassword = pwErr === "请输入密码" ? "请输入新密码" : pwErr;
     }
     return next;
   }
@@ -141,7 +141,7 @@ export function ChangePasswordForm({ onSubmit }: ChangePasswordFormProps) {
           label="新密码"
           value={newPassword}
           onChange={setNewPassword}
-          placeholder="至少 8 位"
+          placeholder="至少 8 位，含大小写、数字与特殊字符"
           autoComplete="new-password"
           error={errors.newPassword}
           showStrength

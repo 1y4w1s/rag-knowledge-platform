@@ -2,6 +2,7 @@
 import { Upload } from "lucide-react";
 
 import { DocumentUploadButton } from "@/components/knowledge-bases/DocumentUploadButton";
+import { KbQuotaHint } from "@/components/knowledge-bases/KbQuotaHint";
 import { MemberWriteBlockedButton } from "@/components/knowledge-bases/MemberWriteBlockedButton";
 import { Button } from "@/components/ui/button";
 import type { KnowledgeBase } from "@/lib/knowledge-base-api";
@@ -50,6 +51,11 @@ export function KnowledgeBaseDetailHeader({
         ) : (
           <p className="mt-1.5 text-[0.82rem] text-muted">管理文档与入库状态</p>
         )}
+        <KbQuotaHint
+          uploadAllowed={uploadAllowed}
+          quotaUsedBytes={kb.quota_used_bytes}
+          quotaMaxBytes={kb.quota_max_bytes}
+        />
       </div>
       <div className="flex shrink-0 flex-wrap items-center gap-2">
         {uploadAllowed ? (

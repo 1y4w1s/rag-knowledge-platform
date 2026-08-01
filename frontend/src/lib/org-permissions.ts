@@ -1,9 +1,33 @@
 import type { StoredUser } from "@/lib/auth-storage";
-import type { WorkspaceId } from "@/lib/workspace-storage";
 import { isCompanyAdmin } from "@/lib/department-align";
+import type { OrgUnit } from "@/lib/org-units-api";
+import type { WorkspaceId } from "@/lib/workspace-storage";
+
 /** 任一部门 unit_admin（ORG-4.1 建库） */
 export function isUnitAdmin(user: StoredUser | null): boolean {
   return (user?.unit_admin_unit_ids?.length ?? 0) > 0;
+}
+
+/**
+ * NW-24 U1：非公司 Admin 的部门 Admin 可进「我的部门成员」薄页。
+ * 公司 Admin 继续用「组织与部门」，不占本入口。
+ */
+export function canManageOwnUnitMembers(user: StoredUser | null): boolean {
+  if (!user || user.account_type !== "enterprise") return false;
+  if (isCompanyAdmin(user)) return false;
+  return isUnitAdmin(user);
+}
+
+/** 节点下拉：仅 `unit_admin_unit_ids` 精确交集（非子树）。 */
+export function filterManagedUnitOptions(
+  units: OrgUnit[],
+  unitAdminUnitIds: string[] | null | undefined,
+): OrgUnit[] {
+  const ids = new Set(
+    Array.isArray(unitAdminUnitIds) ? unitAdminUnitIds : [],
+  );
+  if (ids.size === 0) return [];
+  return units.filter((unit) => ids.has(unit.id));
 }
 
 /** 团队版普通成员（非管理员、非部门 Admin） */

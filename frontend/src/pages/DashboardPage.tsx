@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { VitalCard } from "@/components/dashboard/VitalCard";
 import { IngestionPanel } from "@/components/dashboard/IngestionPanel";
+import { FindDocumentsPanel } from "@/components/dashboard/FindDocumentsPanel";
 import { RagProofCard } from "@/components/dashboard/RagProofCard";
 import { PerfTable } from "@/components/dashboard/PerfTable";
 import { ActivityChart } from "@/components/dashboard/ActivityChart";
@@ -210,6 +211,8 @@ export function DashboardPage() {
           ) : null}
         </div>
       </section>
+
+      <FindDocumentsPanel />
 
       <section aria-label="最近提问" className="mt-7">
         <SectionTitle label="最近提问" en="RECENT" tone="quiet" />

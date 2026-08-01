@@ -44,9 +44,31 @@ export function DocumentMetaPanel({
           <div className="preview-meta-row">
             <dt>状态</dt>
             <dd>
-              <DocumentStatusBadge status={document.status} />
+              <DocumentStatusBadge
+                status={document.status}
+                processingStage={document.processing_stage}
+                progressDetail={document.progress_detail}
+              />
+              {document.status === "processing" &&
+              document.progress_percent != null &&
+              document.progress_percent < 100 ? (
+                <p className="mt-1 text-xs text-muted">
+                  进度 {document.progress_percent}%
+                  {document.progress_detail
+                    ? ` · ${document.progress_detail}`
+                    : ""}
+                </p>
+              ) : null}
             </dd>
           </div>
+          {document.status === "failed" && document.error_message ? (
+            <div className="preview-meta-row">
+              <dt>失败原因</dt>
+              <dd className="whitespace-pre-wrap text-[0.8125rem] leading-relaxed text-muted">
+                {document.error_message}
+              </dd>
+            </div>
+          ) : null}
         </dl>
         <div className="preview-side-actions">
           <Link

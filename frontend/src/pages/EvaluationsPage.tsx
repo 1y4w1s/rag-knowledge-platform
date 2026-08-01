@@ -2,6 +2,7 @@
 import { AlertBanner } from "@/components/ui/AlertBanner";
 import { Button } from "@/components/ui/button";
 import { SectionTitle } from "@/components/common/SectionTitle";
+import { RagasTab } from "@/components/evaluations/RagasTab";
 import {
   type EvaluationRun,
   type EvaluationTrend,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/evaluation-api";
 
 type LoadState = "loading" | "error" | "empty" | "ready";
+type EvalTab = "retrieval" | "ragas";
 
 function metricPct(v: number | null | undefined): string {
   if (v == null) return "-";
@@ -32,7 +34,13 @@ function metricClass(v: number | null | undefined, threshold = 0.7): string {
   return v >= threshold ? "text-green-600" : v >= threshold * 0.8 ? "text-amber-600" : "text-red-600";
 }
 
+const TABS: { id: EvalTab; label: string }[] = [
+  { id: "retrieval", label: "检索评测" },
+  { id: "ragas", label: "RAGAS 评分" },
+];
+
 export function EvaluationsPage() {
+  const [tab, setTab] = useState<EvalTab>("retrieval");
   const [state, setState] = useState<LoadState>("loading");
   const [errorMsg, setErrorMsg] = useState("");
   const [latest, setLatest] = useState<EvaluationRun | null>(null);
@@ -75,112 +83,137 @@ export function EvaluationsPage() {
     <div className="mx-auto max-w-[1180px] px-7 pb-16 pt-7">
       <SectionTitle label="RAG 评测" />
 
-      {state === "loading" && (
-        <div className="flex items-center justify-center py-16 text-muted-foreground">
-          加载评测数据...
-        </div>
-      )}
+      {/* ── 标签栏 ── */}
+      <div className="mb-6 flex gap-0 border-b border-[var(--line2)]">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={
+              "px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-[1px] " +
+              (tab === t.id
+                ? "border-[var(--action)] text-[var(--text)]"
+                : "border-transparent text-[var(--mut)] hover:text-[var(--text)]")
+            }
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
-      {state === "error" && (
-        <AlertBanner className="mb-6">
-          {errorMsg}
-          <Button variant="outline" size="sm" onClick={load}>重试</Button>
-        </AlertBanner>
-      )}
-
-      {state === "empty" && (
-        <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
-          <p>暂无评测数据</p>
-          <p className="text-sm">请先运行评测流水线：<code className="text-xs">python -m tests.run_golden_baseline --save</code></p>
-        </div>
-      )}
-
-      {state === "ready" && (
+      {tab === "ragas" ? (
+        <RagasTab />
+      ) : (
         <>
-          {/* ── Summary cards ── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <SummaryCard label="Hit@3" value={metricPct(latest?.hit_at_3)} cls={metricClass(latest?.hit_at_3)} />
-            <SummaryCard label="MRR" value={metricVal(latest?.mrr)} cls={metricClass(latest?.mrr)} />
-            <SummaryCard label="P50 延迟" value={metricMs(latest?.p50_latency_ms)} cls="" />
-            <SummaryCard label="拒答准确率" value={metricPct(latest?.correct_rejection_rate)} cls={metricClass(latest?.correct_rejection_rate)} />
-          </div>
-
-          {/* ── Trend chart ── */}
-          <div className="bg-white rounded-lg border p-4 mb-8">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-semibold text-sm text-foreground">指标趋势</h3>
-              <select
-                className="text-sm border rounded px-2 py-1"
-                value={selectedMetric}
-                onChange={(e) => setSelectedMetric(e.target.value)}
-              >
-                {metrics.map((m) => (
-                  <option key={m.key} value={m.key}>{m.label}</option>
-                ))}
-              </select>
-            </div>
-            {trends && trends.points.length > 0 ? (
-              <SimpleTrendChart points={trends.points} average={trends.average} metric={selectedMetric} />
-            ) : (
-              <p className="text-center text-muted-foreground py-8 text-sm">暂无趋势数据</p>
-            )}
-          </div>
-
-          {/* ── Domain breakdown ── */}
-          {latest?.breakdown_domain && (
-            <div className="bg-white rounded-lg border p-4 mb-8">
-              <h3 className="font-semibold text-sm text-foreground mb-3">Domain 下钻</h3>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-muted-foreground">
-                    <th className="text-left py-2">Domain</th>
-                    <th className="text-right py-2">题数</th>
-                    <th className="text-right py-2">Hit@3</th>
-                    <th className="text-right py-2">MRR</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {Object.entries(latest.breakdown_domain).map(([dom, vals]: [string, any]) => (
-                    <tr key={dom} className="border-b last:border-0">
-                      <td className="py-2">{dom}</td>
-                      <td className="text-right py-2">{vals.total}</td>
-                      <td className={`text-right py-2 ${metricClass(vals.hit_rate)}`}>{metricPct(vals.hit_rate)}</td>
-                      <td className="text-right py-2">{vals.avg_latency_ms ? `${vals.avg_latency_ms.toFixed(0)}ms` : "-"}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          {state === "loading" && (
+            <div className="flex items-center justify-center py-16 text-muted-foreground">
+              加载评测数据...
             </div>
           )}
 
-          {/* ── Recent runs ── */}
-          <div className="bg-white rounded-lg border p-4">
-            <h3 className="font-semibold text-sm text-foreground mb-3">最近评测记录</h3>
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-muted-foreground">
-                  <th className="text-left py-2">运行 ID</th>
-                  <th className="text-left py-2">时间</th>
-                  <th className="text-right py-2">Hit@3</th>
-                  <th className="text-right py-2">MRR</th>
-                  <th className="text-right py-2">题数</th>
-                  <th className="text-left py-2">触发</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentRuns.map((r) => (
-                  <tr key={r.run_id} className="border-b last:border-0">
-                    <td className="py-2 font-mono text-xs">{r.run_id}</td>
-                    <td className="py-2 text-xs">{new Date(r.created_at).toLocaleString("zh-CN")}</td>
-                    <td className={`text-right py-2 ${metricClass(r.hit_at_3)}`}>{metricPct(r.hit_at_3)}</td>
-                    <td className="text-right py-2">{metricVal(r.mrr)}</td>
-                    <td className="text-right py-2">{r.total_queries}</td>
-                    <td className="py-2 text-xs">{r.triggered_by || "-"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          {state === "error" && (
+            <AlertBanner className="mb-6">
+              {errorMsg}
+              <Button variant="outline" size="sm" onClick={load}>重试</Button>
+            </AlertBanner>
+          )}
+
+          {state === "empty" && (
+            <div className="flex flex-col items-center gap-2 py-16 text-muted-foreground">
+              <p>暂无评测数据</p>
+              <p className="text-sm">请先运行评测流水线：<code className="text-xs">python -m tests.run_golden_baseline --save</code></p>
+            </div>
+          )}
+
+          {state === "ready" && (
+            <>
+              {/* ── Summary cards ── */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <SummaryCard label="Hit@3" value={metricPct(latest?.hit_at_3)} cls={metricClass(latest?.hit_at_3)} />
+                <SummaryCard label="MRR" value={metricVal(latest?.mrr)} cls={metricClass(latest?.mrr)} />
+                <SummaryCard label="P50 延迟" value={metricMs(latest?.p50_latency_ms)} cls="" />
+                <SummaryCard label="拒答准确率" value={metricPct(latest?.correct_rejection_rate)} cls={metricClass(latest?.correct_rejection_rate)} />
+              </div>
+
+              {/* ── Trend chart ── */}
+              <div className="bg-white rounded-lg border p-4 mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-sm text-foreground">指标趋势</h3>
+                  <select
+                    className="text-sm border rounded px-2 py-1"
+                    value={selectedMetric}
+                    onChange={(e) => setSelectedMetric(e.target.value)}
+                  >
+                    {metrics.map((m) => (
+                      <option key={m.key} value={m.key}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
+                {trends && trends.points.length > 0 ? (
+                  <SimpleTrendChart points={trends.points} average={trends.average} metric={selectedMetric} />
+                ) : (
+                  <p className="text-center text-muted-foreground py-8 text-sm">暂无趋势数据</p>
+                )}
+              </div>
+
+              {/* ── Domain breakdown ── */}
+              {latest?.breakdown_domain && (
+                <div className="bg-white rounded-lg border p-4 mb-8">
+                  <h3 className="font-semibold text-sm text-foreground mb-3">Domain 下钻</h3>
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-muted-foreground">
+                        <th className="text-left py-2">Domain</th>
+                        <th className="text-right py-2">题数</th>
+                        <th className="text-right py-2">Hit@3</th>
+                        <th className="text-right py-2">MRR</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(latest.breakdown_domain).map(([dom, vals]: [string, any]) => (
+                        <tr key={dom} className="border-b last:border-0">
+                          <td className="py-2">{dom}</td>
+                          <td className="text-right py-2">{vals.total}</td>
+                          <td className={`text-right py-2 ${metricClass(vals.hit_rate)}`}>{metricPct(vals.hit_rate)}</td>
+                          <td className="text-right py-2">{vals.avg_latency_ms ? `${vals.avg_latency_ms.toFixed(0)}ms` : "-"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* ── Recent runs ── */}
+              <div className="bg-white rounded-lg border p-4">
+                <h3 className="font-semibold text-sm text-foreground mb-3">最近评测记录</h3>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b text-muted-foreground">
+                      <th className="text-left py-2">运行 ID</th>
+                      <th className="text-left py-2">时间</th>
+                      <th className="text-right py-2">Hit@3</th>
+                      <th className="text-right py-2">MRR</th>
+                      <th className="text-right py-2">题数</th>
+                      <th className="text-left py-2">触发</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentRuns.map((r) => (
+                      <tr key={r.run_id} className="border-b last:border-0">
+                        <td className="py-2 font-mono text-xs">{r.run_id}</td>
+                        <td className="py-2 text-xs">{new Date(r.created_at).toLocaleString("zh-CN")}</td>
+                        <td className={`text-right py-2 ${metricClass(r.hit_at_3)}`}>{metricPct(r.hit_at_3)}</td>
+                        <td className="text-right py-2">{metricVal(r.mrr)}</td>
+                        <td className="text-right py-2">{r.total_queries}</td>
+                        <td className="py-2 text-xs">{r.triggered_by || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>

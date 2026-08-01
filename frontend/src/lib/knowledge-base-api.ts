@@ -46,6 +46,9 @@ export interface KnowledgeBase {
   document_count: number;
   processing_count: number;
   failed_count: number;
+  /** NW-25 I-2：仅详情 GET 有值；列表为 null */
+  quota_used_bytes?: number | null;
+  quota_max_bytes?: number | null;
 }
 
 export interface KnowledgeBaseCreateInput {

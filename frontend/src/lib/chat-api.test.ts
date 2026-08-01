@@ -1,7 +1,19 @@
 ﻿import { describe, expect, it } from "vitest";
 
 import {
+  CHUNK_STALE_CHIP_LABEL,
+  CITATION_STALE_NOTICE_CHUNK_STALE,
+  CITATION_STALE_NOTICE_DELETED,
+  CITATION_STALE_NOTICE_INACCESSIBLE,
+  citationChipStatusLabel,
+  citationKbBoundaryNotice,
+  citationStaleMessageNotice,
   dispatchChatSseBlock,
+  distinctCitationKbNames,
+  formatCitationLabel,
+  isCitationChipUnavailable,
+  SOURCE_DELETED_CHIP_LABEL,
+  SOURCE_INACCESSIBLE_CHIP_LABEL,
   type ApprovalRequiredPayload,
   type ChatStreamHandlers,
   type Citation,
@@ -521,5 +533,108 @@ describe("dispatchChatSseBlock — Zod guards drop invalid data", () => {
       handlers,
     );
     expect(citationCount).toBe(1);
+  });
+});
+
+describe("E2 citation stale helpers", () => {
+  const base = {
+    chunk_id: "c1",
+    document_id: "d1",
+    doc_name: "手册.md",
+    page: null as number | null,
+    section_title: null as string | null,
+    excerpt: "年假 10 天",
+  };
+
+  it("citationChipStatusLabel returns short labels", () => {
+    expect(
+      citationChipStatusLabel({ ...base, source_status: "document_deleted" }),
+    ).toBe(SOURCE_DELETED_CHIP_LABEL);
+    expect(
+      citationChipStatusLabel({
+        ...base,
+        source_status: "source_inaccessible",
+      }),
+    ).toBe(SOURCE_INACCESSIBLE_CHIP_LABEL);
+    expect(
+      citationChipStatusLabel({ ...base, source_status: "chunk_stale" }),
+    ).toBe(CHUNK_STALE_CHIP_LABEL);
+    expect(
+      citationChipStatusLabel({ ...base, source_status: "available" }),
+    ).toBeUndefined();
+  });
+
+  it("isCitationChipUnavailable includes chunk_stale", () => {
+    expect(
+      isCitationChipUnavailable({ ...base, source_status: "chunk_stale" }),
+    ).toBe(true);
+    expect(
+      isCitationChipUnavailable({ ...base, source_status: "document_deleted" }),
+    ).toBe(true);
+    expect(
+      isCitationChipUnavailable({ ...base, source_status: "available" }),
+    ).toBe(false);
+  });
+
+  it("citationStaleMessageNotice prioritizes inaccessible > deleted > stale", () => {
+    expect(
+      citationStaleMessageNotice([
+        { ...base, source_status: "document_deleted" },
+        { ...base, source_status: "source_inaccessible" },
+      ]),
+    ).toBe(CITATION_STALE_NOTICE_INACCESSIBLE);
+
+    expect(
+      citationStaleMessageNotice([
+        { ...base, source_status: "chunk_stale" },
+        { ...base, source_status: "document_deleted" },
+      ]),
+    ).toBe(CITATION_STALE_NOTICE_DELETED);
+
+    expect(
+      citationStaleMessageNotice([
+        { ...base, source_status: "chunk_stale" },
+      ]),
+    ).toBe(CITATION_STALE_NOTICE_CHUNK_STALE);
+
+    expect(
+      citationStaleMessageNotice([{ ...base, source_status: "available" }]),
+    ).toBeNull();
+  });
+});
+
+describe("F2 citation kb boundary helpers", () => {
+  it("formatCitationLabel prefixes kb_name in workspace mode", () => {
+    const citation: Citation = {
+      ...makeCitation(),
+      kb_id: "kb1",
+      kb_name: "人事制度库",
+    };
+    expect(formatCitationLabel(citation, "workspace")).toContain("人事制度库");
+    expect(formatCitationLabel(citation, "kb")).not.toContain("人事制度库");
+  });
+
+  it("citationKbBoundaryNotice only when ≥2 distinct kb names", () => {
+    expect(
+      citationKbBoundaryNotice([
+        { ...makeCitation(), kb_name: "库A" },
+        { ...makeCitation(), kb_name: "库A" },
+      ]),
+    ).toBeNull();
+
+    expect(
+      citationKbBoundaryNotice([
+        { ...makeCitation(), kb_name: "库A" },
+        { ...makeCitation(), kb_name: "库B" },
+      ]),
+    ).toBe("本回答引用：库A · 库B");
+
+    expect(
+      distinctCitationKbNames([
+        { ...makeCitation(), kb_name: "库A" },
+        { ...makeCitation(), kb_name: " 库B " },
+        { ...makeCitation(), kb_name: "" },
+      ]),
+    ).toEqual(["库A", "库B"]);
   });
 });

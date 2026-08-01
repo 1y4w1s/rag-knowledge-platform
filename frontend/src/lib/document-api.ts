@@ -20,6 +20,9 @@ export interface Document {
   status: DocumentStatus;
   error_message: string | null;
   chunk_count: number | null;
+  processing_stage?: string | null;
+  progress_percent?: number | null;
+  progress_detail?: string | null;
   processing_started_at: string | null;
   processing_completed_at: string | null;
   uploaded_by: string | null;

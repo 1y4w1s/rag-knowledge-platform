@@ -23,6 +23,7 @@
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.6.2",
     "tailwind-merge": "^3.3.0",
+    "vis-network": "^10.1.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

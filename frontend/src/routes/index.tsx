@@ -11,6 +11,7 @@ import {
   type ShellRouteHandle,
 } from "@/components/layout/AppShellLayout";
 import { OrgAdminGuard } from "@/components/layout/OrgAdminGuard";
+import { UnitAdminMembersGuard } from "@/components/layout/UnitAdminMembersGuard";
 import { ResourceGuard } from "@/components/guards/ResourceGuard";
 import { RequireTeamWorkspace } from "@/components/common/RequireTeamWorkspace";
 
@@ -33,6 +34,9 @@ const AskPage = lazy(() =>
 );
 const ChatPage = lazy(() =>
   import("@/pages/ChatPage").then((m) => ({ default: m.ChatPage })),
+);
+const KbGraphPage = lazy(() =>
+  import("@/pages/KbGraphPage").then((m) => ({ default: m.KbGraphPage })),
 );
 const KnowledgeBasesPage = lazy(() =>
   import("@/pages/KnowledgeBasesPage").then((m) => ({
@@ -62,6 +66,11 @@ const OrgDepartmentsPage = lazy(() =>
     default: m.OrgDepartmentsPage,
   })),
 );
+const MyUnitMembersPage = lazy(() =>
+  import("@/pages/MyUnitMembersPage").then((m) => ({
+    default: m.MyUnitMembersPage,
+  })),
+);
 const OrganizationSettingsPage = lazy(() =>
   import("@/pages/OrganizationSettingsPage").then((m) => ({
     default: m.OrganizationSettingsPage,
@@ -74,6 +83,11 @@ const EvaluationsPage = lazy(() =>
 );
 const AdminAuditPage = lazy(() =>
   import("@/pages/AdminAuditPage").then((m) => ({ default: m.AdminAuditPage })),
+);
+const AdminKbInventoryPage = lazy(() =>
+  import("@/pages/AdminKbInventoryPage").then((m) => ({
+    default: m.AdminKbInventoryPage,
+  })),
 );
 const AboutPage = lazy(() =>
   import("@/pages/AboutPage").then((m) => ({ default: m.AboutPage })),
@@ -167,12 +181,29 @@ const appRoutes: RouteObject[] = [
       ),
     },
   ),
+  shellPage(
+    "knowledge-bases/:id/graph",
+    <ResourceGuard>
+      <KbGraphPage />
+    </ResourceGuard>,
+    {
+      breadcrumb: (
+        <>
+          资料库 / <b>知识图谱</b>
+        </>
+      ),
+    },
+  ),
   shellPage("settings/account", <AccountSettingsPage />, {
     breadcrumb: <>账号设置</>,
   }),
   shellPage("about", <AboutPage />, {
-    breadcrumb: <>关于睿阁</>,
+    breadcrumb: <>帮助与关于</>,
   }),
+  {
+    path: "help",
+    element: <Navigate to="/about" replace />,
+  },
   shellPage(
     "organization/members",
     <RequireTeamWorkspace feature="成员管理">
@@ -191,6 +222,17 @@ const appRoutes: RouteObject[] = [
     </RequireTeamWorkspace>,
     {
       breadcrumb: <>组织与部门</>,
+    },
+  ),
+  shellPage(
+    "organization/my-unit-members",
+    <RequireTeamWorkspace feature="我的部门成员">
+      <UnitAdminMembersGuard>
+        <MyUnitMembersPage />
+      </UnitAdminMembersGuard>
+    </RequireTeamWorkspace>,
+    {
+      breadcrumb: <>我的部门成员</>,
     },
   ),
   shellPage(
@@ -213,6 +255,17 @@ const appRoutes: RouteObject[] = [
     </RequireTeamWorkspace>,
     {
       breadcrumb: <>操作审计</>,
+    },
+  ),
+  shellPage(
+    "admin/kb-inventory",
+    <RequireTeamWorkspace feature="资产清单">
+      <OrgAdminGuard>
+        <AdminKbInventoryPage />
+      </OrgAdminGuard>
+    </RequireTeamWorkspace>,
+    {
+      breadcrumb: <>资产清单</>,
     },
   ),
 ];

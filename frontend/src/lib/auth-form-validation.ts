@@ -32,6 +32,19 @@ export function confirmLongOrgName(actionLabel: string): boolean {
   );
 }
 
+/** 新密码强度（与后端 validate_password_strength / 注册页一致 · NW-37） */
+export function passwordStrengthError(password: string): string | null {
+  if (!password) return "请输入密码";
+  if (password.length < 8) return "至少 8 位";
+  const missing: string[] = [];
+  if (!/[A-Z]/.test(password)) missing.push("大写字母");
+  if (!/[a-z]/.test(password)) missing.push("小写字母");
+  if (!/\d/.test(password)) missing.push("数字");
+  if (!/[^A-Za-z0-9]/.test(password)) missing.push("特殊字符");
+  if (missing.length > 0) return `缺少${missing.join("、")}`;
+  return null;
+}
+
 /** 注册第 3 步：用户名 + 邮箱 + 密码 */
 export function validateRegisterCredentials(
   username: string,
@@ -51,20 +64,8 @@ export function validateRegisterCredentials(
     errors.email = "邮箱格式不正确";
   }
 
-  if (!password) {
-    errors.password = "请输入密码";
-  } else if (password.length < 8) {
-    errors.password = "至少 8 位";
-  } else {
-    const missing: string[] = [];
-    if (!/[A-Z]/.test(password)) missing.push("大写字母");
-    if (!/[a-z]/.test(password)) missing.push("小写字母");
-    if (!/\d/.test(password)) missing.push("数字");
-    if (!/[^A-Za-z0-9]/.test(password)) missing.push("特殊字符");
-    if (missing.length > 0) {
-      errors.password = `缺少${missing.join("、")}`;
-    }
-  }
+  const pwErr = passwordStrengthError(password);
+  if (pwErr) errors.password = pwErr;
 
   if (!confirmPassword) {
     errors.confirmPassword = "请确认密码";

@@ -3,22 +3,33 @@ import { useState } from "react";
 import { Check, Copy, RefreshCw } from "lucide-react";
 
 import { ApprovalCard } from "@/components/chat/ApprovalCard";
+import { ClarifyCard } from "@/components/chat/ClarifyCard";
+import { ProposalPreviewCard } from "@/components/chat/ProposalPreviewCard";
 import { EmptyStateV44, CHAT_SCENE } from "@/components/ui/EmptyState";
 import { CitationChip } from "@/components/chat/CitationChip";
 import { CitationPreview } from "@/components/chat/CitationPreview";
+import { MessageFeedback } from "@/components/chat/MessageFeedback";
 import {
   canLinkToCitationPreview,
+  citationKbBoundaryNotice,
+  citationStaleMessageNotice,
   formatCitationLabel,
   previewPathForCitation,
   resolveKbIdForCitation,
   type ApprovalState,
   type Citation,
   type CitationLabelMode,
+  type ClarifyPayload,
+  type ProposalState,
 } from "@/lib/chat-api";
 import {
   formatMessageTime,
   groupMessagesByDay,
 } from "@/lib/message-list-utils";
+import {
+  PARTIAL_ANSWER_NOTICE,
+  hasPartialAnswerDisclaimer,
+} from "@/lib/confidence-reply";
 import { localizeAssistantText } from "@/lib/localize";
 
 export interface UserChatMessage {
@@ -38,6 +49,12 @@ export interface AssistantChatMessage {
   id?: string;
   /** G4-4.2 · 编辑模式审批卡状态 */
   approval?: ApprovalState;
+  /** G5 · 文档操作提案预览状态（先确认后提交审批） */
+  proposal?: ProposalState;
+  /** G5 · 文档名歧义澄清状态（情景 5 · 多篇命中 → 用户点选） */
+  clarify?: ClarifyPayload;
+  /** 038 · SSE 中断标记 */
+  status?: "completed" | "interrupted";
 }
 
 export type ChatMessage = UserChatMessage | AssistantChatMessage;
@@ -52,10 +69,21 @@ interface ChatMessageListProps {
   onCancelApproval?: (messageIndex: number, approvalId: string) => void;
   resolvingApprovalId?: string | null;
   approvalError?: string | null;
+  /** G5 · 文档操作提案回调（确认提交 / 取消） */
+  onSubmitProposal?: (messageIndex: number) => void;
+  onCancelProposal?: (messageIndex: number) => void;
+  submittingProposal?: boolean;
+  proposalError?: string | null;
+  /** G5 · 歧义澄清回调（用户点选目标文档） */
+  onClarify?: (messageIndex: number, documentId: string, operation: "delete" | "restore") => void;
+  clarifying?: boolean;
+  clarifyError?: string | null;
   /** 是否已有历史会话：用于区分「首次对话」与「返回用户开新对话」的空态文案 */
   hasThreads?: boolean;
   /** 重新生成回答 */
   onRegenerate?: (messageIndex: number) => void;
+  /** NW-10 I-2：Admin 评测模式 */
+  evalMode?: boolean;
 }
 
 export function ChatMessageList({
@@ -67,8 +95,16 @@ export function ChatMessageList({
   onCancelApproval,
   resolvingApprovalId,
   approvalError,
+  onSubmitProposal,
+  onCancelProposal,
+  submittingProposal = false,
+  proposalError = null,
+  onClarify,
+  clarifying = false,
+  clarifyError = null,
   hasThreads = false,
   onRegenerate,
+  evalMode = false,
 }: ChatMessageListProps) {
   const isWorkspace = citationMode === "workspace";
   const navigate = useNavigate();
@@ -149,6 +185,22 @@ export function ChatMessageList({
                 : null;
 
             const localizedContent = localizeAssistantText(message.content);
+            const staleNotice =
+              !message.streaming && message.citations.length > 0
+                ? citationStaleMessageNotice(message.citations)
+                : null;
+            const kbBoundaryNotice =
+              isWorkspace &&
+              !message.streaming &&
+              message.citations.length > 0
+                ? citationKbBoundaryNotice(message.citations)
+                : null;
+            const partialNotice =
+              !message.streaming &&
+              message.citations.length > 0 &&
+              hasPartialAnswerDisclaimer(message.content)
+                ? PARTIAL_ANSWER_NOTICE
+                : null;
 
             return (
               <div
@@ -168,6 +220,47 @@ export function ChatMessageList({
                     <span className="chat-stream-cursor" aria-hidden="true" />
                   )}
                 </div>
+
+                {partialNotice && (
+                  <p
+                    className="mt-2 text-[0.72rem] text-muted"
+                    data-testid="partial-answer-notice"
+                  >
+                    {partialNotice}
+                  </p>
+                )}
+
+                {message.status === "interrupted" && !message.streaming && (
+                  <div
+                    className="mt-3 flex items-center gap-2 rounded-md border border-[var(--status-err-border)] bg-[var(--status-err-bg)] px-3 py-2 text-[0.75rem] text-[var(--status-err-text)]"
+                    data-testid="interrupted-notice"
+                  >
+                    <span className="font-medium">⚠️ 回答被中断</span>
+                    <span className="text-[var(--status-err-text)]/70">
+                      {message.content
+                        ? "已生成的部分回答已保存，可复制或重新发送"
+                        : "生成未完成，可重新发送"}
+                    </span>
+                  </div>
+                )}
+
+                {staleNotice && (
+                  <p
+                    className="mt-2 text-[0.72rem] font-medium text-[var(--status-err-text)]"
+                    data-testid="citation-stale-notice"
+                  >
+                    {staleNotice}
+                  </p>
+                )}
+
+                {kbBoundaryNotice && (
+                  <p
+                    className="mt-2 text-[0.72rem] text-muted"
+                    data-testid="citation-kb-boundary"
+                  >
+                    {kbBoundaryNotice}
+                  </p>
+                )}
 
                 {message.citations.length > 0 && (
                   <div className="cite-row">
@@ -194,7 +287,35 @@ export function ChatMessageList({
                   />
                 )}
 
-                {message.approval && (
+                {message.clarify ? (
+                  <ClarifyCard
+                    clarify={message.clarify}
+                    clarifying={clarifying}
+                    error={clarifyError}
+                    onSelect={
+                      onClarify
+                        ? (documentId, operation) =>
+                            onClarify(messageIndex, documentId, operation)
+                        : () => {}
+                    }
+                  />
+                ) : message.proposal ? (
+                  <ProposalPreviewCard
+                    proposal={message.proposal}
+                    submitting={submittingProposal}
+                    error={proposalError}
+                    onSubmit={
+                      onSubmitProposal
+                        ? () => onSubmitProposal(messageIndex)
+                        : undefined
+                    }
+                    onCancel={
+                      onCancelProposal
+                        ? () => onCancelProposal(messageIndex)
+                        : undefined
+                    }
+                  />
+                ) : message.approval ? (
                   <ApprovalCard
                     approval={message.approval}
                     onAdopt={
@@ -226,7 +347,7 @@ export function ChatMessageList({
                         : null
                     }
                   />
-                )}
+                ) : null}
 
                 {!message.streaming &&
                   message.citations.length === 0 &&
@@ -293,6 +414,14 @@ export function ChatMessageList({
                     )}
                   </div>
                 )}
+
+                <MessageFeedback
+                  messageId={message.id}
+                  content={message.content}
+                  citations={message.citations}
+                  streaming={message.streaming}
+                  evalMode={evalMode}
+                />
               </div>
             );
           })}

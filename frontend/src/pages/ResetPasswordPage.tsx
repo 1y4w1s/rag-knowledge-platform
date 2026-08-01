@@ -4,6 +4,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { AuthCard, AuthCardBrand } from "@/components/auth/AuthCard";
 import { AuthFormAlert } from "@/components/auth/AuthField";
 import { Button } from "@/components/ui/button";
+import { passwordStrengthError } from "@/lib/auth-form-validation";
 import { useTheme } from "@/lib/use-theme";
 
 const API_BASE = "/api/v1";
@@ -29,8 +30,9 @@ export function ResetPasswordPage() {
       setError("重置链接无效：缺少令牌");
       return;
     }
-    if (password.length < 8) {
-      setError("密码至少 8 位");
+    const pwErr = passwordStrengthError(password);
+    if (pwErr) {
+      setError(pwErr);
       return;
     }
     if (password !== confirm) {
@@ -176,7 +178,7 @@ export function ResetPasswordPage() {
                 设置新密码
               </h2>
               <p className="mt-2 text-[13px] leading-relaxed text-[var(--auth-muted)]">
-                请输入新密码（至少 8 位）。
+                请输入新密码（至少 8 位，含大小写、数字与特殊字符）。
               </p>
             </div>
 
@@ -200,7 +202,7 @@ export function ResetPasswordPage() {
                   required
                   autoFocus
                   minLength={8}
-                  placeholder="至少 8 位"
+                  placeholder="至少 8 位，含大小写、数字与特殊字符"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className={fieldClassName}

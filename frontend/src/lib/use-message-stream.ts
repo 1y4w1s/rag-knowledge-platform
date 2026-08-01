@@ -10,10 +10,14 @@ import {
 } from "@/lib/agent-stream";
 import type { AgentMode } from "@/lib/agent-mode";
 import {
+  clarifyDocumentWrite,
   isCitationExpandBlocked,
+  submitDocumentWrite,
   type ApprovalState,
   type Citation,
+  type ClarifyPayload,
   type HistoryMessage,
+  type ProposalState,
 } from "@/lib/chat-api";
 import type {
   AssistantChatMessage,
@@ -64,6 +68,8 @@ function mapHistoryMessage(message: HistoryMessage): ChatMessage {
     createdAt: message.created_at,
     id: message.id,
     approval,
+    /** 038 · 传递中断状态 */
+    status: message.status === "interrupted" ? "interrupted" : undefined,
   };
 }
 
@@ -81,6 +87,10 @@ export function useMessageStream(
   const [streamError, setStreamError] = useState<string | null>(null);
   const [toolSteps, setToolSteps] = useState<ToolTimelineStep[]>([]);
   const [agentBudget, setAgentBudget] = useState<AgentBudgetState | null>(null);
+  const [submittingProposal, setSubmittingProposal] = useState(false);
+  const [proposalError, setProposalError] = useState<string | null>(null);
+  const [clarifying, setClarifying] = useState(false);
+  const [clarifyError, setClarifyError] = useState<string | null>(null);
 
   const streamAbortRef = useRef<AbortController | null>(null);
   const streamingRef = useRef(false);
@@ -165,6 +175,10 @@ export function useMessageStream(
     [setMessages],
   );
 
+  // SSE 自动重连配置
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY_MS = [1000, 2000, 4000];
+
   const sendMessage = useCallback(
     async (message: string, mode: AgentMode = "fast") => {
       if (context.kind === "knowledge_base" && !context.kbId) return;
@@ -183,7 +197,9 @@ export function useMessageStream(
 
       let threadId = activeThreadIdRef.current;
       sendingRef.current = true;
-      try {
+      let retryCount = 0;
+
+      const doSend = async (): Promise<void> => {
         if (!threadId) {
           const thread = await createThreadApi(context);
           threadId = thread.id;
@@ -287,10 +303,54 @@ export function useMessageStream(
                 return next;
               });
             },
+            onProposalPreview: (payload) => {
+              const proposal: ProposalState = {
+                operation: payload.operation,
+                document_id: payload.document_id,
+                kb_id: payload.kb_id,
+                filename: payload.filename,
+                kb_name: payload.kb_name,
+                impact: payload.impact,
+                conflict: payload.conflict,
+                run_id: payload.run_id,
+                can_adopt: payload.can_adopt,
+                double_confirm: payload.double_confirm,
+              };
+              setMessages((prev) => {
+                const next = [...prev];
+                const last = next[next.length - 1];
+                if (last?.role !== "assistant") return prev;
+                next[next.length - 1] = {
+                  ...last,
+                  proposal,
+                  clarify: undefined,
+                };
+                return next;
+              });
+            },
+            onClarify: (payload: ClarifyPayload) => {
+              setMessages((prev) => {
+                const next = [...prev];
+                const last = next[next.length - 1];
+                if (last?.role !== "assistant") return prev;
+                next[next.length - 1] = {
+                  ...last,
+                  clarify: payload,
+                };
+                return next;
+              });
+            },
           },
           signal,
           mode,
         );
+
+        inFlightUserMessageRef.current = null;
+      };
+      // doSend 结束
+
+      try {
+        await doSend();
 
         const rows = await fetchThreadsApi(context);
         if (rows !== null) {
@@ -305,6 +365,36 @@ export function useMessageStream(
           inFlightUserMessageRef.current = null;
           return;
         }
+
+        // SSE 自动重连：空流（未收到任何 token）时指数退避 + 回滚重试
+        const lastMsg = messagesRef.current?.[messagesRef.current.length - 1];
+        const isEmpty =
+          lastMsg?.role === "assistant" &&
+          !lastMsg.content &&
+          !lastMsg.citations?.length;
+        if (isEmpty && retryCount < MAX_RETRIES) {
+          retryCount++;
+          const rollback = rollbackInFlightMessages(messagesRef.current);
+          messagesRef.current = rollback.messages;
+          setMessages(rollback.messages);
+          const delay =
+            RETRY_DELAY_MS[Math.min(retryCount - 1, RETRY_DELAY_MS.length - 1)];
+          await new Promise((r) => setTimeout(r, delay));
+          try {
+            await doSend();
+            inFlightUserMessageRef.current = null;
+            return; // 重试成功
+          } catch (retryErr) {
+            if (signal.aborted) {
+              const r2 = rollbackInFlightMessages(messagesRef.current);
+              messagesRef.current = r2.messages;
+              setMessages(r2.messages);
+              inFlightUserMessageRef.current = null;
+              return;
+            }
+          }
+        }
+
         inFlightUserMessageRef.current = null;
         const messageText =
           err instanceof Error ? err.message : "对话请求失败，请稍后重试";
@@ -371,6 +461,109 @@ export function useMessageStream(
     [context, activeThreadIdRef, messagesRef, sendMessage, setMessages],
   );
 
+  const submitProposal = useCallback(
+    async (messageIndex: number) => {
+      const msg = messagesRef.current[messageIndex];
+      if (!msg || msg.role !== "assistant" || !msg.proposal) return;
+      const threadId = activeThreadIdRef.current;
+      if (!threadId) return;
+      const p = msg.proposal;
+      setSubmittingProposal(true);
+      setProposalError(null);
+      try {
+        const result = await submitDocumentWrite({
+          thread_id: threadId,
+          kb_id: p.kb_id,
+          document_id: p.document_id,
+          operation: p.operation,
+          run_id: p.run_id,
+        });
+        const approval: ApprovalState = {
+          approval_id: result.approval_id,
+          filename: p.filename,
+          kb_name: p.kb_name,
+          draft_preview: "",
+          citations: [],
+          can_adopt: p.can_adopt,
+          status: "pending",
+          operation: p.operation,
+        };
+        setMessages((prev) =>
+          prev.map((m, i) =>
+            i === messageIndex && m.role === "assistant"
+              ? { ...m, approval, proposal: undefined }
+              : m,
+          ),
+        );
+      } catch (err) {
+        setProposalError(
+          err instanceof Error ? err.message : "提交审批失败，请稍后重试",
+        );
+      } finally {
+        setSubmittingProposal(false);
+      }
+    },
+    [messagesRef, activeThreadIdRef, setMessages],
+  );
+
+  const cancelProposal = useCallback(
+    (messageIndex: number) => {
+      setMessages((prev) =>
+        prev.map((m, i) =>
+          i === messageIndex && m.role === "assistant"
+            ? { ...m, proposal: undefined }
+            : m,
+        ),
+      );
+    },
+    [setMessages],
+  );
+
+  const clarifyProposal = useCallback(
+    async (messageIndex: number, documentId: string, operation: "delete" | "restore") => {
+      const threadId = activeThreadIdRef.current;
+      if (!threadId) return;
+      setClarifying(true);
+      setClarifyError(null);
+      try {
+        const proposal = await clarifyDocumentWrite({
+          thread_id: threadId,
+          document_id: documentId,
+          operation,
+        });
+        setMessages((prev) =>
+          prev.map((m, i) =>
+            i === messageIndex && m.role === "assistant"
+              ? {
+                  ...m,
+                  clarify: undefined,
+                  proposal: {
+                    operation: proposal.operation,
+                    document_id: proposal.document_id,
+                    kb_id: proposal.kb_id,
+                    filename: proposal.filename,
+                    kb_name: proposal.kb_name,
+                    impact: proposal.impact,
+                    conflict: proposal.conflict,
+                    run_id: proposal.run_id,
+                    can_adopt: proposal.can_adopt,
+                    double_confirm: proposal.double_confirm,
+                  },
+                }
+              : m,
+          ),
+        );
+      } catch (err) {
+        setClarifyError(
+          err instanceof Error ? err.message : "澄清失败，请稍后重试",
+        );
+      } finally {
+        setClarifying(false);
+      }
+    },
+    [activeThreadIdRef, setMessages],
+  );
+
   return {
     historyLoading,
     historyError,
@@ -378,11 +571,18 @@ export function useMessageStream(
     streamError,
     toolSteps,
     agentBudget,
+    submittingProposal,
+    proposalError,
+    clarifying,
+    clarifyError,
     streamAbortRef,
     sendingRef,
     loadMessages,
     sendMessage,
     regenerate,
+    submitProposal,
+    cancelProposal,
+    clarifyProposal,
     abortStreaming,
     abortForModeSwitch,
     toggleCitation,

@@ -71,6 +71,20 @@ export interface DashboardStats {
   retrieval_latency_sample_count: number;
   document_retry_count_7d: number;
   storage_cleanup_failure_count: number;
+  usage_7d_user_questions: number;
+  usage_7d_assistant_replies: number;
+  estimated_api_cost_cny_7d: number | null;
+  cost_estimate_note: string | null;
+  /** NW-44：当前 CHAT_RETENTION_DAYS；Admin 可见，Member 为 null */
+  chat_retention_days: number | null;
+  /** NW-46：RATE_LIMIT_BACKEND；Admin 可见，Member 为 null */
+  rate_limit_backend: string | null;
+  /** NW-46：CITATION_REDACT_ENABLED；Admin 可见，Member 为 null */
+  citation_redact_enabled: boolean | null;
+  /** NW-46：LLM_CONTEXT_REDACT_ENABLED；Admin 可见，Member 为 null */
+  llm_context_redact_enabled: boolean | null;
+  /** NW-46：KB_QUOTA_MAX_BYTES（0=关）；Admin 可见，Member 为 null */
+  kb_quota_max_bytes: number | null;
 }
 
 export function isDashboardEmpty(stats: DashboardStats): boolean {

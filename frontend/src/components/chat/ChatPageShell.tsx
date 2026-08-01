@@ -12,8 +12,10 @@ import { Button } from "@/components/ui/button";
 import type { CitationLabelMode } from "@/lib/chat-api";
 import type { AgentBudgetState, ToolTimelineStep } from "@/lib/agent-stream";
 import type { AgentMode } from "@/lib/agent-mode";
+import { FEEDBACK_EVAL_MODE_HINT } from "@/lib/message-feedback";
 import type { ChatThread } from "@/lib/thread-api";
 import { cn } from "@/lib/utils";
+import { suggestThoroughMode } from "@/lib/agent-suggestion";
 
 /* ── Grouped config types (Task J: 28-prop drilling → object) ── */
 
@@ -38,6 +40,8 @@ export interface AgentConfig {
   mode: AgentMode;
   budget: AgentBudgetState | null;
   onChange: (mode: AgentMode) => void;
+  /** G5 · 文档操作模式按钮可见性（仅 Admin/Owner） */
+  canUseDocumentWrite?: boolean;
 }
 
 export interface ChatStateConfig {
@@ -59,6 +63,17 @@ export interface MessageListConfig {
   onCancelApproval?: (msgIdx: number, approvalId: string) => void;
   resolvingApprovalId: string | null;
   approvalError: string | null;
+  /** G5 · 文档操作提案回调 */
+  onSubmitProposal?: (messageIndex: number) => void;
+  onCancelProposal?: (messageIndex: number) => void;
+  submittingProposal?: boolean;
+  proposalError?: string | null;
+  /** G5 · 文档名歧义澄清回调 */
+  onClarify?: (messageIndex: number, documentId: string, operation: "delete" | "restore") => void;
+  clarifying?: boolean;
+  clarifyError?: string | null;
+  /** NW-10 I-2 */
+  evalMode?: boolean;
 }
 
 export interface InputConfig {
@@ -120,6 +135,7 @@ export function ChatPageShell({
     mode: agentMode,
     budget: agentBudget,
     onChange: onAgentModeChange,
+    canUseDocumentWrite,
   },
   chatState: {
     messages,
@@ -139,6 +155,14 @@ export function ChatPageShell({
     onRegenerate,
     resolvingApprovalId,
     approvalError,
+    onSubmitProposal,
+    onCancelProposal,
+    submittingProposal,
+    proposalError,
+    onClarify,
+    clarifying,
+    clarifyError,
+    evalMode = false,
   },
   inputConfig: {
     disabled: chatInputDisabled,
@@ -187,9 +211,35 @@ export function ChatPageShell({
             <AgentModeSwitcher
               value={agentMode}
               onChange={onAgentModeChange}
+              showDocumentWrite={canUseDocumentWrite}
             />
             <AgentBudgetChip mode={agentMode} budget={agentBudget} />
+            {agentMode === "fast" && messages.length > 0 && (() => {
+              const lastUserMsg = [...messages].reverse().find(m => m.role === "user");
+              if (lastUserMsg && suggestThoroughMode(lastUserMsg.content)) {
+                return (
+                  <button
+                    type="button"
+                    className="ml-2 rounded-full border border-[var(--accent)]/30 bg-[var(--accent)]/5 px-2.5 py-0.5 text-[0.68rem] text-[var(--accent)] transition-colors hover:bg-[var(--accent)]/15"
+                    onClick={() => onAgentModeChange("thorough")}
+                    data-testid="suggest-thorough-chip"
+                  >
+                    ✦ 推荐精准
+                  </button>
+                );
+              }
+              return null;
+            })()}
           </div>
+
+          {evalMode ? (
+            <p
+              className="px-4 pb-1 text-[0.72rem] text-[var(--mut)]"
+              data-testid="feedback-eval-mode-hint"
+            >
+              {FEEDBACK_EVAL_MODE_HINT}
+            </p>
+          ) : null}
 
           {children}
 
@@ -243,7 +293,15 @@ export function ChatPageShell({
                         onRegenerate={onRegenerate}
                         resolvingApprovalId={resolvingApprovalId}
                         approvalError={approvalError}
+                        onSubmitProposal={onSubmitProposal}
+                        onCancelProposal={onCancelProposal}
+                        submittingProposal={submittingProposal}
+                        proposalError={proposalError}
+                        onClarify={onClarify}
+                        clarifying={clarifying}
+                        clarifyError={clarifyError}
                         hasThreads={threads.length > 0}
+                        evalMode={evalMode}
                       />
                     </>
                   )}

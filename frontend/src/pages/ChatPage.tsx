@@ -22,6 +22,7 @@ import { useShellBreadcrumb } from "@/lib/shell-breadcrumb";
 import type { ThreadContext } from "@/lib/thread-api";
 import { useThreadSession } from "@/lib/use-thread-session";
 import { useChatPageHandlers } from "@/lib/use-chat-page-handlers";
+import { isFeedbackEvalModeActive } from "@/lib/message-feedback";
 
 function DetailSkeleton() {
   return (
@@ -42,6 +43,11 @@ export function ChatPage() {
   } = useDepartment();
   const { setOverride } = useShellBreadcrumb();
   const teamBusinessAllowed = canUseTeamBusiness(user, workspace);
+
+  const feedbackEvalMode = useMemo(
+    () => isFeedbackEvalModeActive({ search: searchParams, user }),
+    [searchParams, user],
+  );
 
   const chatScope = useMemo(
     () => ({
@@ -85,6 +91,12 @@ export function ChatPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // G5 · 文档操作模式仅 Admin/Owner 或本库所有者可见（写权限门禁 · 后端二次校验）
+  const canUseDocumentWrite =
+    Boolean(user?.is_owner) ||
+    user?.org_role === "admin" ||
+    (kb?.owner_user_id != null && kb.owner_user_id === user?.id);
+
   const consumedQuickQRef = useRef<string | null>(null);
   const loadIdRef = useRef(0);
 
@@ -102,6 +114,11 @@ export function ChatPage() {
     agentBudget,
     resolvingApprovalId,
     approvalError,
+    submittingProposal,
+    proposalError,
+    clarifying,
+    clarifyError,
+    clarifyProposal,
     loadThreads,
     loadMessages,
     selectThread,
@@ -111,6 +128,8 @@ export function ChatPage() {
     resolveApproval,
     sendMessage,
     regenerate,
+    submitProposal,
+    cancelProposal,
     abortStreaming,
     abortForModeSwitch,
   } = useThreadSession(threadContext);
@@ -274,6 +293,7 @@ export function ChatPage() {
         mode: agentMode,
         budget: agentBudget,
         onChange: handleAgentModeChange,
+        canUseDocumentWrite,
       }}
       chatState={{
         messages,
@@ -292,6 +312,15 @@ export function ChatPage() {
         onRegenerate: handleRegenerate,
         resolvingApprovalId,
         approvalError,
+        onSubmitProposal: (idx) => void submitProposal(idx),
+        onCancelProposal: (idx) => void cancelProposal(idx),
+        submittingProposal,
+        proposalError,
+        onClarify: (idx, documentId, operation) =>
+          void clarifyProposal(idx, documentId, operation),
+        clarifying,
+        clarifyError,
+        evalMode: feedbackEvalMode,
       }}
       inputConfig={{
         disabled: streaming || !teamBusinessAllowed,

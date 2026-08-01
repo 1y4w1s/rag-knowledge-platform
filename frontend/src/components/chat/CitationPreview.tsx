@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 
 import {
   CHUNK_STALE_LABEL,
+  CITATION_RESOLVE_FAILED_LABEL,
   formatCitationLabel,
   previewPathForCitation,
   resolveCitation,
@@ -21,7 +22,13 @@ interface CitationPreviewProps {
   scopeMode?: CitationLabelMode;
 }
 
-function previewTitle(citation: Citation): string {
+function previewTitle(
+  citation: Citation,
+  scopeMode: CitationLabelMode,
+): string {
+  if (scopeMode === "workspace") {
+    return formatCitationLabel(citation, "workspace");
+  }
   const locParts: string[] = [];
   if (citation.section_title) locParts.push(citation.section_title);
   if (citation.page != null) locParts.push(`第${citation.page}页`);
@@ -70,16 +77,19 @@ export function CitationPreview({
     initialSourceStatus(citation),
   );
   const [resolving, setResolving] = useState(needsResolve(citation));
+  const [resolveError, setResolveError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!needsResolve(citation)) {
       setSourceStatus(initialSourceStatus(citation));
       setResolving(false);
+      setResolveError(null);
       return;
     }
 
     let cancelled = false;
     setResolving(true);
+    setResolveError(null);
 
     void resolveCitation(
       kbId,
@@ -90,11 +100,13 @@ export function CitationPreview({
       .then((result) => {
         if (!cancelled) {
           setSourceStatus(result.source_status);
+          setResolveError(null);
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setSourceStatus("document_deleted");
+          // E2：不得把网络/5xx 误标为 document_deleted
+          setResolveError(CITATION_RESOLVE_FAILED_LABEL);
         }
       })
       .finally(() => {
@@ -108,16 +120,19 @@ export function CitationPreview({
     };
   }, [kbId, citation.document_id, citation.chunk_id, citation.source_status, chatScope.departmentId, chatScope.workspace]);
 
-  const banner = statusBanner(sourceStatus);
+  const banner = resolveError ?? statusBanner(sourceStatus);
   const canOpenOriginal =
-    !resolving && sourceStatus === "available";
+    !resolving && !resolveError && sourceStatus === "available";
   const labelMode = scopeMode;
 
   return (
-    <div className="cite-preview">
-      <strong>预览 · {previewTitle(citation)}</strong>
+    <div className="cite-preview" data-testid="citation-preview">
+      <strong>预览 · {previewTitle(citation, scopeMode)}</strong>
       {banner && (
-        <p className="mt-2 text-[0.72rem] font-medium text-[var(--status-err-text)]">
+        <p
+          className="mt-2 text-[0.72rem] font-medium text-[var(--status-err-text)]"
+          data-testid="citation-preview-banner"
+        >
           {banner}
         </p>
       )}
@@ -130,7 +145,7 @@ export function CitationPreview({
           查看原文 →
         </Link>
       )}
-      {!resolving && sourceStatus === "chunk_stale" && (
+      {!resolving && !resolveError && sourceStatus === "chunk_stale" && (
         <Link
           to={`/knowledge-bases/${kbId}/documents/${citation.document_id}`}
           className="mt-2 inline-block text-[0.72rem] text-accent hover:underline"
@@ -144,6 +159,7 @@ export function CitationPreview({
 
 export {
   CHUNK_STALE_LABEL,
+  CITATION_RESOLVE_FAILED_LABEL,
   SOURCE_DELETED_LABEL,
   SOURCE_INACCESSIBLE_LABEL,
 };

@@ -52,6 +52,36 @@ export const ApprovalStateSchema = z.object({
   status: z.enum(["pending", "adopted", "cancelled"]),
 });
 
+// ── G5 · 文档操作提案预览（SSE proposal_preview） ────
+
+export const ProposalPreviewPayloadSchema = z.object({
+  operation: z.enum(["delete", "restore"]),
+  document_id: z.string().min(1),
+  kb_id: z.string().min(1),
+  filename: z.string().min(1),
+  kb_name: z.string().min(1),
+  impact: z.string(),
+  conflict: z.string().nullable(),
+  run_id: z.string().min(1),
+  can_adopt: z.boolean(),
+  /** B 路径（fast 模式自动识别）需两次点击确认 */
+  double_confirm: z.boolean().optional().default(false),
+});
+
+// ── G5 · 歧义澄清（SSE clarify · 情景 5） ────
+
+export const ClarifyOptionSchema = z.object({
+  document_id: z.string().min(1),
+  filename: z.string().min(1),
+  kb_id: z.string().min(1),
+});
+
+export const ClarifyPayloadSchema = z.object({
+  operation: z.enum(["delete", "restore"]),
+  run_id: z.string().min(1),
+  options: z.array(ClarifyOptionSchema).min(1),
+});
+
 // ── History / Messages ───────────────────────────────
 
 export const HistoryMessageSchema = z.object({
