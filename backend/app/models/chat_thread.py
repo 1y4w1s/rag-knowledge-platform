@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, String, func
+from sqlalchemy import DateTime, ForeignKey, Index, String, func
 from sqlalchemy.dialects.postgresql import ENUM, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -13,6 +13,18 @@ from app.models.enums import ThreadKind, ThreadStatus
 
 class ChatThread(Base):
     __tablename__ = "chat_threads"
+    __table_args__ = (
+        Index(
+            "ix_chat_threads_list_scope",
+            "user_id",
+            "thread_kind",
+            "workspace_kind",
+            "workspace_org_id",
+            "workspace_department_key",
+            "status",
+            "last_message_at",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -25,11 +37,13 @@ class ChatThread(Base):
         UUID(as_uuid=True),
         ForeignKey("knowledge_bases.id", ondelete="CASCADE"),
         nullable=True,
+        index=True,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     title: Mapped[str] = mapped_column(String(256), nullable=False, server_default="")
     workspace_kind: Mapped[str | None] = mapped_column(String(32), nullable=True)
@@ -48,8 +62,11 @@ class ChatThread(Base):
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+        index=True,
     )
     last_message_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
+        DateTime(timezone=True), nullable=True, index=True
     )

@@ -3,8 +3,9 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import ENUM, UUID
+from sqlalchemy.sql import text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -13,6 +14,26 @@ from app.models.enums import DocumentStatus, DocumentVisibility
 
 class Document(Base):
     __tablename__ = "documents"
+    __table_args__ = (
+        Index("ix_documents_kb_deleted", "kb_id", "deleted_at"),
+        Index(
+            "uq_documents_kb_content_sha256",
+            "kb_id",
+            "content_sha256",
+            unique=True,
+            postgresql_where=text("content_sha256 IS NOT NULL"),
+        ),
+        Index(
+            "uq_documents_kb_filename_sha256",
+            "kb_id",
+            "filename",
+            "content_sha256",
+            unique=True,
+            postgresql_where=text(
+                "deleted_at IS NULL AND content_sha256 IS NOT NULL"
+            ),
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -21,6 +42,7 @@ class Document(Base):
         UUID(as_uuid=True),
         ForeignKey("knowledge_bases.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     filename: Mapped[str] = mapped_column(String(512), nullable=False)
     file_type: Mapped[str] = mapped_column(String(32), nullable=False)
@@ -31,6 +53,7 @@ class Document(Base):
         ENUM(DocumentStatus, name="document_status", create_type=False),
         nullable=False,
         default=DocumentStatus.queued,
+        index=True,
     )
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
     chunk_count: Mapped[int | None] = mapped_column(Integer, nullable=True)

@@ -29,6 +29,7 @@ class OrgUnitMember(Base):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     role: Mapped[UnitRole] = mapped_column(
         Enum(UnitRole, name="unit_role", native_enum=True),

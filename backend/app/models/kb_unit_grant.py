@@ -29,6 +29,7 @@ class KbUnitGrant(Base):
         UUID(as_uuid=True),
         ForeignKey("knowledge_bases.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     grantee_type: Mapped[GranteeType] = mapped_column(
         Enum(GranteeType, name="grantee_type", native_enum=True),

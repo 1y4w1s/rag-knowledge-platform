@@ -20,6 +20,7 @@ class OrgUnit(Base):
         UUID(as_uuid=True),
         ForeignKey("organizations.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     parent_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
@@ -27,7 +28,7 @@ class OrgUnit(Base):
         nullable=True,
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    path: Mapped[str] = mapped_column(String(4096), nullable=False)
+    path: Mapped[str] = mapped_column(String(4096), nullable=False, index=True)
     depth: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

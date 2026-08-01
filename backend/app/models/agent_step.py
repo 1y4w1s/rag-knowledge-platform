@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import ENUM, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -14,6 +14,9 @@ from app.models.enums import AgentStepStatus
 
 class AgentStep(Base):
     __tablename__ = "agent_steps"
+    __table_args__ = (
+        Index("ix_agent_steps_run_step", "run_id", "step_index", unique=True),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -22,6 +25,7 @@ class AgentStep(Base):
         UUID(as_uuid=True),
         ForeignKey("agent_runs.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     step_index: Mapped[int] = mapped_column(Integer, nullable=False)
     tool_name: Mapped[str] = mapped_column(String(64), nullable=False)

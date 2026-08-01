@@ -3,8 +3,9 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, Text, func
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, Index, String, Text, func
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.sql import text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base
@@ -18,6 +19,30 @@ class KnowledgeBase(Base):
             "(owner_user_id IS NULL AND owner_org_id IS NOT NULL)",
             name="ck_kb_owner_xor",
         ),
+        Index(
+            "idx_kb_owner_org_created",
+            "owner_org_id",
+            text("created_at DESC"),
+        ),
+        Index(
+            "idx_kb_owner_user_created",
+            "owner_user_id",
+            text("created_at DESC"),
+        ),
+        Index(
+            "uq_kb_org_name",
+            "owner_org_id",
+            text("lower(btrim(name))"),
+            unique=True,
+            postgresql_where=text("owner_org_id IS NOT NULL"),
+        ),
+        Index(
+            "uq_kb_personal_name",
+            "owner_user_id",
+            text("lower(btrim(name))"),
+            unique=True,
+            postgresql_where=text("owner_user_id IS NOT NULL"),
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -29,11 +54,13 @@ class KnowledgeBase(Base):
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=True,
+        index=True,
     )
     owner_org_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("organizations.id", ondelete="CASCADE"),
         nullable=True,
+        index=True,
     )
     org_unit_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),

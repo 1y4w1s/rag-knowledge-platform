@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, func
+from sqlalchemy import DateTime, ForeignKey, Index, String, Text, func
 from sqlalchemy.dialects.postgresql import ENUM, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -14,6 +14,23 @@ from app.models.enums import MessageRole, MessageStatus, ThreadKind
 
 class ChatMessage(Base):
     __tablename__ = "chat_messages"
+    __table_args__ = (
+        Index(
+            "ix_chat_messages_kb_user_created",
+            "kb_id",
+            "user_id",
+            "created_at",
+        ),
+        Index(
+            "ix_chat_messages_workspace_thread",
+            "user_id",
+            "thread_kind",
+            "workspace_kind",
+            "workspace_org_id",
+            "workspace_department_key",
+            "created_at",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -28,11 +45,13 @@ class ChatMessage(Base):
         UUID(as_uuid=True),
         ForeignKey("knowledge_bases.id", ondelete="CASCADE"),
         nullable=True,
+        index=True,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     role: Mapped[MessageRole] = mapped_column(
         ENUM(MessageRole, name="message_role", create_type=False),
@@ -60,15 +79,20 @@ class ChatMessage(Base):
         UUID(as_uuid=True),
         ForeignKey("chat_threads.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     approval_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("agent_approvals.id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
     )
     approval_status: Mapped[dict[str, Any] | None] = mapped_column(
         JSONB, nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), nullable=False
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+        index=True,
     )

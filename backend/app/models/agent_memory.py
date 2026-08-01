@@ -3,8 +3,8 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, JSON, UniqueConstraint, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import DateTime, ForeignKey, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.base import Base
@@ -29,10 +29,11 @@ class AgentMemory(Base):
         UUID(as_uuid=True),
         ForeignKey("knowledge_bases.id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
     )
     memory_type: Mapped[str] = mapped_column(nullable=False)
     key: Mapped[str] = mapped_column(nullable=False)
-    value: Mapped[dict] = mapped_column(JSON, nullable=False)  # JSONB 运行时等价
+    value: Mapped[dict] = mapped_column(JSONB, nullable=False)  # 与迁移 041 / 库一致
     confidence: Mapped[float] = mapped_column(default=1.0)
     last_accessed_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

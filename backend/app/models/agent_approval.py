@@ -22,16 +22,19 @@ class AgentApproval(Base):
         UUID(as_uuid=True),
         ForeignKey("agent_runs.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     thread_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("chat_threads.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     user_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("users.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     kind: Mapped[ApprovalKind] = mapped_column(
         ENUM(ApprovalKind, name="approval_kind", create_type=False),
@@ -42,11 +45,13 @@ class AgentApproval(Base):
         ENUM(ApprovalStatus, name="approval_status", create_type=False),
         nullable=False,
         server_default=ApprovalStatus.pending.value,
+        index=True,
     )
     kb_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("knowledge_bases.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     filename: Mapped[str] = mapped_column(String(512), nullable=False)
     payload_json: Mapped[Optional[dict[str, Any]]] = mapped_column(JSONB, nullable=True)
@@ -54,6 +59,7 @@ class AgentApproval(Base):
         UUID(as_uuid=True),
         ForeignKey("documents.id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
     )
     resolved_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True

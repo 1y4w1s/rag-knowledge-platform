@@ -1,8 +1,10 @@
 ﻿"""SQLAlchemy 模型（Wave 1.1～3.2 扩展：EvaluationRun）。"""
 
 from app.models.agent_approval import AgentApproval
+from app.models.agent_memory import AgentMemory
 from app.models.agent_run import AgentRun
 from app.models.agent_step import AgentStep
+from app.models.api_key import ApiKey
 from app.models.audit_log import AuditLog
 from app.models.base import Base
 from app.models.chat_feedback import ChatFeedback
@@ -43,9 +45,11 @@ from app.models.webhook import Webhook
 
 __all__ = [
     "AgentApproval",
+    "AgentMemory",
     "AgentRun",
     "AgentStep",
     "AuditLog",
+    "ApiKey",
     "Base",
     "AccountType",
     "AgentMode",

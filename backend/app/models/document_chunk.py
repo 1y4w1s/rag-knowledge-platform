@@ -4,7 +4,7 @@ import uuid
 from datetime import datetime
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, func
 from sqlalchemy.dialects.postgresql import TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -14,6 +14,27 @@ from app.services.ingestion.embedder import EMBEDDING_DIM
 
 class DocumentChunk(Base):
     __tablename__ = "document_chunks"
+    __table_args__ = (
+        Index("ix_document_chunks_kb_chunk_kind", "kb_id", "chunk_kind"),
+        Index("ix_document_chunks_doc_chunk", "document_id", "chunk_index"),
+        Index(
+            "ix_document_chunks_content_tsv_gin",
+            "content_tsv",
+            postgresql_using="gin",
+        ),
+        Index(
+            "ix_document_chunks_content_trgm_gin",
+            "content",
+            postgresql_using="gin",
+            postgresql_ops={"content": "gin_trgm_ops"},
+        ),
+        Index(
+            "ix_document_chunks_embedding_en_hnsw",
+            "embedding_en",
+            postgresql_using="hnsw",
+            postgresql_ops={"embedding_en": "vector_cosine_ops"},
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
@@ -22,11 +43,13 @@ class DocumentChunk(Base):
         UUID(as_uuid=True),
         ForeignKey("documents.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     kb_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("knowledge_bases.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
     )
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
     page_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -37,6 +60,7 @@ class DocumentChunk(Base):
         UUID(as_uuid=True),
         ForeignKey("document_chunks.id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
     )
     chunk_kind: Mapped[str] = mapped_column(
         String(16), nullable=False, server_default="text"
