@@ -152,10 +152,16 @@ async def main():
                 print(f"  [{i+1}/{len(qa_cases)}] {hits}/{i+1}={hits/max(1,i+1):.0%}")
 
     n = len(qa_cases)
+    hit_at_k = hits / max(1, n)
     print(f"\n{'='*60}")
     print(f"CRAG 英文检索 ({n} 条)")
     print(f"{'='*60}")
-    print(f"  Hit@3: {hits}/{n} = {hits/max(1,n):.0%}")
+    print(f"  Hit@3: {hits}/{n} = {hit_at_k:.1%}")
+    # C1 可比行：与 docs/baseline.json crag_sample_100 对齐（sample=100 时）
+    summary_key = f"crag_sample_{sample_n}" if sample_n != 4409 else "crag_full"
+    if sample_n == 100:
+        summary_key = "crag_sample_100"
+    print(f"BENCHMARK_SUMMARY dataset={summary_key} hit_at_k={hit_at_k:.6f} total={n}")
 
     # 5. 清理 KB
     try:

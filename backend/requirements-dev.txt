@@ -4,3 +4,7 @@ pytest>=8.3.0,<9
 pytest-asyncio>=0.24.0,<0.25
 httpx>=0.28.0,<0.29
 reportlab>=4.2.0,<5
+ragas>=0.3.0,<0.4
+datasets>=3.0.0,<6
+langchain-openai>=0.2.0,<1
+rank-bm25>=0.2.0,<1

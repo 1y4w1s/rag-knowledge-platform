@@ -19,4 +19,4 @@
 paddleocr>=2.7.0,<3
 paddlepaddle>=2.6.0,<3
 pdf2image>=1.17.0,<2
-Pillow>=10.0.0,<12
+Pillow>=10.4.0,<12

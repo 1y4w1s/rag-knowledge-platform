@@ -60,3 +60,40 @@ docker run --rm `
 - 不测写路径 / 上传 / 对话（属 M3/M5）
 - 不调 embedding / LLM
 - 不修改后端代码
+
+---
+
+## I2 · 跨库搜延迟（`search_paths.js` + service 基线）
+
+> **权威数字**：[`docs/tasks/eval-M2-search-report.md`](../../docs/tasks/eval-M2-search-report.md)  
+> **推荐测量**：`backend/scripts/bench_search_latency.py`（service 层，不受 search 60/h 限流）
+
+### Service 基线（推荐）
+
+```powershell
+docker cp backend/scripts/bench_search_latency.py ruige-api:/tmp/bench_search_latency.py
+docker compose exec api env PYTHONPATH=/app python /tmp/bench_search_latency.py
+```
+
+数据前提：库内已有带 `content_tsv` 的文档（本机用 **CRAG-Full-Auto** 评测库 · Data-eval）。L 档元数据 **无 chunk**，不能压 content。
+
+### k6 HTTP（可选）
+
+| 变量 | 说明 |
+|------|------|
+| `TOKEN` + `WORKSPACE` | 跳过登录（个人空间用 `personal`） |
+| `Q_FILENAME` / `Q_CONTENT` | 默认 `acme` / `产品`；CRAG 英文库建议 `crag` / `company` |
+| `RUN_CONTENT` | `0` 跳过 content |
+| `VUS` / `DURATION` | 默认 5 / 20s；建议线 filename p95&lt;300ms · content p95&lt;800ms |
+
+注意：默认 search 限流 **60/h**。高 VU 会 429——可临时 `RAG_RATE_LIMIT_MODE=bypass` 重启 api，或只用 service 脚本。
+
+```powershell
+docker run --rm `
+  -v "${PWD}/backend/loadtests:/scripts" `
+  -e BASE_URL=http://host.docker.internal:8000 `
+  -e TOKEN=<jwt> -e WORKSPACE=personal `
+  -e Q_FILENAME=crag -e Q_CONTENT=company `
+  -e VUS=1 -e DURATION=10s `
+  grafana/k6 run /scripts/search_paths.js
+```
