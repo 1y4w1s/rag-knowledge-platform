@@ -276,12 +276,15 @@ class ChatEngine:
                 )
                 yield {"event": "correction", "data": {"text": content}}
 
-        # ── 第2层：引用密度校验 + 低密度重生成 ──────────────────────
-        if (
-            settings.citation_density_check_enabled
-            and self.chunks
-            and confidence is not AnswerConfidence.refuse
-        ):
+        # ── 第2层：引用密度校验 + 低密度重生成（上限 = citation_density_regenerate_limit）─────
+        density_passed = True
+        for _attempt in range(settings.citation_density_regenerate_limit):
+            if not (
+                settings.citation_density_check_enabled
+                and self.chunks
+                and confidence is not AnswerConfidence.refuse
+            ):
+                break
             # 校验引用密度（跳过 disclaimer 前缀）
             body_for_density = content
             if confidence is AnswerConfidence.low:
@@ -292,38 +295,40 @@ class ChatEngine:
             density_passed, density, issues = check_citation_density(
                 body_for_density, self.chunks
             )
-            if not density_passed:
-                # 重生成——用 REGENERATE_PROMPT 增压约束
-                from app.services.rag.generation import REGENERATE_PROMPT
+            if density_passed:
+                break
 
-                issues_text = "\n".join(f"- 「{s[:60]}」" for s in issues[:5])
-                chunks_text = "\n---\n".join(
-                    f"[片段{i+1}] {c.parent_content or c.content}"
-                    for i, c in enumerate(self.chunks[:5])
-                )
+            # 重生成——用 REGENERATE_PROMPT 增压约束
+            from app.services.rag.generation import REGENERATE_PROMPT
 
-                regen_messages = [
-                    {"role": "system", "content": SYSTEM_PROMPT},
-                    {"role": "user", "content": REGENERATE_PROMPT.format(
-                        issues_text=issues_text,
-                        chunks=chunks_text[:2000],
-                        query=self.retrieval_query,
-                    )},
-                ]
+            issues_text = "\n".join(f"- 「{s[:60]}」" for s in issues[:5])
+            chunks_text = "\n---\n".join(
+                f"[片段{i+1}] {c.parent_content or c.content}"
+                for i, c in enumerate(self.chunks[:5])
+            )
 
-                # 发送重生成事件（前端可展示"正在补充引用…"）
-                yield {"event": "regenerating", "data": {
-                    "reason": f"引用密度不足（{density:.0%}），正在重新生成…",
-                }}
+            regen_messages = [
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": REGENERATE_PROMPT.format(
+                    issues_text=issues_text,
+                    chunks=chunks_text[:2000],
+                    query=self.retrieval_query,
+                )},
+            ]
 
-                # 清空已收集内容，重新流式
-                token_parts = []
-                async for text in stream_deepseek_tokens(regen_messages):
-                    if text:
-                        token_parts.append(text)
-                        yield {"event": "token", "data": {"text": text}}
+            # 发送重生成事件（前端可展示"正在补充引用…"）
+            yield {"event": "regenerating", "data": {
+                "reason": f"引用密度不足（{density:.0%}），正在重新生成…",
+            }}
 
-                content = "".join(token_parts)
+            # 清空已收集内容，重新流式
+            token_parts = []
+            async for text in stream_deepseek_tokens(regen_messages):
+                if text:
+                    token_parts.append(text)
+                    yield {"event": "token", "data": {"text": text}}
+
+            content = "".join(token_parts)
 
         # F1：流式 citation 为候选；done/落库按正文 [片段N] 硬对齐（漏标 keep-all）
         fn = workspace_chunk_to_citation if self._is_workspace() else chunk_to_citation

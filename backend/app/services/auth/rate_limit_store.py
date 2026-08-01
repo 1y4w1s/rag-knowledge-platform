@@ -14,6 +14,8 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+from app.core.config import settings
+
 _BACKEND: str | None = None
 
 # KEYS[1]=key  ARGV: now, window_start, max_req, ttl, member
@@ -37,10 +39,17 @@ return 1
 
 
 def get_rate_limit_backend() -> str:
-    """懒读 RATE_LIMIT_BACKEND（memory|redis）。"""
+    """懒读限流后端（memory|redis）。
+
+    settings.rate_limit_backend 为唯一配置源；RATE_LIMIT_BACKEND env 显式设置时覆盖
+    （白名单：测试 monkeypatch env 覆盖，compose 部署也走 env）。
+    """
     global _BACKEND
     if _BACKEND is None:
-        _BACKEND = os.environ.get("RATE_LIMIT_BACKEND", "memory").strip().lower() or "memory"
+        _BACKEND = (
+            os.environ.get("RATE_LIMIT_BACKEND")
+            or settings.rate_limit_backend
+        ).strip().lower() or "memory"
     return _BACKEND
 
 

@@ -7,6 +7,8 @@ from typing import Any
 
 from redis.asyncio import ConnectionPool, Redis
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 _REDIS_URL: str | None = None
@@ -16,9 +18,11 @@ _pool: ConnectionPool | None = None
 def get_redis_url() -> str:
     global _REDIS_URL
     if _REDIS_URL is None:
-        _REDIS_URL = os.environ.get(
-            "REDIS_URL",
-            os.environ.get("CELERY_BROKER_URL", "redis://localhost:6379/1"),
+        # C1 收口：settings.redis_url（pydantic 读 REDIS_URL env）→ CELERY_BROKER_URL env → 默认
+        _REDIS_URL = (
+            settings.redis_url
+            or os.environ.get("CELERY_BROKER_URL")
+            or "redis://localhost:6379/1"
         )
     return _REDIS_URL
 

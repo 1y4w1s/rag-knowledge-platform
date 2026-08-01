@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import asyncio
-import os
 from app.services.rag.cjk import segment_cjk
 import logging
 
@@ -459,7 +458,7 @@ async def process_document_ingestion(document_id: UUID) -> None:
             chunk_count = await _write_chunks(db, doc=doc, drafts=drafts, vectors=vectors, vectors_en=vectors_en)
 
             # D1 GraphRAG：实体抽取（临时跳过：OOM 保护，评测 Hit@3 不需要实体图谱；恢复时删除此跳过）
-            if os.environ.get("SKIP_ENTITY_EXTRACT") == "1":
+            if settings.skip_entity_extract:
                 doc.entity_extracted_at = datetime.now(timezone.utc)
             else:
                 await extract_entities_for_document(db, doc)

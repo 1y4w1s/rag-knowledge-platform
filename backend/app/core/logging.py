@@ -85,7 +85,7 @@ def setup_logging() -> None:
         logging.getLogger(lib).setLevel(logging.WARNING)
 
     # Loki 推送（仅当配置了 loki_url）
-    loki_url = getattr(settings, "loki_url", "")
+    loki_url = settings.loki_url
     if loki_url:
         try:
             from logging_loki import LokiHandler

@@ -51,9 +51,7 @@ class Settings(BaseSettings):
     embedding_provider: str = "bge"
     embedding_model: str = "bge-small-zh-v1.5"   # 与 embedding_dim=512 对齐（bge-large 为 1024 维）
     embedding_dim: int = 512
-    bge_api_url: str = "http://localhost:9997/v1/embeddings"
-    bge_model_name: str = "bge-large-zh-v1.5"
-    bge_model_path: str = "/app/models/bge-large-zh-v1.5"
+    bge_model_path: str = "/app/models/bge-large-zh-v1.5"  # 仅 embedding_dim=1024 分支使用
     re_embed_token: str = ""
     # H2 orphan 扫描：宽限期 / 单次真删上限 / internal token（空=禁用）
     orphan_grace_hours: float = 24.0
@@ -118,7 +116,6 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = 120.0
     rerank_timeout_seconds: float = 60.0
     embed_timeout_seconds: float = 60.0
-    retrieval_timeout_seconds: float = 30.0
 
     retry_max_attempts: int = 2
     retry_base_delay: float = 1.0
@@ -131,9 +128,14 @@ class Settings(BaseSettings):
 
     # ── 日志 / 可观测性 ──────────────────────────────────────────
     loki_url: str = ""  # 如 http://loki:3100，留空禁用 Loki 推送
+    # C1 收口：/metrics 静态令牌（原 METRICS_BEARER_TOKEN env；空=端点 fail-closed 401）
+    metrics_bearer_token: str = ""
     loki_service_name: str = "ruige-api"
 
     # ── Celery 异步任务 ──────────────────────────────────────────
+    # C1 收口：统一 Redis 连接 URL（原 REDIS_URL env；compose 已映射）；
+    # 空时回退 CELERY_BROKER_URL env，再回退 localhost:6379/1（兼容旧默认）
+    redis_url: str = ""
     celery_broker_url: str = "redis://redis:6379/0"
     celery_result_backend: str = "redis://redis:6379/0"
     celery_task_always_eager_local: bool = True  # 本地开发/测试时同步执行（无需 Redis）
@@ -150,6 +152,8 @@ class Settings(BaseSettings):
     rate_limit_enabled: bool = True
     rate_limit_max_requests: int = 100
     rate_limit_window_seconds: int = 60
+    # C1 收口：限流后端（memory|redis）；RATE_LIMIT_BACKEND env 仍可覆盖（测试/部署）
+    rate_limit_backend: str = "memory"
 
     # ── 检索配置 ────────────────────────────────────────────────────
     vector_recall_k: int = 30       # 向量召回 Top-N（2026-07-18 从 20 调升到 30）
@@ -165,6 +169,8 @@ class Settings(BaseSettings):
     retrieval_fusion_mode: str = "rrf"
 
     # ── 缓存配置 ────────────────────────────────────────────────────
+    # C1 收口：检索/LLM 响应缓存后端（memory|redis）；原 CACHE_BACKEND env
+    cache_backend: str = "memory"
     query_cache_ttl_seconds: int = 300     # 检索 chunk 结果缓存 TTL（秒）
     query_cache_max_size: int = 5000       # 进程内缓存最大条目数
     llm_response_cache_ttl_seconds: int = 600  # LLM 响应缓存 TTL（秒）；0=关闭
@@ -184,7 +190,6 @@ class Settings(BaseSettings):
     circuit_breaker_recovery_timeout: float = 30.0
 
     # ── 降级配置 ────────────────────────────────────────────────────
-    degradation_llm_fallback_to_fts: bool = True
     degradation_enabled: bool = True
     degradation_cooldown_seconds: int = 60  # 降级后冷却窗口，阻止抖动回弹
 
@@ -200,7 +205,8 @@ class Settings(BaseSettings):
 
     # ── E4 External Tools ─────────────────────────────────────────
     external_tools_enabled: bool = False
-    agent_db_url: str = ""
+    agent_db_url: str = ""  # C1 接线：sql_query 只读连接 URL（原 AGENT_DB_URL env 兼容）
+    search_api_key: str = ""  # C1 收口：web_search 第三方凭据（原 SEARCH_API_KEY env 兼容）
     agent_max_external_calls_per_conversation: int = 3
 
     # ── C1 Vision LLM ──────────────────────────────────────────────
@@ -208,6 +214,8 @@ class Settings(BaseSettings):
 
     # ── D1 GraphRAG ─────────────────────────────────────────────────
     graph_recall_enabled: bool = False  # 2026-07-31 实测：图谱召回质量差（sim 0.25-0.3 噪音 130+，正确答案被淹没），L4 无提升，回滚
+    # D1 临时 OOM 保护：跳过实体抽取（原 SKIP_ENTITY_EXTRACT env；恢复实体图谱时删除）
+    skip_entity_extract: bool = False
 
 
 settings = Settings()

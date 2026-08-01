@@ -3,7 +3,7 @@
 原理：query → LLM 生成假设文档 → 用假设文档做 embedding → 检索。
 假设文档的向量比 query 向量更贴近文档分布，提升召回。
 
-闸门：HYDE_ENABLED=true 环境变量（默认关闭）。
+闸门：settings.hyde_enabled（默认关闭；HYDE_ENABLED env 兼容 benchmark 工具）。
 LLM：复用 complete_chat()（熔断链 + provider 回退 + 无 key mock）。
 """
 
@@ -12,6 +12,7 @@ from __future__ import annotations
 import logging
 import os
 
+from app.core.config import settings
 from app.services.rag.chat_llm import complete_chat
 
 logger = logging.getLogger(__name__)
@@ -22,11 +23,18 @@ _HYDE_ENABLED: bool | None = None
 
 
 def is_hyde_enabled() -> bool:
-    """运行时判断 HyDE 是否启用（缓存环境变量结果）。"""
+    """运行时判断 HyDE 是否启用（缓存结果）。
+
+    配置源为 settings.hyde_enabled；HYDE_ENABLED env 显式设置时覆盖
+    （白名单：tests/benchmark/run_ablation.py 消融矩阵以 env 驱动）。
+    """
     global _HYDE_ENABLED
     if _HYDE_ENABLED is None:
-        val = os.environ.get("HYDE_ENABLED", "false").strip().lower()
-        _HYDE_ENABLED = val in ("true", "1", "yes")
+        env_val = os.environ.get("HYDE_ENABLED")
+        if env_val is not None:
+            _HYDE_ENABLED = env_val.strip().lower() in ("true", "1", "yes")
+        else:
+            _HYDE_ENABLED = bool(settings.hyde_enabled)
     return _HYDE_ENABLED
 
 

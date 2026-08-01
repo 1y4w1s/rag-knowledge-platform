@@ -15,7 +15,6 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import os
 import time
 from collections import OrderedDict
 from uuid import UUID
@@ -32,7 +31,8 @@ _CACHE_BACKEND: str | None = None
 def _get_backend() -> str:
     global _CACHE_BACKEND
     if _CACHE_BACKEND is None:
-        _CACHE_BACKEND = os.environ.get("CACHE_BACKEND", "memory")
+        # C1 收口：原 CACHE_BACKEND env → settings.cache_backend
+        _CACHE_BACKEND = settings.cache_backend
     return _CACHE_BACKEND
 
 

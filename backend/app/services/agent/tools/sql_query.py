@@ -16,6 +16,8 @@ import os
 import re as _re
 from dataclasses import dataclass, field
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 AGENT_DB_URL_ENV = "AGENT_DB_URL"
@@ -49,7 +51,9 @@ def _reject_dangerous_functions(sql: str) -> str | None:
 
 
 def _resolve_db_url() -> str | None:
-    """解析数据库连接 URL：AGENT_DB_URL 优先，READONLY_DATABASE_URL 回退。"""
+    """解析数据库连接 URL：settings.agent_db_url 优先，AGENT_DB_URL env 兼容（测试注入），READONLY_DATABASE_URL 弃用回退。"""
+    if settings.agent_db_url:
+        return settings.agent_db_url
     url = os.environ.get(AGENT_DB_URL_ENV)
     if url:
         return url

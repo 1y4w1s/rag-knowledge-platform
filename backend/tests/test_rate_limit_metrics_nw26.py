@@ -7,6 +7,7 @@ from uuid import uuid4
 import pytest
 from httpx import AsyncClient
 
+from app.core.config import settings
 from app.core.exceptions import RateLimitError
 from app.services.auth import api_rate_limit as api_rl
 from app.services.auth import login_rate_limit as login_rl
@@ -23,7 +24,7 @@ METRICS_TOKEN = "test-metrics-token"
 @pytest.fixture(autouse=True)
 def _auth_metrics(client: AsyncClient, monkeypatch: pytest.MonkeyPatch) -> None:
     """P0-3 修复后 /metrics 需携带 METRICS_BEARER_TOKEN；本模块自动带上以保住既有断言。"""
-    monkeypatch.setenv("METRICS_BEARER_TOKEN", METRICS_TOKEN)
+    monkeypatch.setattr(settings, "metrics_bearer_token", METRICS_TOKEN)
     client.headers["Authorization"] = f"Bearer {METRICS_TOKEN}"
     yield
 

@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from httpx import AsyncClient
 
+from app.core.config import settings
 from app.core.latency import get_tracker
 from app.services.observability.metrics_registry import (
     inc_chat_answer,
@@ -20,7 +21,7 @@ METRICS_TOKEN = "test-metrics-token"
 @pytest.fixture(autouse=True)
 def _auth_metrics(client: AsyncClient, monkeypatch: pytest.MonkeyPatch) -> None:
     """P0-3 修复后 /metrics 需携带 METRICS_BEARER_TOKEN；本模块自动带上以保住既有断言。"""
-    monkeypatch.setenv("METRICS_BEARER_TOKEN", METRICS_TOKEN)
+    monkeypatch.setattr(settings, "metrics_bearer_token", METRICS_TOKEN)
     client.headers["Authorization"] = f"Bearer {METRICS_TOKEN}"
     yield
 

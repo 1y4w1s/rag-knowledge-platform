@@ -15,6 +15,8 @@ import time
 from collections.abc import AsyncIterator, Awaitable, Callable
 from typing import TypeVar
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 R = TypeVar("R")
@@ -197,13 +199,22 @@ class CircuitBreaker:
     def __init__(
         self,
         name: str,
-        failure_threshold: int = 5,
-        recovery_timeout: float = 30.0,
+        failure_threshold: int | None = None,
+        recovery_timeout: float | None = None,
         half_open_max_attempts: int = 1,
     ):
         self.name = name
-        self.failure_threshold = failure_threshold
-        self.recovery_timeout = recovery_timeout
+        # C1 接线：未显式传参时读 settings（原硬编码 5 / 30.0）
+        self.failure_threshold = (
+            failure_threshold
+            if failure_threshold is not None
+            else settings.circuit_breaker_failure_threshold
+        )
+        self.recovery_timeout = (
+            recovery_timeout
+            if recovery_timeout is not None
+            else settings.circuit_breaker_recovery_timeout
+        )
         self.half_open_max_attempts = half_open_max_attempts
 
         self._state = CircuitBreakerState.CLOSED

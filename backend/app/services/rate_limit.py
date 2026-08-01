@@ -14,8 +14,10 @@ from __future__ import annotations
 from collections import defaultdict
 from time import monotonic
 
-MAX_REQUESTS = 100
-WINDOW_SECONDS = 60
+from app.core.config import settings
+
+MAX_REQUESTS = settings.rate_limit_max_requests
+WINDOW_SECONDS = settings.rate_limit_window_seconds
 
 _requests: dict[str, list[float]] = defaultdict(list)
 

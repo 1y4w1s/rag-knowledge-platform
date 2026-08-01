@@ -11,6 +11,8 @@ import os
 from dataclasses import dataclass, field
 from typing import Any
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 SEARCH_API_KEY_ENV = "SEARCH_API_KEY"
@@ -33,7 +35,7 @@ async def web_search(query: str, num_results: int = 5) -> WebSearchResult:
     Returns:
         WebSearchResult(ok, data, summary)
     """
-    api_key = os.environ.get(SEARCH_API_KEY_ENV)
+    api_key = settings.search_api_key or os.environ.get(SEARCH_API_KEY_ENV)
     if not api_key:
         return WebSearchResult(
             ok=False,

@@ -10,10 +10,11 @@
 from __future__ import annotations
 
 import hmac
-import os
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import Response
+
+from app.core.config import settings
 
 from app.core.degradation import (
     assess_degradation,
@@ -56,7 +57,7 @@ def require_metrics_token(request: Request) -> None:
     保持 /metrics 不在 /api/v1 前缀下，避免全局 JWTAuthMiddleware 强制用户 JWT 而破坏
     Prometheus 抓取；改由本路由级依赖校验静态令牌，未配置则 fail-closed 拒绝。
     """
-    expected = os.getenv("METRICS_BEARER_TOKEN")
+    expected = settings.metrics_bearer_token
     if not expected:
         raise HTTPException(status_code=401, detail="指标端点未启用")
     token = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
