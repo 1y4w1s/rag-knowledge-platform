@@ -38,8 +38,9 @@ services:
     container_name: ruige-web
     restart: unless-stopped
     ports:
-      # 内网 HTTP 入口；Windows 若 80 被占可改左侧为 "8080:80" 并同步 CORS_ORIGINS
-      - "80:80"
+      # 内网 HTTP 入口；容器内 8080（NW-57 非 root）；宿主机仍 :80
+      # Windows 若 80 被占可改左侧为 "8080:8080" 并同步 CORS_ORIGINS
+      - "80:8080"
       # HTTPS（可选）：运行 scripts/gen-certs.ps1 生成证书后取消注释
       # - "443:443"
     volumes: []

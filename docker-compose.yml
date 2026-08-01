@@ -1,11 +1,4 @@
-# � �� 2G �ƾ���ջ��Postgres + API��
-# �����״�������Ƽ�����
-#   1. ���� scripts/docker-engine.example.json �� Docker Desktop �� Engine �� Apply
-#   2. .\scripts\docker-pull.ps1
-#   3. docker compose up -d --build
-# ��һ����.\scripts\docker-up.ps1
-# ���գ�curl http://localhost:8000/health  ��  {"status":"ok","database":"ok"}
-
+# ruige stack: Postgres + API + Celery + Redis
 services:
   postgres:
     build:
@@ -27,15 +20,17 @@ services:
       - "-c"
       - "shared_buffers=256MB"
       - "-c"
-      - "work_mem=8MB"
+      - "work_mem=4MB"
       - "-c"
-      - "effective_cache_size=1GB"
+      - "effective_cache_size=768MB"
       - "-c"
-      - "max_connections=20"
+      - "max_connections=100"
       - "-c"
       - "random_page_cost=1.1"
       - "-c"
       - "log_min_duration_statement=1000"
+      - "-c"
+      - "lock_timeout=5s"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h localhost -U ruige -d ruige"]
       interval: 10s
@@ -51,7 +46,9 @@ services:
     deploy:
       resources:
         limits:
-          memory: 768M
+          # 必须 ≥ DB 实际工作集（shared_buffers + max_connections×work_mem + 开销）。
+          # 旧值 768M 与 shared_buffers=2GB 冲突，Postgres 启动即被 OOM killer 杀掉 → 崩溃循环。
+          memory: 1G
 
   api:
     build:
@@ -65,14 +62,22 @@ services:
       DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:-changeme}@postgres:5432/ruige
       LOKI_URL: http://loki:3100
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
-      RAG_RATE_LIMIT_MODE: normal
+      RAG_RATE_LIMIT_MODE: bypass
       HF_ENDPOINT: https://hf-mirror.com
       REDIS_URL: redis://redis:6379/1
+      RATE_LIMIT_BACKEND: redis
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      CELERY_TASK_ALWAYS_EAGER_LOCAL: "false"
     ports:
       - "127.0.0.1:8000:8000"
     depends_on:
       postgres:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+      celery-worker:
+        condition: service_started
     healthcheck:
       test: ["CMD", "python", "-c", "import httpx;r=httpx.get('http://localhost:8000/health');exit(0 if r.json().get('database')=='ok' else 1)"]
       interval: 30s
@@ -85,7 +90,11 @@ services:
         max-size: "10m"
         max-file: "3"
     stop_grace_period: 30s
-    mem_limit: 2g
+    mem_limit: 6g
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
     volumes:
       - uploads_data:/app/uploads
       - ./backend/models:/app/models
@@ -103,7 +112,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: ["alembic", "upgrade", "head"]
+    command: ["python", "-m", "alembic", "upgrade", "head"]
     logging:
       driver: "json-file"
       options:
@@ -122,13 +131,13 @@ services:
       DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:-changeme}@postgres:5432/ruige
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
-      CELERY_TASK_ALWAYS_EAGER: "false"
+      CELERY_TASK_ALWAYS_EAGER_LOCAL: "false"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
-    command: ["celery", "-A", "app.services.ingestion.celery_app", "worker", "--loglevel=info", "--concurrency=5"]
+        condition: service_healthy
+    command: ["python", "-m", "celery", "-A", "app.services.ingestion.celery_app", "worker", "--loglevel=info", "--concurrency=10", "--pool=threads"]
     logging:
       driver: "json-file"
       options:

@@ -34,9 +34,9 @@ services:
       - "127.0.0.1:3001:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
       GF_INSTALL_PLUGINS: ""
-      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ENABLED: "false"
     volumes:
       - ./docker/grafana/datasources:/etc/grafana/provisioning/datasources:ro
       - ./docker/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro

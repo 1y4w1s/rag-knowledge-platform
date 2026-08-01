@@ -1,0 +1,1 @@
+"ruige" "${PGBOUNCER_PASSWORD}"
