@@ -117,6 +117,31 @@ jobs:
         run: |
           alembic check
 
+  # C gate (masterplan 0.3): dead config / env bypass fails CI
+  config-wiring:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install 'pytest>=8.3,<9'
+
+      - name: Config wiring contract (all Settings fields referenced, env access whitelisted)
+        run: |
+          python -m pytest tests/test_config_wiring.py -q --no-header
+
   rag-benchmark:
     runs-on: ubuntu-latest
     timeout-minutes: 40
