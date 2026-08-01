@@ -25,6 +25,7 @@ _BACKEND = Path(__file__).parent.parent / "backend"
 if _BACKEND.exists():
     sys.path.insert(0, str(_BACKEND))
 HIT_K = 3
+TOP_K = 5  # 取 Top-5 以同时计算 Hit@1/3/5 + MRR
 
 DATASETS = {
     "golden_qa": {
@@ -41,6 +42,16 @@ DATASETS = {
         "qa_file": "enterprise_qa.json",
         "docs": None,  # will glob at runtime
         "name": "Enterprise QA 108",
+    },
+    "advanced_qa": {
+        "qa_file": "advanced_qa.json",
+        "docs": ["golden_handbook.md"],
+        "name": "Advanced QA 20",
+    },
+    "multi_turn_qa": {
+        "qa_file": "multi_turn_qa.json",
+        "docs": ["golden_handbook.md"],
+        "name": "Multi-turn QA 18",
     },
 }
 
@@ -107,7 +118,11 @@ async def run_retrieval(dataset_cfg: dict, output: str) -> dict:
             await process_document_ingestion(did)
 
     domains = {}
-    results = []
+    results_hit = []
+    results_hit1 = []
+    results_hit5 = []
+    latencies = []
+    mrr_ranks = []
     async with SessionLocal() as db:
         for i, case in enumerate(cases):
             dom = case.get("domain", "?")
@@ -119,23 +134,56 @@ async def run_retrieval(dataset_cfg: dict, output: str) -> dict:
             sp = expect.get("section_title", "").lower()
             hp = expect.get("heading_path_contains", "").lower()
 
-            chunks = await retrieve_chunks(db, kb_id=kb_id, query=case["query"], top_k=HIT_K)
+            t0 = time.perf_counter()
+            chunks = await retrieve_chunks(db, kb_id=kb_id, query=case["query"], top_k=TOP_K)
+            lat = (time.perf_counter() - t0) * 1000  # ms
+            latencies.append(lat)
+
             hit = False
+            hit1 = False
+            hit5 = False
+            found_rank = None
             if chunks:
-                for ck in chunks[:HIT_K]:
+                for rank, ck in enumerate(chunks[:TOP_K]):
                     content = (ck.content or "").lower()
                     st = (ck.heading_path or ck.section_title or "").lower()
                     ok = True
                     if cc and cc not in content: ok = False
                     if sp and sp not in st: ok = False
                     if hp and hp not in st: ok = False
-                    if ok: hit = True; break
-            if hit: domains[dom]["hit"] += 1
-            results.append(hit)
+                    if ok:
+                        found_rank = rank
+                        break
+                if found_rank is not None:
+                    if found_rank == 0:
+                        hit1 = True
+                    if found_rank < 3:
+                        hit = True
+                    if found_rank < 5:
+                        hit5 = True
+            if hit:
+                domains[dom]["hit"] += 1
+            results_hit.append(hit)
+            results_hit1.append(hit1)
+            results_hit5.append(hit5)
+            # MRR: reciprocal rank = 1/(found_rank+1) if found, else 0
+            mrr_ranks.append((found_rank + 1) if found_rank is not None else None)
 
-    n = len(results)
-    hits = sum(results)
-    hit3 = hits / max(1, n)
+    n = len(results_hit)
+    hits3 = sum(results_hit)
+    hits1 = sum(results_hit1)
+    hits5 = sum(results_hit5)
+    hit1_rate = hits1 / max(1, n)
+    hit3_rate = hits3 / max(1, n)
+    hit5_rate = hits5 / max(1, n)
+    # MRR
+    valid_mrr = [1.0 / r for r in mrr_ranks if r is not None]
+    mrr_score = sum(valid_mrr) / max(1, n)
+    # 延迟分位
+    lat_sorted = sorted(latencies)
+    lat_p50 = lat_sorted[len(lat_sorted) // 2] if lat_sorted else 0.0
+    lat_p95 = lat_sorted[int(len(lat_sorted) * 0.95)] if lat_sorted else 0.0
+    lat_p99 = lat_sorted[int(len(lat_sorted) * 0.99)] if lat_sorted else 0.0
     dom_breakdown = {k: {"total": v["total"], "hit": v["hit"],
                           "rate": round(v["hit"] / max(1, v["total"]), 4)}
                       for k, v in sorted(domains.items())}
@@ -145,13 +193,19 @@ async def run_retrieval(dataset_cfg: dict, output: str) -> dict:
     async with engine.connect() as conn:
         await conn.execute(text("""
             INSERT INTO evaluation_runs (id, run_id, dataset_name, mode, total_queries,
-                hit_at_3, breakdown_domain, triggered_by, created_at)
+                hit_at_1, hit_at_3, hit_at_5, mrr,
+                p50_latency_ms, p95_latency_ms, p99_latency_ms,
+                breakdown_domain, triggered_by, created_at)
             VALUES (:id, :run_id, :dataset, :mode, :total,
-                :hit3, :domain, :trigger, :now)
+                :h1, :h3, :h5, :mrr,
+                :p50, :p95, :p99,
+                :domain, :trigger, :now)
         """), {
             "id": str(uuid.uuid4()), "run_id": run_id,
             "dataset": dataset_cfg["qa_file"].replace(".json", ""),
-            "mode": "retrieval", "total": n, "hit3": hit3,
+            "mode": "retrieval", "total": n, "h1": hit1_rate, "h3": hit3_rate,
+            "h5": hit5_rate, "mrr": mrr_score,
+            "p50": lat_p50, "p95": lat_p95, "p99": lat_p99,
             "domain": json.dumps(dom_breakdown),
             "trigger": "manual",
             "now": datetime.now(timezone.utc),
@@ -160,10 +214,12 @@ async def run_retrieval(dataset_cfg: dict, output: str) -> dict:
 
     return {
         "dataset": dataset_cfg["name"],
-        "total": n, "hit_at_3": hit3,
+        "total": n, "hit_at_1": hit1_rate, "hit_at_3": hit3_rate,
+        "hit_at_5": hit5_rate, "mrr": mrr_score,
         "rejection_count": rejection_count,
         "by_domain": dom_breakdown,
         "run_id": run_id,
+        "latency_ms": {"p50": lat_p50, "p95": lat_p95, "p99": lat_p99},
     }
 
 
@@ -261,17 +317,20 @@ async def gen_html_report(results: list[dict]) -> str:
     """生成 HTML 报告。"""
     rows = ""
     for r in results:
-        rate = r.get("hit_at_3", 0) * 100
-        rows += f"<tr><td>{r['dataset']}</td><td>{r['total']}</td><td>{rate:.1f}%</td></tr>"
+        rate_h3 = r.get("hit_at_3", 0)
+        rate_h1 = r.get("hit_at_1", 0)
+        rate_h5 = r.get("hit_at_5", 0)
+        mrr = r.get("mrr", 0)
+        rows += f"<tr><td>{r['dataset']}</td><td>{r['total']}</td><td>{rate_h1:.1%}</td><td>{rate_h3:.1%}</td><td>{rate_h5:.1%}</td><td>{mrr:.3f}</td></tr>"
     return f"""<!DOCTYPE html><html lang=zh-CN><head><meta charset=UTF-8>
 <title>睿阁评测报告</title>
 <style>body{{font-family:sans-serif;padding:40px;background:#f5f3f0;color:#2c2420}}
-table{{border-collapse:collapse;width:100%;max-width:600px;background:#fff;border-radius:8px;overflow:hidden}}
+table{{border-collapse:collapse;width:100%;max-width:800px;background:#fff;border-radius:8px;overflow:hidden}}
 th,td{{padding:12px 16px;text-align:left;border-bottom:1px solid #eee}}
 th{{background:#2c2420;color:#fff}}</style></head>
 <body><h1>睿阁评测报告</h1>
 <p>生成时间: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
-<table><tr><th>数据集</th><th>题数</th><th>Hit@3</th></tr>{rows}</table></body></html>"""
+<table><tr><th>数据集</th><th>题数</th><th>Hit@1</th><th>Hit@3</th><th>Hit@5</th><th>MRR</th></tr>{rows}</table></body></html>"""
 
 
 async def main():
@@ -288,7 +347,19 @@ async def main():
         if args.mode in ("retrieval", "full"):
             result = await run_retrieval(cfg, args.output)
             print(f"  Total: {result['total']} (excluded {result['rejection_count']} rejection queries)")
-            print(f"  Hit@3: {result['hit_at_3']:.1%}")
+            print(f"  Hit@1: {result['hit_at_1']:.3f}  Hit@3: {result['hit_at_3']:.3f}  Hit@5: {result['hit_at_5']:.3f}  MRR: {result['mrr']:.3f}")
+            lat = result.get('latency_ms', {})
+            print(f"  Latency P50={lat.get('p50',0):.0f}ms  P95={lat.get('p95',0):.0f}ms  P99={lat.get('p99',0):.0f}ms")
+            # C1 可比行：ci_baseline_check 解析（含 hit_at_k 向后兼容）
+            print(
+                f"BENCHMARK_SUMMARY dataset={ds_name} "
+                f"hit_at_k={result['hit_at_3']:.6f} "
+                f"hit_at_1={result['hit_at_1']:.6f} "
+                f"hit_at_3={result['hit_at_3']:.6f} "
+                f"hit_at_5={result['hit_at_5']:.6f} "
+                f"mrr={result['mrr']:.6f} "
+                f"total={result['total']}"
+            )
             for dom, stats in sorted(result["by_domain"].items()):
                 print(f"    {dom}: {stats['hit']}/{stats['total']} = {stats['rate']:.0%}")
             print(f"  Run: {result['run_id']}")

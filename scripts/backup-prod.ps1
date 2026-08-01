@@ -1,54 +1,58 @@
-# 睿阁 — 备份与恢复脚本
-# 用法：.\scripts\backup-prod.ps1
-# 恢复：.\scripts\restore-prod.ps1 -BackupFile backups\ruige-20260717.sql
+﻿# Ruige backup: PostgreSQL custom dump + uploads volume tar
+# Usage: .\scripts\backup-prod.ps1
+# Restore: .\scripts\restore-prod.ps1 -BackupFile backups\ruige-yyyyMMdd-HHmmss.sql
+# Note: container pg_dump/psql wrappers need -h localhost (B6); file is UTF-8 with BOM (B5).
 
 param(
     [string]$BackupDir = ".\backups",
     [int]$RetentionDays = 30
 )
 
+$ErrorActionPreference = "Continue"
 $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $backupPath = Join-Path $BackupDir "ruige-$timestamp.sql"
 $uploadBackup = Join-Path $BackupDir "uploads-$timestamp.tar.gz"
 
-# 确保备份目录存在
+# Ensure backup dir exists (absolute path for docker -v on Windows)
 New-Item -ItemType Directory -Force -Path $BackupDir | Out-Null
+$BackupDirAbs = (Resolve-Path $BackupDir).Path
 
-Write-Host "=== 睿阁 备份开始 ===" -ForegroundColor Cyan
-Write-Host "时间: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
-Write-Host "备份目录: $BackupDir"
+Write-Host "=== Ruige backup start ===" -ForegroundColor Cyan
+Write-Host "Time: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+Write-Host "Backup dir: $BackupDirAbs"
 
-# 1. PostgreSQL 备份
-Write-Host "`n[1/3] 备份 PostgreSQL..." -ForegroundColor Yellow
-docker exec ruige-postgres pg_dump -U ruige -d ruige -F c -f /tmp/ruige_backup.dump
+# 1. PostgreSQL (-h localhost: avoid cluster wrapper "Invalid data directory")
+Write-Host "`n[1/3] PostgreSQL dump..." -ForegroundColor Yellow
+docker exec ruige-postgres pg_dump -h localhost -U ruige -d ruige -F c -f /tmp/ruige_backup.dump
 if ($LASTEXITCODE -eq 0) {
     docker cp ruige-postgres:/tmp/ruige_backup.dump $backupPath
-    docker exec ruige-postgres rm /tmp/ruige_backup.dump
-    Write-Host "  ✅ 数据库备份完成: $backupPath" -ForegroundColor Green
+    docker exec ruige-postgres rm -f /tmp/ruige_backup.dump
+    Write-Host "  OK DB: $backupPath" -ForegroundColor Green
 } else {
-    Write-Host "  ❌ 数据库备份失败" -ForegroundColor Red
+    Write-Host "  FAIL DB dump" -ForegroundColor Red
     exit 1
 }
 
-# 2. Uploads 文件备份
-Write-Host "[2/3] 备份上传文件..."
+# 2. Uploads volume
+Write-Host "[2/3] Uploads tar..."
 $uploadsVolume = "rag-knowledge-platform_uploads_data"
-docker run --rm -v ${uploadsVolume}:/data -v ${BackupDir}:/backup alpine tar czf /backup/uploads-$timestamp.tar.gz -C /data .
+docker run --rm -v "${uploadsVolume}:/data" -v "${BackupDirAbs}:/backup" alpine tar czf "/backup/uploads-$timestamp.tar.gz" -C /data .
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "  ✅ 文件备份完成: $uploadBackup" -ForegroundColor Green
+    Write-Host "  OK uploads: $uploadBackup" -ForegroundColor Green
 } else {
-    Write-Host "  ⚠️  文件备份失败（可能无文件）" -ForegroundColor Yellow
+    Write-Host "  WARN uploads failed (empty volume ok to check manually)" -ForegroundColor Yellow
 }
 
-# 3. 清理旧备份
-Write-Host "[3/3] 清理 $RetentionDays 天前的旧备份..."
+# 3. Retention
+Write-Host "[3/3] Cleanup older than $RetentionDays days..."
 $cutoff = (Get-Date).AddDays(-$RetentionDays)
-Get-ChildItem -Path $BackupDir -Filter "ruige-*.sql" | Where-Object { $_.CreationTime -lt $cutoff } | Remove-Item -Force
-Get-ChildItem -Path $BackupDir -Filter "uploads-*.tar.gz" | Where-Object { $_.CreationTime -lt $cutoff } | Remove-Item -Force
-Write-Host "  ✅ 清理完成"
+Get-ChildItem -Path $BackupDirAbs -Filter "ruige-*.sql" | Where-Object { $_.CreationTime -lt $cutoff } | Remove-Item -Force
+Get-ChildItem -Path $BackupDirAbs -Filter "uploads-*.tar.gz" | Where-Object { $_.CreationTime -lt $cutoff } | Remove-Item -Force
+Write-Host "  OK cleanup"
 
-# 摘要
+# Summary
 $dbSize = (Get-Item $backupPath).Length / 1MB
-Write-Host "`n=== 备份完成 ===" -ForegroundColor Cyan
-Write-Host "数据库备份: $([math]::Round($dbSize, 2)) MB"
-Write-Host "保留天数: $RetentionDays 天"
+Write-Host "`n=== Backup done ===" -ForegroundColor Cyan
+Write-Host "DB dump: $([math]::Round($dbSize, 2)) MB"
+Write-Host "Retention: $RetentionDays days"
+exit 0
