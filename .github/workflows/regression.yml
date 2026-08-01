@@ -29,7 +29,7 @@ jobs:
         image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: raguser
-          POSTGRES_PASSWORD: ragpass
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'ragpass' }}
           POSTGRES_DB: ragknowledge
         ports:
           - 5432:5432
@@ -56,7 +56,7 @@ jobs:
       - name: Run migrations
         env:
           DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
-          JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-test-32-char-jwt-secret-key-for-ci' }}
           DEEPSEEK_API_KEY: skip
         run: |
           cd backend
@@ -66,7 +66,7 @@ jobs:
         id: check
         env:
           DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
-          JWT_SECRET: ci-test-32-char-jwt-secret-key-for-ci
+          JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-test-32-char-jwt-secret-key-for-ci' }}
           DEEPSEEK_API_KEY: skip
           TONGYI_API_KEY: skip
           RAG_REAL_EMBEDDING: '0'

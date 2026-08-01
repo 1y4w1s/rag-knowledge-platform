@@ -14,14 +14,14 @@ jobs:
         working-directory: backend
     env:
       DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
-      JWT_SECRET: 1362b8353e8306574369454872b0fb2a
+      JWT_SECRET: ${{ secrets.JWT_SECRET || '1362b8353e8306574369454872b0fb2a' }}
 
     services:
       postgres:
         image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: ruige
-          POSTGRES_PASSWORD: changeme
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'changeme' }}
           POSTGRES_DB: ruige
         ports:
           - 5432:5432
@@ -74,7 +74,7 @@ jobs:
 
   rag-benchmark:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     needs: test
     env:
       HF_ENDPOINT: https://hf-mirror.com
@@ -84,7 +84,7 @@ jobs:
         image: pgvector/pgvector:pg16
         env:
           POSTGRES_USER: ruige
-          POSTGRES_PASSWORD: changeme
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'changeme' }}
           POSTGRES_DB: ruige
         ports:
           - 5432:5432
@@ -124,18 +124,41 @@ jobs:
       - name: Run Golden QA benchmark (real embeddings)
         env:
           DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
-          JWT_SECRET: 1362b8353e8306574369454872b0fb2a
+          JWT_SECRET: ${{ secrets.JWT_SECRET || '1362b8353e8306574369454872b0fb2a' }}
           RAG_RATE_LIMIT_MODE: bypass
-          PYTHONPATH: /app
+          PYTHONPATH: backend
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           RAG_TEST_PASSWORD: ${{ secrets.RAG_TEST_PASSWORD }}
         run: |
           python scripts/run_benchmark.py --dataset golden_qa --mode retrieval --output text 2>&1 | tee backend/benchmark_output.txt
           echo "BENCHMARK_DONE=1" >> $GITHUB_ENV
 
-      - name: Compare with baseline
+      - name: Run Enterprise QA benchmark (C3 gate)
+        env:
+          DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
+          JWT_SECRET: ${{ secrets.JWT_SECRET || '1362b8353e8306574369454872b0fb2a' }}
+          RAG_RATE_LIMIT_MODE: bypass
+          PYTHONPATH: backend
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          RAG_TEST_PASSWORD: ${{ secrets.RAG_TEST_PASSWORD }}
+        run: |
+          python scripts/run_benchmark.py --dataset enterprise_qa --mode retrieval --output text 2>&1 | tee backend/benchmark_enterprise.txt
+
+      - name: Run Advanced QA benchmark (C3 gate)
+        env:
+          DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
+          JWT_SECRET: ${{ secrets.JWT_SECRET || '1362b8353e8306574369454872b0fb2a' }}
+          RAG_RATE_LIMIT_MODE: bypass
+          PYTHONPATH: backend
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          RAG_TEST_PASSWORD: ${{ secrets.RAG_TEST_PASSWORD }}
+        run: |
+          python scripts/run_benchmark.py --dataset advanced_qa --mode retrieval --output text 2>&1 | tee backend/benchmark_advanced.txt
+
+      - name: Compare with baseline (C3 gates)
         env:
           BASELINE_PATH: docs/baseline.json
+          BENCHMARK_OUT_FILES: backend/benchmark_output.txt,backend/benchmark_enterprise.txt,backend/benchmark_advanced.txt
         run: |
           python3 backend/scripts/ci_baseline_check.py
 
