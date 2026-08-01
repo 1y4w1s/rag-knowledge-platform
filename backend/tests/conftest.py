@@ -2,15 +2,27 @@
 
 import uuid
 from collections.abc import Awaitable, Callable
-from unittest.mock import patch
+
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 
+# 在导入 app.main 之前绕过 API 限流，防止 api 模块在 import 时建立本地引用
+import app.services.auth.api_rate_limit as _arl
+async def _noop(*a, **kw): pass
+_arl.enforce_api_rate_limit = _noop  # type: ignore[method-assign]
+del _arl, _noop
 
-from app.core.config import settings
+# 全局限流 100 req/min/IP
+from app.core.config import settings as _settings
+_settings.rate_limit_enabled = False
+settings = _settings  # for fixtures that reference conftest.settings
+del _settings
 from app.core.database import engine
 from app.main import app
+
+# 注册 tests/fixtures/*.py 中的共享 fixture（如 org_iso）
+pytest_plugins = ["tests.fixtures.org_isolation"]
 
 
 def unique_email(prefix: str) -> str:
@@ -134,6 +146,22 @@ def mock_embedding_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
     if os.environ.get("RAG_REAL_EMBEDDING") == "1":
         return
     monkeypatch.setattr(settings, "embedding_provider", "mock")
+
+
+@pytest.fixture(autouse=True)
+def mock_rerank_for_tests(monkeypatch: pytest.MonkeyPatch) -> None:
+    """测试默认关闭真 BGE，避免 CI 下载 ONNX；并关 mock 精排以免扰动 golden。
+    设置 RAG_REAL_RERANK=1 可走真 BGE 路径。
+    单测若需 mock 精排，自行 monkeypatch rerank_enabled=True / policy=always|conditional + provider=mock。"""
+    import os
+    if os.environ.get("RAG_REAL_RERANK") == "1":
+        return
+    monkeypatch.setattr(settings, "rerank_enabled", False)
+    monkeypatch.setattr(settings, "rerank_policy", "off")
+    monkeypatch.setattr(settings, "rerank_provider", "mock")
+    monkeypatch.setattr(settings, "query_rewrite_enabled", False)
+    monkeypatch.setattr(settings, "query_rewrite_policy", "off")
+
 
 
 @pytest.fixture(autouse=True)

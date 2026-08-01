@@ -161,7 +161,7 @@ async def test_g4_adopt_unit_writes_file_and_enqueues(
         recorded.append(doc_id)
 
     monkeypatch.setattr(
-        "app.services.agent.adopt.process_document_ingestion", _spy
+        "app.services.ingestion.enqueue.process_document_ingestion", _spy
     )
 
     approval_id = await _insert_approval(
@@ -208,7 +208,7 @@ async def test_g4_e16_unit_same_name_auto_v2(
     """G4-E16：同名文件已存在 → 自动 _v2（不 409）。"""
     monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
     monkeypatch.setattr(
-        "app.services.agent.adopt.process_document_ingestion",
+        "app.services.ingestion.enqueue.process_document_ingestion",
         (lambda doc_id: None),
     )
 
@@ -259,7 +259,7 @@ async def test_g4_adopt_http_writes_file_and_enqueues(
         recorded.append(doc_id)
 
     monkeypatch.setattr(
-        "app.services.agent.adopt.process_document_ingestion", _spy
+        "app.services.ingestion.enqueue.process_document_ingestion", _spy
     )
 
     approval_id = await _insert_approval(
@@ -301,7 +301,7 @@ async def test_g4_e16_http_same_name_auto_v2(
     """G4-E16 · HTTP：同名文件 → 响应 filename 自动 _v2，文档以 _v2 落库。"""
     monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
     monkeypatch.setattr(
-        "app.services.agent.adopt.process_document_ingestion",
+        "app.services.ingestion.enqueue.process_document_ingestion",
         (lambda doc_id: None),
     )
 

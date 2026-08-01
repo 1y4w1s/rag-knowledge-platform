@@ -60,8 +60,17 @@ def test_parse_document_scanned_ocr_disabled(tmp_path: Path, monkeypatch: pytest
     disabled = Settings(_env_file=None, ocr_enabled=False)
     monkeypatch.setattr("app.services.ingestion.ocr.settings", disabled)
 
-    with pytest.raises(ValueError, match="不支持扫描件"):
+    with pytest.raises(ValueError, match="OCR 未开启|OCR_ENABLED"):
         parse_document(pdf_path, "pdf")
+
+
+def test_parse_document_scanned_ocr_deps_missing(tmp_path: Path) -> None:
+    pdf_path = tmp_path / "blank.pdf"
+    _make_blank_pdf(pdf_path)
+
+    with patch("app.services.ingestion.ocr.is_ocr_runtime_available", return_value=False):
+        with pytest.raises(ValueError, match="未安装"):
+            parse_document(pdf_path, "pdf")
 
 
 def test_parse_document_scanned_uses_ocr_path(

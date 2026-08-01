@@ -1,4 +1,4 @@
-﻿"""BenchmarkRunner：评测执行引擎（v1.0 加固版：重试/检查点/恢复/性能基线）。
+"""BenchmarkRunner：评测执行引擎（v1.0 加固版：重试/检查点/恢复/性能基线）。
 
 企业评测体系 Phase 2 — BenchmarkRunner 加固：
 - 重试：检索/生成失败自动重试（最多 3 次）
@@ -26,6 +26,8 @@ from tests.benchmark.schemas import (
     RetrievalMetrics,
     RetrievalResult,
 )
+# 预导入 RAGAS 基础类型（供 ragas 分支复用，避免循环内重复 import）
+from tests.benchmark.scorers.base import Expect as _Expect, RetrievedChunk as _RC
 
 _llm_judge = None
 _faithfulness_judge = None
@@ -118,7 +120,8 @@ class BenchmarkRunner:
 
     def _checkpoint_path(self, dataset_name: str, mode: str, run_id: str) -> Path:
         CHECKPOINT_DIR.mkdir(parents=True, exist_ok=True)
-        return CHECKPOINT_DIR / ("%s_%s_%s.json" % (dataset_name, mode, run_id))
+        safe_name = dataset_name.replace("/", "_").replace("\\", "_")
+        return CHECKPOINT_DIR / ("%s_%s_%s.json" % (safe_name, mode, run_id))
 
     def _save_checkpoint(self, path: Path, results: list, completed: int, total: int) -> None:
         data = {"completed": completed, "total": total, "results": [asdict(r) for r in results]}
@@ -141,6 +144,7 @@ class BenchmarkRunner:
         self, dataset, *,
         top_k: int = 3, sample_size: int | None = None,
         run_id: str | None = None, resume: bool = False,
+        scorer_type: str | None = None,
     ) -> DatasetReport:
         queries = await dataset.load()
         if sample_size and sample_size < len(queries):
@@ -161,6 +165,18 @@ class BenchmarkRunner:
                 completed_results = [RetrievalResult(**r) for r in cp[0]]
                 start_idx = cp[1]
                 logger.info("恢复评测: %s, 已有 %d/%d 条", dataset_name, start_idx, len(queries))
+
+        # RAGAS retrieval scorer 初始化
+        ragas_retrieval_scorer = None
+        if scorer_type == "ragas":
+            try:
+                from tests.benchmark.scorers import RagasRetrievalScorer as _RRS
+                ragas_retrieval_scorer = _RRS()
+                logger.info("RAGAS retrieval scorer 已初始化")
+            except ImportError as e:
+                logger.warning("RAGAS retrieval scorer 初始化失败，回退到内容匹配: %s", e)
+            except Exception as e:
+                logger.warning("RAGAS retrieval scorer 启动异常，回退到内容匹配: %s", e)
 
         logger.info("检索评测: %s (%d 条, top_k=%d)", dataset_name, len(queries), top_k)
 
@@ -194,7 +210,43 @@ class BenchmarkRunner:
             latencies.append(elapsed)
             retrieval_latencies.append(elapsed)
 
-            result = self._eval_retrieval(q, chunks, top_k, elapsed)
+            result: RetrievalResult
+            if ragas_retrieval_scorer is not None:
+                expect_obj = _Expect(
+                    content_contains=q.expects[0].get("content_contains", "") if q.expects else "",
+                    answer=q.answer or "",
+                )
+                chunks_for_scorer = [_RC.from_raw(c) for c in chunks[:top_k]]
+                score = ragas_retrieval_scorer.score_retrieval(
+                    q.query, chunks_for_scorer, expect_obj, top_k,
+                )
+                # 从 match_details 提取 RAGAS 专用指标
+                ragas_precision = _extract_from_details(
+                    score.match_details, "ragas_context_precision"
+                )
+                ragas_recall = _extract_from_details(
+                    score.match_details, "ragas_context_recall"
+                )
+                result = RetrievalResult(
+                    case_id=q.case_id, query=q.query, top_k=top_k,
+                    chunk_ids=[str(c.chunk_id) for c in chunks[:top_k]],
+                    chunk_scores=[float(c.similarity) for c in chunks[:top_k]],
+                    chunk_contents=[c.content[:200] for c in chunks[:top_k]],
+                    hit_at_1=score.hit_at_1, hit_at_3=score.hit_at_3, hit_at_5=score.hit_at_5,
+                    mrr=score.mrr, ndcg_at_k=score.ndcg_at_k,
+                    correct_rejection=score.correct_rejection,
+                    expect_rejection=q.expect_rejection,
+                    # RAGAS 模式：不用 context_precision/recall 覆盖 precision_at_k/recall_at_k
+                    # RAGAS 值存入专用 ragas_* 字段
+                    precision_at_k=0.0,
+                    recall_at_k=0.0,
+                    map_contribution=score.map_contribution,
+                    latency_ms=elapsed,
+                    ragas_context_precision=ragas_precision,
+                    ragas_context_recall=ragas_recall,
+                )
+            else:
+                result = self._eval_retrieval(q, chunks, top_k, elapsed)
             completed_results.append(result)
 
             # 分 domain/type
@@ -303,6 +355,9 @@ class BenchmarkRunner:
         if n == 0:
             return RetrievalMetrics()
         rejection_denom = sum(1 for r in results if r.expect_rejection)
+        # RAGAS 指标聚合（过滤 NaN）
+        ragas_p = [r.ragas_context_precision for r in results if r.ragas_context_precision > 0]
+        ragas_r = [r.ragas_context_recall for r in results if r.ragas_context_recall > 0]
         return RetrievalMetrics(
             hit_at_1=sum(1 for r in results if r.hit_at_1) / n,
             hit_at_3=sum(1 for r in results if r.hit_at_3) / n,
@@ -317,6 +372,8 @@ class BenchmarkRunner:
             precision_at_k=sum(r.precision_at_k for r in results) / n,
             recall_at_k=sum(r.recall_at_k for r in results) / n,
             map_score=sum(r.map_contribution for r in results) / n,
+            context_precision_avg=sum(ragas_p) / len(ragas_p) if ragas_p else 0.0,
+            context_recall_avg=sum(ragas_r) / len(ragas_r) if ragas_r else 0.0,
         )
 
     # ==================== 生成评测 ====================
@@ -326,6 +383,7 @@ class BenchmarkRunner:
         sample_size: int | None = None,
         judge: bool = True, faithfulness: bool = False,
         run_id: str | None = None, resume: bool = False,
+        scorer_type: str | None = None,
     ) -> DatasetReport:
         queries = await dataset.load()
         if sample_size and sample_size < len(queries):
@@ -337,8 +395,20 @@ class BenchmarkRunner:
         run_id = run_id or time.strftime("%Y%m%d_%H%M%S")
         cp_path = self._checkpoint_path(dataset_name, "generation", run_id)
 
-        judge_instance = await _get_judge() if judge else None
-        faith_instance = _get_faithfulness() if faithfulness else None
+        judge_instance = await _get_judge() if judge and scorer_type != "ragas" else None
+        faith_instance = _get_faithfulness() if faithfulness and scorer_type != "ragas" else None
+
+        # RAGAS generation scorer 初始化
+        ragas_gen_scorer = None
+        if scorer_type == "ragas":
+            try:
+                from tests.benchmark.scorers import RagasGenerationScorer as _RGS
+                ragas_gen_scorer = _RGS()
+                logger.info("RAGAS generation scorer 已初始化")
+            except ImportError as e:
+                logger.warning("RAGAS generation scorer 初始化失败，回退到传统评测: %s", e)
+            except Exception as e:
+                logger.warning("RAGAS generation scorer 启动异常，回退到传统评测: %s", e)
 
         completed_results: list[GenerationResult] = []
         start_idx = 0
@@ -379,7 +449,26 @@ class BenchmarkRunner:
                 answer=answer, citations=citations, latency_ms=elapsed,
             )
 
-            if judge_instance and q.answer:
+            # RAGAS generation 评测
+            if ragas_gen_scorer is not None:
+                expect_obj = _Expect(
+                    content_contains=q.expects[0].get("content_contains", "") if q.expects else "",
+                    answer=q.answer or "",
+                )
+                chunks_for_scorer = [_RC.from_raw(c) for c in citations]
+                gscore = ragas_gen_scorer.score_generation(
+                    q.query, answer, expect_obj, chunks_for_scorer,
+                )
+                result.correctness_score = gscore.correctness
+                result.faithfulness_score = gscore.faithfulness
+                for md in gscore.match_details:
+                    if "ragas_answer_relevancy" in md:
+                        result.ragas_answer_relevancy = md["ragas_answer_relevancy"]
+                        break
+                correctness_scores.append(gscore.correctness)
+                faithfulness_scores.append(gscore.faithfulness)
+
+            elif judge_instance and q.answer:
                 score, reason = await judge_instance.evaluate_correctness(q.query, answer, q.answer)
                 result.correctness_score = score
                 result.judge_reason = reason
@@ -430,3 +519,15 @@ def _percentile(values: list[float], p: int) -> float:
     sv = sorted(values)
     idx = max(0, int(len(sv) * p / 100) - 1)
     return sv[idx]
+
+
+def _extract_from_details(details: list[dict], key: str) -> float:
+    """从 match_details 列表中按 key 提取值。
+
+    遍历 details 查找第一个包含 key 的 dict，返回其值。
+    若未找到则返回 0.0。
+    """
+    for d in details:
+        if key in d:
+            return float(d[key])
+    return 0.0

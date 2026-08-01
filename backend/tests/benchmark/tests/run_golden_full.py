@@ -12,7 +12,7 @@ os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler(sys.stdout)])
 logger = logging.getLogger("golden_qa")
 
-QA_PATH = Path("/app/tests/fixtures/golden_qa.json")
+QA_PATH = Path(__file__).resolve().parents[2] / "fixtures" / "golden_qa.json"
 KB_ID = None  # 运行时创建
 
 
@@ -57,7 +57,8 @@ async def main():
         kb_id = uuid.UUID(r.json()["id"])
         logger.info(f"KB: {kb_id}")
 
-        with open("/app/tests/fixtures/golden_handbook.md", "rb") as f:
+        hb_path = QA_PATH.parent / "golden_handbook.md"
+        with open(hb_path, "rb") as f:
             await client.post(f"/api/v1/knowledge-bases/{kb_id}/documents?workspace=personal", headers=headers, files={"files": ("hb.md", f, "text/markdown")})
 
         for _ in range(30):
@@ -150,7 +151,7 @@ async def main():
                        for tag, h in sorted(by_tag.items())},
             "total_time_seconds": round(time.perf_counter() - t_start),
         }
-        out = Path("/app/benchmark_results/golden_qa_full.json")
+        out = Path(__file__).resolve().parents[2] / "benchmark_results" / "golden_qa_full.json"
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 

@@ -1199,6 +1199,165 @@
       "expected_chunk": "POST /knowledge-bases",
       "case_id": "GQ-150",
       "scope": "kb"
+    },
+    {
+      "category": "MULTI_STEP",
+      "query": "Find Docker Compose description and show its excerpt",
+      "expected_doc": "docker_compose.md",
+      "expected_chunk": "Define and run multi-container Docker applications",
+      "case_id": "GA-1",
+      "scope": "kb",
+      "expected_steps": 2
+    },
+    {
+      "category": "MULTI_STEP",
+      "query": "Search React hooks then search Docker services",
+      "expected_doc": "react_intro.md",
+      "expected_chunk": "functions that let you use state and lifecycle in function components",
+      "case_id": "GA-2",
+      "scope": "kb",
+      "expected_steps": 2
+    },
+    {
+      "category": "MULTI_STEP",
+      "query": "List all KBs then search the first result",
+      "expected_doc": "none",
+      "expected_chunk": "list_knowledge_bases",
+      "case_id": "GA-3",
+      "scope": "kb",
+      "expected_steps": 2
+    },
+    {
+      "category": "MULTI_STEP",
+      "query": "Search gitignore, read excerpt, then compare chunks",
+      "expected_doc": "gitignore_intro.md",
+      "expected_chunk": "populate the .gitignore template choosers",
+      "case_id": "GA-4",
+      "scope": "kb",
+      "expected_steps": 3
+    },
+    {
+      "category": "REFLECTION",
+      "query": "Unicorns in enterprise document management",
+      "expected_doc": "none",
+      "expected_chunk": "low_recall",
+      "case_id": "GA-5",
+      "scope": "kb"
+    },
+    {
+      "category": "REFLECTION",
+      "query": "同时说明 FastAPI 的部署和 Docker Compose 的使用方法",
+      "expected_doc": "none",
+      "expected_chunk": "complex_query",
+      "case_id": "GA-6",
+      "scope": "kb"
+    },
+    {
+      "category": "REFLECTION",
+      "query": "Nonexistent protocol in FastAPI documentation",
+      "expected_doc": "none",
+      "expected_chunk": "low_recall",
+      "case_id": "GA-7",
+      "scope": "kb"
+    },
+    {
+      "category": "REFLECTION",
+      "query": "分别对比 Docker Compose 和 FastAPI 的部署方式",
+      "expected_doc": "none",
+      "expected_chunk": "complex_query",
+      "case_id": "GA-8",
+      "scope": "kb"
+    },
+    {
+      "category": "MEMORY",
+      "query": "What is the user's preferred language for retrieval?",
+      "expected_doc": "none",
+      "expected_chunk": "memory_loaded",
+      "case_id": "GA-9",
+      "scope": "kb",
+      "pre_seed_memories": [
+        {"key": "lang", "memory_type": "preference", "value": {"language": "en"}}
+      ]
+    },
+    {
+      "category": "MEMORY",
+      "query": "Search documents about Docker and React",
+      "expected_doc": "none",
+      "expected_chunk": "memory_loaded",
+      "case_id": "GA-10",
+      "scope": "kb",
+      "pre_seed_memories": [
+        {"key": "lang", "memory_type": "preference", "value": {"language": "en"}},
+        {"key": "topic", "memory_type": "preference", "value": {"topic": "docker"}}
+      ]
+    },
+    {
+      "category": "MEMORY",
+      "query": "What is the user's language preference?",
+      "expected_doc": "none",
+      "expected_chunk": "memory_empty",
+      "case_id": "GA-11",
+      "scope": "kb",
+      "pre_seed_memories": []
+    },
+    {
+      "category": "MEMORY",
+      "query": "Search with low confidence memory context",
+      "expected_doc": "none",
+      "expected_chunk": "memory_empty",
+      "case_id": "GA-12",
+      "scope": "kb",
+      "pre_seed_memories": []
+    },
+    {
+      "category": "AUTH",
+      "query": "Search in a knowledge base I have no access to",
+      "expected_doc": "none",
+      "expected_chunk": "FORBIDDEN",
+      "case_id": "GA-13",
+      "scope": "kb"
+    },
+    {
+      "category": "AUTH",
+      "query": "Delete a document I don't own",
+      "expected_doc": "none",
+      "expected_chunk": "FORBIDDEN",
+      "case_id": "GA-14",
+      "scope": "kb"
+    },
+    {
+      "category": "AUTH",
+      "query": "Read chunk excerpt from restricted knowledge base",
+      "expected_doc": "none",
+      "expected_chunk": "FORBIDDEN",
+      "case_id": "GA-15",
+      "scope": "kb"
+    },
+    {
+      "category": "AUTH",
+      "query": "Generate FAQ draft as a read-only member",
+      "expected_doc": "none",
+      "expected_chunk": "FORBIDDEN",
+      "case_id": "GA-16",
+      "scope": "kb"
+    },
+    {
+      "category": "DEGRADE",
+      "query": "LLM planner fails with empty response",
+      "expected_doc": "none",
+      "expected_chunk": "fallback",
+      "case_id": "GA-17",
+      "scope": "kb",
+      "expected_fallback": true
+    },
+    {
+      "category": "DEGRADE",
+      "query": "LLM planner returns unparseable format",
+      "expected_doc": "none",
+      "expected_chunk": "fallback",
+      "case_id": "GA-18",
+      "scope": "kb",
+      "expected_fallback": true
     }
   ]
 }

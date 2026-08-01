@@ -16,6 +16,7 @@ from app.models.document_chunk import DocumentChunk
 from app.models.enums import DocumentStatus
 from app.services.ingestion.pipeline import process_document_ingestion
 from app.services.ingestion.re_embed import count_stale_chunks, re_embed_all_chunks
+from tests.fixtures.audit_events import _register_org_admin
 
 FIXTURES = Path(__file__).parent / "fixtures"
 GOLDEN_MD = FIXTURES / "golden_handbook.md"
@@ -144,11 +145,14 @@ async def test_internal_re_embed_api_requires_token(
     client: AsyncClient,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    # F2：内部端点须 JWT + 静态令牌双因子
+    headers, _ = await _register_org_admin(client, prefix="re-embed-int")
+
     monkeypatch.setattr(settings, "re_embed_token", "")
 
     resp = await client.post(
         "/api/v1/internal/re-embed",
-        headers={"X-Re-Embed-Token": "anything"},
+        headers={**headers, "X-Re-Embed-Token": "anything"},
     )
     assert resp.status_code == 404
 
@@ -156,15 +160,16 @@ async def test_internal_re_embed_api_requires_token(
 
     bad = await client.post(
         "/api/v1/internal/re-embed",
-        headers={"X-Re-Embed-Token": "wrong"},
+        headers={**headers, "X-Re-Embed-Token": "wrong"},
     )
     assert bad.status_code == 403
 
     ok = await client.post(
         "/api/v1/internal/re-embed",
-        headers={"X-Re-Embed-Token": "secret-token"},
+        headers={**headers, "X-Re-Embed-Token": "secret-token"},
     )
     assert ok.status_code == 200
     body = ok.json()
     assert body["status"] == "started"
     assert "stale_chunks" in body
+    assert "operator" in body

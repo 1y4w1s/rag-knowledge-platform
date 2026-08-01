@@ -245,7 +245,7 @@ async def test_e_budget_http_five_steps_capped_still_completes(
 
     monkeypatch.setattr(
         "app.api.kb_threads.create_tool_planner",
-        lambda _msg: _InfiniteListKbPlanner(),
+        lambda _msg, default_kb_id=None: _InfiniteListKbPlanner(),
     )
 
     status, events = await _post_kb_thorough(
@@ -299,7 +299,9 @@ async def test_g3_e2_http_thorough_forbidden_kb_tool_result(
 
     monkeypatch.setattr(
         "app.api.kb_threads.create_tool_planner",
-        lambda _msg: _ForbiddenKbSemanticPlanner(forbidden_kb_id=forbidden),
+        lambda _msg, default_kb_id=None: _ForbiddenKbSemanticPlanner(
+            forbidden_kb_id=forbidden
+        ),
     )
 
     status, events = await _post_kb_thorough(

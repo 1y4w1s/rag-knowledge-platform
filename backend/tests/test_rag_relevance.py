@@ -62,9 +62,11 @@ def test_filter_relevant_chunks_empty_for_irrelevant_query() -> None:
 
 
 def test_filter_relevant_chunks_rejects_high_similarity_without_overlap() -> None:
-    """R3-P1-1：向量分高但无词面重叠仍须拒绝（AC-4 无关题）。"""
-    chunks = [_chunk(content="无关正文", similarity=0.9)]
-    assert filter_relevant_chunks(chunks, "火星殖民计划") == []
+    """灰色带语义兜底：sim 0.6 无词面重叠 → 保留（修复复合题）；sim 0.95 无重叠 → 拒绝（AC-4 防假阳性）。"""
+    low = _chunk(content="无关正文", similarity=0.6)
+    assert filter_relevant_chunks([low], "火星殖民计划") == [low]
+    high = _chunk(content="无关正文", similarity=0.95)
+    assert filter_relevant_chunks([high], "火星殖民计划") == []
 
 
 def test_should_refuse_answer_true_when_empty() -> None:
@@ -87,6 +89,17 @@ def test_vector_scores_universally_weak_uses_settings_threshold(
     assert _vector_scores_universally_weak(weak) is True
     assert _vector_scores_universally_weak(strong) is False
     assert _vector_scores_universally_weak(fts_only) is False
+
+
+def test_has_relevant_context_uses_settings_similarity_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A4：语义兜底阈值读 settings.relevance_similarity_fallback。"""
+    chunks = [_chunk(content="完全无关的正文内容。", similarity=0.42)]
+    monkeypatch.setattr(settings, "relevance_similarity_fallback", 0.50)
+    assert has_relevant_context(chunks, "公司上市计划是什么？") is False
+    monkeypatch.setattr(settings, "relevance_similarity_fallback", 0.40)
+    assert has_relevant_context(chunks, "公司上市计划是什么？") is True
 
 
 def test_weak_vector_scores_still_pass_when_overlap_exists() -> None:
@@ -142,8 +155,12 @@ def test_rejection_rate_gate_does_not_block_relevant_query() -> None:
 
 
 def test_rejection_rate_high_similarity_without_overlap_still_refused() -> None:
-    """高向量分但无词面重叠 → 仍应拒答（AC-4 场景）。"""
-    chunks = [_chunk(content="完全无关的正文内容。", similarity=0.92)]
-    filtered = filter_relevant_chunks(chunks, "公司上市计划是什么？")
-    assert filtered == [], "高相似度无重叠也应被过滤"
-    assert should_refuse_answer(filtered, "公司上市计划是什么？") is True
+    """灰色带语义兜底：sim 0.6 无重叠 → 不拒答（有语义依据）；sim 0.95 无重叠 → 仍拒答（AC-4）。"""
+    low = _chunk(content="完全无关的正文内容。", similarity=0.6)
+    filtered = filter_relevant_chunks([low], "公司上市计划是什么？")
+    assert filtered == [low], "灰色带（0.45~0.9）应保留"
+    assert should_refuse_answer(filtered, "公司上市计划是什么？") is False
+    high = _chunk(content="完全无关的正文内容。", similarity=0.95)
+    filtered_high = filter_relevant_chunks([high], "公司上市计划是什么？")
+    assert filtered_high == [], "≥0.9 无重叠应被过滤（AC-4）"
+    assert should_refuse_answer(filtered_high, "公司上市计划是什么？") is True

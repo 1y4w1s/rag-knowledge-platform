@@ -6,7 +6,8 @@ import pytest
 from httpx import AsyncClient
 
 from app.core.config import settings
-from app.services.rag.generation import stream_deepseek_tokens, stream_no_context_reply
+from app.services.rag import chat_llm
+from app.services.rag.generation import stream_deepseek_tokens
 from tests.conftest import create_test_kb as _create_kb
 
 
@@ -16,30 +17,37 @@ class _MockStream5xx:
         resp = httpx.Response(502, request=req)
         resp.raise_for_status()
         return resp
+
     async def __aexit__(self, *args: object) -> None:
         pass
 
 
 class _MockClient5xx:
-    async def __aenter__(self) -> _MockClient5xx:
-        return self
-    async def __aexit__(self, *args: object) -> None:
-        pass
     def stream(self, *args: object, **kwargs: object) -> _MockStream5xx:
         del args, kwargs
         return _MockStream5xx()
 
 
-def test_stream_deepseek_5xx_propagates() -> None:
+def test_stream_deepseek_5xx_propagates(monkeypatch: pytest.MonkeyPatch) -> None:
     """stream_deepseek_tokens raises HTTPStatusError on 5xx (not silently eaten)."""
     import asyncio
+
+    monkeypatch.setattr(settings, "chat_provider", "deepseek")
+    monkeypatch.setattr(settings, "deepseek_api_key", "sk-fake-5xx")
+    monkeypatch.setattr(chat_llm, "get_deepseek_client", lambda: _MockClient5xx())
+    # bypass retry/breaker so 5xx surfaces on first attempt
+    async def _once(factory, **kwargs):  # type: ignore[no-untyped-def]
+        del kwargs
+        async for item in factory():
+            yield item
+
+    monkeypatch.setattr(chat_llm, "retry_stream", _once)
+
     async def _run() -> None:
-        mp = pytest.MonkeyPatch()
-        mp.setattr(settings, "deepseek_api_key", "sk-fake-5xx")
-        mp.setattr("app.services.rag.generation.httpx.AsyncClient", lambda **kw: _MockClient5xx())
         with pytest.raises(httpx.HTTPStatusError):
             async for _ in stream_deepseek_tokens([{"role": "user", "content": "hi"}]):
                 pass
+
     asyncio.run(_run())
 
 
@@ -50,24 +58,20 @@ async def test_http_chat_llm_5xx_does_not_crash_server(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """LLM 5xx during streaming: server does not crash; HTTP response received."""
+    monkeypatch.setattr(settings, "chat_provider", "deepseek")
     monkeypatch.setattr(settings, "deepseek_api_key", "sk-fake-5xx")
-    monkeypatch.setattr(
-        "app.services.rag.generation.httpx.AsyncClient",
-        lambda **kw: _MockClient5xx(),
-    )
+    monkeypatch.setattr(chat_llm, "get_deepseek_client", lambda: _MockClient5xx())
 
     headers, user = await register_and_login(prefix="llm-5xx-safe")
     kb = await _create_kb(client, headers, user, name="LLM 5xx KB")
     kb_id = kb["id"]
 
-    # Upload a doc so retrieval finds chunks
     await client.post(
         f"/api/v1/knowledge-bases/{kb_id}/documents",
         headers=headers,
         files=[("files", ("faq.md", b"# FAQ\n\nAnnual leave 10 days.", "text/markdown"))],
     )
 
-    # Server should stay alive; we get some response (200 or 500)
     try:
         async with client.stream(
             "POST",
@@ -77,4 +81,4 @@ async def test_http_chat_llm_5xx_does_not_crash_server(
         ) as resp:
             await resp.aread()
     except Exception:
-        pass  # The server crashed but connection handled it
+        pass

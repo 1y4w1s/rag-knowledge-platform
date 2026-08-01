@@ -1,11 +1,19 @@
-"""G3-1.1：Agent tool scope + registry · 越权 kb deny（G3-E2 · G3-E8）。"""
+"""G3-1.1：Agent tool scope + registry · 越权 kb deny（G3-E2 · G3-E8）。
+
+NW-31：只读白名单精确锁六名 + ToolResult envelope 最小 shape（ok/summary）。
+"""
 
 from __future__ import annotations
 
 import uuid
+from dataclasses import fields
 
 import pytest
 
+from app.services.agent.tools.compare_chunks import CompareChunksToolResult
+from app.services.agent.tools.get_chunk_excerpt import GetChunkExcerptToolResult
+from app.services.agent.tools.grep_in_document import GrepInDocumentToolResult
+from app.services.agent.tools.list_knowledge_bases import ListKnowledgeBasesToolResult
 from app.services.agent.tools.registry import (
     ALL_AGENT_TOOL_NAMES,
     READ_ONLY_TOOL_NAMES,
@@ -23,18 +31,34 @@ from app.services.agent.tools.scope import (
     ToolDenial,
     ToolDenialReason,
 )
+from app.services.agent.tools.search_documents import SearchDocumentsToolResult
+from app.services.agent.tools.semantic_search import SemanticSearchToolResult
+from app.services.agent.tools.web_search import WebSearchResult
+from app.services.agent.tools.sql_query import QueryResult
+
+# NW-29 §3 冻结六名 · 改名/删名本测必红
+_NW29_READ_ONLY_FROZEN: frozenset[str] = frozenset(
+    {
+        "list_knowledge_bases",
+        "semantic_search",
+        "search_documents",
+        "get_chunk_excerpt",
+        "grep_in_document",
+        "compare_chunks",
+        "web_search",
+        "sql_query",
+    }
+)
 
 
-def test_registry_whitelist_four_read_only_tools() -> None:
-    assert READ_ONLY_TOOL_NAMES == frozenset(
-        {
-            "list_knowledge_bases",
-            "semantic_search",
-            "search_documents",
-            "get_chunk_excerpt",
-        }
-    )
+def test_registry_whitelist_six_read_only_tools_nw31() -> None:
+    """READ_ONLY_TOOL_NAMES / enum 精确等于 NW-29 冻结八名（E4 扩展 6→8）。"""
+    assert READ_ONLY_TOOL_NAMES == _NW29_READ_ONLY_FROZEN
+    assert frozenset(m.value for m in ReadOnlyToolName) == _NW29_READ_ONLY_FROZEN
+    assert len(ReadOnlyToolName) == 8
     assert is_allowed_tool("semantic_search")
+    assert is_allowed_tool("grep_in_document")
+    assert is_allowed_tool("compare_chunks")
     assert not is_allowed_tool("upload_document")
     assert not is_allowed_tool("propose_upload")
 
@@ -47,6 +71,26 @@ def test_registry_rejects_unknown_tool_g3_e8() -> None:
 
 def test_registry_accepts_allowed_tools() -> None:
     assert parse_allowed_tool("get_chunk_excerpt") == ReadOnlyToolName.get_chunk_excerpt
+    assert parse_allowed_tool("grep_in_document") == ReadOnlyToolName.grep_in_document
+    assert parse_allowed_tool("compare_chunks") == ReadOnlyToolName.compare_chunks
+
+
+def test_readonly_tool_result_envelope_has_ok_and_summary_nw31() -> None:
+    """ToolResultEnvelope 最小 shape：六只读 *ToolResult 必有 ok + summary（NW-29 §4.1）。"""
+    result_types = (
+        ListKnowledgeBasesToolResult,
+        SemanticSearchToolResult,
+        SearchDocumentsToolResult,
+        GetChunkExcerptToolResult,
+        GrepInDocumentToolResult,
+        CompareChunksToolResult,
+        WebSearchResult,
+        QueryResult,
+    )
+    for cls in result_types:
+        names = {f.name for f in fields(cls)}
+        assert "ok" in names, f"{cls.__name__} missing ok"
+        assert "summary" in names, f"{cls.__name__} missing summary"
 
 
 def test_resolve_kb_ids_denies_forbidden_kb_g3_e2() -> None:

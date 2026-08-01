@@ -61,6 +61,9 @@ class RetrievalResult:
     precision_at_k: float = 0.0  # 相关 chunks / top_k
     recall_at_k: float = 0.0     # 检索到的相关 chunks / 全部相关 chunks
     map_contribution: float = 0.0  # 单条贡献给 MAP
+    # RAGAS 评分（非 0 表示 RAGAS 模式）
+    ragas_context_precision: float = 0.0
+    ragas_context_recall: float = 0.0
     # 耗时
     latency_ms: float = 0.0
 
@@ -81,6 +84,8 @@ class GenerationResult:
     # v1.0 扩展
     faithfulness_score: float = 0.0  # 答案忠实度（decompose-and-verify）
     hallucination_rate: float = 0.0  # 幻觉率（无 chunk 支撑的 claims / 总 claims）
+    # RAGAS 评分（非 0 表示 RAGAS 模式）
+    ragas_answer_relevancy: float = 0.0
     # 耗时
     latency_ms: float = 0.0
 
@@ -121,6 +126,10 @@ class RetrievalMetrics:
     precision_at_k: float = 0.0   # 全量平均 Precision@K
     recall_at_k: float = 0.0      # 全量平均 Recall@K
     map_score: float = 0.0        # Mean Average Precision
+
+    # v2.0 RAGAS 扩展
+    context_precision_avg: float = 0.0    # RAGAS Context Precision 平均
+    context_recall_avg: float = 0.0       # RAGAS Context Recall 平均
 
 
 @dataclass

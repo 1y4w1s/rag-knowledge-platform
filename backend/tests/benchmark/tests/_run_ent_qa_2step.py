@@ -1,9 +1,20 @@
 """分两步跑 Enterprise QA：先单独入库文档，再跑检索评测。"""
-import asyncio, json, os, uuid
+import asyncio, json, os, re, uuid
 from pathlib import Path
 
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
 FIXTURES = Path("/app/tests/fixtures")
+
+
+def _norm(s: str) -> str:
+    """归一化：去标点/空白/大小写，避免 expect 标点噪声误判命中。
+
+    expect 中的"；""。"等标点在答案 chunk 中常缺失，substring 判定
+    会误判为 miss。归一化后仅比较内容本体（中文/字母/数字）。
+    """
+    if not s:
+        return ""
+    return re.sub(r"[\s，。、；：？！—\-–—()（）【】\[\]\"\'“”‘’·|]+", "", s or "").lower()
 
 async def ingest_all():
     """第1步：创建 KB 并入库所有文档。输出 kb_id。"""
@@ -73,16 +84,16 @@ async def run_queries():
             by_level[level]["total"] += 1
 
             expect = case.get("expect", {})
-            cc = expect.get("content_contains", "").lower()
-            sp = expect.get("section_title", "").lower()
-            hp = expect.get("heading_path_contains", "").lower()
+            cc = _norm(expect.get("content_contains"))
+            sp = _norm(expect.get("section_title"))
+            hp = _norm(expect.get("heading_path_contains"))
 
             chunks = await retrieve_chunks(db, kb_id=kb_id, query=case["query"], top_k=HIT_K)
             hit = False
             if chunks:
                 for ck in chunks[:HIT_K]:
-                    content = (ck.content or "").lower()
-                    st = (ck.heading_path or ck.section_title or "").lower()
+                    content = _norm(ck.content or "")
+                    st = _norm(ck.heading_path or ck.section_title or "")
                     ok = True
                     if cc and cc not in content: ok = False
                     if sp and sp not in st: ok = False

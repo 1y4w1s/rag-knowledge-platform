@@ -244,7 +244,7 @@ async def test_r4_4_done_citations_match_streamed_citations(
     register_and_login,
     upload_dir: Path,
 ) -> None:
-    """R4-4：done.citations 与流式 citation 事件列表完全一致（前端 onDone 同步依据）。"""
+    """F1/R4-4：done.citations ⊆ 流式候选（硬对齐后可更短；漏标时仍全等）。"""
     headers, user = await register_and_login(prefix="r4-4-done-sync")
     kb = await _create_kb(client, headers, user, name="done 同步库")
     kb_id = uuid.UUID(kb["id"])
@@ -264,8 +264,10 @@ async def test_r4_4_done_citations_match_streamed_citations(
     assert streamed_citations
 
     done = next(data for name, data in events if name == "done")
-    assert done["citations"] == streamed_citations
-
+    streamed_ids = {c["chunk_id"] for c in streamed_citations}
+    done_ids = [c["chunk_id"] for c in done["citations"]]
+    assert done_ids
+    assert set(done_ids).issubset(streamed_ids)
 
 @pytest.mark.asyncio
 async def test_r4_4_refusal_streams_tokens_only(
@@ -340,8 +342,10 @@ async def test_r4_4_get_messages_reflects_stream(
     latest = assistant_rows[-1]
     assert latest["id"] == done["message_id"]
     assert latest["content"] == streamed
-    assert latest["citations"] == streamed_citations
-
+    # F1：历史与 done 对齐终态一致（可 ⊆ 流式候选）
+    assert latest["citations"] == done["citations"]
+    streamed_ids = {c["chunk_id"] for c in streamed_citations}
+    assert {c["chunk_id"] for c in latest["citations"]}.issubset(streamed_ids)
 
 @dataclass
 class _SingleSemanticPlanner:
@@ -470,8 +474,9 @@ async def test_r4_4_agent_kb_thorough_event_order(
 
     done = next(data for name, data in events if name == "done")
     assert done.get("agent_run_id")
-    assert done["citations"] == [data for name, data in events if name == "citation"]
-
+    streamed_citations = [data for name, data in events if name == "citation"]
+    streamed_ids = {c["chunk_id"] for c in streamed_citations}
+    assert {c["chunk_id"] for c in done["citations"]}.issubset(streamed_ids)
 
 @pytest.mark.asyncio
 async def test_r4_4_agent_workspace_thorough_event_order(

@@ -268,3 +268,62 @@ async def test_c5_content_aggregates_one_row_per_document(
     assert body["total"] == 1
     assert len(body["items"]) == 1
     assert body["items"][0]["doc_id"] == str(doc.id)
+
+
+@pytest.mark.asyncio
+async def test_i1_content_pagination_pages_disjoint_and_cover(
+    client: AsyncClient,
+    register_and_login,
+) -> None:
+    """I1: content limit/offset 两页无交集且并集覆盖。"""
+    headers, user = await register_and_login(prefix="search-i1-ct")
+    user_id = uuid.UUID(user["id"])
+    kb = await create_test_kb(
+        client, headers, user, name="I1 正文库", workspace_kind="personal"
+    )
+    kb_id = uuid.UUID(kb["id"])
+    doc_ids: list[str] = []
+    for i in range(4):
+        doc = await _seed_document(
+            kb_id=kb_id,
+            user_id=user_id,
+            filename=f"正文分页-{i}.pdf",
+        )
+        await _seed_chunk(
+            doc=doc,
+            content=f"文档 {i} 含有 I1_CONTENT_PAGE 关键词。",
+            page_number=1,
+        )
+        doc_ids.append(str(doc.id))
+
+    page0 = await _search(
+        client,
+        headers,
+        q="I1_CONTENT_PAGE",
+        workspace="personal",
+        mode="content",
+        limit=2,
+        offset=0,
+    )
+    page1 = await _search(
+        client,
+        headers,
+        q="I1_CONTENT_PAGE",
+        workspace="personal",
+        mode="content",
+        limit=2,
+        offset=2,
+    )
+    assert page0.status_code == 200
+    assert page1.status_code == 200
+    b0, b1 = page0.json(), page1.json()
+    assert b0["total"] == b1["total"] == 4
+    assert b0["mode"] == "content"
+    assert b0["limit"] == 2 and b0["offset"] == 0
+    assert b1["limit"] == 2 and b1["offset"] == 2
+    assert len(b0["items"]) == 2
+    assert len(b1["items"]) == 2
+    ids0 = {item["doc_id"] for item in b0["items"]}
+    ids1 = {item["doc_id"] for item in b1["items"]}
+    assert ids0.isdisjoint(ids1)
+    assert ids0 | ids1 == set(doc_ids)

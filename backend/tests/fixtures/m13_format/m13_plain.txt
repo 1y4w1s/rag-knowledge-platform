@@ -1,0 +1,3 @@
+Ruige M13 format matrix sample (plain text).
+Acceptance code: M13-NEEDLE-TXT-8841
+This line exists so chat can cite the needle.

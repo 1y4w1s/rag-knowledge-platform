@@ -302,8 +302,9 @@ async def test_r4_3_citation_block_contract(
         assert len(cite["excerpt"]) <= 200
 
     done = next(data for name, data in events if name == "done")
-    assert done["citations"] == citations
-
+    # F1：done ⊆ 流式候选（漏标时全等；有 [片段N] 时可更短）
+    streamed_ids = {c["chunk_id"] for c in citations}
+    assert {c["chunk_id"] for c in done["citations"]}.issubset(streamed_ids)
 
 @pytest.mark.asyncio
 async def test_chat_kb_id_isolation_in_retrieval(

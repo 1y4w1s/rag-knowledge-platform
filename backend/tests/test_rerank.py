@@ -1,4 +1,4 @@
-"""Plan-RAG R3-2 rerank：mock 重排、disabled 回落、检索集成。"""
+"""Plan-RAG R3-2 / A2 rerank：mock、BGE、disabled 回落、检索集成。"""
 
 from __future__ import annotations
 
@@ -44,7 +44,11 @@ def test_mock_rerank_boosts_lexical_match() -> None:
 
 
 @pytest.mark.asyncio
-async def test_rerank_chunks_reorders_by_query_overlap() -> None:
+async def test_rerank_chunks_reorders_by_query_overlap(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "rerank_enabled", True)
+    monkeypatch.setattr(settings, "rerank_provider", "mock")
     chunks = [
         _chunk(content="量子计算是前沿领域"),
         _chunk(
@@ -78,7 +82,10 @@ async def test_rerank_disabled_returns_rrf_prefix(
 
 
 @pytest.mark.asyncio
-async def test_rerank_single_chunk_skips_api() -> None:
+async def test_rerank_single_chunk_skips_api(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "rerank_enabled", True)
     only = _chunk(content="唯一片段")
     result = await rerank_chunks("问题", [only], top_k=5)
     assert result == [only]
@@ -96,6 +103,51 @@ async def test_rerank_api_failure_falls_back_to_rrf_order(
         raise RuntimeError("api down")
 
     monkeypatch.setattr("app.services.rag.rerank._rerank_tongyi", _boom)
+
+    chunks = [
+        _chunk(content="RRF 第一"),
+        _chunk(content="RRF 第二"),
+    ]
+    result = await rerank_chunks("问题", chunks, top_k=2)
+    assert result == chunks[:2]
+
+
+@pytest.mark.asyncio
+async def test_bge_rerank_reorders_by_scores(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "rerank_enabled", True)
+    monkeypatch.setattr(settings, "rerank_provider", "bge")
+
+    async def _fake_bge(query: str, documents: list[str], *, top_n: int):
+        # 故意把最后一条排最前
+        n = len(documents)
+        order = list(reversed(range(n)))
+        return order[:top_n]
+
+    monkeypatch.setattr("app.services.rag.rerank._rerank_bge", _fake_bge)
+
+    chunks = [
+        _chunk(content="RRF 第一"),
+        _chunk(content="RRF 第二"),
+        _chunk(content="RRF 第三"),
+    ]
+    result = await rerank_chunks("问题", chunks, top_k=2)
+    assert result[0].content == "RRF 第三"
+    assert result[1].content == "RRF 第二"
+
+
+@pytest.mark.asyncio
+async def test_bge_rerank_failure_falls_back(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "rerank_enabled", True)
+    monkeypatch.setattr(settings, "rerank_provider", "bge")
+
+    async def _boom(*_args, **_kwargs):
+        raise RuntimeError("bge down")
+
+    monkeypatch.setattr("app.services.rag.rerank._rerank_bge", _boom)
 
     chunks = [
         _chunk(content="RRF 第一"),

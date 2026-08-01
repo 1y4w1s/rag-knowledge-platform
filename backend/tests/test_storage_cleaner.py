@@ -1,4 +1,4 @@
-"""Plan-3E-6c：磁盘清盘失败 mock · audit · dashboard 端到端。"""
+"""Plan-3E-6c：磁盘清盘失败 mock · audit · dashboard 端到端（H3：软删不再清盘）。"""
 
 import shutil
 import uuid
@@ -34,31 +34,29 @@ def _patch_cleanup_oserror(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 @pytest.mark.asyncio
-async def test_delete_document_cleanup_failure_writes_audit_and_dashboard(
+async def test_soft_delete_keeps_file_no_cleanup_audit(
     client: AsyncClient,
     register_and_login,
     upload_dir: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """DELETE 仍 204；磁盘清盘 mock 失败 → storage.cleanup_failed audit + dashboard +1。"""
-    headers, user = await register_and_login(prefix="cleaner-doc-fail")
-    kb = await create_test_kb(client, headers, user, name="清盘失败库")
+    """H3：软删保留磁盘；即使 mock cleaner 失败也不写 cleanup audit。"""
+    headers, user = await register_and_login(prefix="cleaner-soft")
+    kb = await create_test_kb(client, headers, user, name="软删留盘库")
 
     upload_resp = await client.post(
         f"/api/v1/knowledge-bases/{kb['id']}/documents",
         headers=headers,
-        files=[("files", ("disk-fail.txt", b"cleanup should fail", "text/plain"))],
+        files=[("files", ("keep.txt", b"keep on soft delete", "text/plain"))],
     )
     assert upload_resp.status_code == 201
     doc_id = upload_resp.json()["documents"][0]["id"]
 
-    stats_before = await client.get(
-        "/api/v1/dashboard/stats",
-        headers=headers,
-        params=workspace_query(user),
-    )
-    assert stats_before.status_code == 200
-    assert stats_before.json()["storage_cleanup_failure_count"] == 0
+    async with SessionLocal() as db:
+        doc = await db.get(Document, uuid.UUID(doc_id))
+        assert doc is not None
+        path = Path(doc.storage_path)
+        assert path.is_file()
 
     audit_before = await _count_audit_logs(action="storage.cleanup_failed")
     _patch_cleanup_oserror(monkeypatch)
@@ -68,24 +66,64 @@ async def test_delete_document_cleanup_failure_writes_audit_and_dashboard(
         headers=headers,
     )
     assert delete_resp.status_code == 204
+    assert path.is_file(), "软删不应清盘"
 
     async with SessionLocal() as db:
         doc = await db.get(Document, uuid.UUID(doc_id))
         assert doc is not None
-        assert doc.deleted_at is not None, "软删应设置 deleted_at"
+        assert doc.deleted_at is not None
 
-    audit_after = await _count_audit_logs(action="storage.cleanup_failed")
-    # 软删路径的清盘失败不写审计日志（仅 permanently_delete 写）
-    assert audit_after - audit_before == 0
+    assert await _count_audit_logs(action="storage.cleanup_failed") == audit_before
+
+
+@pytest.mark.asyncio
+async def test_permanent_delete_cleanup_failure_writes_audit_and_dashboard(
+    client: AsyncClient,
+    register_and_login,
+    upload_dir: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """永久删：清盘 mock 失败 → storage.cleanup_failed + dashboard +1。"""
+    headers, user = await register_and_login(prefix="cleaner-perm-fail")
+    kb = await create_test_kb(client, headers, user, name="永久清盘失败库")
+
+    upload_resp = await client.post(
+        f"/api/v1/knowledge-bases/{kb['id']}/documents",
+        headers=headers,
+        files=[("files", ("disk-fail.txt", b"cleanup should fail", "text/plain"))],
+    )
+    assert upload_resp.status_code == 201
+    doc_id = upload_resp.json()["documents"][0]["id"]
+
+    await client.delete(
+        f"/api/v1/knowledge-bases/{kb['id']}/documents/{doc_id}",
+        headers=headers,
+    )
+
+    stats_before = await client.get(
+        "/api/v1/dashboard/stats",
+        headers=headers,
+        params=workspace_query(user),
+    )
+    assert stats_before.json()["storage_cleanup_failure_count"] == 0
+
+    audit_before = await _count_audit_logs(action="storage.cleanup_failed")
+    _patch_cleanup_oserror(monkeypatch)
+
+    perm = await client.delete(
+        f"/api/v1/knowledge-bases/{kb['id']}/documents/{doc_id}/permanent",
+        headers=headers,
+    )
+    assert perm.status_code == 204
+
+    assert await _count_audit_logs(action="storage.cleanup_failed") == audit_before + 1
 
     stats_after = await client.get(
         "/api/v1/dashboard/stats",
         headers=headers,
         params=workspace_query(user),
     )
-    assert stats_after.status_code == 200
-    # 软删路径的清盘失败不计入 dashboard（仅 permanently_delete 计数）
-    assert stats_after.json()["storage_cleanup_failure_count"] == 0
+    assert stats_after.json()["storage_cleanup_failure_count"] == 1
 
 
 @pytest.mark.asyncio

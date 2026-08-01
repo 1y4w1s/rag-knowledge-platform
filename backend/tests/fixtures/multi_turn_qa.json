@@ -1,0 +1,294 @@
+{
+  "version": "1.0",
+  "description": "multi_turn_qa v1.0 - 18 multi-turn dialogue groups for testing query rewriting. Each case contains a thread (user-assistant turns) and a rewritten query that resolves anaphora/ellipsis. Retrieval is measured against the rewritten query under plus_multi_turn configuration.",
+  "cases": [
+    {
+      "case_id": "MT-1",
+      "domain": "attendance",
+      "thread": [
+        {"role": "user", "content": "年假有多少天？"},
+        {"role": "assistant", "content": "员工工作满一年后每年有10天年假。"},
+        {"role": "user", "content": "那病假呢？"}
+      ],
+      "query": "病假有多少天",
+      "source": "md",
+      "expect": {
+        "section_title": "1.3 事假与病假",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "病假全年累计不超过 30 天"
+      }
+    },
+    {
+      "case_id": "MT-2",
+      "domain": "attendance",
+      "thread": [
+        {"role": "user", "content": "迟到怎么处理？"},
+        {"role": "assistant", "content": "迟到30分钟以内按事假半天处理，超过30分钟按旷工处理。"},
+        {"role": "user", "content": "那旷工的后果是什么？"}
+      ],
+      "query": "旷工的后果是什么",
+      "source": "md",
+      "expect": {
+        "section_title": "1.2 迟到",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "旷工"
+      }
+    },
+    {
+      "case_id": "MT-3",
+      "domain": "attendance",
+      "thread": [
+        {"role": "user", "content": "事假能请多少天？"},
+        {"role": "assistant", "content": "事假全年累计不得超过15天，须提前一天申请。"},
+        {"role": "user", "content": "请假期间有工资吗？"}
+      ],
+      "query": "事假期间有工资吗",
+      "source": "md",
+      "expect": {
+        "section_title": "1.3 事假与病假",
+        "heading_path_contains": "考勤制度",
+        "content_contains": "事假期间无薪"
+      }
+    },
+    {
+      "case_id": "MT-4",
+      "domain": "salary",
+      "thread": [
+        {"role": "user", "content": "年终奖什么时候发？"},
+        {"role": "assistant", "content": "年终奖于每年12月发放，发放日前需仍在职。"},
+        {"role": "user", "content": "发放条件是什么？"}
+      ],
+      "query": "年终奖的发放条件是什么",
+      "source": "md",
+      "expect": {
+        "section_title": "2.1 年终奖",
+        "heading_path_contains": "薪酬福利",
+        "content_contains": "发放日"
+      }
+    },
+    {
+      "case_id": "MT-5",
+      "domain": "salary",
+      "thread": [
+        {"role": "user", "content": "餐补每个月多少？"},
+        {"role": "assistant", "content": "正式员工每月餐补300元，随工资发放。"},
+        {"role": "user", "content": "销售岗位的通讯补贴呢？"}
+      ],
+      "query": "销售岗位的通讯补贴是多少",
+      "source": "md",
+      "expect": {
+        "section_title": "2.3 通讯补贴",
+        "heading_path_contains": "薪酬福利",
+        "content_contains": "销售岗位 200 元"
+      }
+    },
+    {
+      "case_id": "MT-6",
+      "domain": "salary",
+      "thread": [
+        {"role": "user", "content": "餐补标准是多少？"},
+        {"role": "assistant", "content": "正式员工每月餐补300元。"},
+        {"role": "user", "content": "这个补贴是所有岗位都一样吗？"}
+      ],
+      "query": "餐补是否所有岗位都一样",
+      "source": "md",
+      "expect": {
+        "section_title": "2.2 餐补",
+        "heading_path_contains": "薪酬福利",
+        "content_contains": "正式员工"
+      }
+    },
+    {
+      "case_id": "MT-7",
+      "domain": "overtime",
+      "thread": [
+        {"role": "user", "content": "工作日加班怎么算？"},
+        {"role": "assistant", "content": "工作日加班按基本工资1.5倍计算加班费。"},
+        {"role": "user", "content": "那周末和法定节假日呢？"}
+      ],
+      "query": "周末和法定节假日加班费怎么计算",
+      "source": "md",
+      "expect": {
+        "section_title": "3.1 加班",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "休息日加班按 2 倍"
+      }
+    },
+    {
+      "case_id": "MT-8",
+      "domain": "travel",
+      "thread": [
+        {"role": "user", "content": "出差补贴每天多少钱？"},
+        {"role": "assistant", "content": "一线城市200元，二线城市150元，其他城市100元。"},
+        {"role": "user", "content": "住宿费怎么报销？"}
+      ],
+      "query": "出差住宿费报销标准",
+      "source": "md",
+      "expect": {
+        "section_title": "3.2 出差",
+        "heading_path_contains": "考勤补充",
+        "content_contains": "住宿费凭发票实报实销"
+      }
+    },
+    {
+      "case_id": "MT-9",
+      "domain": "training",
+      "thread": [
+        {"role": "user", "content": "外部培训每年能参加多少天？"},
+        {"role": "assistant", "content": "员工每年可参加不超过5天的外部培训，费用由公司承担。"},
+        {"role": "user", "content": "培训完了要服务多久？"}
+      ],
+      "query": "外部培训后需要在公司服务多久",
+      "source": "md",
+      "expect": {
+        "section_title": "4.1 培训",
+        "heading_path_contains": "职业发展",
+        "content_contains": "服务满一年"
+      }
+    },
+    {
+      "case_id": "MT-10",
+      "domain": "promotion",
+      "thread": [
+        {"role": "user", "content": "晋升评估多久一次？"},
+        {"role": "assistant", "content": "晋升评估每年6月和12月各一次。"},
+        {"role": "user", "content": "需要什么条件？"}
+      ],
+      "query": "晋升需要什么条件",
+      "source": "md",
+      "expect": {
+        "section_title": "4.2 晋升",
+        "heading_path_contains": "职业发展",
+        "content_contains": "在当前岗位任职满一年"
+      }
+    },
+    {
+      "case_id": "MT-11",
+      "domain": "resignation",
+      "thread": [
+        {"role": "user", "content": "试用期离职要提前多久通知？"},
+        {"role": "assistant", "content": "试用期员工提前3天通知即可。"},
+        {"role": "user", "content": "正式员工呢？"}
+      ],
+      "query": "正式员工离职需要提前多久通知",
+      "source": "md",
+      "expect": {
+        "section_title": "5.1 离职通知期",
+        "heading_path_contains": "离职管理",
+        "content_contains": "正式员工提前 30 天通知"
+      }
+    },
+    {
+      "case_id": "MT-12",
+      "domain": "resignation",
+      "thread": [
+        {"role": "user", "content": "竞业限制期是多久？"},
+        {"role": "assistant", "content": "高管及核心技术人员的竞业限制期为离职后12个月。"},
+        {"role": "user", "content": "这期间有补偿吗？"}
+      ],
+      "query": "竞业限制期间是否有补偿",
+      "source": "md",
+      "expect": {
+        "section_title": "5.2 竞业限制",
+        "heading_path_contains": "离职管理",
+        "content_contains": "按月支付补偿金"
+      }
+    },
+    {
+      "case_id": "MT-13",
+      "domain": "expense",
+      "thread": [
+        {"role": "user", "content": "差旅报销的交通标准是什么？"},
+        {"role": "assistant", "content": "高铁二等座及以下凭票实报实销，飞机经济舱须提前审批。"},
+        {"role": "user", "content": "市内交通有上限吗？"}
+      ],
+      "query": "市内交通差旅报销上限",
+      "source": "md",
+      "expect": {
+        "section_title": "6.1 差旅报销",
+        "heading_path_contains": "财务报销",
+        "content_contains": "市内交通每天不超过 50 元"
+      }
+    },
+    {
+      "case_id": "MT-14",
+      "domain": "expense",
+      "thread": [
+        {"role": "user", "content": "招待客户用餐标准是多少？"},
+        {"role": "assistant", "content": "一线城市每人不超过300元，二线城市不超过200元。"},
+        {"role": "user", "content": "招待需要提前申请吗？"}
+      ],
+      "query": "业务招待需要提前申请吗",
+      "source": "md",
+      "expect": {
+        "section_title": "6.2 业务招待",
+        "heading_path_contains": "财务报销",
+        "content_contains": "提前填写招待申请单"
+      }
+    },
+    {
+      "case_id": "MT-15",
+      "domain": "expense",
+      "thread": [
+        {"role": "user", "content": "报销时限是多久？"},
+        {"role": "assistant", "content": "费用发生后30天内须提交报销申请。"},
+        {"role": "user", "content": "超过时限还能报销吗？"}
+      ],
+      "query": "超过报销时限还能报销吗",
+      "source": "md",
+      "expect": {
+        "section_title": "6.4 报销时限",
+        "heading_path_contains": "财务报销",
+        "content_contains": "逾期 30 至 60 天的"
+      }
+    },
+    {
+      "case_id": "MT-16",
+      "domain": "security",
+      "thread": [
+        {"role": "user", "content": "公司系统密码有什么要求？"},
+        {"role": "assistant", "content": "密码须至少8位，包含大小写字母、数字和特殊字符，每90天更换一次。"},
+        {"role": "user", "content": "可以告诉别人我的密码吗？"}
+      ],
+      "query": "公司系统密码可以告诉别人吗",
+      "source": "md",
+      "expect": {
+        "section_title": "7.1 密码与账户安全",
+        "heading_path_contains": "信息安全",
+        "content_contains": "禁止将账户密码告知他人"
+      }
+    },
+    {
+      "case_id": "MT-17",
+      "domain": "benefits",
+      "thread": [
+        {"role": "user", "content": "年度体检标准是多少？"},
+        {"role": "assistant", "content": "正式员工每年享受一次免费体检，标准为每人800元。"},
+        {"role": "user", "content": "刚入职半年能参加吗？"}
+      ],
+      "query": "入职半年是否能参加年度体检",
+      "source": "md",
+      "expect": {
+        "section_title": "8.1 年度体检",
+        "heading_path_contains": "福利制度",
+        "content_contains": "入职满半年即可参加"
+      }
+    },
+    {
+      "case_id": "MT-18",
+      "domain": "benefits",
+      "thread": [
+        {"role": "user", "content": "补充医疗保险报销比例是多少？"},
+        {"role": "assistant", "content": "门诊报销比例90%，年度上限5000元；住院报销比例100%。"},
+        {"role": "user", "content": "家属可以加入吗？"}
+      ],
+      "query": "家属可以加入补充医疗保险吗",
+      "source": "md",
+      "expect": {
+        "section_title": "8.3 补充医疗保险",
+        "heading_path_contains": "福利制度",
+        "content_contains": "直系亲属可自费加入"
+      }
+    }
+  ]
+}

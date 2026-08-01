@@ -56,7 +56,7 @@ async def test_change_password_success_then_relogin(
     register_and_login,
 ) -> None:
     old_password = "Test123!@"
-    new_password = "newpass456"
+    new_password = "Newpass456!"
     headers, user = await register_and_login(prefix="acct-pw", password=old_password)
 
     patch = await client.patch(
@@ -89,7 +89,7 @@ async def test_change_password_wrong_current(
     resp = await client.patch(
         "/api/v1/settings/account",
         headers=headers,
-        json={"current_password": "wrongpass", "new_password": "newpass456"},
+        json={"current_password": "wrongpass", "new_password": "Newpass456!"},
     )
     assert resp.status_code == 400
     assert resp.json()["detail"] == "当前密码不正确"
@@ -106,6 +106,7 @@ async def test_change_password_too_short(
         headers=headers,
         json={"current_password": "Test123!@", "new_password": "short"},
     )
+    # schema min_length=8 先拦；强度中文见 test_password_strength_nw37
     assert resp.status_code == 422
 
 

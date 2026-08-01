@@ -31,7 +31,7 @@
       "query": "基础版每月的价格是多少？",
       "source": "md",
       "expect": {
-        "content_contains": "| 项目 | 价格 | 说明 |\n|------|------|------|\n| **管理节点** | ¥1,200/月/节点 | 最多 3 个管理节点 |\n| **计算节点** | ¥800/月/节点 | 最多 20 个计算节点 |\n| **存储节点** | ¥600/月/节点 | 最多 5 个存储节点 |\n| **GPU 节点** | ¥2,500/月/GPU | 仅支持 NVIDIA A1"
+        "content_contains": "| 项目 | 价格 | 说明 |\n|------|------|------|\n| **管理节点** | ¥1,200/月/节点 | 最多 3 个管理节点 |"
       },
       "source_docs": [
         "acme_产品规格书.md"
@@ -64,7 +64,7 @@
       "query": "AcmeCloud 提供哪三种部署方式？",
       "source": "md",
       "expect": {
-        "content_contains": "**A**: AcmeCloud 企业版在原生 Kubernetes 基础上提供了以下增值能力：\n- **企业级管理控制台**：图形化界面，无需手动编辑 YAML 文件。\n- **内置安全合规**：自动满足等保 2.0、SOC 2 要求，无需额外配置。\n- **智能运维**：AI 异常预测、成本分析、自动扩缩容。\n- **商业支持**：7×24 小时技术支持，SLA 保障 99.99%。\n- **"
+        "content_contains": "支持裸金属、虚拟机及容器混合部署"
       },
       "source_docs": [
         "acme_产品规格书.md"
@@ -81,7 +81,7 @@
       "query": "专业版每月价格是多少？",
       "source": "md",
       "expect": {
-        "content_contains": "| 项目 | 价格 | 说明 |\n|------|------|------|\n| **管理节点** | ¥2,000/月/节点 | 最多 7 个管理节点 |\n| **计算节点** | ¥1,200/月/节点 | 最多 200 个计算节点 |\n| **存储节点** | ¥900/月/节点 | 最多 50 个存储节点 |\n| **GPU 节点** | ¥4,000/月/GPU | 支持 A100 与"
+        "content_contains": "| 项目 | 价格 | 说明 |\n|------|------|------|\n| **管理节点** | ¥2,000/月/节点 | 最多 7 个管理节点 |"
       },
       "source_docs": [
         "acme_产品规格书.md"
@@ -114,7 +114,7 @@
       "query": "部署集群模式最少需要几个节点？",
       "source": "md",
       "expect": {
-        "content_contains": "适用于生产环境，支持高可用与水平扩展。推荐最小 3 管理节点 + 3 计算节点 + 3 存储节点。\n\n```\n+-------------------+     +-------------------+     +-------------------+\n|  管理节点 1 (M1)  |     |  管理节点 2 (M2)  |     |  管理节点 3 (M3)  |\n| - kube-"
+        "content_contains": "推荐最小 3 管理节点 + 3 计算节点 + 3 存储节点。"
       },
       "source_docs": [
         "acme_产品规格书.md"
@@ -130,12 +130,11 @@
       ],
       "query": "创建用户的 API 端点是什么？",
       "source": "md",
-      "expect": {
-        "content_contains": "----+\n                     |   AcmeConsole (Web)   |\n                     |   API Gateway         |\n                     +-----------------------+\n```**规格要求**：\n- 管理节点：3 台，8 vCPU / 32 GB RAM / 500 GB S"
-      },
+      "expect": {},
       "source_docs": [
         "acme_产品规格书.md"
-      ]
+      ],
+      "expect_rejection": true
     },
     {
       "case_id": "ENT-009",
@@ -165,7 +164,7 @@
       "query": "企业版包含哪些高级功能是基础版没有的？",
       "source": "md",
       "expect": {
-        "content_contains": "**功能差异**（相比专业版新增）：\n- 无限制多集群联邦管理\n- 支持混合云统一纳管（AWS/Azure/阿里云）\n- 日志保留 180 天（可定制）\n- 包含灾难恢复 (DR) 功能\n- 专属客户成功经理 (TAM)\n- 每年 2 次现场巡检\n- 定制化开发支持"
+        "content_contains": "**功能差异**（相比专业版新增）：\n- 无限制多集群联邦管理\n- 支持混合云统一纳管（AWS/Azure/阿里云）"
       },
       "source_docs": [
         "acme_产品规格书.md"
@@ -198,10 +197,10 @@
       "query": "企业版的年费比基础版贵多少？",
       "source": "md",
       "expect": {
-        "content_contains": "以下为 AcmeCloud 企业版 v3.2 的 15 项核心功能，每项均附带简要说明："
+        "content_contains": "专业版：$29/月（年付$24/月），含100GB存储和1TB月流量。企业版：$99/月（年付$79/月）"
       },
       "source_docs": [
-        "acme_产品规格书.md"
+        "acme_FAQ合集.md"
       ]
     },
     {
@@ -215,10 +214,10 @@
       "query": "企业版年费是基础版的多少倍？（需要自行计算）",
       "source": "md",
       "expect": {
-        "content_contains": "以下为 AcmeCloud 企业版 v3.2 的 15 项核心功能，每项均附带简要说明："
+        "content_contains": "专业版：$29/月（年付$24/月），含100GB存储和1TB月流量。企业版：$99/月（年付$79/月）"
       },
       "source_docs": [
-        "acme_产品规格书.md"
+        "acme_FAQ合集.md"
       ]
     },
     {
@@ -232,10 +231,10 @@
       "query": "如果客户有 1000 用户、需要 SSO 和审计日志，但预算只有每月 3 万——应该推荐哪个版本？",
       "source": "md",
       "expect": {
-        "content_contains": "| 组件 | 最低配置 | 推荐配置 | 说明 |\n|------|----------|----------|------|\n| **管理节点 (Master)** | 4 vCPU / 16 GB RAM / 100 GB SSD | 8 vCPU / 32 GB RAM / 500 GB SSD | 至少 3 节点实现高可用 |\n| **计算节点 (Worker)** | 8 vCPU / "
+        "content_contains": "免费版仅支持1个管理员和2个成员，无单点登录（SSO）功能；专业版支持5个管理员和50个成员，提供SSO和API密钥管理。企业版额外支持自定义域名登录和审计日志。"
       },
       "source_docs": [
-        "acme_产品规格书.md"
+        "acme_FAQ合集.md"
       ]
     },
     {
@@ -249,7 +248,7 @@
       "query": "合同的服务期限是多久？",
       "source": "md",
       "expect": {
-        "content_contains": "\n    (5) **技术支持与运维服务**：提供 **7×24** 小时技术支持热线、工单系统及专属客户成功经理（CSM）服务服务响应时间详见附录A2.2 上述服务的具体技术参数、配置清单及交付标准，以双方另行签署的《服务开通确认书》为准。乙方有权根据技术升级需要对服务进行优化，但应提前 **30** 日书面通知甲方，且不得降低服务的核心性能指标。\n**第三条 服务期限与续约**\n3.1 本合同"
+        "content_contains": "本合同项下服务的初始期限为 **12** 个月，自 **2024年6月1日** 起至 **2025年5月31日** 止。"
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -266,7 +265,7 @@
       "query": "保密条款中的保密期限是多少年？",
       "source": "md",
       "expect": {
-        "content_contains": "5.4 甲方应在SLA违约事件发生后的 **30** 个自然日内，以书面形式向乙方提出补偿申请，并附上相关证据乙方应在收到申请后的 **15** 个工作日内核实并确认补偿**6. 除外条款**\n以下情况不适用本SLA承诺及补偿：\n    (1) 因不可抗力导致的服务中断；\n    (2) 因甲方或其授权第三方的行为、疏忽、设备或软件故障导致的问题；\n    (3) 因甲方未遵循乙方发布的、经双方确"
+        "content_contains": "本保密条款的有效期为自本合同生效之日起 **3** 年。"
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -283,7 +282,7 @@
       "query": "SLA 承诺的系统可用性是多少？",
       "source": "md",
       "expect": {
-        "content_contains": "**21. AcmeCloud 提供哪些核心云服务？**\n答：主要提供云存储（对象存储、块存储）、云计算（虚拟机、容器）、数据库（MySQL、PostgreSQL、MongoDB）、CDN加速、DNS托管和Serverless函数计算。所有服务均支持按需扩展，99.9% SLA保障。\n**22. 如何上传文件到云存储？**\n答：您可通过三种方式上传：1）Web控制台拖拽上传，单文件最大5GB；2）"
+        "content_contains": "AcmeCloud核心服务（包括弹性计算ECS、块存储、数据库RDS）的月度服务可用性不低于 **99.9%**。"
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -300,7 +299,7 @@
       "query": "合同金额是多少？",
       "source": "md",
       "expect": {
-        "content_contains": "\n    (5) **技术支持与运维服务**：提供 **7×24** 小时技术支持热线、工单系统及专属客户成功经理（CSM）服务服务响应时间详见附录A2.2 上述服务的具体技术参数、配置清单及交付标准，以双方另行签署的《服务开通确认书》为准。乙方有权根据技术升级需要对服务进行优化，但应提前 **30** 日书面通知甲方，且不得降低服务的核心性能指标。\n**第三条 服务期限与续约**\n3.1 本合同"
+        "content_contains": "本合同项下服务包的总价为人民币 **¥480,000.00** 元（大写：人民币肆拾捌万元整）。"
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -317,7 +316,7 @@
       "query": "合同约定的争议解决机构是哪个？",
       "source": "md",
       "expect": {
-        "content_contains": "\n7.3 若甲方违反本合同第四条约定，逾期支付服务费，乙方有权按照第4.4条约定主张权利\n7.4 任何一方违反第六条保密义务，应向守约方支付人民币 **¥200,000.00** 元（大写：人民币贰拾万元整）作为违约金若该违约金不足以弥补守约方损失的，违约方还应赔偿差额部分**第八条 争议解决**\n8.1 因本合同的订立、效力、履行、解释、变更、解除、终止及争议解决等产生的任何争议，双方应首先通过"
+        "content_contains": "协商不成的，任何一方均有权将争议提交 **北京仲裁委员会**，按照申请仲裁时该会现行有效的仲裁规则进行仲裁。"
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -334,7 +333,7 @@
       "query": "如果甲方要续约，需要提前多久通知乙方？",
       "source": "md",
       "expect": {
-        "content_contains": "\n    (5) **技术支持与运维服务**：提供 **7×24** 小时技术支持热线、工单系统及专属客户成功经理（CSM）服务服务响应时间详见附录A2.2 上述服务的具体技术参数、配置清单及交付标准，以双方另行签署的《服务开通确认书》为准。乙方有权根据技术升级需要对服务进行优化，但应提前 **30** 日书面通知甲方，且不得降低服务的核心性能指标。\n**第三条 服务期限与续约**\n3.1 本合同"
+        "content_contains": "服务期限届满前 **60** 日，如双方均未提出书面不续约通知，本合同将自动续约，每次续约期限为 **12** 个月。"
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -351,7 +350,7 @@
       "query": "违约金按未支付金额的多少比例计算？",
       "source": "md",
       "expect": {
-        "content_contains": "5.4 甲方应在SLA违约事件发生后的 **30** 个自然日内，以书面形式向乙方提出补偿申请，并附上相关证据乙方应在收到申请后的 **15** 个工作日内核实并确认补偿**6. 除外条款**\n以下情况不适用本SLA承诺及补偿：\n    (1) 因不可抗力导致的服务中断；\n    (2) 因甲方或其授权第三方的行为、疏忽、设备或软件故障导致的问题；\n    (3) 因甲方未遵循乙方发布的、经双方确"
+        "content_contains": "每逾期一日，应按逾期未付金额的 **千分之三（0.3%）** 向乙方支付违约金。"
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -368,7 +367,7 @@
       "query": "SLA 中规定的故障响应时间分几个等级？",
       "source": "md",
       "expect": {
-        "content_contains": "5.4 甲方应在SLA违约事件发生后的 **30** 个自然日内，以书面形式向乙方提出补偿申请，并附上相关证据乙方应在收到申请后的 **15** 个工作日内核实并确认补偿**6. 除外条款**\n以下情况不适用本SLA承诺及补偿：\n    (1) 因不可抗力导致的服务中断；\n    (2) 因甲方或其授权第三方的行为、疏忽、设备或软件故障导致的问题；\n    (3) 因甲方未遵循乙方发布的、经双方确"
+        "content_contains": "乙方技术支持团队对甲方提交的工单或电话请求的响应时间承诺如下："
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -385,7 +384,7 @@
       "query": "如果乙方连续两个月 SLA 不达标，甲方可以怎么做？",
       "source": "md",
       "expect": {
-        "content_contains": "5.4 甲方应在SLA违约事件发生后的 **30** 个自然日内，以书面形式向乙方提出补偿申请，并附上相关证据乙方应在收到申请后的 **15** 个工作日内核实并确认补偿**6. 除外条款**\n以下情况不适用本SLA承诺及补偿：\n    (1) 因不可抗力导致的服务中断；\n    (2) 因甲方或其授权第三方的行为、疏忽、设备或软件故障导致的问题；\n    (3) 因甲方未遵循乙方发布的、经双方确"
+        "content_contains": "若乙方提供的服务连续 **2** 个月或累计 **3** 个月未能达到附录A中约定的SLA标准"
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -402,7 +401,7 @@
       "query": "合同终止后，乙方需要移交哪些材料？",
       "source": "md",
       "expect": {
-        "content_contains": "\n7.3 若甲方违反本合同第四条约定，逾期支付服务费，乙方有权按照第4.4条约定主张权利\n7.4 任何一方违反第六条保密义务，应向守约方支付人民币 **¥200,000.00** 元（大写：人民币贰拾万元整）作为违约金若该违约金不足以弥补守约方损失的，违约方还应赔偿差额部分**第八条 争议解决**\n8.1 因本合同的订立、效力、履行、解释、变更、解除、终止及争议解决等产生的任何争议，双方应首先通过"
+        "content_contains": "本合同终止后，乙方应在 **15** 个工作日内向甲方提供完整的数据备份，并协助甲方完成数据迁移。"
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -435,7 +434,7 @@
       "query": "甲方的付款账期是 30 天还是 60 天？逾期违约金比例每日多少？",
       "source": "md",
       "expect": {
-        "content_contains": "(5) **技术支持与运维服务**：提供 **7×24** 小时技术支持热线、工单系统及专属客户成功经理（CSM）服务服务响应时间详见附录A2.2 上述服务的具体技术参数、配置清单及交付标准，以双方另行签署的《服务开通确认书》为准。乙方有权根据技术升级需要对服务进行优化，但应提前 **30** 日书面通知甲方，且不得降低服务的核心性能指标。\n**第三条 服务期限与续约**\n3.1 本合同项下服务的"
+        "content_contains": "每逾期一日，应按逾期未付金额的 **千分之三（0.3%）** 向乙方支付违约金。逾期超过 **30** 日的，乙方有权暂停提供服务，直至甲方付清全部款项及违约金。逾期超过 **60** 日的"
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -452,8 +451,7 @@
       "query": "2026年Q1总收入是多少？",
       "source": "md",
       "expect": {
-        "content_contains": "| 产品线 | Q1收入（万元） | 收入占比 | 同比增速 | 环比增速 | 毛利率 |\n|--------|---------------|----------|----------|----------|--------|\n| 星云OS企业版 | 9,860 | 52.7% | +21.4% | +3.8% | 68.3% |\n| 天枢AI推理平台 | 4,680 | 25.0% | +42",
-        "heading_path_contains": "6.1"
+        "content_contains": "| **总收入** | **18,720** | **17,960** | **15,820** | **+18.3%** | **+4.2%** |"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -487,8 +485,7 @@
       "query": "Q1 净利润是多少？",
       "source": "md",
       "expect": {
-        "content_contains": "**报告周期：2026年1月1日 – 2026年3月31日**  \n**报告编号：STAR-Q1-2026-001**  \n**密级：内部公开**\n---",
-        "heading_path_contains": "6.2"
+        "content_contains": "| **净利润** | **2,350** | **2,120** | **2,030** | **+15.8%** | **+10.8%** |"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -505,8 +502,7 @@
       "query": "哪个产品线的收入最高？",
       "source": "md",
       "expect": {
-        "content_contains": "| 产品线 | Q1收入（万元） | 收入占比 | 同比增速 | 环比增速 | 毛利率 |\n|--------|---------------|----------|----------|----------|--------|\n| 星云OS企业版 | 9,860 | 52.7% | +21.4% | +3.8% | 68.3% |\n| 天枢AI推理平台 | 4,680 | 25.0% | +42",
-        "heading_path_contains": "表2"
+        "content_contains": "| 星云OS企业版 | 9,860 | 52.7% | +21.4% | +3.8% | 68.3% |"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -523,8 +519,7 @@
       "query": "Q1 总运营费用是多少？",
       "source": "md",
       "expect": {
-        "content_contains": "**报告周期：2026年1月1日 – 2026年3月31日**  \n**报告编号：STAR-Q1-2026-001**  \n**密级：内部公开**\n---",
-        "heading_path_contains": "6.2"
+        "content_contains": "| **总运营费用** | **9,000** | **8,520** | **7,570** | **+18.9%** | **+5.6%** |"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -541,8 +536,7 @@
       "query": "Q1 研发费用占收入比例是多少？",
       "source": "md",
       "expect": {
-        "content_contains": "**报告周期：2026年1月1日 – 2026年3月31日**  \n**报告编号：STAR-Q1-2026-001**  \n**密级：内部公开**\n---",
-        "heading_path_contains": "6.2"
+        "content_contains": "| **研发费用** | 4,200 | 3,850 | 3,440 | +22.1% | +9.1% |"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -559,8 +553,7 @@
       "query": "Q1 净利润率相比去年同期是上升还是下降？",
       "source": "md",
       "expect": {
-        "content_contains": "**报告周期：2026年1月1日 – 2026年3月31日**  \n**报告编号：STAR-Q1-2026-001**  \n**密级：内部公开**\n---",
-        "heading_path_contains": "6.2"
+        "content_contains": "| 净利率 | 12.6% | 11.8% | 12.9% | -0.3pp | +0.8pp |"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -577,7 +570,7 @@
       "query": "团队在 Q1 增加了多少工程师？",
       "source": "md",
       "expect": {
-        "content_contains": "**报告周期：2026年1月1日 – 2026年3月31日**  \n**报告编号：STAR-Q1-2026-001**  \n**密级：内部公开**\n---"
+        "content_contains": "| 研发部 | 218 | 44.8% | +18 | AI算法工程师（8人）、后端开发（6人）、嵌入式工程师（4人） |"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -610,7 +603,7 @@
       "query": "Q1 完成了几个重点项目里程碑？",
       "source": "md",
       "expect": {
-        "content_contains": "2026年第一季度，星辰科技在宏观经济承压与行业竞争加剧的双重背景下，实现了稳健开局。本季度总营收达到 **1.87亿元**，同比增长 **18.3%**，环比增长 **4.2%**；核心产品线“星云OS”企业版用户数突破 **12,000家**，同比增长 **32%**。毛利率维持在 **62.1%**，较去年同期提升 **1.8个百分点**。公司完成了 **5个重点项目** 的关键里程碑，其中"
+        "content_contains": "本季度计划完成 **5个** 关键里程碑，实际完成 **2个**（天枢v2.0、IoT固件3.0）"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -627,7 +620,7 @@
       "query": "Q1 收入同比增长了百分之多少？",
       "source": "md",
       "expect": {
-        "content_contains": "2026年第一季度，星辰科技在宏观经济承压与行业竞争加剧的双重背景下，实现了稳健开局。本季度总营收达到 **1.87亿元**，同比增长 **18.3%**，环比增长 **4.2%**；核心产品线“星云OS”企业版用户数突破 **12,000家**，同比增长 **32%**。毛利率维持在 **62.1%**，较去年同期提升 **1.8个百分点**。公司完成了 **5个重点项目** 的关键里程碑，其中"
+        "content_contains": "本季度总营收达到 **1.87亿元**，同比增长 **18.3%**"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -644,8 +637,7 @@
       "query": "三条产品线中哪个毛利率最高、哪个最低？",
       "source": "md",
       "expect": {
-        "content_contains": "| 产品线 | Q1收入（万元） | 收入占比 | 同比增速 | 环比增速 | 毛利率 |\n|--------|---------------|----------|----------|----------|--------|\n| 星云OS企业版 | 9,860 | 52.7% | +21.4% | +3.8% | 68.3% |\n| 天枢AI推理平台 | 4,680 | 25.0% | +42",
-        "heading_path_contains": "表2"
+        "content_contains": "| 星辰IoT边缘网关 | 2,180 | 11.6% | +8.5% | +2.1% | 45.8% |\n| 其他（含服务与咨询） | 2,000 | 10.7% | +5.3% | -6.5% | 72.5% |"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -662,7 +654,7 @@
       "query": "人均收入同比提升了多少？需要计算。",
       "source": "md",
       "expect": {
-        "content_contains": "| 产品线 | Q1收入（万元） | 收入占比 | 同比增速 | 环比增速 | 毛利率 |\n|--------|---------------|----------|----------|----------|--------|\n| 星云OS企业版 | 9,860 | 52.7% | +21.4% | +3.8% | 68.3% |\n| 天枢AI推理平台 | 4,680 | 25.0% | +42"
+        "content_contains": "| ARPU（元/月） | 128 | 132 | 115 | -3.0% | +11.3% |"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -679,7 +671,7 @@
       "query": "运营费用占收入的比例是上升还是下降了？为什么？",
       "source": "md",
       "expect": {
-        "content_contains": "**财务亮点**：\n- 净利润同比增长 **15.8%**，尽管研发投入增长 **22.1%**，但通过优化销售费用结构（销售费用率从 **16.9%** 降至 **16.7%**）实现了利润率的稳定。\n- 经营性现金流净额为 **2,180万元**，覆盖研发投入的 **51.9%**，现金储备充足。\n- 应收账款周转天数从 **68天** 缩短至 **62天**，回款效率提升。\n---"
+        "content_contains": "通过优化销售费用结构（销售费用率从 **16.9%** 降至 **16.7%**）实现了利润率的稳定。"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -696,7 +688,7 @@
       "query": "员工每年有多少天年假？",
       "source": "md",
       "expect": {
-        "content_contains": "AcmeCloud maintains a **business casual** dress code. Employees are expected to dress professionally and appropriately for their role and work environment.  \n- **Acceptable:** Collared shirts, blouses"
+        "content_contains": "全职员工每个日历年享有**15个工作日**的带薪年假"
       },
       "source_docs": [
         "acme_员工手册_英文.md"
@@ -713,7 +705,7 @@
       "query": "公司的上班时间是几点到几点？",
       "source": "md",
       "expect": {
-        "content_contains": "Overtime must be pre-approved by your manager and will be compensated according to local labor laws.**中文：**  \n标准工作时间为**上午9:00至下午6:00**，周一至周五，包含一小时午休（12:00-13:00）。员工应准时到岗，并通过生物识别系统或手机应用记录考勤。迟到超过15分钟且未提"
+        "content_contains": "标准工作时间为**上午9:00至下午6:00**，周一至周五"
       },
       "source_docs": [
         "acme_员工手册_英文.md"
@@ -730,7 +722,7 @@
       "query": "IT 安全政策要求密码至少多少位？",
       "source": "md",
       "expect": {
-        "content_contains": "AcmeCloud maintains a **business casual** dress code. Employees are expected to dress professionally and appropriately for their role and work environment.  \n- **Acceptable:** Collared shirts, blouses"
+        "content_contains": "minimum 12 characters"
       },
       "source_docs": [
         "acme_员工手册_英文.md"
@@ -747,7 +739,7 @@
       "query": "每年有多少天带薪病假？",
       "source": "md",
       "expect": {
-        "content_contains": "**English:**  \n- **Annual Leave:** Full-time employees are entitled to **15 working days** of paid annual leave per calendar year, prorated for the first year. Unused leave may be carried over up to 5"
+        "content_contains": "员工每年享有**10个工作日**的带薪病假"
       },
       "source_docs": [
         "acme_员工手册_英文.md"
@@ -764,7 +756,7 @@
       "query": "公司有几个部门？",
       "source": "md",
       "expect": {
-        "content_contains": "AcmeCloud maintains a **business casual** dress code. Employees are expected to dress professionally and appropriately for their role and work environment.  \n- **Acceptable:** Collared shirts, blouses"
+        "content_contains": "以下为星辰科技核心部门及团队负责人架构"
       },
       "source_docs": [
         "acme_员工手册_英文.md"
@@ -798,7 +790,7 @@
       "query": "研发部门的负责人是谁？",
       "source": "md",
       "expect": {
-        "content_contains": "AcmeCloud maintains a **business casual** dress code. Employees are expected to dress professionally and appropriately for their role and work environment.  \n- **Acceptable:** Collared shirts, blouses"
+        "content_contains": "**1. 技术研发部**  \n- 部门总监：张伟"
       },
       "source_docs": [
         "acme_员工手册_英文.md"
@@ -832,7 +824,7 @@
       "query": "如果员工需要在上班时间处理私人事务，应该遵循什么流程？",
       "source": "md",
       "expect": {
-        "content_contains": "**English:**  \n- **Annual Leave:** Full-time employees are entitled to **15 working days** of paid annual leave per calendar year, prorated for the first year. Unused leave may be carried over up to 5"
+        "content_contains": "事假须提前2天申请"
       },
       "source_docs": [
         "acme_员工手册_英文.md"
@@ -882,7 +874,7 @@
       "query": "信息安全政策中，关于公司设备上安装软件的具体限制是什么？为什么？",
       "source": "md",
       "expect": {
-        "content_contains": "AcmeCloud maintains a **business casual** dress code. Employees are expected to dress professionally and appropriately for their role and work environment.  \n- **Acceptable:** Collared shirts, blouses"
+        "content_contains": "Do not install unapproved software or applications on company devices"
       },
       "source_docs": [
         "acme_员工手册_英文.md"
@@ -899,7 +891,7 @@
       "query": "管理后台的默认端口是多少？",
       "source": "md",
       "expect": {
-        "content_contains": "**全量备份脚本** `/usr/local/bin/mysql_full_backup.sh`：\n```bash\n#!/bin/bash\n# 全量备份脚本 - 每周日02:00执行\nBACKUP_DIR=\"/backup/full\"\nDATE=$(date +%Y%m%d_%H%M%S)\nDB_USER=\"backup_user\"\nDB_PASS=\"Backup@2025!Secure\"\nDB_"
+        "content_contains": "管理控制台：http://10.10.10.10:8080"
       },
       "source_docs": [
         "acme_操作手册.md"
@@ -933,7 +925,7 @@
       "query": "日志文件保留多少天？",
       "source": "md",
       "expect": {
-        "content_contains": "```\n/backup/\n├── full/                    # 全量备份（保留30天）\n│   ├── 20250301_020000/\n│   │   ├── full_backup.sql.gz\n│   │   └── backup_metadata.log\n│   └── 20250308_020000/\n├── incremental/             # "
+        "content_contains": "| 日志备份 | 每天 04:00 | 90天 | /backup/logs/ | gzip |"
       },
       "source_docs": [
         "acme_操作手册.md"
@@ -950,7 +942,7 @@
       "query": "数据库增量备份每天执行几次？",
       "source": "md",
       "expect": {
-        "content_contains": "| 备份类型 | 频率 | 保留周期 | 存储位置 | 压缩方式 |\n|----------|------|----------|----------|----------|\n| 全量备份 | 每周日 02:00 | 30天 | /backup/full/ | gzip |\n| 增量备份 | 每天 02:00 | 7天 | /backup/incremental/ | gzip |\n| 日志备份 "
+        "content_contains": "| 增量备份 | 每天 02:00 | 7天 | /backup/incremental/ | gzip |"
       },
       "source_docs": [
         "acme_操作手册.md"
@@ -984,7 +976,7 @@
       "query": "CPU 使用率连续多久超过 80% 需要告警？",
       "source": "md",
       "expect": {
-        "content_contains": "#### 规则1：CPU使用率过高\n\n```yaml\n# alert_rules.yml\ngroups:\n  - name: system_alerts\n    rules:\n      - alert: HighCPUUsage\n        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])"
+        "content_contains": "- 阈值：80%\n- 持续时间：5分钟\n- 级别：Critical（P1）"
       },
       "source_docs": [
         "acme_操作手册.md"
@@ -1001,7 +993,7 @@
       "query": "全量备份和增量备份分别在什么时间执行？",
       "source": "md",
       "expect": {
-        "content_contains": "**全量备份脚本** `/usr/local/bin/mysql_full_backup.sh`：\n```bash\n#!/bin/bash\n# 全量备份脚本 - 每周日02:00执行\nBACKUP_DIR=\"/backup/full\"\nDATE=$(date +%Y%m%d_%H%M%S)\nDB_USER=\"backup_user\"\nDB_PASS=\"Backup@2025!Secure\"\nDB_",
+        "content_contains": "| 全量备份 | 每周日 02:00 | 30天 | /backup/full/ | gzip |\n| 增量备份 | 每天 02:00 | 7天 | /backup/incremental/ | gzip |",
         "section_title": ""
       },
       "source_docs": [
@@ -1051,10 +1043,10 @@
       "query": "防火墙规则中开放了哪些端口？请列出至少 5 个。",
       "source": "md",
       "expect": {
-        "content_contains": "| 序号 | 检查项 | 检查方法 | 正常值范围 | 异常处理 |\n|------|--------|----------|------------|----------|\n| 1 | CPU使用率 | `top -bn1 \\| grep \"Cpu(s)\"` | < 75% | >80%触发告警 |\n| 2 | 内存使用率 | `free -m \\| grep Mem` | < 80% | >8"
+        "content_contains": "| **管理网络** | 1 Gbps 以上，低延迟 (< 2ms) | TCP 6443 (K8s API), 2379-2380 (etcd), 10250 (kubelet) | 节点间通信 |\n| **数据网络** | 10 Gbps 以上，建议 25 Gbps | TCP 30000-32767 (NodePort), 80/443 (Ingress) | 应用流量 |"
       },
       "source_docs": [
-        "acme_操作手册.md"
+        "acme_产品规格书.md"
       ]
     },
     {
@@ -1068,7 +1060,7 @@
       "query": "如果既要保留 90 天日志又需要节省存储，应该调整哪些配置参数？",
       "source": "md",
       "expect": {
-        "content_contains": "#### 规则1：CPU使用率过高\n\n```yaml\n# alert_rules.yml\ngroups:\n  - name: system_alerts\n    rules:\n      - alert: HighCPUUsage\n        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])"
+        "content_contains": "| 日志备份 | 每天 04:00 | 90天 | /backup/logs/ | gzip |"
       },
       "source_docs": [
         "acme_操作手册.md"
@@ -1085,7 +1077,7 @@
       "query": "为什么 SSH 端口不建议使用默认 22？（需结合安全最佳实践推理）",
       "source": "md",
       "expect": {
-        "content_contains": "**SSH密钥要求**：\n- 算法：RSA 4096位或Ed25519\n- 密钥有效期：365天\n- 禁止使用密码登录（除跳板机外）\n---"
+        "content_contains": "| 生产环境 | 10.20.30.40 | 2222 | 密钥+密码 |"
       },
       "source_docs": [
         "acme_操作手册.md"
@@ -1102,7 +1094,7 @@
       "query": "如何重置密码？",
       "source": "md",
       "expect": {
-        "content_contains": "**31. 如何联系 AcmeCloud 技术支持团队？**\n答：您可通过三种方式：1）提交工单（控制台“帮助”→“提交工单”），响应时间：免费版48小时内，专业版4小时内，企业版1小时内；2）发送邮件至 support@acmecloud.com；3）企业版用户享有专属电话支持（工作时间9:00-21:00，含周末）。\n\n**32. 技术支持的服务时间是什么？**\n答：免费版和基础工单支持为7×"
+        "content_contains": "在登录页面点击“忘记密码”，输入注册邮箱。系统会在60秒内发送重置链接，点击后设置新密码。"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1119,7 +1111,7 @@
       "query": "免费版提供多少存储空间？",
       "source": "md",
       "expect": {
-        "content_contains": "**31. 如何联系 AcmeCloud 技术支持团队？**\n答：您可通过三种方式：1）提交工单（控制台“帮助”→“提交工单”），响应时间：免费版48小时内，专业版4小时内，企业版1小时内；2）发送邮件至 support@acmecloud.com；3）企业版用户享有专属电话支持（工作时间9:00-21:00，含周末）。\n\n**32. 技术支持的服务时间是什么？**\n答：免费版和基础工单支持为7×"
+        "content_contains": "免费版：0元，含5GB存储和100GB月流量。"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1136,7 +1128,7 @@
       "query": "API 调用频率限制是多少？",
       "source": "md",
       "expect": {
-        "content_contains": "**51. AcmeCloud 提供哪些API？**\n答：提供RESTful API和GraphQL API，覆盖所有核心服务（存储、计算、数据库、CDN等）。API基于HTTPS，使用JSON格式。所有API请求需通过API密钥或OAuth 2.0认证。详细文档请参考 docs.acmecloud.com/api。\n\n**52. 如何获取和使用API密钥？**\n答：在控制台“API管理”中创建密"
+        "content_contains": "免费版：每分钟最多100次请求；专业版：每分钟1000次；企业版：每分钟5000次。"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1153,8 +1145,7 @@
       "query": "数据导出支持哪些格式？",
       "source": "md",
       "expect": {
-        "content_contains": "所有付款均通过PCI-DSS认证网关处理\n**14. 如果超出套餐流量或存储，如何收费**\n答：超出部分按量计费存储：$0.02/GB/月流量：$0.01/GB例如：专业版用户本月使用120GB存储，超出20GB，需额外支付$0.4系统会在超出80%时发送预警邮件**15. 如何获取发票或收据？**\n答：每次付款成功后，您可在“计费”→“账单历史”中下载PDF格式的电子发票。发票包含公司名称、税号",
-        "heading_path_contains": "FAQ"
+        "content_contains": "支持导出为CSV格式，方便财务对账。"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1171,7 +1162,7 @@
       "query": "技术支持响应时间是多久？",
       "source": "md",
       "expect": {
-        "content_contains": "**31. 如何联系 AcmeCloud 技术支持团队？**\n答：您可通过三种方式：1）提交工单（控制台“帮助”→“提交工单”），响应时间：免费版48小时内，专业版4小时内，企业版1小时内；2）发送邮件至 support@acmecloud.com；3）企业版用户享有专属电话支持（工作时间9:00-21:00，含周末）。\n\n**32. 技术支持的服务时间是什么？**\n答：免费版和基础工单支持为7×"
+        "content_contains": "响应时间：免费版48小时内，专业版4小时内，企业版1小时内"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1188,7 +1179,7 @@
       "query": "数据加密方式是什么？",
       "source": "md",
       "expect": {
-        "content_contains": "**31. 如何联系 AcmeCloud 技术支持团队？**\n答：您可通过三种方式：1）提交工单（控制台“帮助”→“提交工单”），响应时间：免费版48小时内，专业版4小时内，企业版1小时内；2）发送邮件至 support@acmecloud.com；3）企业版用户享有专属电话支持（工作时间9:00-21:00，含周末）。\n\n**32. 技术支持的服务时间是什么？**\n答：免费版和基础工单支持为7×"
+        "content_contains": "所有数据在传输过程中使用TLS 1.3加密，在存储时使用AES-256加密。"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1221,7 +1212,7 @@
       "query": "企业版和专业版在用户管理上有什么区别？",
       "source": "md",
       "expect": {
-        "content_contains": "**1. 如何注册 AcmeCloud 账号？**\n答：访问 AcmeCloud 官网，点击右上角“注册”。输入您的邮箱、设置密码（至少8位，含大小写字母和数字），完成邮箱验证即可。个人用户需提供手机号，企业用户还需上传营业执照。整个流程约3分钟。\n\n**2. 我忘记了登录密码，如何重置？**\n答：在登录页面点击“忘记密码”，输入注册邮箱。系统会在60秒内发送重置链接，点击后设置新密码。链接有效期"
+        "content_contains": "免费版仅支持1个管理员和2个成员，无单点登录（SSO）功能；专业版支持5个管理员和50个成员，提供SSO和API密钥管理。企业版额外支持自定义域名登录和审计日志。"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1254,7 +1245,7 @@
       "query": "多个 API Key 的调用频率是共享还是独立计算？",
       "source": "md",
       "expect": {
-        "content_contains": "**51. AcmeCloud 提供哪些API？**\n答：提供RESTful API和GraphQL API，覆盖所有核心服务（存储、计算、数据库、CDN等）。API基于HTTPS，使用JSON格式。所有API请求需通过API密钥或OAuth 2.0认证。详细文档请参考 docs.acmecloud.com/api。\n\n**52. 如何获取和使用API密钥？**\n答：在控制台“API管理”中创建密"
+        "content_contains": "免费版：每分钟最多100次请求；专业版：每分钟1000次；企业版：每分钟5000次。超出限制将返回429状态码"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1271,7 +1262,7 @@
       "query": "从免费版升级到专业版后，原有数据会丢失吗？",
       "source": "md",
       "expect": {
-        "content_contains": "所有付款均通过PCI-DSS认证网关处理\n**14. 如果超出套餐流量或存储，如何收费**\n答：超出部分按量计费存储：$0.02/GB/月流量：$0.01/GB例如：专业版用户本月使用120GB存储，超出20GB，需额外支付$0.4系统会在超出80%时发送预警邮件**15. 如何获取发票或收据？**\n答：每次付款成功后，您可在“计费”→“账单历史”中下载PDF格式的电子发票。发票包含公司名称、税号"
+        "content_contains": "登录控制台，进入“计费”→“套餐变更”。升级即时生效，按剩余天数比例补差价"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1304,7 +1295,7 @@
       "query": "我的月消费约 5000 元，按年付比按月付省多少钱？",
       "source": "md",
       "expect": {
-        "content_contains": "支持导出为CSV格式，方便财务对账\n**18. 可以设置月度消费上限吗**\n答：可以在“计费”→“预算控制”中，您可设置月度消费上限（最低$10）当消费达到上限的80%和100%时，系统会发送邮件和短信通知达到上限后，超出服务将被暂停，直至下个周期或手动调高上限**19. 企业版是否有折扣？**\n答：企业版年付可享20%折扣（即$79/月）。若一次性预付3年，可享35%折扣。此外，非营利组织和教育"
+        "content_contains": "专业版：$29/月（年付$24/月），含100GB存储和1TB月流量。企业版：$99/月（年付$79/月）"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1321,7 +1312,7 @@
       "query": "我交了年费后想取消订阅，能退款吗？能退多少？",
       "source": "md",
       "expect": {
-        "content_contains": "**31. 如何联系 AcmeCloud 技术支持团队？**\n答：您可通过三种方式：1）提交工单（控制台“帮助”→“提交工单”），响应时间：免费版48小时内，专业版4小时内，企业版1小时内；2）发送邮件至 support@acmecloud.com；3）企业版用户享有专属电话支持（工作时间9:00-21:00，含周末）。\n\n**32. 技术支持的服务时间是什么？**\n答：免费版和基础工单支持为7×"
+        "content_contains": "降级将在当前计费周期结束后生效，不退款。"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1338,7 +1329,7 @@
       "query": "AcmeCloud 有哪些核心功能？",
       "source": "md",
       "expect": {
-        "content_contains": "**A**: AcmeCloud 企业版在原生 Kubernetes 基础上提供了以下增值能力：\n- **企业级管理控制台**：图形化界面，无需手动编辑 YAML 文件。\n- **内置安全合规**：自动满足等保 2.0、SOC 2 要求，无需额外配置。\n- **智能运维**：AI 异常预测、成本分析、自动扩缩容。\n- **商业支持**：7×24 小时技术支持，SLA 保障 99.99%。\n- **"
+        "content_contains": "以下为 AcmeCloud 企业版 v3.2 的 15 项核心功能"
       },
       "source_docs": [
         "acme_产品规格书.md"
@@ -1355,10 +1346,10 @@
       "query": "基础版最多支持多少用户？",
       "source": "md",
       "expect": {
-        "content_contains": "以下为 AcmeCloud 企业版 v3.2 的 15 项核心功能，每项均附带简要说明："
+        "content_contains": "免费版仅支持1个管理员和2个成员，无单点登录（SSO）功能；专业版支持5个管理员和50个成员"
       },
       "source_docs": [
-        "acme_产品规格书.md"
+        "acme_FAQ合集.md"
       ]
     },
     {
@@ -1372,10 +1363,10 @@
       "query": "基础版和专业版都包含审计日志功能吗？",
       "source": "md",
       "expect": {
-        "content_contains": "以下为 AcmeCloud 企业版 v3.2 的 15 项核心功能，每项均附带简要说明："
+        "content_contains": "企业版额外支持自定义域名登录和审计日志。"
       },
       "source_docs": [
-        "acme_产品规格书.md"
+        "acme_FAQ合集.md"
       ]
     },
     {
@@ -1405,7 +1396,7 @@
       "query": "SLA 中 P1 级故障的响应时间是多少？",
       "source": "md",
       "expect": {
-        "content_contains": "5.4 甲方应在SLA违约事件发生后的 **30** 个自然日内，以书面形式向乙方提出补偿申请，并附上相关证据乙方应在收到申请后的 **15** 个工作日内核实并确认补偿**6. 除外条款**\n以下情况不适用本SLA承诺及补偿：\n    (1) 因不可抗力导致的服务中断；\n    (2) 因甲方或其授权第三方的行为、疏忽、设备或软件故障导致的问题；\n    (3) 因甲方未遵循乙方发布的、经双方确"
+        "content_contains": "(1) **P1级（紧急故障）**：服务完全不可用或核心功能丧失，对甲方业务造成重大影响。响应时间：**15** 分钟内。"
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -1422,7 +1413,7 @@
       "query": "如果系统可用性低于 99.9% 但高于 99%，甲方可以获得什么补偿？",
       "source": "md",
       "expect": {
-        "content_contains": "本附录A是《AcmeCloud企业服务框架合同》（合同编号：ACME-2024-SVC-001，以下简称“主合同”）不可分割的组成部分。本附录中定义的术语与主合同中的定义具有相同含义。\n\n**1. 服务可用性承诺**\n1.1 乙方承诺，在任何一个自然月内，AcmeCloud核心服务（包括弹性计算ECS、块存储、数据库RDS）的月度服务可用性不低于 **99.9%**。\n1.2 “服务不可用”是指："
+        "content_contains": "可用性低于 **99.9%** 但高于或等于 **99.0%**：补偿当月服务费的 **10%**。"
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -1439,7 +1430,7 @@
       "query": "Q1 销售费用是多少？占收入比例多少？",
       "source": "md",
       "expect": {
-        "content_contains": "**报告周期：2026年1月1日 – 2026年3月31日**  \n**报告编号：STAR-Q1-2026-001**  \n**密级：内部公开**\n---"
+        "content_contains": "| **销售费用** | 3,120 | 3,050 | 2,680 | +16.4% | +2.3% |"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -1472,7 +1463,7 @@
       "query": "Q1 哪个项目的完成度最低？",
       "source": "md",
       "expect": {
-        "content_contains": "**报告周期：2026年1月1日 – 2026年3月31日**  \n**报告编号：STAR-Q1-2026-001**  \n**密级：内部公开**\n---"
+        "content_contains": "| 自研推理芯片适配计划 | 完成与国产GPU（华为昇腾、寒武纪）的适配 | 40%"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -1504,12 +1495,11 @@
       ],
       "query": "如果员工需要请 5 天年假去国外旅行，按照政策需要提前多久申请？",
       "source": "md",
-      "expect": {
-        "content_contains": "To protect company data and systems, all employees must adhere to the following IT security rules:1. **Strong Passwords:** Use complex passwords (minimum 12 characters, including uppercase, lowercase,"
-      },
+      "expect": {},
       "source_docs": [
         "acme_员工手册_英文.md"
-      ]
+      ],
+      "expect_rejection": true
     },
     {
       "case_id": "ENT-090",
@@ -1522,7 +1512,7 @@
       "query": "Nginx 访问日志的存放路径是什么？",
       "source": "md",
       "expect": {
-        "content_contains": "**错误码**：SSL-ERR-8001  \n**错误信息**：`SSL certificate expired` 或 `certificate has expired`\n**可能原因**：\n1. 证书未及时续期（概率70%）\n2. 自动续期脚本失败（概率20%）\n3. 证书链不完整（概率10%）\n**解决步骤**：\n```bash\n# 步骤1：检查证书有效期\nopenssl x509 -in /"
+        "content_contains": "tail -100 /var/log/nginx/access.log"
       },
       "source_docs": [
         "acme_操作手册.md"
@@ -1539,7 +1529,7 @@
       "query": "磁盘使用率超过 85% 的告警属于什么级别？",
       "source": "md",
       "expect": {
-        "content_contains": "#### 规则1：CPU使用率过高\n\n```yaml\n# alert_rules.yml\ngroups:\n  - name: system_alerts\n    rules:\n      - alert: HighCPUUsage\n        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode=\"idle\"}[5m])"
+        "content_contains": "- 阈值：80%（Warning），90%（Critical）"
       },
       "source_docs": [
         "acme_操作手册.md"
@@ -1556,7 +1546,7 @@
       "query": "应用服务器无法启动，错误码是 E1001，应该按什么步骤排查？",
       "source": "md",
       "expect": {
-        "content_contains": "**错误码**：APP-ERR-3001  \n**错误信息**：`HTTP 502 Bad Gateway` 或 `HTTP 504 Gateway Timeout`\n**可能原因**：\n1. 后端服务崩溃（概率35%）\n2. 数据库连接池耗尽（概率25%）\n3. 内存溢出（OOM）（概率20%）\n4. 线程池耗尽（概率20%）\n**解决步骤**：\n```bash\n# 步骤1：检查应用进程\nps "
+        "content_contains": "**错误码**：APP-ERR-3001"
       },
       "source_docs": [
         "acme_操作手册.md"
@@ -1589,7 +1579,7 @@
       "query": "创建团队空间最多可以添加多少成员？",
       "source": "md",
       "expect": {
-        "content_contains": "**1. 如何注册 AcmeCloud 账号？**\n答：访问 AcmeCloud 官网，点击右上角“注册”。输入您的邮箱、设置密码（至少8位，含大小写字母和数字），完成邮箱验证即可。个人用户需提供手机号，企业用户还需上传营业执照。整个流程约3分钟。\n\n**2. 我忘记了登录密码，如何重置？**\n答：在登录页面点击“忘记密码”，输入注册邮箱。系统会在60秒内发送重置链接，点击后设置新密码。链接有效期"
+        "content_contains": "每个企业账号最多可添加100名成员。"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1606,7 +1596,7 @@
       "query": "上传的文件有没有大小限制？",
       "source": "md",
       "expect": {
-        "content_contains": "**21. AcmeCloud 提供哪些核心云服务？**\n答：主要提供云存储（对象存储、块存储）、云计算（虚拟机、容器）、数据库（MySQL、PostgreSQL、MongoDB）、CDN加速、DNS托管和Serverless函数计算。所有服务均支持按需扩展，99.9% SLA保障。\n**22. 如何上传文件到云存储？**\n答：您可通过三种方式上传：1）Web控制台拖拽上传，单文件最大5GB；2）"
+        "content_contains": "单文件最大5GB"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1623,7 +1613,7 @@
       "query": "数据存储在中国境内还是境外？",
       "source": "md",
       "expect": {
-        "content_contains": "**31. 如何联系 AcmeCloud 技术支持团队？**\n答：您可通过三种方式：1）提交工单（控制台“帮助”→“提交工单”），响应时间：免费版48小时内，专业版4小时内，企业版1小时内；2）发送邮件至 support@acmecloud.com；3）企业版用户享有专属电话支持（工作时间9:00-21:00，含周末）。\n\n**32. 技术支持的服务时间是什么？**\n答：免费版和基础工单支持为7×"
+        "content_contains": "中国大陆节点通过等保三级认证。"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1640,7 +1630,7 @@
       "query": "如果 API 返回 429 错误码，可能是什么原因？怎么解决？",
       "source": "md",
       "expect": {
-        "content_contains": "**51. AcmeCloud 提供哪些API？**\n答：提供RESTful API和GraphQL API，覆盖所有核心服务（存储、计算、数据库、CDN等）。API基于HTTPS，使用JSON格式。所有API请求需通过API密钥或OAuth 2.0认证。详细文档请参考 docs.acmecloud.com/api。\n\n**52. 如何获取和使用API密钥？**\n答：在控制台“API管理”中创建密"
+        "content_contains": "超出限制将返回429状态码，并在响应头中告知重试时间。"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1657,11 +1647,10 @@
       "query": "我们公司有 200 人，需要每个部门独立管理用户——免费版够用吗？如果不行，最低需要哪个版本？",
       "source": "md",
       "expect": {
-        "content_contains": "**41. AcmeCloud 如何保护存储数据的安全？**\n答：所有数据在传输过程中使用TLS 1.3加密，在存储时使用AES-256加密。每个文件都有唯一的加密密钥，密钥由硬件安全模块（HSM）管理。此外，我们支持客户端加密，您可在上传前自行加密，确保云端无法读取。\n\n**42. 数据备份是如何进行的？**\n答：所有数据默认在3个不同的可用区（AZ）进行冗余存储，防止单点故障。此外，您可开启跨"
+        "content_contains": "免费版仅支持1个管理员和2个成员，无单点登录（SSO）功能；专业版支持5个管理员和50个成员，提供SSO和API密钥管理。"
       },
       "source_docs": [
-        "acme_FAQ合集.md",
-        "acme_产品规格书.md"
+        "acme_FAQ合集.md"
       ]
     },
     {
@@ -1675,7 +1664,7 @@
       "query": "部署 AcmeCloud 的最低服务器配置是什么？",
       "source": "md",
       "expect": {
-        "content_contains": "**A**: AcmeCloud 企业版在原生 Kubernetes 基础上提供了以下增值能力：\n- **企业级管理控制台**：图形化界面，无需手动编辑 YAML 文件。\n- **内置安全合规**：自动满足等保 2.0、SOC 2 要求，无需额外配置。\n- **智能运维**：AI 异常预测、成本分析、自动扩缩容。\n- **商业支持**：7×24 小时技术支持，SLA 保障 99.99%。\n- **"
+        "content_contains": "| **管理节点 (Master)** | 4 vCPU / 16 GB RAM / 100 GB SSD |"
       },
       "source_docs": [
         "acme_产品规格书.md"
@@ -1708,8 +1697,7 @@
       "query": "集群模式需要满足哪些网络条件？",
       "source": "md",
       "expect": {
-        "content_contains": "| 网络类型 | 要求 | 端口范围 | 说明 |\n|----------|------|----------|------|\n| **管理网络** | 1 Gbps 以上，低延迟 (< 2ms) | TCP 6443 (K8s API), 2379-2380 (etcd), 10250 (kubelet) | 节点间通信 |\n| **数据网络** | 10 Gbps 以上，建议 25 Gbps ",
-        "heading_path_contains": "3.3"
+        "content_contains": "| **管理网络** | 1 Gbps 以上，低延迟 (< 2ms) | TCP 6443 (K8s API), 2379-2380 (etcd), 10250 (kubelet) | 节点间通信 |\n| **数据网络** | 10 Gbps 以上，建议 25 Gbps | TCP 30000-32767 (NodePort), 80/443 (Ingress) | 应用流量 |"
       },
       "source_docs": [
         "acme_产品规格书.md"
@@ -1726,10 +1714,10 @@
       "query": "如果客户在基础版上需要 80 个用户，最经济的方案是什么？",
       "source": "md",
       "expect": {
-        "content_contains": "| 网络类型 | 要求 | 端口范围 | 说明 |\n|----------|------|----------|------|\n| **管理网络** | 1 Gbps 以上，低延迟 (< 2ms) | TCP 6443 (K8s API), 2379-2380 (etcd), 10250 (kubelet) | 节点间通信 |\n| **数据网络** | 10 Gbps 以上，建议 25 Gbps "
+        "content_contains": "免费版仅支持1个管理员和2个成员，无单点登录（SSO）功能；专业版支持5个管理员和50个成员，提供SSO和API密钥管理。企业版额外支持自定义域名登录和审计日志。"
       },
       "source_docs": [
-        "acme_产品规格书.md"
+        "acme_FAQ合集.md"
       ]
     },
     {
@@ -1743,7 +1731,7 @@
       "query": "合同续约需要提前多少天通知？",
       "source": "md",
       "expect": {
-        "content_contains": "\n    (5) **技术支持与运维服务**：提供 **7×24** 小时技术支持热线、工单系统及专属客户成功经理（CSM）服务服务响应时间详见附录A2.2 上述服务的具体技术参数、配置清单及交付标准，以双方另行签署的《服务开通确认书》为准。乙方有权根据技术升级需要对服务进行优化，但应提前 **30** 日书面通知甲方，且不得降低服务的核心性能指标。\n**第三条 服务期限与续约**\n3.1 本合同"
+        "content_contains": "服务期限届满前 **60** 日，如双方均未提出书面不续约通知，本合同将自动续约，每次续约期限为 **12** 个月。"
       },
       "source_docs": [
         "acme_框架合同.md"
@@ -1760,8 +1748,7 @@
       "query": "Q1 团队总人数是多少？",
       "source": "md",
       "expect": {
-        "content_contains": "**报告周期：2026年1月1日 – 2026年3月31日**  \n**报告编号：STAR-Q1-2026-001**  \n**密级：内部公开**\n---",
-        "heading_path_contains": "5.1"
+        "content_contains": "公司员工总数为 **487人**"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -1778,7 +1765,7 @@
       "query": "运营费用中最大的一项是什么？",
       "source": "md",
       "expect": {
-        "content_contains": "| 产品线 | Q1收入（万元） | 收入占比 | 同比增速 | 环比增速 | 毛利率 |\n|--------|---------------|----------|----------|----------|--------|\n| 星云OS企业版 | 9,860 | 52.7% | +21.4% | +3.8% | 68.3% |\n| 天枢AI推理平台 | 4,680 | 25.0% | +42"
+        "content_contains": "| **总运营费用** | **9,000** | **8,520** | **7,570** | **+18.9%** | **+5.6%** |"
       },
       "source_docs": [
         "acme_季度报告.md"
@@ -1795,7 +1782,7 @@
       "query": "数据库备份文件保留多少份？",
       "source": "md",
       "expect": {
-        "content_contains": "**全量备份脚本** `/usr/local/bin/mysql_full_backup.sh`：\n```bash\n#!/bin/bash\n# 全量备份脚本 - 每周日02:00执行\nBACKUP_DIR=\"/backup/full\"\nDATE=$(date +%Y%m%d_%H%M%S)\nDB_USER=\"backup_user\"\nDB_PASS=\"Backup@2025!Secure\"\nDB_"
+        "content_contains": "| 全量备份 | 每周日 02:00 | 30天 | /backup/full/ | gzip |"
       },
       "source_docs": [
         "acme_操作手册.md"
@@ -1812,7 +1799,7 @@
       "query": "如何联系技术支持？",
       "source": "md",
       "expect": {
-        "content_contains": "**31. 如何联系 AcmeCloud 技术支持团队？**\n答：您可通过三种方式：1）提交工单（控制台“帮助”→“提交工单”），响应时间：免费版48小时内，专业版4小时内，企业版1小时内；2）发送邮件至 support@acmecloud.com；3）企业版用户享有专属电话支持（工作时间9:00-21:00，含周末）。\n\n**32. 技术支持的服务时间是什么？**\n答：免费版和基础工单支持为7×"
+        "content_contains": "提交工单（控制台“帮助”→“提交工单”），响应时间：免费版48小时内，专业版4小时内，企业版1小时内"
       },
       "source_docs": [
         "acme_FAQ合集.md"
@@ -1829,7 +1816,7 @@
       "query": "我们有 3 个不同的业务线，需要互相隔离数据——能用同一个账号管理吗？",
       "source": "md",
       "expect": {
-        "content_contains": "**41. AcmeCloud 如何保护存储数据的安全？**\n答：所有数据在传输过程中使用TLS 1.3加密，在存储时使用AES-256加密。每个文件都有唯一的加密密钥，密钥由硬件安全模块（HSM）管理。此外，我们支持客户端加密，您可在上传前自行加密，确保云端无法读取。\n\n**42. 数据备份是如何进行的？**\n答：所有数据默认在3个不同的可用区（AZ）进行冗余存储，防止单点故障。此外，您可开启跨"
+        "content_contains": "支持按文件夹、API端点、存储桶等维度设置。"
       },
       "source_docs": [
         "acme_FAQ合集.md"

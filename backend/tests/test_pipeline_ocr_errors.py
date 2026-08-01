@@ -1,4 +1,4 @@
-"""Format-F4-3 · pipeline OCR 错误文案与 completed 路径。"""
+"""Format-F4-3 · pipeline OCR 错误文案与 completed 路径（B3 原因码）。"""
 
 from __future__ import annotations
 
@@ -13,6 +13,14 @@ from app.core.config import settings
 from app.core.database import SessionLocal
 from app.models.document import Document
 from app.models.enums import DocumentStatus
+from app.services.ingestion.ocr_errors import (
+    OCR_DEPS_MISSING,
+    OCR_DISABLED,
+    OCR_POPPLER_MISSING,
+    OCR_RUNTIME_ERROR,
+    OCR_USER_MESSAGES,
+    OcrFailure,
+)
 from app.services.ingestion.pipeline import process_document_ingestion
 
 from tests.conftest import create_test_kb as _create_kb
@@ -168,7 +176,111 @@ async def test_pipeline_scanned_ocr_disabled_fails_with_chinese_message(
         doc = await db.get(Document, doc_id)
         assert doc is not None
         assert doc.status == DocumentStatus.failed
-        assert doc.error_message == "不支持扫描件"
+        assert doc.error_message == OCR_USER_MESSAGES[OCR_DISABLED]
+        assert "未开启" in (doc.error_message or "")
+        assert "未安装" not in (doc.error_message or "")
+
+
+@pytest.mark.asyncio
+async def test_pipeline_scanned_ocr_deps_missing_fails_with_install_message(
+    client: AsyncClient,
+    register_and_login,
+    upload_dir: Path,
+) -> None:
+    headers, user = await register_and_login(prefix="pipe-ocr-deps")
+    kb = await _create_kb(client, headers, user)
+    kb_id = uuid.UUID(kb["id"])
+
+    pdf_path = upload_dir / "blank-deps.pdf"
+    _make_blank_pdf(pdf_path)
+
+    doc_id = await _queue_pdf_document(
+        kb_id=kb_id,
+        user_id=uuid.UUID(user["id"]),
+        pdf_path=pdf_path,
+        upload_dir=upload_dir,
+    )
+
+    with patch("app.services.ingestion.ocr.is_ocr_runtime_available", return_value=False):
+        await process_document_ingestion(doc_id)
+
+    async with SessionLocal() as db:
+        doc = await db.get(Document, doc_id)
+        assert doc is not None
+        assert doc.status == DocumentStatus.failed
+        assert doc.error_message == OCR_USER_MESSAGES[OCR_DEPS_MISSING]
+        assert "未安装" in (doc.error_message or "")
+        assert "未启用" not in (doc.error_message or "")
+
+
+@pytest.mark.asyncio
+async def test_pipeline_scanned_poppler_missing_fails_distinct_message(
+    client: AsyncClient,
+    register_and_login,
+    upload_dir: Path,
+) -> None:
+    headers, user = await register_and_login(prefix="pipe-ocr-poppler")
+    kb = await _create_kb(client, headers, user)
+    kb_id = uuid.UUID(kb["id"])
+
+    pdf_path = upload_dir / "blank-poppler.pdf"
+    _make_blank_pdf(pdf_path)
+
+    doc_id = await _queue_pdf_document(
+        kb_id=kb_id,
+        user_id=uuid.UUID(user["id"]),
+        pdf_path=pdf_path,
+        upload_dir=upload_dir,
+    )
+
+    with patch("app.services.ingestion.ocr.is_ocr_runtime_available", return_value=True):
+        with patch(
+            "app.services.ingestion.ocr.ocr_pdf_pages",
+            side_effect=OcrFailure(OCR_POPPLER_MISSING),
+        ):
+            await process_document_ingestion(doc_id)
+
+    async with SessionLocal() as db:
+        doc = await db.get(Document, doc_id)
+        assert doc is not None
+        assert doc.status == DocumentStatus.failed
+        assert doc.error_message == OCR_USER_MESSAGES[OCR_POPPLER_MISSING]
+        assert "清晰扫描件" not in (doc.error_message or "")
+
+
+@pytest.mark.asyncio
+async def test_pipeline_scanned_runtime_error_not_file_quality_message(
+    client: AsyncClient,
+    register_and_login,
+    upload_dir: Path,
+) -> None:
+    headers, user = await register_and_login(prefix="pipe-ocr-rt")
+    kb = await _create_kb(client, headers, user)
+    kb_id = uuid.UUID(kb["id"])
+
+    pdf_path = upload_dir / "blank-rt.pdf"
+    _make_blank_pdf(pdf_path)
+
+    doc_id = await _queue_pdf_document(
+        kb_id=kb_id,
+        user_id=uuid.UUID(user["id"]),
+        pdf_path=pdf_path,
+        upload_dir=upload_dir,
+    )
+
+    with patch("app.services.ingestion.ocr.is_ocr_runtime_available", return_value=True):
+        with patch(
+            "app.services.ingestion.ocr.ocr_pdf_pages",
+            side_effect=RuntimeError("paddle boom"),
+        ):
+            await process_document_ingestion(doc_id)
+
+    async with SessionLocal() as db:
+        doc = await db.get(Document, doc_id)
+        assert doc is not None
+        assert doc.status == DocumentStatus.failed
+        assert doc.error_message == OCR_USER_MESSAGES[OCR_RUNTIME_ERROR]
+        assert "清晰扫描件" not in (doc.error_message or "")
 
 
 @pytest.mark.asyncio
@@ -204,3 +316,22 @@ async def test_pipeline_scanned_ocr_success_completed(
         assert doc.status == DocumentStatus.completed
         assert doc.chunk_count is not None and doc.chunk_count > 0
         assert doc.error_message is None
+
+
+@pytest.mark.asyncio
+async def test_health_detailed_includes_ocr_without_failing_status(
+    client: AsyncClient,
+) -> None:
+    with patch("app.services.ingestion.ocr.has_ocr_python_deps", return_value=False):
+        with patch("app.services.ingestion.ocr.is_ocr_enabled", return_value=True):
+            with patch("app.services.ingestion.ocr.is_poppler_on_path", return_value=False):
+                resp = await client.get("/health/detailed")
+    assert resp.status_code == 200
+    body = resp.json()
+    assert "ocr" in body
+    assert body["ocr"]["enabled"] is True
+    assert body["ocr"]["python_deps"] is False
+    assert body["ocr"]["poppler"] is False
+    # 未装 OCR 不得单独把整体打成 error
+    assert body["status"] in ("ok", "degraded")
+    assert body["status"] != "error"

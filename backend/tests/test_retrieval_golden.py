@@ -38,23 +38,30 @@ _CJK = re.compile(r"[\u4e00-\u9fff]")
 _LATIN = re.compile(r"[a-z0-9]+")
 
 
-def _lexical_mock_vector(text: str) -> list[float]:
-    """mock_embed（纯词表 overlap）——依赖 HIT_K 命中门控。"""
-    digest = hashlib.sha256(text.encode("utf-8")).digest()
-    dim = _get_embedding_dim()
-    values: list[float] = []
-    while len(values) < dim:
-        for i in range(0, len(digest), 4):
-            chunk = digest[i : i + 4]
-            if len(chunk) < 4:
-                chunk = chunk.ljust(4, b"\0")
-            num = int.from_bytes(chunk, "big", signed=False)
-            values.append((num % 1000) / 1000.0 - 0.5)
-            if len(values) >= dim:
-                break
-        digest = hashlib.sha256(digest).digest()
-    norm = math.sqrt(sum(v * v for v in values)) or 1.0
-    return [v / norm for v in values]
+def _lexical_mock_vector(text: str, dim: int | None = None) -> list[float]:
+    """mock_embed（字符 n-gram 词汇袋）——基于字符 2/3-gram 余弦。
+
+    支持中文和英文混合文本，相同 n-gram 的文本产生相似向量。
+    用于在 mock 模式（无真实嵌入 API）下验证检索链路逻辑。
+    """
+    dim = dim if dim is not None else _get_embedding_dim()
+    
+    # 字符 n-gram（2-gram + 3-gram）
+    ngrams: list[str] = []
+    cleaned = text.lower().strip()
+    for n in (2, 3):
+        for i in range(len(cleaned) - n + 1):
+            ngrams.append(cleaned[i:i + n])
+    
+    # 词汇袋：每个 n-gram hash 到一个维度
+    vec = [0.0] * dim
+    for token in ngrams:
+        idx = hashlib.md5(token.encode("utf-8")).digest()
+        pos = int.from_bytes(idx[:4], "big", signed=False) % dim
+        vec[pos] += 1.0
+    
+    norm = math.sqrt(sum(v * v for v in vec)) or 1.0
+    return [v / norm for v in vec]
 
 
 def _get_embedding_dim() -> int:
@@ -65,15 +72,28 @@ def _get_embedding_dim() -> int:
 @pytest.fixture(autouse=True)
 def _mock_embedding(monkeypatch: pytest.MonkeyPatch) -> None:
     """所有 golden 测试使用 mock 嵌入（避免真实 API 调用）。
-    设置 RAG_REAL_EMBEDDING=1 使用真实嵌入。"""
+    设置 RAG_REAL_EMBEDDING=1 使用真实嵌入。
+    同时禁用低置信度 expand（避免 mock 向量触发 DeepSeek 干扰 Hit@3）。
+    """
     import os
+
+    async def _no_expand(query: str) -> list[str]:
+        return [query]
+
+    monkeypatch.setattr(
+        "app.services.rag.generation.expand_queries",
+        _no_expand,
+    )
     if os.environ.get("RAG_REAL_EMBEDDING") == "1":
         return
     monkeypatch.setattr(embedder, "embed_texts", _mock_embed_texts)
 
 
-async def _mock_embed_texts(texts: list[str]) -> list[list[float]]:
-    return [_lexical_mock_vector(t) for t in texts]
+async def _mock_embed_texts(
+    texts: list[str], provider: str | None = None
+) -> list[list[float]]:
+    dim = 384 if (provider or "").lower() == "bge_en" else _get_embedding_dim()
+    return [_lexical_mock_vector(t, dim=dim) for t in texts]
 
 
 import hashlib
@@ -137,6 +157,10 @@ def upload_dir(tmp_path, monkeypatch):
 
 from tests.conftest import create_test_kb as _create_kb
 
+# R5-2 经典门禁题（历史 12/12；fixture 若缺号则取现有）
+_GATE_IDS = {f"GQ-{i}" for i in range(1, 13)}
+GATE_CASES = [c for c in GOLDEN_QA_CASES if c.case_id in _GATE_IDS]
+
 
 @pytest.mark.parametrize("case", GOLDEN_QA_CASES, ids=lambda c: c.case_id)
 @pytest.mark.asyncio
@@ -147,7 +171,73 @@ async def test_golden_qa_hit_at_3(
     case: GoldenQACase,
     tmp_path: Path,
 ) -> None:
-    """每道 golden QA 题：入库黄金文档 → 检索 → 验证 Top-3 命中。"""
+    """每道 golden QA 题：入库黄金文档 → 检索 → 验证 Top-3 命中（默认 RERANK_POLICY=off）。"""
+    await _assert_golden_case(
+        client, register_and_login, upload_dir, case, tmp_path,
+    )
+
+
+@pytest.mark.parametrize("case", GATE_CASES, ids=lambda c: c.case_id)
+@pytest.mark.asyncio
+async def test_golden_gate_hit_at_3_conditional_mock(
+    client: AsyncClient,
+    register_and_login,
+    upload_dir,
+    case: GoldenQACase,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """经典门禁题在 RERANK_POLICY=conditional + mock 下 Hit@3 不劣于 off。"""
+    monkeypatch.setattr(settings, "rerank_policy", "conditional")
+    monkeypatch.setattr(settings, "rerank_provider", "mock")
+    await _assert_golden_case(
+        client, register_and_login, upload_dir, case, tmp_path,
+        label="conditional",
+    )
+
+
+@pytest.mark.parametrize("case", GATE_CASES, ids=lambda c: c.case_id)
+@pytest.mark.asyncio
+async def test_golden_gate_hit_at_3_conditional_multi_query_mock(
+    client: AsyncClient,
+    register_and_login,
+    upload_dir,
+    case: GoldenQACase,
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """经典门禁题在 QUERY_REWRITE_POLICY=conditional + mock 变体下 Hit@3 不劣于 off。
+
+    不强行 should_expand（强制扩≡always，会伤 Hit@3）；自然门闩下强池不扩，
+    偶发 miss/短问才走 mock 变体。
+    """
+    from app.services.rag.multi_query import mock_expand_queries
+
+    monkeypatch.setattr(settings, "query_rewrite_policy", "conditional")
+    monkeypatch.setattr(settings, "query_rewrite_enabled", False)
+
+    async def _mock_variants(query: str, **kwargs):
+        return mock_expand_queries(query)
+
+    monkeypatch.setattr(
+        "app.services.rag.multi_query.build_query_variants",
+        _mock_variants,
+    )
+    await _assert_golden_case(
+        client, register_and_login, upload_dir, case, tmp_path,
+        label="cond-mq",
+    )
+
+
+async def _assert_golden_case(
+    client: AsyncClient,
+    register_and_login,
+    upload_dir,
+    case: GoldenQACase,
+    tmp_path: Path,
+    *,
+    label: str | None = None,
+) -> None:
     headers, user = await register_and_login(prefix=case.case_id.replace("-", ""))
     kb = await _create_kb(client, headers, user)
     kb_id = uuid.UUID(kb["id"])
@@ -186,23 +276,24 @@ async def test_golden_qa_hit_at_3(
     assert chunks, f"{case.case_id} 检索无结果"
 
     passed = hit_at_k(chunks, case, k=HIT_K)
+    tag = f"{case.case_id}" + (f"/{label}" if label else "")
 
     if case.expect_rejection:
         match_details = [(c.section_title, c.page_number, c.content[:60]) for c in chunks[:HIT_K] if chunk_matches(case, c)]
         assert passed, (
-            f"{case.case_id} 拒答失败：Top-3 内存在匹配结果 "
+            f"{tag} 拒答失败：Top-3 内存在匹配结果 "
             f"{match_details}"
         )
     else:
         assert passed, (
-            f"{case.case_id} Hit@{HIT_K} 未命中{'（需 ≥{} 个匹配）'.format(case.min_match) if case.min_match > 1 else ''}；"
+            f"{tag} Hit@{HIT_K} 未命中{'（需 ≥{} 个匹配）'.format(case.min_match) if case.min_match > 1 else ''}；"
             f"Top-{HIT_K}="
             f"{[(c.section_title, c.page_number, c.content[:40]) for c in chunks[:HIT_K]]}"
         )
 
     rr = reciprocal_rank(chunks, case, k=HIT_K)
     if rr < 1.0:
-        print(f"  {case.case_id}: RR={rr:.3f}")
+        print(f"  {tag}: RR={rr:.3f}")
 
 
 REJECTION_ACCURACY_MIN = 0.80  # 拒答准确率门禁 >=80%

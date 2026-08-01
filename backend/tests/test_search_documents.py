@@ -46,13 +46,19 @@ async def _search(
     q: str,
     workspace: str,
     limit: int | None = None,
+    offset: int | None = None,
     mode: str | None = None,
+    kb_id: str | None = None,
 ):
     params: dict[str, str | int] = {"q": q, "workspace": workspace}
     if limit is not None:
         params["limit"] = limit
+    if offset is not None:
+        params["offset"] = offset
     if mode is not None:
         params["mode"] = mode
+    if kb_id is not None:
+        params["kb_id"] = kb_id
     return await client.get(
         "/api/v1/search/documents",
         headers=headers,
@@ -349,3 +355,147 @@ async def test_query_over_200_chars_returns_400(
     )
     assert resp.status_code == 400
     assert resp.json()["detail"] == "搜索关键词过长"
+
+
+@pytest.mark.asyncio
+async def test_i1_filename_pagination_pages_disjoint_and_cover(
+    client: AsyncClient,
+    register_and_login,
+) -> None:
+    """I1: filename limit/offset 两页无交集且并集覆盖全部命中。"""
+    headers, user = await register_and_login(prefix="search-i1-fn")
+    user_id = uuid.UUID(user["id"])
+    kb = await create_test_kb(
+        client, headers, user, name="I1 文件名库", workspace_kind="personal"
+    )
+    kb_id = uuid.UUID(kb["id"])
+    for i in range(5):
+        await _seed_document(
+            kb_id=kb_id,
+            user_id=user_id,
+            filename=f"分页合同-{i}.pdf",
+        )
+
+    page0 = await _search(
+        client,
+        headers,
+        q="分页合同",
+        workspace="personal",
+        limit=2,
+        offset=0,
+    )
+    page1 = await _search(
+        client,
+        headers,
+        q="分页合同",
+        workspace="personal",
+        limit=2,
+        offset=2,
+    )
+    page2 = await _search(
+        client,
+        headers,
+        q="分页合同",
+        workspace="personal",
+        limit=2,
+        offset=4,
+    )
+    assert page0.status_code == 200
+    assert page1.status_code == 200
+    assert page2.status_code == 200
+    b0, b1, b2 = page0.json(), page1.json(), page2.json()
+    assert b0["total"] == b1["total"] == b2["total"] == 5
+    assert b0["limit"] == 2 and b0["offset"] == 0
+    assert b1["limit"] == 2 and b1["offset"] == 2
+    assert b2["limit"] == 2 and b2["offset"] == 4
+    assert len(b0["items"]) == 2
+    assert len(b1["items"]) == 2
+    assert len(b2["items"]) == 1
+
+    ids0 = {item["doc_id"] for item in b0["items"]}
+    ids1 = {item["doc_id"] for item in b1["items"]}
+    ids2 = {item["doc_id"] for item in b2["items"]}
+    assert ids0.isdisjoint(ids1)
+    assert ids0.isdisjoint(ids2)
+    assert ids1.isdisjoint(ids2)
+    assert len(ids0 | ids1 | ids2) == 5
+
+
+@pytest.mark.asyncio
+async def test_i1_default_offset_echoes_first_page(
+    client: AsyncClient,
+    register_and_login,
+) -> None:
+    """I1: 不传 offset ≡ offset=0；默认 limit=50 回显。"""
+    headers, user = await register_and_login(prefix="search-i1-def")
+    user_id = uuid.UUID(user["id"])
+    kb = await create_test_kb(
+        client, headers, user, name="I1 默认库", workspace_kind="personal"
+    )
+    await _seed_document(
+        kb_id=uuid.UUID(kb["id"]),
+        user_id=user_id,
+        filename="默认分页.pdf",
+    )
+    resp = await _search(
+        client,
+        headers,
+        q="默认分页",
+        workspace="personal",
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 1
+    assert body["limit"] == 50
+    assert body["offset"] == 0
+    assert len(body["items"]) == 1
+
+
+@pytest.mark.asyncio
+async def test_nw13_kb_id_scopes_filename_to_single_kb(
+    client: AsyncClient,
+    register_and_login,
+) -> None:
+    """NW-13: kb_id 限定后只返回该库文件名命中。"""
+    headers, user = await register_and_login(prefix="search-nw13-kb")
+    user_id = uuid.UUID(user["id"])
+
+    kb_a = await create_test_kb(
+        client, headers, user, name="NW13 库 A", workspace_kind="personal"
+    )
+    kb_b = await create_test_kb(
+        client, headers, user, name="NW13 库 B", workspace_kind="personal"
+    )
+    await _seed_document(
+        kb_id=uuid.UUID(kb_a["id"]),
+        user_id=user_id,
+        filename="共用关键词-手册.pdf",
+    )
+    await _seed_document(
+        kb_id=uuid.UUID(kb_b["id"]),
+        user_id=user_id,
+        filename="共用关键词-合同.pdf",
+    )
+
+    scoped = await _search(
+        client,
+        headers,
+        q="共用关键词",
+        workspace="personal",
+        kb_id=kb_a["id"],
+    )
+    assert scoped.status_code == 200
+    body = scoped.json()
+    assert body["total"] == 1
+    assert len(body["items"]) == 1
+    assert body["items"][0]["kb_id"] == kb_a["id"]
+    assert body["items"][0]["filename"] == "共用关键词-手册.pdf"
+
+    wide = await _search(
+        client,
+        headers,
+        q="共用关键词",
+        workspace="personal",
+    )
+    assert wide.status_code == 200
+    assert wide.json()["total"] == 2

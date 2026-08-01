@@ -36,6 +36,7 @@ class GenerationScore:
     correctness: float = 0.0
     citation_accuracy: float = 0.0
     error: str | None = None
+    match_details: list[dict] = field(default_factory=list)
 
 
 @dataclass

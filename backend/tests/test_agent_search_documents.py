@@ -83,6 +83,8 @@ async def test_search_documents_filename_mode_uses_service(
             ],
             query="合同",
             total=1,
+            limit=50,
+            offset=0,
             mode="filename",
         )
     )
@@ -139,6 +141,8 @@ async def test_search_documents_content_mode_uses_service(
             ],
             query="年假",
             total=1,
+            limit=50,
+            offset=0,
             mode="content",
         )
     )

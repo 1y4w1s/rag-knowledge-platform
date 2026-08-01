@@ -1,12 +1,17 @@
-"""EW-A5：API 限流（chat/upload 按 user_id → 429）。"""
+"""EW-A5 / NW-21：API 限流（user_id + IP 双桶 → 429）。"""
 
 import uuid
 
 import pytest
 from httpx import AsyncClient
 
+from app.core.exceptions import RateLimitError
 from app.services.auth import api_rate_limit as rl
-from app.services.auth.api_rate_limit import reset_all_api_rate_limits
+from app.services.auth.api_rate_limit import (
+    ApiRateLimitKind,
+    enforce_api_rate_limit,
+    reset_all_api_rate_limits,
+)
 from tests.conftest import create_test_kb as _create_kb
 
 
@@ -178,3 +183,57 @@ async def test_member_and_admin_share_same_upload_limit(
         json={"message": "成员第 4 次"},
     )
     assert blocked_member.status_code == 429
+
+
+@pytest.mark.asyncio
+async def test_ip_bucket_blocks_second_user_unit(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """同 IP 打满 IP 桶后，另一 user_id 直接 429（不依赖 HTTP）。"""
+    monkeypatch.setattr(rl, "CHAT_MAX_REQUESTS", 100)
+    monkeypatch.setattr(rl, "IP_CHAT_MAX_REQUESTS", 2)
+    uid_a = uuid.uuid4()
+    uid_b = uuid.uuid4()
+    shared_ip = "203.0.113.10"
+
+    await enforce_api_rate_limit(ApiRateLimitKind.chat, uid_a, ip=shared_ip)
+    await enforce_api_rate_limit(ApiRateLimitKind.chat, uid_a, ip=shared_ip)
+
+    with pytest.raises(RateLimitError) as exc:
+        await enforce_api_rate_limit(ApiRateLimitKind.chat, uid_b, ip=shared_ip)
+    assert "对话" in str(exc.value.detail)
+
+
+@pytest.mark.asyncio
+async def test_ip_chat_limit_across_users(
+    client: AsyncClient,
+    register_and_login,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """同客户端 IP：用户 A 打满 IP 窗后，用户 B chat → 429。"""
+    monkeypatch.setattr(rl, "CHAT_MAX_REQUESTS", 100)
+    monkeypatch.setattr(rl, "IP_CHAT_MAX_REQUESTS", 2)
+
+    headers_a, user_a = await register_and_login(prefix="api-rl-ip-a")
+    kb_a = await _create_kb(client, headers_a, user_a, name="IP限流库A")
+    kb_a_id = kb_a["id"]
+
+    for i in range(2):
+        resp = await client.post(
+            f"/api/v1/knowledge-bases/{kb_a_id}/chat",
+            headers=headers_a,
+            json={"message": f"A问 {i}"},
+        )
+        assert resp.status_code == 200, resp.text
+
+    headers_b, user_b = await register_and_login(prefix="api-rl-ip-b")
+    kb_b = await _create_kb(client, headers_b, user_b, name="IP限流库B")
+    kb_b_id = kb_b["id"]
+
+    blocked = await client.post(
+        f"/api/v1/knowledge-bases/{kb_b_id}/chat",
+        headers=headers_b,
+        json={"message": "B应被IP限流"},
+    )
+    assert blocked.status_code == 429
+    assert "对话" in blocked.json()["detail"]
