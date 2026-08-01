@@ -11,14 +11,23 @@ from typing import Any
 
 os.environ.setdefault("GIT_PYTHON_REFRESH", "quiet")
 
-# HACK: ragas 0.3.x 从 langchain_community.chat_models.vertexai 导入 ChatVertexAI
-# 该模块在 langchain-community 0.4+ 已被移除，桥接到 langchain_google_vertexai
+# HACK: ragas 0.3.x 从 langchain_community.chat_models.vertexai 导入 ChatVertexAI。
+# langchain-community 0.2.x 自带该模块（直接可用）；0.4+ 已移除，
+# 需要桥接到 langchain_google_vertexai。优先尝试真实模块，缺失才桥接，
+# 避免在 0.2.x 环境强制导入 langchain-google-vertexai（其新版要求 langchain-core>=1.3）。
 import sys as _sys
 from types import ModuleType as _ModuleType
-from langchain_google_vertexai import ChatVertexAI as _ChatVertexAI
-_vertex_mod = _ModuleType("langchain_community.chat_models.vertexai")
-_vertex_mod.ChatVertexAI = _ChatVertexAI
-_sys.modules["langchain_community.chat_models.vertexai"] = _vertex_mod
+
+try:  # noqa: C901
+    from langchain_community.chat_models.vertexai import ChatVertexAI  # noqa: F401
+except ImportError:
+    try:
+        from langchain_google_vertexai import ChatVertexAI as _ChatVertexAI
+    except ImportError:
+        _ChatVertexAI = None  # type: ignore[assignment]
+    _vertex_mod = _ModuleType("langchain_community.chat_models.vertexai")
+    _vertex_mod.ChatVertexAI = _ChatVertexAI
+    _sys.modules["langchain_community.chat_models.vertexai"] = _vertex_mod
 
 from .base import (
     EvalScorer,
@@ -195,7 +204,12 @@ class RagasGenerationScorer:
         ground_truth = expect.answer or expect.content_contains or None
         try:
             llm = _get_llm()
-            scores = self._single_evaluate(query, answer, chunks_text, llm, ground_truth)
+            # N13-1 修复：默认 faithfulness_only=True 导致 answer_correctness 恒 0。
+            # 有 ground_truth 时计算 relevancy + correctness，无 ground_truth 时只算 faithfulness。
+            scores = self._single_evaluate(
+                query, answer, chunks_text, llm, ground_truth,
+                faithfulness_only=not ground_truth,
+            )
         except Exception as e:
             logger.warning("RAGAS generation evaluate 失败: %s", e)
             return GenerationScore(error=str(e))

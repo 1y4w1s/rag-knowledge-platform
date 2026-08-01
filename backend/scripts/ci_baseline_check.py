@@ -23,7 +23,7 @@ OUTPUT_GLOBS = os.environ.get(
 )
 
 SUMMARY_RE = re.compile(
-    r"BENCHMARK_SUMMARY\s+dataset=(?P<dataset>\S+)\s+hit_at_k=(?P<hit>[\d.]+)\s+total=(?P<total>\d+)",
+    r"BENCHMARK_SUMMARY\s+dataset=(?P<dataset>\S+)\s+hit_at_k=(?P<hit>[\d.]+).*?\s+total=(?P<total>\d+)",
 )
 # 兼容旧 golden 纯文本：Hit@3: 95.5%
 LEGACY_HIT_RE = re.compile(r"Hit@3:\s*([\d.]+)%")
@@ -73,6 +73,15 @@ def _compare_one(name: str, current: dict, spec: dict) -> int:
         f"baseline={baseline_score * 100:.1f}%, diff={diff * 100:+.1f}pp "
         f"(mode={mode}, n={current.get('total')})"
     )
+
+    # G3: golden 绝对阈值（评测可信化门禁）——低于 absolute_min 直接硬红，
+    # 防止 baseline 被连带下修后对比 gate 失去兜底。
+    abs_min = spec.get("absolute_min")
+    if abs_min is not None and cur < float(abs_min):
+        print(
+            f"FAIL: {name} Hit@3={cur * 100:.1f}% below absolute_min={float(abs_min) * 100:.1f}%"
+        )
+        return 1
 
     if mode == "gate":
         threshold = float(spec.get("drop_fail_pp", 0.02))

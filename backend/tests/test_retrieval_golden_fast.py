@@ -6,8 +6,6 @@
 
 from __future__ import annotations
 
-import hashlib
-import math
 import uuid
 from pathlib import Path
 
@@ -40,26 +38,9 @@ HIT_RATE_MIN = 0.90      # Hit@3 >= 90%
 REJECTION_ACC_MIN = 0.80  # 拒答准确率 >= 80%
 
 
-def _lexical_mock_vector(text: str) -> list[float]:
-    digest = hashlib.sha256(text.encode("utf-8")).digest()
-    dim = settings.embedding_dim
-    values: list[float] = []
-    while len(values) < dim:
-        for i in range(0, len(digest), 4):
-            chunk = digest[i:i+4]
-            if len(chunk) < 4:
-                chunk = chunk.ljust(4, b"\0")
-            num = int.from_bytes(chunk, "big", signed=False)
-            values.append((num % 1000) / 1000.0 - 0.5)
-            if len(values) >= dim:
-                break
-        digest = hashlib.sha256(digest).digest()
-    norm = math.sqrt(sum(v*v for v in values)) or 1.0
-    return [v / norm for v in values]
-
-
 async def _mock_embed_texts(texts: list[str]) -> list[list[float]]:
-    return [_lexical_mock_vector(t) for t in texts]
+    """统一 mock 嵌入入口：转调 embedder._mock_vector（SSOT，N15）。"""
+    return [embedder._mock_vector(t) for t in texts]
 
 
 @pytest.fixture(autouse=True)

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import math
 import re
 import uuid
 from pathlib import Path
@@ -21,8 +20,6 @@ from app.services.agent.runtime import _detect_reflection_signal
 from app.services.agent.stream import stream_agent_kb_events, stream_agent_workspace_events
 from app.services.agent.tools.scope import AgentToolScope
 from app.services.agent.types import AgentStepRecord, ToolCallPlan
-from app.services.ingestion import embedder
-from app.services.ingestion.embedder import EMBEDDING_DIM
 from app.services.org.scope import resolve_org_scope_for_workspace
 from app.services.rag.thread_persistence import create_kb_thread, create_workspace_thread
 from app.services.workspace.scope import WorkspaceKind, resolve_workspace
@@ -38,51 +35,9 @@ from tests.golden_qa_loader import GOLDEN_MD
 from tests.test_agent_runtime import SequencePlanner
 from tests.test_chat import _ingest_fixture, _parse_sse_events
 
-_CJK = re.compile(r"[\u4e00-\u9fff]")
 _LATIN = re.compile(r"[a-z0-9]+")
 
 GOLDEN_AGENT_CASES = load_golden_agent_cases()
-
-
-def _lexical_mock_vector(text: str, dim: int | None = None) -> list[float]:
-    """字符 n-gram 词法 mock 向量：对英文使用 2-gram 和 3-gram，对 CJK 使用单字，
-    比纯词级 token 更精确，适合黄金测试的短语匹配。"""
-    dim = dim or EMBEDDING_DIM
-    vec = [0.0] * dim
-
-    # CJK 单字
-    for ch in _CJK.findall(text):
-        seed = sum(ord(c) for c in ch)
-        for j in range(4):
-            idx = (seed * (j + 1) * 17 + j * 31) % dim
-            vec[idx] += 2.0
-
-    # 英文 2-gram 和 3-gram（lowercase）
-    lower = text.lower()
-    for n in (2, 3):
-        for i in range(len(lower) - n + 1):
-            ngram = lower[i : i + n]
-            if not ngram.isalnum():
-                continue  # 跳过含空格的 ngram
-            seed = sum(ord(ch) for ch in ngram)
-            for j in range(2):
-                idx = (seed * (j + 1) * 17 + j * 31) % dim
-                vec[idx] += 1.0
-
-    # 拉丁词 tokens（补充）
-    for token in _LATIN.findall(lower):
-        seed = sum(ord(ch) for ch in token)
-        for j in range(2):
-            idx = (seed * (j + 1) * 17 + j * 31) % dim
-            vec[idx] += 1.0
-
-    norm = math.sqrt(sum(v * v for v in vec)) or 1.0
-    return [v / norm for v in vec]
-
-
-@pytest.fixture(autouse=True)
-def lexical_mock_embedding(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(embedder, "_mock_vector", _lexical_mock_vector)
 
 
 @pytest.fixture

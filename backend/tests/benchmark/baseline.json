@@ -1,0 +1,72 @@
+{
+  "version": "v5",
+  "created_at": "2026-07-19",
+  "updated_at": "2026-07-23",
+  "description": "回归可比基线：Golden / Enterprise / Advanced 为 PR gate；CRAG sample/full 为 informational。NW-2 校准 + NW-2b 尺子叙事 · 不改正文检索默认。",
+  "golden_qa": {
+    "total": 109,
+    "non_rejection": 89,
+    "rejection": 20,
+    "hit_k": 3,
+    "hit_at_k": 0.955,
+    "hit_at_k_ci_95": [0.924, 0.978],
+    "mrr": 0.978,
+    "mrr_ci_95": [0.965, 0.989],
+    "rejection_correct": 20,
+    "rejection_total": 20,
+    "rejection_accuracy": 1.0,
+    "compare_mode": "gate",
+    "drop_fail_pp": 0.02,
+    "absolute_min": 0.90,
+    "script": "scripts/run_benchmark.py --dataset golden_qa --mode retrieval"
+  },
+  "enterprise_qa": {
+    "total": 108,
+    "non_rejection": 90,
+    "rejection": 18,
+    "hit_k": 3,
+    "hit_at_k": 0.60,
+    "hit_at_3": 0.60,
+    "absolute_min": 0.50,
+    "compare_mode": "gate",
+    "drop_fail_pp": 0.05,
+    "metric_note": "G3 2026-08-03 评测修正后重跑：run_benchmark 生产尺子 Hit@3=60% (54/90)。v5 冻结 0.922 为 A4 actionable 口径（95/103，diagnose/_rrf_pool 可匹配 parent），≠ run_benchmark gate 尺子，仅作历史参考不再参与门禁。absolute_min=0.50 兜底，掉 ≥5pp 硬红。",
+    "script": "scripts/run_benchmark.py --dataset enterprise_qa --mode retrieval",
+    "ruler_doc": "docs/tasks/nw2b-ruler-alignment.md"
+  },
+  "advanced_qa": {
+    "total": 20,
+    "non_rejection": 14,
+    "rejection": 6,
+    "hit_k": 3,
+    "hit_at_k": 1.0,
+    "compare_mode": "gate",
+    "drop_fail_pp": 0.10,
+    "metric_note": "C2 实测 2026-07-21：14/14 Hit@3=100%。C3：n 小，掉 ≥10pp（≈≥2 题）硬红。",
+    "script": "scripts/run_benchmark.py --dataset advanced_qa --mode retrieval"
+  },
+  "crag_sample_100": {
+    "total": 100,
+    "sample": 100,
+    "hit_k": 3,
+    "hit_at_k": 0.26,
+    "compare_mode": "informational",
+    "drop_warn_pp": 0.05,
+    "metric_note": "历史约数 ~26%（2026-07-20）暂保留。NW-2 同环境复测 sample100=2%（未覆盖历史值）；与 full 一并归因见 nw2-baseline-calibration.md。仍 informational。",
+    "script": "backend/scripts/run_crag.py --sample 100"
+  },
+  "crag_full": {
+    "total": 2706,
+    "sample": 2706,
+    "dataset_rows_claimed": 4409,
+    "hit_k": 3,
+    "hit_at_k": 0.00037,
+    "hits": 1,
+    "compare_mode": "informational",
+    "drop_warn_pp": 0.05,
+    "metric_note": "NW-2 首次实测 2026-07-21：本机 bz2 有效行=2706（非宣传 4409）；Hit@3=1/2706≈0.037%。产物 backend/benchmark_crag_full_nw2.txt。仍 informational，不挡合并。同环境 sample100=2%≪历史26%，疑评测环境/嵌入降级——数字诚实落盘，恢复后另窗再校准。",
+    "script": "backend/scripts/run_crag.py --sample 4409",
+    "artifact": "backend/benchmark_crag_full_nw2.txt"
+  }
+}
+

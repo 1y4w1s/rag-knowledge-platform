@@ -290,14 +290,23 @@ class BEIRDatasetBase(BenchmarkDataset):
             len(corpus),
             sum(len(v) for v in qrels.values()),
         )
-        # 过滤：只保留有 qrels 的查询（无 qrels 无法评估）
-        queries_list = [q for q in queries_list if len(q.expects) > 0]
-        logger.info(
-            "BEIR/%s 过滤后: %d queries（移除了 %d 条无 qrels 的查询）",
-            self._SUBSET_NAME,
-            len(queries_list),
-            len(raw_queries) - len(queries_list),
-        )
+        # 过滤：只保留有 qrels 的查询（无 qrels 无法评估）。
+        # 仅当 qrels 非空时才过滤——qrels 文件缺失/为空时保留全部查询
+        # （answer=None 表示无相关文档），避免数据集被静默清空（N13 回归）。
+        if qrels:
+            queries_list = [q for q in queries_list if len(q.expects) > 0]
+            logger.info(
+                "BEIR/%s 过滤后: %d queries（移除了 %d 条无 qrels 的查询）",
+                self._SUBSET_NAME,
+                len(queries_list),
+                len(raw_queries) - len(queries_list),
+            )
+        else:
+            logger.warning(
+                "BEIR/%s qrels 为空/缺失，保留全部 %d 条查询（answer=None，无法评估相关性）",
+                self._SUBSET_NAME,
+                len(queries_list),
+            )
         self._queries = queries_list
         return queries_list
 

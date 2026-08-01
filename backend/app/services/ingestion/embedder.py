@@ -101,22 +101,27 @@ def embedding_input_text(heading_path: str | None, content: str) -> str:
 
 
 def _mock_vector(text: str, dim: int | None = None) -> list[float]:
-    digest = hashlib.sha256(text.encode("utf-8")).digest()
-    target_dim = dim or _get_embedding_dim()
-    values: list[float] = []
-    while len(values) < target_dim:
-        for i in range(0, len(digest), 4):
-            chunk = digest[i : i + 4]
-            if len(chunk) < 4:
-                chunk = chunk.ljust(4, b"\0")
-            num = int.from_bytes(chunk, "big", signed=False)
-            values.append((num % 1000) / 1000.0 - 0.5)
-            if len(values) >= target_dim:
-                break
-        digest = hashlib.sha256(digest).digest()
+    """Mock 嵌入唯一实现（SSOT，N15 统一口径）：字符 2/3-gram 词袋。
 
-    norm = math.sqrt(sum(v * v for v in values)) or 1.0
-    return [v / norm for v in values]
+    相同 n-gram 的文本产生相似向量，语义性质接近真实嵌入，
+    保证 mock 模式下检索链路验证结果与真实嵌入口径可比。
+    此前 SHA-256 伪随机实现让相似文本向量正交，mock 下向量召回失效、
+    仅剩 FTS 词面匹配（GQ-67/99 等换词题 0 分根因之一）。
+    全仓 mock 嵌入（生产 mock 模式 + 各 golden 测试）必须引用本函数，
+    禁止另起实现。
+    """
+    target_dim = dim or _get_embedding_dim()
+    vec = [0.0] * target_dim
+    cleaned = text.lower().strip()
+    for n in (2, 3):
+        for i in range(len(cleaned) - n + 1):
+            token = cleaned[i : i + n]
+            digest = hashlib.md5(token.encode("utf-8")).digest()
+            pos = int.from_bytes(digest[:4], "big", signed=False) % target_dim
+            vec[pos] += 1.0
+
+    norm = math.sqrt(sum(v * v for v in vec)) or 1.0
+    return [v / norm for v in vec]
 
 
 def _validate_vectors(

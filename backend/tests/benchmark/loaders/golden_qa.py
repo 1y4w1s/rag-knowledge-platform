@@ -88,6 +88,10 @@ class GoldenQADataset(BenchmarkDataset):
         tags = case.get("tags", [])
         source_kind: SourceKind = case.get("source", "txt")  # type: ignore[assignment]
         expect_rejection = case.get("expect_rejection", False)
+        # N13-4 修复：读 answer（judge 分支 runner.run_generation 依赖 q.answer，
+        # 缺失时 correctness 恒 0）与 min_match（多相关文档最少命中数）。
+        answer = case.get("answer") or None
+        min_match = int(case.get("min_match", 1))
 
         # 处理 expects（支持单数 expect 和复数 expects）
         expects_raw = case.get("expects") or case.get("expect")
@@ -100,6 +104,7 @@ class GoldenQADataset(BenchmarkDataset):
         return BenchmarkQuery(
             case_id=case_id,
             query=query_text,
+            answer=answer,
             domain=DOMAIN_MAP.get(domain, domain),
             difficulty=difficulty,
             question_type=qtype,
@@ -109,5 +114,6 @@ class GoldenQADataset(BenchmarkDataset):
             metadata={
                 "tags": tags,
                 "source": source_kind,
+                "min_match": min_match,
             },
         )

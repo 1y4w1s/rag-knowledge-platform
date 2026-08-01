@@ -174,6 +174,9 @@ async def main() -> None:
                             chunks_text=dataset["contexts"][i],
                             llm=llm,
                             ground_truth=dataset["ground_truth"][i] or None,
+                            # N13-1：默认 faithfulness_only=True 导致 correctness 恒 0。
+                            # 有 ground_truth 时计算 relevancy + correctness。
+                            faithfulness_only=not (dataset["ground_truth"][i] or None),
                         )
                         val = scores.get("faithfulness", 0.0)
                         if isinstance(val, float) and math.isnan(val):

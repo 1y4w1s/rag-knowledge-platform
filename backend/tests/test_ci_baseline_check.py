@@ -48,6 +48,83 @@ def test_gate_fails_on_golden_drop(tmp_path: Path):
     assert "FAIL" in r.stdout
 
 
+def test_parse_real_benchmark_output_format(tmp_path: Path):
+    """G3：run_benchmark.py 真实输出格式（hit_at_k 后跟 hit_at_1/3/5/mrr，total 在末尾）
+    必须能被 SUMMARY_RE 解析（此前正则要求相邻 total，C3 gate 从未真正匹配）。"""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("ci_baseline_check", CHECK)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)  # type: ignore[union-attr]
+
+    line = (
+        "BENCHMARK_SUMMARY dataset=golden_qa hit_at_k=1.000000 hit_at_1=0.887640 "
+        "hit_at_3=1.000000 hit_at_5=1.000000 mrr=0.943820 total=89"
+    )
+    m = mod.SUMMARY_RE.search(line)
+    assert m is not None, "真实 benchmark 输出格式应可解析"
+    assert m.group("dataset") == "golden_qa"
+    assert m.group("hit") == "1.000000"
+    assert m.group("total") == "89"
+
+
+def test_gate_fails_below_absolute_min(tmp_path: Path):
+    """G3：golden absolute_min 绝对阈值——低于阈值直接硬红（不依赖对比容差）。"""
+    baseline = {
+        "golden_qa": {
+            "hit_at_k": 0.955,
+            "compare_mode": "gate",
+            "drop_fail_pp": 0.02,
+            "absolute_min": 0.90,
+        }
+    }
+    bl = tmp_path / "baseline.json"
+    bl.write_text(json.dumps(baseline), encoding="utf-8")
+    out = tmp_path / "out.txt"
+    # 0.88 < absolute_min 0.90 → FAIL，即使只比 baseline 掉 7.5pp（< drop_fail_pp 口径）
+    out.write_text(
+        "BENCHMARK_SUMMARY dataset=golden_qa hit_at_k=0.880000 total=89\n",
+        encoding="utf-8",
+    )
+    r = _run(
+        {
+            "BASELINE_PATH": str(bl),
+            "BENCHMARK_OUT_FILES": str(out),
+        },
+        tmp_path,
+    )
+    assert r.returncode == 1
+    assert "absolute_min" in r.stdout
+
+
+def test_gate_passes_above_absolute_min(tmp_path: Path):
+    """G3：current ≥ absolute_min 时 absolute 断言不触发（0.92 通过）。"""
+    baseline = {
+        "golden_qa": {
+            "hit_at_k": 0.955,
+            "compare_mode": "gate",
+            "drop_fail_pp": 0.02,
+            "absolute_min": 0.90,
+        }
+    }
+    bl = tmp_path / "baseline.json"
+    bl.write_text(json.dumps(baseline), encoding="utf-8")
+    out = tmp_path / "out.txt"
+    out.write_text(
+        "BENCHMARK_SUMMARY dataset=golden_qa hit_at_k=0.920000 total=89\n",
+        encoding="utf-8",
+    )
+    r = _run(
+        {
+            "BASELINE_PATH": str(bl),
+            "BENCHMARK_OUT_FILES": str(out),
+        },
+        tmp_path,
+    )
+    assert r.returncode == 1  # 掉 3.5pp 仍超 gate 对比容差 2pp → FAIL（对比 gate 生效）
+    assert "FAIL" in r.stdout
+
+
 def test_gate_fails_on_enterprise_drop(tmp_path: Path):
     """C3：Enterprise gate — 掉 ≥5pp → exit 1。"""
     baseline = {

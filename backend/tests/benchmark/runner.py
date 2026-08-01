@@ -428,8 +428,9 @@ class BenchmarkRunner:
 
         for idx in range(start_idx, len(queries)):
             q = queries[idx]
-            if q.expect_rejection:
-                continue
+            # N13-2 修复：拒答题不再跳过——生成后判定是否正确拒答，
+            # 否则 rejection_scores 恒空、rejection_accuracy 恒 0。
+            is_rejection = q.expect_rejection
 
             await self.rate_limit.wait_for_chat(self.user_id)
             t0 = time.perf_counter()
@@ -448,6 +449,18 @@ class BenchmarkRunner:
                 case_id=q.case_id, query=q.query,
                 answer=answer, citations=citations, latency_ms=elapsed,
             )
+
+            if is_rejection:
+                # 拒答题：验证是否在无依据时正确拒答（不编造答案）
+                rej_ok, rej_reason = _judge_rejection(answer, citations, judge_instance)
+                result.rejection_correct = rej_ok
+                result.judge_reason = rej_reason
+                rejection_scores.append(1.0 if rej_ok else 0.0)
+                completed_results.append(result)
+
+                if (idx + 1) % 5 == 0:
+                    self._save_checkpoint(cp_path, completed_results, idx + 1, len(queries))
+                continue
 
             # RAGAS generation 评测
             if ragas_gen_scorer is not None:
@@ -531,3 +544,33 @@ def _extract_from_details(details: list[dict], key: str) -> float:
         if key in d:
             return float(d[key])
     return 0.0
+
+
+def _judge_rejection(
+    answer: str,
+    citations: list,
+    judge_instance=None,
+) -> tuple[bool, str]:
+    """判定生成结果是否为正确拒答（N13-2）。
+
+    判据（无需 LLM 的启发式，避免评测额外消耗 API）：
+    - 有引用（citations 非空）→ 视为编造/未拒答 → False
+    - 空答案 → 正确拒答
+    - 命中系统固定拒答话术（NO_CONTEXT_REPLY / NO_CONTEXT_REPLY_EN）→ 正确拒答
+    - 其余视为「回答了内容」→ False
+
+    judge_instance 参数保留（未来可换 LLM 判拒答），当前实现不依赖它。
+    """
+    if citations:
+        return False, "provided citations without rejecting"
+    text = (answer or "").strip()
+    if not text:
+        return True, "empty answer (rejected)"
+    try:
+        from app.services.rag.generation import NO_CONTEXT_REPLY, NO_CONTEXT_REPLY_EN
+    except Exception:
+        return False, "answered with content"
+    _norm = lambda s: s.replace(" ", "").strip()
+    if _norm(text) == _norm(NO_CONTEXT_REPLY) or _norm(text) == _norm(NO_CONTEXT_REPLY_EN):
+        return True, "matched no-context reply"
+    return False, "answered with content"

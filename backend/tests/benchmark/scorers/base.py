@@ -193,8 +193,12 @@ def compute_scores(
     )
 
     precision = total_relevant / max(1, top_k)
-    recall_denom = max(1, len(expect.content_contains) if expect.content_contains else 1)
-    recall = min(1.0, total_relevant / recall_denom) if total_relevant > 0 else 0.0
+    # N13-3 修复：原实现 `len(expect.content_contains)` 取的是字符串长度
+    # （如"年假 10 天"长度 5），导致 recall 系统性压低。
+    # 单 Expect 对象 = 一组相关文档标注：分子 total_relevant 最多为 1
+    # （content_contains 去重 / answer 场景），分母与分子口径对称取 1。
+    # 多相关文档场景由 runner._eval_retrieval 以 len(q.expects) 为分母处理。
+    recall = min(1.0, total_relevant) if total_relevant > 0 else 0.0
 
     map_contrib = 0.0
     if match_positions:

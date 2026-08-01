@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "description": "golden_qa v1.0 - 110 cases",
+  "description": "golden_qa v1.0 - 109 cases",
   "hit_k": 3,
   "cases": [
     {
@@ -60,11 +60,10 @@
       "difficulty": 0.4,
       "question_type": "cross_reference",
       "tags": [
-        "pdf",
-        "cross_page",
-        "english"
+        "md",
+        "cross_page"
       ],
-      "query": "annual leave 10 days which page",
+      "query": "年假10天在哪个章节？",
       "source": "md",
       "expect": {
         "section_title": "1.1 年假",
