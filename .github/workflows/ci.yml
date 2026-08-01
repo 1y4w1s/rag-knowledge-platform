@@ -71,6 +71,52 @@ jobs:
           python -m pytest tests/test_chat.py tests/test_r4_4_streaming.py tests/test_citation_resolve.py -v --tb=short
         continue-on-error: true
 
+  # D gate (masterplan 0.2): model/migration drift fails CI
+  alembic-check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
+      JWT_SECRET: ${{ secrets.JWT_SECRET || '1362b8353e8306574369454872b0fb2a' }}
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: ruige
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'changeme' }}
+          POSTGRES_DB: ruige
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ruige"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Apply migrations to head
+        run: |
+          alembic upgrade head
+
+      - name: Model vs migration drift check (autogenerate diff must be empty)
+        run: |
+          alembic check
+
   rag-benchmark:
     runs-on: ubuntu-latest
     timeout-minutes: 40
