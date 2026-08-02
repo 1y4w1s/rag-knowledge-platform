@@ -2,31 +2,38 @@
 
 from __future__ import annotations
 
-import asyncio
+import uuid
 from collections.abc import AsyncIterator
 from uuid import UUID
 
 from fastapi import Request
 
+from app.core.config import settings
+from app.services.rag.distributed_lock import acquire_lock, release_lock
+
 THREAD_GENERATION_BUSY_DETAIL = "上一条仍在生成"
 
-_active_thread_ids: set[UUID] = set()
-_registry_lock = asyncio.Lock()
+_thread_tokens: dict[UUID, str] = {}
 
 
 async def try_acquire_thread_generation_lock(thread_id: UUID) -> bool:
-    """非阻塞占用 thread 生成槽；已占用则返回 False。"""
-    async with _registry_lock:
-        if thread_id in _active_thread_ids:
-            return False
-        _active_thread_ids.add(thread_id)
-        return True
+    """非阻塞占用 thread 生成槽；已占用则返回 False（B3：分布式锁 + TTL 兜底）。"""
+    token = uuid.uuid4().hex
+    key = f"thread_gen:{thread_id}"
+    ok = await acquire_lock(
+        key,
+        ttl_seconds=settings.agent_run_lock_ttl_seconds,
+        token=token,
+    )
+    if ok:
+        _thread_tokens[thread_id] = token
+    return ok
 
 
 async def release_thread_generation_lock(thread_id: UUID) -> None:
     """释放 thread 生成槽（幂等）。"""
-    async with _registry_lock:
-        _active_thread_ids.discard(thread_id)
+    token = _thread_tokens.pop(thread_id, None)
+    await release_lock(f"thread_gen:{thread_id}", token)
 
 
 async def wrap_stream_with_thread_generation_lock(
@@ -49,4 +56,7 @@ async def wrap_stream_with_thread_generation_lock(
 
 def reset_thread_generation_locks() -> None:
     """测试隔离：清空进程内占用表。"""
-    _active_thread_ids.clear()
+    _thread_tokens.clear()
+    from app.services.rag.distributed_lock import reset_lock_registry
+
+    reset_lock_registry()

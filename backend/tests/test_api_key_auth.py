@@ -50,7 +50,11 @@ async def test_api_key_auth_via_bearer(
 
     # 用 Key 调 API（免登录）
     key_headers = {"Authorization": f"Bearer {raw_key}"}
-    resp = await client.get("/api/v1/knowledge-bases", headers=key_headers)
+    resp = await client.get(
+        "/api/v1/knowledge-bases",
+        headers=key_headers,
+        params={"workspace": "personal"},
+    )
     assert resp.status_code == 200, resp.text
 
 

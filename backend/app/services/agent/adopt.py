@@ -38,7 +38,6 @@ from app.models.enums import DocumentStatus
 from app.models.knowledge_base import KnowledgeBase
 from app.services.documents.content_hash import sha256_hex
 from app.services.documents.quota import assert_kb_quota_allows
-from app.services.ingestion.enqueue import enqueue_document_ingestion
 
 # 请求级 BackgroundTasks 持有者：resolve adopt 前由 ``resolve_adopt_approval`` 绑定当前
 # 请求的 ``BackgroundTasks``，本函数据此入队 ingestion，从而复用现网 upload 路径且**不改函数签名**。
@@ -113,8 +112,10 @@ async def adopt_draft_to_kb(
     流程（等价现网 upload 文本/md 分支）：
       1. 读 ``payload_json["markdown"]`` 全文。
       2. ``_resolve_adopt_filename`` 解析文件名（同名 → ``_v2``）。
-      3. 在 ``settings.upload_dir / kb.id / doc.id / {uuid}.md`` 落盘 Markdown 文本。
-      4. 组装 ``Document(queued)``（file_type=md、uploaded_by=approval.user_id）并 flush。
+      3. 组装 ``Document(queued)``（file_type=md、uploaded_by=approval.user_id）并 **先 flush**
+         （A3/H5：约束/唯一性失败在读盘前暴露，不再先写盘后回滚）。
+      4. 磁盘写注册为 **commit 后 BackgroundTask**（FastAPI 响应后执行 → 天然
+         「先 flush 拿 doc_id → 提交事务 → 后写盘」，孤儿文件闭环）；无 BT 时同步兜底。
       5. ingestion 入队：``enqueue_document_ingestion``（有 BT 则传入；G1 A-bt）。
     """
     markdown = _markdown_from_approval(approval)
@@ -134,10 +135,8 @@ async def adopt_draft_to_kb(
 
     doc_id = uuid.uuid4()
     storage_dir = Path(settings.upload_dir) / str(kb.id) / str(doc_id)
-    storage_dir.mkdir(parents=True, exist_ok=True)
     stored_name = f"{uuid.uuid4()}.md"
     storage_path = storage_dir / stored_name
-    storage_path.write_text(markdown, encoding="utf-8")
 
     doc = Document(
         id=doc_id,
@@ -153,11 +152,29 @@ async def adopt_draft_to_kb(
     db.add(doc)
     await db.flush()
 
-    # ingestion 入队（H4-4-A 异步 · G1 统一 enqueue）。
+    # A3/H5：先 flush（拿 doc_id + 暴露约束失败）→ 注册 commit 后写盘。
     bt = _adopt_background_tasks.get()
+    if bt is not None:
+        bt.add_task(_write_staged_markdown, storage_path, content)
+    else:
+        # 无 BT 上下文（脚本/直调）：同步兜底写盘。
+        storage_dir.mkdir(parents=True, exist_ok=True)
+        storage_path.write_bytes(content)
+
+    # ingestion 入队（H4-4-A 异步 · G1 统一 enqueue）。
+    # 惰性导入：断 adopt → enqueue → tasks → celery_app → agent 的模块级循环
+    # （enqueue 被 celery_app.autodiscover(agent) 反向依赖时仍在初始化中）。
+    from app.services.ingestion.enqueue import enqueue_document_ingestion
+
     await enqueue_document_ingestion(doc.id, bt)
 
     return doc.id
+
+
+def _write_staged_markdown(storage_path: Path, content: bytes) -> None:
+    """post-commit 写盘（BackgroundTask，同步函数；目录惰性创建）。"""
+    storage_path.parent.mkdir(parents=True, exist_ok=True)
+    storage_path.write_bytes(content)
 
 
 __all__ = [

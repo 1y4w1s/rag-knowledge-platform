@@ -53,6 +53,7 @@ from app.services.rag.chat import stream_workspace_chat_events
 from app.services.rag.message_builder import SSE_HEADERS, build_chat_message_list
 from app.services.rag.thread_generation_lock import (
     THREAD_GENERATION_BUSY_DETAIL,
+    release_thread_generation_lock,
     try_acquire_thread_generation_lock,
     wrap_stream_with_thread_generation_lock,
 )
@@ -246,82 +247,23 @@ async def post_ask_thread_chat(
         db, scope=scope, org_scope=org_scope, current_user=current_user
     )
 
+    # H6（T4）：写权限门禁在锁之前完成——锁后仅做纯流构造，异常路径由 try/except 释放。
+    can_adopt_ws = can_user_adopt_in_workspace(current_user, scope)
+    if body.mode == AgentMode.document_write and not can_adopt_ws:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="仅工作区管理员可发起文档写操作",
+        )
+
     if not await try_acquire_thread_generation_lock(thread_id):
         raise ConflictError(
             detail=THREAD_GENERATION_BUSY_DETAIL,
         )
 
     sse_headers = SSE_HEADERS
-
-    if body.mode == AgentMode.document_write:
-        # G5 · 文档操作模式（/ask 跨库）：目标库由 planner 运行时解析首个命中库。
-        # 仅 Admin/Owner 可进入（写权限门禁 · RBAC 维持）；Member → 403。
-        if not can_user_adopt_in_workspace(current_user, scope):
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="仅工作区管理员可发起文档写操作",
-            )
-        stream = stream_agent_document_write_events(
-            db,
-            user_id=current_user.id,
-            message=body.message,
-            thread_id=thread_id,
-            workspace=scope,
-            tool_scope=build_workspace_tool_scope(org_scope),
-            planner=create_document_write_planner(body.message),
-            org_scope=org_scope,
-            can_adopt=True,
-            save_turn=save_workspace_chat_turn,
-            save_kwargs={
-                "workspace_kind": scope.kind,
-                "workspace_org_id": scope.org_id,
-                "department_id": department_id,
-                "thread_id": thread_id,
-            },
-        )
-    elif body.mode == AgentMode.edit:
-        # G4-2.3 · 编辑模式：/ask 跨库，目标库由 planner 运行时解析首个命中库。
-        # fast/thorough 行为零改动（见 else/elif 分支）。
-        stream = stream_agent_edit_events(
-            db,
-            user_id=current_user.id,
-            message=body.message,
-            thread_id=thread_id,
-            workspace=scope,
-            tool_scope=build_workspace_tool_scope(org_scope),
-            planner=create_edit_tool_planner(body.message),
-            org_scope=org_scope,
-            workspace_mode=True,
-            can_adopt=can_user_adopt_in_workspace(current_user, scope),
-            save_turn=save_workspace_chat_turn,
-            save_kwargs={
-                "workspace_kind": scope.kind,
-                "workspace_org_id": scope.org_id,
-                "department_id": department_id,
-                "thread_id": thread_id,
-            },
-        )
-    elif body.mode == AgentMode.thorough:
-        stream = stream_agent_workspace_events(
-            db,
-            scope=scope,
-            org_scope=org_scope,
-            user_id=current_user.id,
-            message=body.message,
-            department_id=department_id,
-            thread_id=thread_id,
-            tool_scope=build_workspace_tool_scope(org_scope),
-            planner=create_tool_planner(body.message),
-        )
-    else:
-        # B 路径自动识别（fast 模式 · 仅 Admin/Owner）：命中写意图 → 走文档操作/编辑流，
-        # 否则普通工作区问答。Member / 疑问句 / 无具体文档名 → 不触发（情景 4-7）。
-        intent = (
-            detect_write_intent(body.message)
-            if can_user_adopt_in_workspace(current_user, scope)
-            else None
-        )
-        if intent is not None and intent.operation in ("delete", "restore"):
+    try:
+        if body.mode == AgentMode.document_write:
+            # G5 · 文档操作模式（/ask 跨库）：目标库由 planner 运行时解析首个命中库。
             stream = stream_agent_document_write_events(
                 db,
                 user_id=current_user.id,
@@ -332,7 +274,6 @@ async def post_ask_thread_chat(
                 planner=create_document_write_planner(body.message),
                 org_scope=org_scope,
                 can_adopt=True,
-                double_confirm=True,
                 save_turn=save_workspace_chat_turn,
                 save_kwargs={
                     "workspace_kind": scope.kind,
@@ -341,8 +282,8 @@ async def post_ask_thread_chat(
                     "thread_id": thread_id,
                 },
             )
-        elif intent is not None and intent.operation == "create":
-            # 创建草稿 → 复用编辑流（generate_faq_draft → approval_required）
+        elif body.mode == AgentMode.edit:
+            # G4-2.3 · 编辑模式：/ask 跨库，目标库由 planner 运行时解析首个命中库。
             stream = stream_agent_edit_events(
                 db,
                 user_id=current_user.id,
@@ -353,7 +294,7 @@ async def post_ask_thread_chat(
                 planner=create_edit_tool_planner(body.message),
                 org_scope=org_scope,
                 workspace_mode=True,
-                can_adopt=can_user_adopt_in_workspace(current_user, scope),
+                can_adopt=can_adopt_ws,
                 save_turn=save_workspace_chat_turn,
                 save_kwargs={
                     "workspace_kind": scope.kind,
@@ -362,8 +303,8 @@ async def post_ask_thread_chat(
                     "thread_id": thread_id,
                 },
             )
-        else:
-            stream = stream_workspace_chat_events(
+        elif body.mode == AgentMode.thorough:
+            stream = stream_agent_workspace_events(
                 db,
                 scope=scope,
                 org_scope=org_scope,
@@ -371,17 +312,78 @@ async def post_ask_thread_chat(
                 message=body.message,
                 department_id=department_id,
                 thread_id=thread_id,
-                hide_admin_only=(
-                    current_user.account_type.value == "enterprise"
-                    and current_user.org_role == "member"
-                ),
+                tool_scope=build_workspace_tool_scope(org_scope),
+                planner=create_tool_planner(body.message),
             )
+        else:
+            # B 路径自动识别（fast 模式 · 仅 Admin/Owner）：命中写意图 → 文档操作/编辑流，
+            # 否则普通工作区问答。Member / 疑问句 / 无具体文档名 → 不触发（情景 4-7）。
+            intent = detect_write_intent(body.message) if can_adopt_ws else None
+            if intent is not None and intent.operation in ("delete", "restore"):
+                stream = stream_agent_document_write_events(
+                    db,
+                    user_id=current_user.id,
+                    message=body.message,
+                    thread_id=thread_id,
+                    workspace=scope,
+                    tool_scope=build_workspace_tool_scope(org_scope),
+                    planner=create_document_write_planner(body.message),
+                    org_scope=org_scope,
+                    can_adopt=True,
+                    double_confirm=True,
+                    save_turn=save_workspace_chat_turn,
+                    save_kwargs={
+                        "workspace_kind": scope.kind,
+                        "workspace_org_id": scope.org_id,
+                        "department_id": department_id,
+                        "thread_id": thread_id,
+                    },
+                )
+            elif intent is not None and intent.operation == "create":
+                # 创建草稿 → 复用编辑流（generate_faq_draft → approval_required）
+                stream = stream_agent_edit_events(
+                    db,
+                    user_id=current_user.id,
+                    message=body.message,
+                    thread_id=thread_id,
+                    workspace=scope,
+                    tool_scope=build_workspace_tool_scope(org_scope),
+                    planner=create_edit_tool_planner(body.message),
+                    org_scope=org_scope,
+                    workspace_mode=True,
+                    can_adopt=can_adopt_ws,
+                    save_turn=save_workspace_chat_turn,
+                    save_kwargs={
+                        "workspace_kind": scope.kind,
+                        "workspace_org_id": scope.org_id,
+                        "department_id": department_id,
+                        "thread_id": thread_id,
+                    },
+                )
+            else:
+                stream = stream_workspace_chat_events(
+                    db,
+                    scope=scope,
+                    org_scope=org_scope,
+                    user_id=current_user.id,
+                    message=body.message,
+                    department_id=department_id,
+                    thread_id=thread_id,
+                    hide_admin_only=(
+                        current_user.account_type.value == "enterprise"
+                        and current_user.org_role == "member"
+                    ),
+                )
 
-    return StreamingResponse(
-        wrap_stream_with_thread_generation_lock(thread_id, stream, request=request),
-        media_type="text/event-stream",
-        headers=sse_headers,
-    )
+        return StreamingResponse(
+            wrap_stream_with_thread_generation_lock(thread_id, stream, request=request),
+            media_type="text/event-stream",
+            headers=sse_headers,
+        )
+    except BaseException:
+        # H6：构造流阶段任何异常都释放锁（正常路径由 wrap_stream_... finally 释放）。
+        await release_thread_generation_lock(thread_id)
+        raise
 
 
 @router.get("/{thread_id}/messages", response_model=ChatMessagesListResponse)

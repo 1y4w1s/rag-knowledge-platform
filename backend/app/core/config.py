@@ -211,6 +211,17 @@ class Settings(BaseSettings):
     search_api_key: str = ""  # C1 收口：web_search 第三方凭据（原 SEARCH_API_KEY env 兼容）
     agent_max_external_calls_per_conversation: int = 3
 
+    # ── B2 Agent 生命周期清扫（P1-03）────────────────────────────
+    # running run 超过该时长视为 crash/断线残留，清扫器强制 failed
+    agent_run_stale_minutes: int = 15
+    # pending 审批 TTL（惰性判定：created_at + TTL；resolve 入口先判过期）
+    agent_approval_ttl_hours: float = 24.0
+    # 同 thread 生成锁/SSE 槽位持有上限（分布式锁 TTL，30min 兜底自动过期）
+    agent_run_lock_ttl_seconds: int = 1800
+
+    # ── B3 锁后端（memory=显式单 worker；redis=多 worker 必须）────
+    lock_backend: str = "memory"
+
     # ── C1 Vision LLM ──────────────────────────────────────────────
     tongyi_vl_model: str = "qwen-vl-plus"
 

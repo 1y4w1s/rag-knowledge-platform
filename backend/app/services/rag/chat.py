@@ -103,34 +103,17 @@ async def _precommit_turn_shell(
     common: dict,
     pending_kwargs: dict,
 ) -> tuple[UUID, UUID]:
-    """预提交外壳（P1-08）：user 消息 + pending assistant 一次 commit。
+    """预提交外壳（P1-08）：委托 turn_writer 公开实现（A1 语义不变，A2 agent 路径复用）。"""
+    from app.services.rag.turn_writer import precommit_turn_shell as _precommit
 
-    返回 (user_message_id, pending_assistant_id)。断线后问句与占位 assistant
-    均已落库，后续 finalize_turn 原地收尾。
-    """
-    from app.models.chat_message import ChatMessage as ChatMessageModel
-    from app.models.enums import MessageRole
-    from app.services.rag.persistence import create_pending_message
-
-    # user 消息先以 pending 态预提交：多轮历史加载会过滤 pending，避免本轮消息
-    # 污染检索上下文（E1）；finalize_turn 原地完成化。
-    user_row = ChatMessageModel(
-        **common,
-        role=MessageRole.user,
-        content=user_content,
-        status=MessageStatus.pending,
-        citations=None,
-    )
-    db.add(user_row)
-    pending_msg = await create_pending_message(
+    return await _precommit(
         db,
-        thread_id=thread.id,
+        thread=thread,
         user_id=user_id,
-        query=user_content,
-        **pending_kwargs,
+        user_content=user_content,
+        common=common,
+        pending_kwargs=pending_kwargs,
     )
-    await db.commit()
-    return user_row.id, pending_msg.id
 
 
 async def _run_chat_stream(

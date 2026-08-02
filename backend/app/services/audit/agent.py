@@ -203,6 +203,28 @@ async def audit_agent_approval_cancelled(
     )
 
 
+async def audit_agent_approval_expired(
+    db: AsyncSession,
+    *,
+    approval_id: UUID,
+    kb_id: UUID,
+    filename: str,
+) -> None:
+    """审批超 TTL 惰性/清扫置 expired → agent.approval_expired（B2/P1-03）。"""
+    await write_audit_log(
+        db,
+        action="agent.approval_expired",
+        resource_type="agent_approval",
+        resource_id=approval_id,
+        kb_id=kb_id,
+        metadata={
+            "approval_id": str(approval_id),
+            "kb_id": str(kb_id),
+            "filename": filename,
+        },
+    )
+
+
 async def audit_agent_approval_denied(
     db: AsyncSession,
     *,

@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import json
-import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable
+from functools import partial
 from typing import Any
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.chat_thread import ChatThread
+from app.models.enums import AgentRunStatus, MessageStatus, ThreadKind
 from app.services.agent.finalize import prepare_agent_generation, resolve_run_status
 from app.services.audit.agent import (
     audit_agent_run_completed,
@@ -22,7 +24,6 @@ from app.services.agent.dispatch import (
     ThoroughReadPlanner,
     create_tool_planner,
 )
-from app.services.agent.runs import finish_agent_run
 from app.services.agent.runtime import ToolPlanner, run_react_loop
 from app.models.agent_approval import AgentApproval
 from app.models.enums import AgentRunMode
@@ -65,6 +66,15 @@ from app.services.rag.generation import (
 )
 from app.services.rag.multi_turn import prepare_multi_turn_query
 from app.services.rag.persistence import save_chat_turn, save_workspace_chat_turn
+from app.services.rag.thread_persistence import (
+    normalize_workspace_department_key,
+    resolve_thread_for_message,
+)
+from app.services.rag.turn_writer import (
+    TurnMessage,
+    finalize_turn,
+    precommit_turn_shell,
+)
 from app.services.workspace.scope import WorkspaceScope
 
 
@@ -118,6 +128,139 @@ class _BufferingToolHooks:
 SaveTurnFn = Callable[..., Awaitable[UUID]]
 
 
+async def _finalize_agent_turn(
+    db: AsyncSession,
+    *,
+    thread: ChatThread,
+    user_id: UUID,
+    user_message_id: UUID,
+    user_content: str,
+    assistant_message_id: UUID,
+    assistant_content: str,
+    citations: list[dict],
+    status: MessageStatus,
+    common: dict[str, Any],
+    retrieval_duration_ms: int | None,
+    run_id: UUID | None,
+    run_status: AgentRunStatus | None,
+    audit_events: tuple = (),
+) -> UUID:
+    """A2：agent 三渲染路径统一收口到 turn_writer（DWC）——一次 commit。
+
+    顺序契约：user 消息 → assistant 消息 → run 终态 → 审计事件 → 一次 db.commit()；
+    run 终态经 finish_agent_run 条件更新幂等（B1），assistant_message_id 回填由
+    runs.py 补充（终态已落时仅回填该字段）。
+    """
+    return await finalize_turn(
+        db,
+        thread=thread,
+        user_id=user_id,
+        user_msg=TurnMessage(content=user_content, message_id=user_message_id),
+        assistant_msg=TurnMessage(
+            content=assistant_content,
+            citations=citations,
+            status=status,
+            message_id=assistant_message_id,
+            retrieval_duration_ms=retrieval_duration_ms,
+        ),
+        common=common,
+        run_id=run_id,
+        run_status=run_status,
+        audit_events=audit_events,
+    )
+
+
+def _agent_shell_from_save_kwargs(
+    *,
+    save_kwargs: dict[str, Any],
+    user_id: UUID,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    """从 save_kwargs 推导 (common, pending_kwargs, thread_resolve_kwargs)。
+
+    库内（save_kwargs 含 kb_id）→ knowledge_base；否则按工作区键解析。
+    thread_resolve_kwargs 即 resolve_thread_for_message 的剩余关键字（不含
+    thread_id / thread_kind / kb_id / user_id）。
+    """
+    kb_id = save_kwargs.get("kb_id")
+    if kb_id is not None:
+        common: dict[str, Any] = {
+            "thread_kind": ThreadKind.knowledge_base,
+            "kb_id": kb_id,
+            "user_id": user_id,
+        }
+        pending_kwargs: dict[str, Any] = {
+            "thread_kind": ThreadKind.knowledge_base,
+            "kb_id": kb_id,
+        }
+        return common, pending_kwargs, {}
+
+    department_key = normalize_workspace_department_key(
+        save_kwargs.get("department_id")
+    )
+    workspace_kind = save_kwargs.get("workspace_kind")
+    workspace_org_id = save_kwargs.get("workspace_org_id")
+    common = {
+        "thread_kind": ThreadKind.workspace,
+        "kb_id": None,
+        "user_id": user_id,
+        "workspace_kind": (
+            workspace_kind.value if hasattr(workspace_kind, "value") else workspace_kind
+        ),
+        "workspace_org_id": workspace_org_id,
+        "workspace_department_key": department_key,
+    }
+    pending_kwargs = {
+        "thread_kind": ThreadKind.workspace,
+        "workspace_kind": (
+            workspace_kind.value if hasattr(workspace_kind, "value") else workspace_kind
+        ),
+        "workspace_org_id": workspace_org_id,
+        "workspace_department_key": department_key,
+    }
+    return common, pending_kwargs, {
+        "workspace_kind": workspace_kind,
+        "workspace_org_id": workspace_org_id,
+        "department_key": department_key,
+    }
+
+
+async def _precommit_for_save_kwargs(
+    db: AsyncSession,
+    *,
+    save_kwargs: dict[str, Any],
+    user_id: UUID,
+    message: str,
+    thread_id: UUID | None = None,
+) -> tuple[ChatThread, UUID, UUID, dict[str, Any]]:
+    """edit/document_write 共用：解析 thread（库内/工作区）→ 预提交外壳。
+
+    返回 (thread, user_message_id, assistant_message_id, common)。
+    """
+    common, pending_kwargs, resolve_kwargs = _agent_shell_from_save_kwargs(
+        save_kwargs=save_kwargs,
+        user_id=user_id,
+    )
+    resolved_thread_id = thread_id or save_kwargs.get("thread_id")
+    thread = await resolve_thread_for_message(
+        db,
+        thread_id=resolved_thread_id,
+        thread_kind=common["thread_kind"],
+        kb_id=common.get("kb_id"),
+        user_id=user_id,
+        **resolve_kwargs,
+    )
+    common = {**common, "thread_id": thread.id}
+    user_message_id, assistant_message_id = await precommit_turn_shell(
+        db,
+        thread=thread,
+        user_id=user_id,
+        user_content=message,
+        common=common,
+        pending_kwargs=pending_kwargs,
+    )
+    return thread, user_message_id, assistant_message_id, common
+
+
 async def _stream_generation_phase(
     db: AsyncSession,
     *,
@@ -125,10 +268,11 @@ async def _stream_generation_phase(
     gen_plan,
     outcome: AgentRunOutcome,
     user_id: UUID,
-    save_turn: SaveTurnFn,
-    save_kwargs: dict[str, Any],
     history: list[dict[str, str]] | None = None,
+    assistant_message_id: UUID,
+    state: dict[str, Any],
 ) -> AsyncIterator[str]:
+    """生成阶段事件流（citation → token → done；A2：纯渲染，落库由 core finally 统一收口）。"""
     citations = list(gen_plan.citations)
 
     # H1：thorough 终态置信度（classify 后立刻；不改拒答阈值）
@@ -195,37 +339,15 @@ async def _stream_generation_phase(
             strip_prefix=strip,
         )
 
-    message_id = uuid.uuid4()
+    message_id = assistant_message_id
     retrieval_duration_ms = sum(step.latency_ms for step in outcome.steps) or None
     if retrieval_duration_ms is not None:
         get_tracker("retrieval.retrieval_e2e").record(float(retrieval_duration_ms))
 
-    await save_turn(
-        db,
-        user_id=user_id,
-        user_content=message,
-        assistant_content=assistant_content,
-        citations=citations,
-        assistant_message_id=message_id,
-        retrieval_duration_ms=retrieval_duration_ms,
-        **save_kwargs,
-    )
-
-    await finish_agent_run(
-        db,
-        run_id=outcome.run_id,
-        user_id=user_id,
-        status=resolve_run_status(outcome),
-        assistant_message_id=message_id,
-    )
-    await audit_agent_run_completed(
-        db,
-        actor_user_id=user_id,
-        run_id=outcome.run_id,
-        steps_used=outcome.steps_used,
-        capped=outcome.capped,
-        citation_count=len(citations),
-    )
+    # A2：落库信息交给 core finally（finalize_turn 单次 commit），此处仅记录状态。
+    state["content"] = assistant_content
+    state["citations"] = citations
+    state["retrieval_duration_ms"] = retrieval_duration_ms
 
     yield _sse_event(
         "done",
@@ -266,77 +388,141 @@ async def _stream_agent_core(
     planner: ToolPlanner,
     org_scope: OrgScope | None,
     workspace_mode: bool,
-    save_turn: SaveTurnFn,
-    save_kwargs: dict[str, Any],
+    thread: ChatThread,
+    user_message_id: UUID,
+    assistant_message_id: UUID,
+    common: dict[str, Any],
 ) -> AsyncIterator[str]:
+    """thorough 精准模式核心流（A2：预提交外壳 → 事件流 → finally 单一提交兜底）。"""
     inc_chats_total()
     hooks = _BufferingToolHooks()
+    state: dict[str, Any] = {
+        "content": "",
+        "citations": [],
+        "retrieval_duration_ms": None,
+        "done_yielded": False,
+    }
+    token_parts: list[str] = []
+    outcome: AgentRunOutcome | None = None
+    try:
+        history, retrieval_query = await prepare_multi_turn_query(
+            db,
+            message=message,
+            user_id=user_id,
+            thread_id=thread_id,
+        )
+        planner = _planner_with_retrieval_query(planner, retrieval_query)
 
-    history, retrieval_query = await prepare_multi_turn_query(
-        db,
-        message=message,
-        user_id=user_id,
-        thread_id=thread_id,
-    )
-    planner = _planner_with_retrieval_query(planner, retrieval_query)
+        outcome = await run_react_loop(
+            db,
+            user_id=user_id,
+            thread_id=thread_id,
+            query=retrieval_query,
+            workspace=workspace,
+            tool_scope=tool_scope,
+            planner=planner,
+            org_scope=org_scope,
+            hooks=hooks,
+        )
 
-    outcome = await run_react_loop(
-        db,
-        user_id=user_id,
-        thread_id=thread_id,
-        query=retrieval_query,
-        workspace=workspace,
-        tool_scope=tool_scope,
-        planner=planner,
-        org_scope=org_scope,
-        hooks=hooks,
-    )
+        for event_name, data in hooks.events:
+            yield _sse_event(event_name, data)
 
-    for event_name, data in hooks.events:
-        yield _sse_event(event_name, data)
+        gen_plan = await prepare_agent_generation(
+            db,
+            query=retrieval_query,
+            steps=outcome.steps,
+            workspace_mode=workspace_mode,
+            outcome=outcome,
+        )
 
-    gen_plan = await prepare_agent_generation(
-        db,
-        query=retrieval_query,
-        steps=outcome.steps,
-        workspace_mode=workspace_mode,
-        outcome=outcome,
-    )
+        # 补发 LLM planner 审计（紧跟在 run 结束后，随 finalize 单一提交落库）
+        if isinstance(planner, LLMPlanner):
+            if planner.fallback_reason is not None:
+                await audit_llm_plan_fallback(
+                    db,
+                    actor_user_id=user_id,
+                    run_id=outcome.run_id,
+                    reason=planner.fallback_reason,
+                    llm_raw=planner.last_llm_raw,
+                )
+            else:
+                await audit_llm_plan_success(
+                    db,
+                    actor_user_id=user_id,
+                    run_id=outcome.run_id,
+                    tool_count=(
+                        len(planner._cached_plan.plan)
+                        if planner._cached_plan and planner._cached_plan.plan
+                        else 0
+                    ),
+                    llm_raw=planner.last_llm_raw,
+                )
 
-    # 补发 LLM planner 审计（紧跟在 run 结束后，此时 outcome.run_id 已生成）
-    if isinstance(planner, LLMPlanner):
-        if planner.fallback_reason is not None:
-            await audit_llm_plan_fallback(
-                db,
-                actor_user_id=user_id,
-                run_id=outcome.run_id,
-                reason=planner.fallback_reason,
-                llm_raw=planner.last_llm_raw,
-            )
-        else:
-            await audit_llm_plan_success(
-                db,
-                actor_user_id=user_id,
-                run_id=outcome.run_id,
-                tool_count=(
-                    len(planner._cached_plan.plan)
-                    if planner._cached_plan and planner._cached_plan.plan
-                    else 0
+        async for frame in _stream_generation_phase(
+            db,
+            message=message,
+            gen_plan=gen_plan,
+            outcome=outcome,
+            user_id=user_id,
+            history=history,
+            assistant_message_id=assistant_message_id,
+            state=state,
+        ):
+            if frame.startswith("event: token"):
+                try:
+                    payload = json.loads(frame.split("data: ", 1)[1].strip())
+                    text = payload.get("text", "")
+                    if text:
+                        token_parts.append(text)
+                except Exception:
+                    pass
+            if frame.startswith("event: done"):
+                state["done_yielded"] = True
+            yield frame
+    finally:
+        # A2（P1-08）：正常完成 / 断线（GeneratorExit）/ 异常均收敛到单一提交。
+        status = (
+            MessageStatus.completed
+            if state["done_yielded"]
+            else MessageStatus.interrupted
+        )
+        content = state["content"] or "".join(token_parts)
+        citations = state["citations"] or []
+        retrieval_ms = state["retrieval_duration_ms"]
+        run_status = (
+            resolve_run_status(outcome)
+            if outcome is not None
+            else AgentRunStatus.failed
+        )
+        audit_events: tuple = ()
+        if outcome is not None:
+            audit_events = (
+                partial(
+                    audit_agent_run_completed,
+                    actor_user_id=user_id,
+                    run_id=outcome.run_id,
+                    steps_used=outcome.steps_used,
+                    capped=outcome.capped,
+                    citation_count=len(citations),
                 ),
-                llm_raw=planner.last_llm_raw,
             )
-
-    async for frame in _stream_generation_phase(
-        db,
-        message=message,
-        gen_plan=gen_plan,
-        outcome=outcome,
-        user_id=user_id,
-        save_turn=save_turn,
-        save_kwargs=save_kwargs,
-        history=history,
-    ):
-        yield frame
+        await _finalize_agent_turn(
+            db,
+            thread=thread,
+            user_id=user_id,
+            user_message_id=user_message_id,
+            user_content=message,
+            assistant_message_id=assistant_message_id,
+            assistant_content=content,
+            citations=citations,
+            status=status,
+            common=common,
+            retrieval_duration_ms=retrieval_ms,
+            run_id=outcome.run_id if outcome is not None else None,
+            run_status=run_status,
+            audit_events=audit_events,
+        )
 
 
 async def stream_agent_kb_events(
@@ -351,21 +537,53 @@ async def stream_agent_kb_events(
     planner: ToolPlanner,
     org_scope: OrgScope | None = None,
 ) -> AsyncIterator[str]:
-    """库内精准模式 SSE（G3-E9 · semantic_search 默认 kb）。"""
-    async for frame in _stream_agent_core(
+    """库内精准模式 SSE（G3-E9 · semantic_search 默认 kb；A2 DWC 预提交 + 兜底）。"""
+    thread = await resolve_thread_for_message(
+        db,
+        thread_id=thread_id,
+        thread_kind=ThreadKind.knowledge_base,
+        kb_id=kb_id,
+        user_id=user_id,
+    )
+    common = {
+        "thread_kind": ThreadKind.knowledge_base,
+        "kb_id": kb_id,
+        "user_id": user_id,
+        "thread_id": thread.id,
+    }
+    user_message_id, assistant_message_id = await precommit_turn_shell(
+        db,
+        thread=thread,
+        user_id=user_id,
+        user_content=message,
+        common=common,
+        pending_kwargs={
+            "thread_kind": ThreadKind.knowledge_base,
+            "kb_id": kb_id,
+        },
+    )
+    stream = _stream_agent_core(
         db,
         user_id=user_id,
         message=message,
-        thread_id=thread_id,
+        thread_id=thread.id,
         workspace=workspace,
         tool_scope=tool_scope,
         planner=planner,
         org_scope=org_scope,
         workspace_mode=False,
-        save_turn=save_chat_turn,
-        save_kwargs={"kb_id": kb_id, "thread_id": thread_id},
-    ):
-        yield frame
+        thread=thread,
+        user_message_id=user_message_id,
+        assistant_message_id=assistant_message_id,
+        common=common,
+    )
+    try:
+        async for frame in stream:
+            yield frame
+    finally:
+        # 外层 GeneratorExit（客户端断开）不会自动传入内层生成器；
+        # 显式 aclose 让 _stream_agent_core 的 finally 兜底落库（P1-08）。
+        await stream.aclose()
 
 
 async def stream_agent_workspace_events(
@@ -380,26 +598,60 @@ async def stream_agent_workspace_events(
     tool_scope: AgentToolScope,
     planner: ToolPlanner,
 ) -> AsyncIterator[str]:
-    """工作区精准模式 SSE（跨库 tool · workspace citation）。"""
-    async for frame in _stream_agent_core(
+    """工作区精准模式 SSE（跨库 tool · workspace citation；A2 DWC 预提交 + 兜底）。"""
+    department_key = normalize_workspace_department_key(department_id)
+    thread = await resolve_thread_for_message(
+        db,
+        thread_id=thread_id,
+        thread_kind=ThreadKind.workspace,
+        kb_id=None,
+        user_id=user_id,
+        workspace_kind=scope.kind,
+        workspace_org_id=scope.org_id,
+        department_key=department_key,
+    )
+    common = {
+        "thread_kind": ThreadKind.workspace,
+        "kb_id": None,
+        "user_id": user_id,
+        "workspace_kind": scope.kind.value,
+        "workspace_org_id": scope.org_id,
+        "workspace_department_key": department_key,
+        "thread_id": thread.id,
+    }
+    user_message_id, assistant_message_id = await precommit_turn_shell(
+        db,
+        thread=thread,
+        user_id=user_id,
+        user_content=message,
+        common=common,
+        pending_kwargs={
+            "thread_kind": ThreadKind.workspace,
+            "workspace_kind": scope.kind.value,
+            "workspace_org_id": scope.org_id,
+            "workspace_department_key": department_key,
+        },
+    )
+    stream = _stream_agent_core(
         db,
         user_id=user_id,
         message=message,
-        thread_id=thread_id,
+        thread_id=thread.id,
         workspace=scope,
         tool_scope=tool_scope,
         planner=planner,
         org_scope=org_scope,
         workspace_mode=True,
-        save_turn=save_workspace_chat_turn,
-        save_kwargs={
-            "workspace_kind": scope.kind,
-            "workspace_org_id": scope.org_id,
-            "department_id": department_id,
-            "thread_id": thread_id,
-        },
-    ):
-        yield frame
+        thread=thread,
+        user_message_id=user_message_id,
+        assistant_message_id=assistant_message_id,
+        common=common,
+    )
+    try:
+        async for frame in stream:
+            yield frame
+    finally:
+        await stream.aclose()
 
 
 # --- G4-2.2 · 编辑模式 SSE 事件流 ----------------------------------------------
@@ -464,8 +716,8 @@ async def _render_edit_sse(
     user_id: UUID,
     workspace_mode: bool,
     can_adopt: bool,
-    save_turn: SaveTurnFn,
-    save_kwargs: dict[str, Any],
+    assistant_message_id: UUID,
+    state: dict[str, Any],
 ) -> AsyncIterator[str]:
     """编辑模式 SSE 渲染（纯渲染 · 顺序硬约束）。
 
@@ -479,7 +731,7 @@ async def _render_edit_sse(
     改发 refusal（带 G4-1.3 reason 码文案）。
 
     不写库：generate_faq_draft 自身已落 agent_approvals(pending)；
-    本函数仅读回预览、保存对话轮次（与 G3 同构）、结束 run。
+    本函数仅渲染事件并记录 state（落库由 stream_agent_edit_events 的 finally 统一收口，A2）。
     """
     # 1) tool 阶段事件（tool_start/tool_result/agent_budget）—— 首条 citation 之前
     for event_name, data in tool_events:
@@ -539,38 +791,15 @@ async def _render_edit_sse(
             },
         )
 
-    # 6) 落库助手消息 + 结束 run + done（approval_required / refusal 均在 done 之前）
-    message_id = uuid.uuid4()
+    # 6) done（approval_required / refusal 均在 done 之前；落库由调用方 finally 收口）
     retrieval_duration_ms = sum(step.latency_ms for step in outcome.steps) or None
-    await save_turn(
-        db,
-        user_id=user_id,
-        user_content=message,
-        assistant_content=token_text,
-        citations=citations,
-        assistant_message_id=message_id,
-        retrieval_duration_ms=retrieval_duration_ms,
-        **save_kwargs,
-    )
-    await finish_agent_run(
-        db,
-        run_id=outcome.run_id,
-        user_id=user_id,
-        status=resolve_run_status(outcome),
-        assistant_message_id=message_id,
-    )
-    await audit_agent_run_completed(
-        db,
-        actor_user_id=user_id,
-        run_id=outcome.run_id,
-        steps_used=outcome.steps_used,
-        capped=outcome.capped,
-        citation_count=len(citations),
-    )
+    state["content"] = token_text
+    state["citations"] = citations
+    state["retrieval_duration_ms"] = retrieval_duration_ms
     yield _sse_event(
         "done",
         {
-            "message_id": str(message_id),
+            "message_id": str(assistant_message_id),
             "citations": citations,
             "agent_run_id": str(outcome.run_id),
             "approval_id": str(approval_id) if approval_id is not None else None,
@@ -614,32 +843,94 @@ async def stream_agent_edit_events(
     选择本函数；库内入口经 `stream_agent_kb_edit_events` 薄封装（默认目标库 =
     路径 kb · G4-E19 · `workspace_mode=False` + `save_chat_turn`）。本函数已参数化
     workspace_mode / save_turn / save_kwargs / can_adopt，调用方按入口选择即可。
+
+    A2（DWC）：入口预提交 user + pending assistant（P1-08）；finally 经
+    finalize_turn 单次 commit（断线/异常以 partial + interrupted 兜底）。
     """
-    hooks = _BufferingToolHooks()
-    outcome = await run_react_loop(
-        db,
-        user_id=user_id,
-        thread_id=thread_id,
-        query=message,
-        workspace=workspace,
-        tool_scope=tool_scope,
-        planner=planner,
-        org_scope=org_scope,
-        hooks=hooks,
-        mode=AgentRunMode.edit,
+    del save_turn  # A2：落库统一走 finalize_turn，save_turn 仅保留签名兼容
+    thread, user_message_id, assistant_message_id, common = (
+        await _precommit_for_save_kwargs(
+            db,
+            save_kwargs=save_kwargs,
+            user_id=user_id,
+            message=message,
+            thread_id=thread_id,
+        )
     )
-    async for frame in _render_edit_sse(
-        db,
-        outcome=outcome,
-        tool_events=hooks.events,
-        message=message,
-        user_id=user_id,
-        workspace_mode=workspace_mode,
-        can_adopt=can_adopt,
-        save_turn=save_turn,
-        save_kwargs=save_kwargs,
-    ):
-        yield frame
+    hooks = _BufferingToolHooks()
+    state: dict[str, Any] = {
+        "content": "",
+        "citations": [],
+        "retrieval_duration_ms": None,
+        "done_yielded": False,
+    }
+    outcome: AgentRunOutcome | None = None
+    try:
+        outcome = await run_react_loop(
+            db,
+            user_id=user_id,
+            thread_id=thread.id,
+            query=message,
+            workspace=workspace,
+            tool_scope=tool_scope,
+            planner=planner,
+            org_scope=org_scope,
+            hooks=hooks,
+            mode=AgentRunMode.edit,
+        )
+        async for frame in _render_edit_sse(
+            db,
+            outcome=outcome,
+            tool_events=hooks.events,
+            message=message,
+            user_id=user_id,
+            workspace_mode=workspace_mode,
+            can_adopt=can_adopt,
+            assistant_message_id=assistant_message_id,
+            state=state,
+        ):
+            if frame.startswith("event: done"):
+                state["done_yielded"] = True
+            yield frame
+    finally:
+        status = (
+            MessageStatus.completed
+            if state["done_yielded"]
+            else MessageStatus.interrupted
+        )
+        run_status = (
+            resolve_run_status(outcome)
+            if outcome is not None
+            else AgentRunStatus.failed
+        )
+        audit_events: tuple = ()
+        if outcome is not None:
+            audit_events = (
+                partial(
+                    audit_agent_run_completed,
+                    actor_user_id=user_id,
+                    run_id=outcome.run_id,
+                    steps_used=outcome.steps_used,
+                    capped=outcome.capped,
+                    citation_count=len(state["citations"]),
+                ),
+            )
+        await _finalize_agent_turn(
+            db,
+            thread=thread,
+            user_id=user_id,
+            user_message_id=user_message_id,
+            user_content=message,
+            assistant_message_id=assistant_message_id,
+            assistant_content=state["content"],
+            citations=state["citations"],
+            status=status,
+            common=common,
+            retrieval_duration_ms=state["retrieval_duration_ms"],
+            run_id=outcome.run_id if outcome is not None else None,
+            run_status=run_status,
+            audit_events=audit_events,
+        )
 
 
 # --- G4-2.3 · 库内编辑模式 SSE 事件流（默认目标库 = 路径 kb · G4-E19） --------
@@ -736,10 +1027,10 @@ async def _render_document_write_sse(
     message: str,
     user_id: UUID,
     can_adopt: bool,
-    save_turn: SaveTurnFn,
-    save_kwargs: dict[str, Any],
     planner: ToolPlanner | None = None,
     double_confirm: bool = False,
+    assistant_message_id: UUID,
+    state: dict[str, Any],
 ) -> AsyncIterator[str]:
     """文档操作模式 SSE 渲染（纯渲染 · 顺序硬约束）。
 
@@ -750,7 +1041,8 @@ async def _render_document_write_sse(
     - 候选多篇（B 路径歧义 · 情景 5）→ clarify（含 operation/run_id/options），
       前端点选后 POST /agent/document-write/clarify 取回提案。
     - 越权 / 文档未命中 / 操作无法解析 → refusal（带 G5-1.3 reason 码文案）。
-    不写库：本函数仅保存对话轮次、结束 run。
+    不写库：本函数仅渲染事件并记录 state（落库由 stream_agent_document_write_events
+    的 finally 统一收口，A2）。
     """
     # 1) tool 阶段事件（tool_start/tool_result/agent_budget）
     for event_name, data in tool_events:
@@ -821,38 +1113,15 @@ async def _render_document_write_sse(
             },
         )
 
-    # 3) 落库助手消息 + 结束 run + done（proposal_preview / clarify / refusal 均在 done 之前）
-    message_id = uuid.uuid4()
+    # 3) done（proposal_preview / clarify / refusal 均在 done 之前；落库由调用方 finally 收口）
     retrieval_duration_ms = sum(step.latency_ms for step in outcome.steps) or None
-    await save_turn(
-        db,
-        user_id=user_id,
-        user_content=message,
-        assistant_content=token_text,
-        citations=[],
-        assistant_message_id=message_id,
-        retrieval_duration_ms=retrieval_duration_ms,
-        **save_kwargs,
-    )
-    await finish_agent_run(
-        db,
-        run_id=outcome.run_id,
-        user_id=user_id,
-        status=resolve_run_status(outcome),
-        assistant_message_id=message_id,
-    )
-    await audit_agent_run_completed(
-        db,
-        actor_user_id=user_id,
-        run_id=outcome.run_id,
-        steps_used=outcome.steps_used,
-        capped=outcome.capped,
-        citation_count=0,
-    )
+    state["content"] = token_text
+    state["citations"] = []
+    state["retrieval_duration_ms"] = retrieval_duration_ms
     yield _sse_event(
         "done",
         {
-            "message_id": str(message_id),
+            "message_id": str(assistant_message_id),
             "citations": [],
             "agent_run_id": str(outcome.run_id),
         },
@@ -862,6 +1131,7 @@ async def _render_document_write_sse(
 async def stream_agent_document_write_events(
     db: AsyncSession,
     *,
+    kb_id: UUID | None = None,
     user_id: UUID,
     message: str,
     thread_id: UUID,
@@ -880,31 +1150,94 @@ async def stream_agent_document_write_events(
     事件顺序硬约束：tool → token → proposal_preview / clarify / refusal → done。
     提案成功 → proposal_preview（不建 pending）；用户确认后由 submit 端点建 pending。
     `double_confirm=True`（B 路径）时 proposal_preview 携带该标志，前端需两次点击确认。
+
+    A2（DWC）：入口预提交 user + pending assistant（P1-08）；finally 经
+    finalize_turn 单次 commit。``kb_id`` 仅库内调用方（kb_threads.py）传入，
+    供 thread 解析；跨库 /ask 走 save_kwargs 工作区键解析。
     """
-    del workspace_mode  # 文档操作无 chunk 引用，不需 workspace/跨库 citation 模式
-    hooks = _BufferingToolHooks()
-    outcome = await run_react_loop(
-        db,
-        user_id=user_id,
-        thread_id=thread_id,
-        query=message,
-        workspace=workspace,
-        tool_scope=tool_scope,
-        planner=planner,
-        org_scope=org_scope,
-        hooks=hooks,
-        mode=AgentRunMode.document_write,
+    # 文档操作无 chunk 引用；kb 归属由 save_kwargs/planner 决定；落库统一走 finalize_turn
+    del workspace_mode, kb_id, save_turn
+    thread, user_message_id, assistant_message_id, common = (
+        await _precommit_for_save_kwargs(
+            db,
+            save_kwargs=save_kwargs,
+            user_id=user_id,
+            message=message,
+            thread_id=thread_id,
+        )
     )
-    async for frame in _render_document_write_sse(
-        db,
-        outcome=outcome,
-        tool_events=hooks.events,
-        message=message,
-        user_id=user_id,
-        can_adopt=can_adopt,
-        planner=planner,
-        double_confirm=double_confirm,
-        save_turn=save_turn,
-        save_kwargs=save_kwargs,
-    ):
-        yield frame
+    hooks = _BufferingToolHooks()
+    state: dict[str, Any] = {
+        "content": "",
+        "citations": [],
+        "retrieval_duration_ms": None,
+        "done_yielded": False,
+    }
+    outcome: AgentRunOutcome | None = None
+    try:
+        outcome = await run_react_loop(
+            db,
+            user_id=user_id,
+            thread_id=thread.id,
+            query=message,
+            workspace=workspace,
+            tool_scope=tool_scope,
+            planner=planner,
+            org_scope=org_scope,
+            hooks=hooks,
+            mode=AgentRunMode.document_write,
+        )
+        async for frame in _render_document_write_sse(
+            db,
+            outcome=outcome,
+            tool_events=hooks.events,
+            message=message,
+            user_id=user_id,
+            can_adopt=can_adopt,
+            planner=planner,
+            double_confirm=double_confirm,
+            assistant_message_id=assistant_message_id,
+            state=state,
+        ):
+            if frame.startswith("event: done"):
+                state["done_yielded"] = True
+            yield frame
+    finally:
+        status = (
+            MessageStatus.completed
+            if state["done_yielded"]
+            else MessageStatus.interrupted
+        )
+        run_status = (
+            resolve_run_status(outcome)
+            if outcome is not None
+            else AgentRunStatus.failed
+        )
+        audit_events: tuple = ()
+        if outcome is not None:
+            audit_events = (
+                partial(
+                    audit_agent_run_completed,
+                    actor_user_id=user_id,
+                    run_id=outcome.run_id,
+                    steps_used=outcome.steps_used,
+                    capped=outcome.capped,
+                    citation_count=0,
+                ),
+            )
+        await _finalize_agent_turn(
+            db,
+            thread=thread,
+            user_id=user_id,
+            user_message_id=user_message_id,
+            user_content=message,
+            assistant_message_id=assistant_message_id,
+            assistant_content=state["content"],
+            citations=state["citations"],
+            status=status,
+            common=common,
+            retrieval_duration_ms=state["retrieval_duration_ms"],
+            run_id=outcome.run_id if outcome is not None else None,
+            run_status=run_status,
+            audit_events=audit_events,
+        )

@@ -58,6 +58,45 @@ class TurnMessage:
 AuditEvent = Callable[[AsyncSession], Awaitable[None]]
 
 
+async def precommit_turn_shell(
+    db: AsyncSession,
+    *,
+    thread: ChatThread,
+    user_id: UUID,
+    user_content: str,
+    common: dict[str, Any],
+    pending_kwargs: dict[str, Any],
+) -> tuple[UUID, UUID]:
+    """预提交外壳（P1-08）：user 消息 + pending assistant 一次 commit。
+
+    返回 (user_message_id, pending_assistant_id)。流开始前调用，断线后问句与占位
+    assistant 均已落库，后续 finalize_turn 原地收尾（A1 chat 路径 / A2 agent 路径共用）。
+    user 消息以 pending 态预提交：多轮历史加载会过滤 pending，避免本轮消息污染
+    检索上下文（E1）；finalize_turn 原地完成化并刷新 created_at 保序（P0-10）。
+    """
+    from app.models.chat_message import ChatMessage as ChatMessageModel
+    from app.models.enums import MessageRole, MessageStatus
+    from app.services.rag.persistence import create_pending_message
+
+    user_row = ChatMessageModel(
+        **common,
+        role=MessageRole.user,
+        content=user_content,
+        status=MessageStatus.pending,
+        citations=None,
+    )
+    db.add(user_row)
+    pending_msg = await create_pending_message(
+        db,
+        thread_id=thread.id,
+        user_id=user_id,
+        query=user_content,
+        **pending_kwargs,
+    )
+    await db.commit()
+    return user_row.id, pending_msg.id
+
+
 async def finalize_turn(
     db: AsyncSession,
     *,

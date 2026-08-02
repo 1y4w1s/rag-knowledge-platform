@@ -23,5 +23,15 @@ celery_app.conf.update(
     worker_max_tasks_per_child=100,
 )
 
+# B2：agent 生命周期清扫（running 超时 + 审批过期）——beat 每 15 分钟
+celery_app.conf.beat_schedule = {
+    "agent-run-sweep-every-15m": {
+        "task": "agent.sweep_agent_runs",
+        "schedule": 900.0,
+    },
+}
+
 # 自动发现 Task
-celery_app.autodiscover_tasks(["app.services.ingestion"], force=True)
+celery_app.autodiscover_tasks(
+    ["app.services.ingestion", "app.services.agent"], force=True
+)

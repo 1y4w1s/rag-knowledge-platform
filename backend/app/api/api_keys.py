@@ -82,6 +82,8 @@ async def create_api_key(
         metadata={"name": body.name, "prefix": prefix},
     )
     await db.flush()
+    # A3 写端点纪律（P0-07）：create 此前只 flush 不 commit，session 关闭回滚 → API Key 永不落库。
+    await db.commit()
 
     return ApiKeyCreateResponse(
         id=str(api_key.id),

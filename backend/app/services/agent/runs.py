@@ -153,11 +153,25 @@ async def finish_agent_run(
 
     仅 running 态可写终态（UPDATE ... WHERE status='running'）：双路径重复 finish
     不覆盖已落终态（P0-01）；run 非 owner 返回 None（G3-E10）。
+
+    A2 补充：run 已终态但 ``assistant_message_id`` 为空且本次传入非空 → **仅回填**
+    该字段（A1/B1 的「终态不覆盖」不破——status/finished_at 不变）。这修复了
+    agent 路径「run 终态先落、message 关联后到」导致 message_id 恒为空的问题。
     """
     run = await get_agent_run_for_user(db, run_id=run_id, user_id=user_id)
     if run is None:
         return None
     if run.status != AgentRunStatus.running:
+        if (
+            assistant_message_id is not None
+            and run.assistant_message_id is None
+        ):
+            await db.execute(
+                update(AgentRun)
+                .where(AgentRun.id == run_id)
+                .values(assistant_message_id=assistant_message_id)
+            )
+            await db.refresh(run)
         # 幂等：终态已落，不再覆盖
         return run
     values: dict[str, Any] = {

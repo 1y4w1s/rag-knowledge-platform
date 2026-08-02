@@ -15,11 +15,12 @@ cancel 路径（G4-E5/E6/E9）属 G4-3.3，见 ``resolve_cancel_approval``。
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from uuid import UUID
 
 from fastapi import BackgroundTasks, HTTPException, status
+from app.core.config import settings
 from app.core.exceptions import NotFoundError, ConflictError, ServiceError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,14 +33,51 @@ from app.services.agent.adopt import (
     bind_adopt_background_tasks,
     unbind_adopt_background_tasks,
 )
-from app.services.documents.lifecycle import _soft_delete_no_commit
-from app.services.documents.trash import _restore_no_commit
 from sqlalchemy import select
 from app.services.audit.agent import (
     audit_agent_approval_adopted,
     audit_agent_approval_cancelled,
+    audit_agent_approval_expired,
     safe_audit,
 )
+
+
+def _ensure_aware(dt: datetime) -> datetime:
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
+def approval_is_expired(approval: AgentApproval, *, now: datetime | None = None) -> bool:
+    """B2（P1-03）：pending 审批按 created_at + TTL 惰性判定过期。"""
+    if approval.status != ApprovalStatus.pending:
+        return False
+    now = _ensure_aware(now or datetime.now(timezone.utc))
+    deadline = _ensure_aware(approval.created_at) + timedelta(
+        hours=settings.agent_approval_ttl_hours
+    )
+    return now > deadline
+
+
+async def _expire_approval_if_stale(
+    db: AsyncSession,
+    approval: AgentApproval,
+) -> bool:
+    """resolve 入口惰性过期：pending 且超 TTL → 置 expired + 审计（flush，随主事务提交）。"""
+    if not approval_is_expired(approval):
+        return False
+    approval.status = ApprovalStatus.expired
+    approval.resolved_at = datetime.now(timezone.utc)
+    await db.flush()
+    await safe_audit(
+        audit_agent_approval_expired(
+            db,
+            approval_id=approval.id,
+            kb_id=approval.kb_id,
+            filename=approval.filename,
+        )
+    )
+    return True
 
 
 async def resolve_adopt_approval(
@@ -55,13 +93,27 @@ async def resolve_adopt_approval(
 
     校验顺序（影响 E 语义）：
       1. approval 存在性 → 404（G4-E8/E15 归属校验失败兜底）
-      2. kb 可见/可写 + 角色 → 404（kb 不存在）/ 403（跨库·不可写·Member 硬闯）
+      2. 过期判定（B2/P1-03）：pending 超 TTL → 置 expired + 409
+      3. kb 可见/可写 + 角色 → 404（kb 不存在）/ 403（跨库·不可写·Member 硬闯）
          （G4-E1 Member 403 / 归属校验失败 403/404）
-      3. 状态必须为 pending → 否则 409（G4-E3 重复采纳 / 非 pending G4-E15）
+      4. 状态必须为 pending → 否则 409（G4-E3 重复采纳 / 非 pending G4-E15）
+
+    A3（H3 并发单文档）：approval 行用 ``SELECT ... FOR UPDATE`` 行锁——并发双
+    adopt/cancel 串行化，后到者在锁内看到非 pending → 409，杜绝双写文档/状态覆盖。
     """
-    approval = await db.get(AgentApproval, approval_id)
+    approval = await db.scalar(
+        select(AgentApproval)
+        .where(AgentApproval.id == approval_id)
+        .with_for_update()
+    )
     if approval is None:
         raise NotFoundError("审批不存在")
+
+    # 入口先判过期（B2）：置 expired 后按「非 pending」语义 409。
+    if await _expire_approval_if_stale(db, approval):
+        exc = ConflictError("该审批已过期，不可处理")
+        exc.audit_reason = "expired"
+        raise exc
 
     # 归属 + 权限二次校验：approval 目标 kb 必须在当前用户可见/可写范围，且角色可写。
     # 跨组织库 / 不可见库 → 403/404；Member 写动作 → 403（G4-E1）。
@@ -156,6 +208,10 @@ async def _resolve_document_write(
     权限/归属已由 resolve_adopt_approval 顶部 require_kb_access(write) 校验；
     此处仅按状态取目标文档并复用底层 no_commit 变体（保留 processing / 同名冲突检查）。
     """
+    # 惰性导入：断 approvals → lifecycle/trash → enqueue → celery_app → agent 的模块级循环
+    from app.services.documents.lifecycle import _soft_delete_no_commit
+    from app.services.documents.trash import _restore_no_commit
+
     document_id = approval.document_id
     if approval.kind == ApprovalKind.delete_document:
         doc = await db.scalar(
@@ -201,13 +257,23 @@ async def resolve_cancel_approval(
 
     校验顺序（影响 E 语义）：
       1. approval 存在性 → 404（G4-E8）
-      2. 权限：创建者本人 → 放行；否则 ``require_kb_access(KbAction.write)``
+      2. 过期判定（B2/P1-03）：pending 超 TTL → 置 expired + 409
+      3. 权限：创建者本人 → 放行；否则 ``require_kb_access(KbAction.write)``
          → 403（Member 硬闯他人 pending = G4-E9）/ 404（kb 不存在）
-      3. 状态须 ``pending`` → 否则 409（G4-E5 · 已 adopted / 已 cancelled）
+      4. 状态须 ``pending`` → 否则 409（G4-E5 · 已 adopted / 已 cancelled）
     """
-    approval = await db.get(AgentApproval, approval_id)
+    approval = await db.scalar(
+        select(AgentApproval)
+        .where(AgentApproval.id == approval_id)
+        .with_for_update()
+    )
     if approval is None:
         raise NotFoundError("审批不存在")
+
+    if await _expire_approval_if_stale(db, approval):
+        exc = ConflictError("该审批已过期，不可处理")
+        exc.audit_reason = "expired"
+        raise exc
 
     # H4-5-B：创建者本人可取消自己的卡；否则需为 kb Admin/Owner（写权限）。
     # 创建者路径跳过 require_kb_access（Member 也能撤自己创建的卡）。

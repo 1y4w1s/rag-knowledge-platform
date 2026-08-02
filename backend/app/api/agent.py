@@ -148,6 +148,10 @@ async def resolve_approval(
         # G4-3.5：denied 审计（撤销/采纳被拒）。主事务即将回滚，必须用**独立会话**
         # 立即 commit，避免被主请求的回滚吞掉；写完后原样 re-raise 原异常。
         await _audit_approval_denied(approval_id, exc)
+        if getattr(exc, "audit_reason", None) == "expired":
+            # B2（P1-03）：惰性过期在主事务内判定并置 expired——行锁内不能用独立会话
+            # 更新同行使锁自死，故在回滚前显式提交该状态转换（审计随主事务落库）。
+            await db.commit()
         raise
 
 

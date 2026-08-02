@@ -140,6 +140,17 @@ async def prewarm_models():
         logger.warning("BGE 模型预热失败（不影响启动）: %s", e)
 
 
+@app.on_event("startup")
+async def sweep_stale_agent_runs_on_startup():
+    """B2（P1-03/P0-01）：启动时一次性清扫 crash 残留 running run / 过期审批。
+
+    内部 try/except 吞错，失败不阻断启动；beat 周期任务在运行态继续兜底。
+    """
+    from app.services.agent.sweeper import run_agent_sweep_startup
+
+    await run_agent_sweep_startup()
+
+
 def _check_production_guard() -> None:
     """生产环境安全守卫：拒绝使用默认密钥或缺少关键配置时启动。"""
     if settings.jwt_secret in ("replace-with-a-long-random-string", "changeme"):

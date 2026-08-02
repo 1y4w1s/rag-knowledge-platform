@@ -252,6 +252,8 @@ async def update_document_visibility(
 
     doc.visibility = body.visibility
     await db.flush()
+    # A3 写端点纪律（P0-08）：visibility 变更此前只 flush 不 commit，session 关闭回滚 → 永不生效。
+    await db.commit()
     return DocumentResponse.model_validate(doc)
 
 

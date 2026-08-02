@@ -193,6 +193,25 @@ async def _run_edit_sse(monkeypatch, outcome, citations, *, can_adopt=False, kb_
 
     _patch_edit_runtime(monkeypatch, outcome, citations, tool_events=tool_events)
 
+    # A2（DWC）：stream_agent_edit_events 入口新增 thread 解析 + 预提交外壳 + finalize 收口——
+    # 本文件聚焦事件序渲染，DB 相关新步骤整体 mock（真实落库由 test_agent_a2a3b2b3 覆盖）。
+    from app.models.chat_thread import ChatThread
+
+    fake_thread = MagicMock(spec=ChatThread)
+    fake_thread.id = uuid.uuid4()
+    monkeypatch.setattr(
+        "app.services.agent.stream.resolve_thread_for_message",
+        AsyncMock(return_value=fake_thread),
+    )
+    monkeypatch.setattr(
+        "app.services.agent.stream.precommit_turn_shell",
+        AsyncMock(return_value=(uuid.uuid4(), uuid.uuid4())),
+    )
+    monkeypatch.setattr(
+        "app.services.agent.stream._finalize_agent_turn",
+        AsyncMock(return_value=uuid.uuid4()),
+    )
+
     fake_approval = MagicMock(spec=AgentApproval)
     fake_approval.kb_id = kb_id or uuid.uuid4()
     fake_approval.filename = "FAQ_年假.md"

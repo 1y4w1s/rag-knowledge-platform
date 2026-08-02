@@ -42,7 +42,13 @@ async def upsert_memory(
     """写入/更新一条记忆，返回 memory_id。
 
     UPSERT：user_id + key 冲突时覆盖 value + 重置 confidence。
+
+    A3（H4/P1-05）：写入走**独立 session 立即 commit**，绝不触碰调用方事务——
+    agent run 流式期间 upsert 不再把半成品 run/steps/审批提前持久化，也不破坏
+    主 session（commit 失败不污染 SSE 长事务）。``db`` 参数保留仅为兼容签名。
     """
+    from app.core.database import SessionLocal
+
     now = datetime.now(timezone.utc)
     stmt = text("""
         INSERT INTO agent_memories (id, user_id, kb_id, memory_type, key, value, confidence, last_accessed_at)
@@ -55,18 +61,19 @@ async def upsert_memory(
         -- memory_type 在 key 首次创建时确定，后续不允许通过 upsert 变更类型。
         RETURNING id
     """)
-    result = await db.execute(stmt, {
-        "id": uuid.uuid4(),
-        "user_id": user_id,
-        "kb_id": kb_id,
-        "memory_type": memory_type,
-        "key": key,
-        "value": json.dumps(value),
-        "now": now,
-    })
-    await db.commit()
-    row = result.fetchone()
-    return row[0]
+    async with SessionLocal() as mem_db:
+        result = await mem_db.execute(stmt, {
+            "id": uuid.uuid4(),
+            "user_id": user_id,
+            "kb_id": kb_id,
+            "memory_type": memory_type,
+            "key": key,
+            "value": json.dumps(value),
+            "now": now,
+        })
+        row = result.fetchone()
+        await mem_db.commit()
+        return row[0]
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -150,11 +157,17 @@ async def extract_and_store_memory(
 # ═══════════════════════════════════════════════════════════════
 
 async def delete_memory(db: AsyncSession, memory_id: uuid.UUID) -> bool:
-    """删除一条记忆。返回是否找到并删除。"""
+    """删除一条记忆。返回是否找到并删除。
+
+    A3（H4/P1-05）：独立 session 立即 commit，不触碰调用方事务。``db`` 参数保留仅为兼容签名。
+    """
     from sqlalchemy import delete as sa_delete
 
-    result = await db.execute(
-        sa_delete(AgentMemory).where(AgentMemory.id == memory_id)
-    )
-    await db.commit()
-    return result.rowcount > 0
+    from app.core.database import SessionLocal
+
+    async with SessionLocal() as mem_db:
+        result = await mem_db.execute(
+            sa_delete(AgentMemory).where(AgentMemory.id == memory_id)
+        )
+        await mem_db.commit()
+        return result.rowcount > 0
