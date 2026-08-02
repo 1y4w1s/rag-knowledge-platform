@@ -91,7 +91,9 @@ async def test_change_password_wrong_current(
         headers=headers,
         json={"current_password": "wrongpass", "new_password": "Newpass456!"},
     )
-    assert resp.status_code == 400
+    # ValidationError 语义 = 422（core/exceptions.py 全库约定）；
+    # 旧断言 400 为陈旧断言（H2 回归修正，服务行为未变）
+    assert resp.status_code == 422
     assert resp.json()["detail"] == "当前密码不正确"
 
 

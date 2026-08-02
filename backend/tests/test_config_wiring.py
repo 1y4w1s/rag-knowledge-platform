@@ -26,8 +26,6 @@ CONFIG_PATH = APP_ROOT / "core" / "config.py"
 # C1 §2.4 白名单：(app 相对路径, env 键)。settings 均为优先源，env 仅为兼容回退。
 ENV_WHITELIST = {
     ("app/core/redis.py", "CELERY_BROKER_URL"),
-    ("app/services/agent/tools/sql_query.py", "AGENT_DB_URL"),
-    ("app/services/agent/tools/sql_query.py", "READONLY_DATABASE_URL"),
     ("app/services/agent/tools/web_search.py", "SEARCH_API_KEY"),
     ("app/services/auth/api_rate_limit.py", "RAG_RATE_LIMIT_MODE"),
     ("app/services/auth/rate_limit_store.py", "RATE_LIMIT_BACKEND"),

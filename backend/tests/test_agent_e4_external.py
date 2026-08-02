@@ -1,11 +1,11 @@
 """E4 外部工具适配器 — 测试套件。
 
-覆盖范围（§2.8 · 18 个用例）：
+覆盖范围：
 - web_search 单元测试（#1-3）
-- sql_query 验证测试（#4-12）
-- dispatch 返回值测试（#13-14）
-- planner 过滤测试（#15-16）
-- 门禁统一测试（#17-18）
+- sql_query 下线拒绝测试（H2 收口 · P0-02/03）
+- dispatch 返回值测试（web_search / sql_query 拒绝）
+- planner 过滤测试（web_search 受外部工具开关控制；sql_query 不再暴露）
+- 门禁统一测试（外部计数仅 web_search）
 """
 
 from __future__ import annotations
@@ -15,12 +15,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from app.services.agent.tools.sql_query import (
-    QueryResult,
-    _reject_dangerous_functions,
-    _resolve_db_url,
-    sql_query,
-)
+from app.services.agent.tools.sql_query import QueryResult, sql_query
 from app.services.agent.tools.web_search import WebSearchResult, web_search
 
 
@@ -64,131 +59,67 @@ class TestWebSearch:
 
 
 # ═══════════════════════════════════════════════════════════════════════════
-# §2 sql_query 验证测试（纯函数层，不涉及真实 DB）
+# §2 sql_query 下线拒绝测试（H2 收口 · P0-02/03，不涉及真实 DB）
 # ═══════════════════════════════════════════════════════════════════════════
 
 
-class TestSqlQueryValidation:
-    """#4-12：sql_query 输入验证（无 DB 连接）。"""
+class TestSqlQueryOffline:
+    """sql_query 已下线：任何输入一律拒绝（fail-closed）。"""
 
-    async def test_no_db_url(self) -> None:
-        """#4：无连接串 → ok=False，含"需要"提示。"""
-        with patch.dict(os.environ, {}, clear=True):
-            result = await sql_query(sql="SELECT 1")
+    async def test_denies_plain_select(self) -> None:
+        """普通 SELECT 也被拒绝（无白名单例外）。"""
+        result = await sql_query(sql="SELECT 1")
         assert not result.ok
-        assert "需要" in result.summary
-        assert "AGENT_DB_URL" in result.summary
+        assert "无权限" in result.summary
 
-    async def test_reject_insert(self) -> None:
-        """#5：禁止 INSERT。"""
-        result = await sql_query(sql="INSERT INTO docs VALUES (1)")
-        assert not result.ok
-        assert "仅支持" in result.summary
-
-    async def test_reject_drop(self) -> None:
-        """#6：禁止 DROP TABLE。"""
-        result = await sql_query(sql="DROP TABLE docs")
-        assert not result.ok
-        assert "仅支持" in result.summary
-
-    async def test_reject_multi_statement(self) -> None:
-        """#7：禁止多条语句。"""
-        result = await sql_query(sql="SELECT 1; SELECT 2")
-        assert not result.ok
-        assert ("多条" in result.summary) or ("不允" in result.summary)
-
-    async def test_reject_sensitive_table(self) -> None:
-        """#8：禁止访问敏感表 users。"""
-        result = await sql_query(sql="SELECT * FROM users")
-        assert not result.ok
-        assert "禁止访问敏感表" in result.summary
-
-    async def test_reject_pg_read_file(self) -> None:
-        """#9：禁止危险函数 pg_read_file。"""
-        result = await sql_query(sql="SELECT pg_read_file('/etc/passwd')")
-        assert not result.ok
-        assert "禁止危险函数" in result.summary
-
-    async def test_reject_dblink(self) -> None:
-        """#10：禁止 dblink_connect。"""
-        result = await sql_query(sql="SELECT dblink_connect('connstr')")
-        assert not result.ok
-        assert "禁止危险函数" in result.summary
-
-    async def test_reject_copy(self) -> None:
-        """禁止 COPY 语句（在纯函数层验证）。"""
-        # COPY 在 sql_query 入口会被 SELECT 检查拦截，
-        # 危险函数层的 COPY 拦截通过 _reject_dangerous_functions 验证
-        result = await sql_query(sql="COPY users TO '/tmp/out.csv'")
-        assert not result.ok
-
-    async def test_auto_limit(self) -> None:
-        """#11：自动追加 LIMIT 100。"""
-        with patch.dict(os.environ, {}, clear=True):
-            result = await sql_query(sql="SELECT * FROM docs")
-        assert not result.ok
-        # 执行流正常走到了 db_url 检查（说明 LIMIT 追加已完成）
-        assert "需要" in result.summary
-        assert "AGENT_DB_URL" in result.summary
-
-    async def test_existing_limit_not_duplicated(self) -> None:
-        """#12：已有 LIMIT 时不重复追加。"""
-        with patch.dict(os.environ, {}, clear=True):
-            result = await sql_query(sql="SELECT * FROM docs LIMIT 50")
-        assert not result.ok
-        assert "需要" in result.summary
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-# §3 _reject_dangerous_functions 单元测试
-# ═══════════════════════════════════════════════════════════════════════════
-
-# 这些作为 #9-10 的补充，验证纯函数层各模式
-
-class TestRejectDangerous:
-    """危险函数拦截纯函数层覆盖。"""
-
-    def test_reject_pg_read_file(self) -> None:
-        assert _reject_dangerous_functions("SELECT pg_read_file('/etc/passwd')") is not None
-
-    def test_reject_pg_read_file_uppercase(self) -> None:
-        assert _reject_dangerous_functions("SELECT PG_READ_FILE('/etc/passwd')") is not None
-
-    def test_reject_pg_read_binary_file(self) -> None:
-        assert _reject_dangerous_functions("SELECT pg_read_binary_file('/file')") is not None
-
-    def test_reject_dblink(self) -> None:
-        assert _reject_dangerous_functions("SELECT dblink_connect('connstr')") is not None
-
-    def test_reject_copy(self) -> None:
-        assert _reject_dangerous_functions("COPY users TO '/tmp/out.csv'") is not None
-
-    def test_allow_safe_select(self) -> None:
-        assert _reject_dangerous_functions("SELECT * FROM docs WHERE id = 1") is None
-
-
-# ═══════════════════════════════════════════════════════════════════════════
-# §4 _resolve_db_url 单元测试
-# ═══════════════════════════════════════════════════════════════════════════
-
-
-class TestResolveDbUrl:
-    """环境变量解析测试。"""
-
-    def test_agent_db_url_priority(self) -> None:
+    async def test_denies_even_with_db_url(self) -> None:
+        """配置了只读连接串也不执行（执行路径已删除）。"""
         with patch.dict(
             os.environ,
             {"AGENT_DB_URL": "postgresql+asyncpg://agent", "READONLY_DATABASE_URL": "postgresql+asyncpg://readonly"},
         ):
-            assert _resolve_db_url() == "postgresql+asyncpg://agent"
+            result = await sql_query(sql="SELECT * FROM documents LIMIT 10")
+        assert not result.ok
+        assert "无权限" in result.summary
+        assert result.data == []
 
-    def test_fallback_to_readonly(self) -> None:
-        with patch.dict(os.environ, {"READONLY_DATABASE_URL": "postgresql+asyncpg://readonly"}):
-            assert _resolve_db_url() == "postgresql+asyncpg://readonly"
+    async def test_denies_write_bypass(self) -> None:
+        """写绕过（EXPLAIN ANALYZE DELETE）被拒绝（P0-03）。"""
+        result = await sql_query(sql="EXPLAIN ANALYZE DELETE FROM documents")
+        assert not result.ok
+        assert "无权限" in result.summary
 
-    def test_no_url_returns_none(self) -> None:
-        with patch.dict(os.environ, {}, clear=True):
-            assert _resolve_db_url() is None
+    async def test_denies_sensitive_table(self) -> None:
+        """敏感表访问被拒绝。"""
+        result = await sql_query(sql="SELECT * FROM users")
+        assert not result.ok
+        assert "无权限" in result.summary
+
+    async def test_denies_insert(self) -> None:
+        """INSERT 被拒绝。"""
+        result = await sql_query(sql="INSERT INTO documents VALUES (1)")
+        assert not result.ok
+        assert "无权限" in result.summary
+
+    async def test_denies_multi_statement(self) -> None:
+        """多语句被拒绝。"""
+        result = await sql_query(sql="SELECT 1; SELECT 2")
+        assert not result.ok
+        assert "无权限" in result.summary
+
+    async def test_denies_dangerous_function(self) -> None:
+        """危险函数（pg_sleep 等）被拒绝。"""
+        result = await sql_query(sql="SELECT pg_sleep(3600)")
+        assert not result.ok
+        assert "无权限" in result.summary
+
+    async def test_result_envelope_contract(self) -> None:
+        """返回 QueryResult 信封（ok/summary/data 三字段契约）。"""
+        result = await sql_query(sql="")
+        assert isinstance(result, QueryResult)
+        assert result.ok is False
+        assert isinstance(result.summary, str)
+        assert isinstance(result.data, list)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -197,7 +128,7 @@ class TestResolveDbUrl:
 
 
 class TestDispatchReturn:
-    """#13-14：dispatch 返回 (ok, summary, data)。"""
+    """dispatch 返回 (ok, summary, data)。"""
 
     async def test_dispatch_web_search_returns_data(self) -> None:
         """#13：dispatch web_search 返回 result.data。"""
@@ -221,10 +152,11 @@ class TestDispatchReturn:
         # 失败时 data 应为 None（result.data 在 WebSearchResult(ok=False) 中为 []，但在 dispatch 中我们返回 result.data
         # 注意：dispatch 返回 result.data，失败时是 []（空列表）
 
-    async def test_dispatch_sql_query_returns_data(self) -> None:
-        """#14：dispatch sql_query 返回 result.data。"""
+    async def test_dispatch_sql_query_denied(self) -> None:
+        """dispatch sql_query → (False, "无权限", None)，触发 tool_denied 审计。"""
         from app.services.agent.runtime import _dispatch_tool
         from app.services.agent.tools.registry import AgentToolName
+        from app.services.agent.tools.scope import FORBIDDEN_KB_SUMMARY
 
         with patch.dict(os.environ, {}, clear=True):
             ok, summary, data = await _dispatch_tool(
@@ -238,8 +170,9 @@ class TestDispatchReturn:
                 thread_id=None,
                 user_id=None,
             )
-        assert ok is False  # 无 DB URL
-        assert isinstance(summary, str)
+        assert ok is False
+        assert summary == FORBIDDEN_KB_SUMMARY
+        assert data is None
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -253,14 +186,13 @@ class TestPlannerFilter:
     受外部工具开关控制的效果，避免复杂的工厂路由 mock。
     """
 
-    def test_disabled_filters_external_tools(self) -> None:
-        """#15：EXTERNAL_TOOLS_ENABLED=false 时 _build_tool_descriptions 过滤外部工具。"""
+    def test_disabled_filters_web_search(self) -> None:
+        """#15：EXTERNAL_TOOLS_ENABLED=false 时过滤 web_search。"""
         from app.services.agent.planners import ToolSpec, _build_tool_descriptions
 
         tool_specs = [
             ToolSpec(name="semantic_search", description="语义搜索", parameters={}),
             ToolSpec(name="web_search", description="联网搜索", parameters={}),
-            ToolSpec(name="sql_query", description="SQL 查询", parameters={}),
             ToolSpec(name="search_documents", description="文档搜索", parameters={}),
         ]
 
@@ -271,16 +203,14 @@ class TestPlannerFilter:
         assert "semantic_search" in result
         assert "search_documents" in result
         assert "web_search" not in result
-        assert "sql_query" not in result
 
-    def test_enabled_includes_external_tools(self) -> None:
-        """#16：EXTERNAL_TOOLS_ENABLED=true 时 _build_tool_descriptions 包含外部工具。"""
+    def test_enabled_includes_web_search(self) -> None:
+        """#16：EXTERNAL_TOOLS_ENABLED=true 时包含 web_search。"""
         from app.services.agent.planners import ToolSpec, _build_tool_descriptions
 
         tool_specs = [
             ToolSpec(name="semantic_search", description="语义搜索", parameters={}),
             ToolSpec(name="web_search", description="联网搜索", parameters={}),
-            ToolSpec(name="sql_query", description="SQL 查询", parameters={}),
         ]
 
         with patch("app.core.config.settings") as ms:
@@ -288,7 +218,6 @@ class TestPlannerFilter:
             result = _build_tool_descriptions(tool_specs)
 
         assert "web_search" in result
-        assert "sql_query" in result
 
     def test_all_tool_specs_with_disabled(self) -> None:
         """_build_tool_descriptions 接收 all_tool_specs() 结果时仍可过滤。"""
@@ -306,9 +235,16 @@ class TestPlannerFilter:
             disabled_result = _build_tool_descriptions(original_specs)
 
         assert "web_search" in enabled_result
-        assert "sql_query" in enabled_result
         assert "web_search" not in disabled_result
-        assert "sql_query" not in disabled_result
+
+    def test_all_tool_specs_excludes_sql_query(self) -> None:
+        """sql_query 已下线：all_tool_specs() 不再暴露该工具。"""
+        from app.services.agent.planners import SafetyFrame
+
+        sf = SafetyFrame("测试")
+        names = [spec.name for spec in sf.all_tool_specs()]
+        assert "sql_query" not in names
+        assert "web_search" in names
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -328,15 +264,25 @@ class TestGateCodePresence:
         assert "external_calls" in source
         assert "web_search_count" not in source
 
-    def test_external_tools_in_gate(self) -> None:
-        """runtime.py 门禁覆盖 web_search + sql_query。"""
+    def test_external_gate_covers_web_search_only(self) -> None:
+        """runtime.py 外部计数门禁仅覆盖 web_search（sql_query 已下线）。"""
         import inspect
         from app.services.agent import runtime as runtime_mod
 
         source = inspect.getsource(runtime_mod)
-        assert "sql_query" in source.split("外部工具统一计数")[1].split("\n")[0] if "外部工具统一计数" in source else "sql_query" in source
-        # 验证门禁注释存在
         assert "外部工具统一计数门禁" in source
+        assert "plan.tool_name == AgentToolName.web_search.value" in source
+        # sql_query 不再参与外部计数门禁（dispatch 层直接拒绝）
+        assert "AgentToolName.sql_query.value" not in source
+
+    def test_sql_query_dispatch_denied_in_runtime(self) -> None:
+        """runtime 对 sql_query 一律返回「无权限」拒绝（可触发 tool_denied 审计）。"""
+        import inspect
+        from app.services.agent import runtime as runtime_mod
+
+        source = inspect.getsource(runtime_mod)
+        assert "FORBIDDEN_KB_SUMMARY" in source
+        assert "sql_query" in source
 
     def test_audit_agent_tool_denied_in_gate(self) -> None:
         """#18：门禁拒绝时调用 audit_agent_tool_denied。"""

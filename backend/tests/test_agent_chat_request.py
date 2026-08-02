@@ -48,7 +48,8 @@ async def test_openapi_chat_request_mode_default_fast(client: AsyncClient) -> No
     assert mode_prop["default"] == "fast"
     assert mode_prop["$ref"] == "#/components/schemas/AgentMode"
     agent_mode = components["AgentMode"]
-    assert set(agent_mode["enum"]) == {"fast", "thorough", "edit"}
+    # G5 起 AgentMode 含 document_write（旧断言漏项，H2 回归修正）
+    assert set(agent_mode["enum"]) == {"fast", "thorough", "edit", "document_write"}
     assert "mode" not in chat_request["required"]
 
 

@@ -15,9 +15,17 @@ class ServiceError(Exception):
 
     status_code: int = 500
 
-    def __init__(self, detail: str, *, extra: dict | None = None) -> None:
+    def __init__(
+        self,
+        detail: str,
+        *,
+        extra: dict | None = None,
+        client_message: str | None = None,
+    ) -> None:
         self.detail = detail
         self.extra = extra
+        # P2-03：5xx 时对外只暴露 client_message（默认通用文案），内部 detail 只进日志。
+        self.client_message = client_message or "服务暂时不可用，请稍后重试"
         super().__init__(detail)
 
 

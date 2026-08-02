@@ -14,6 +14,7 @@ from starlette.responses import JSONResponse
 from starlette.status import HTTP_429_TOO_MANY_REQUESTS
 
 from app.core.config import settings
+from app.core.request_ip import resolve_client_ip
 from app.services.rate_limit import (
     is_rate_limited,
     record_request,
@@ -42,12 +43,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if not settings.rate_limit_enabled:
             return await call_next(request)
 
-        # 获取客户端 IP
-        ip = request.client.host if request.client else "unknown"
-        # 如果有 X-Forwarded-For，取第一个
-        forwarded = request.headers.get("X-Forwarded-For")
-        if forwarded:
-            ip = forwarded.split(",")[0].strip()
+        # P0-05：按可信代理链解析客户端 IP（trusted_proxy_count=0 时忽略 XFF，防伪造）
+        ip = resolve_client_ip(request) or "unknown"
 
         # 检查是否超限
         if is_rate_limited(ip):

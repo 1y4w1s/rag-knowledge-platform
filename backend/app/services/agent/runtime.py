@@ -3,15 +3,19 @@
 from __future__ import annotations
 
 import json
+import logging
 import time
 from typing import Any, Protocol
 from uuid import UUID
 
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.retry import async_retry
-from app.models.enums import AgentRunMode
+from app.models.agent_run import AgentRun
+from app.models.agent_step import AgentStep
+from app.models.enums import AgentRunMode, AgentRunStatus, AgentStepStatus
 from app.services.agent.finalize import finish_react_run
 from app.services.agent.memory import (
     extract_and_store_memory,
@@ -29,6 +33,7 @@ from app.services.agent.runs import (
     DEFAULT_MAX_STEPS,
     create_agent_run,
     create_agent_step,
+    finish_agent_run,
     finish_agent_step,
     update_agent_run_steps_used,
 )
@@ -60,6 +65,8 @@ from app.services.org.scope import OrgScope
 from app.services.workspace.scope import WorkspaceScope
 
 DEFAULT_RUN_TIMEOUT_SECONDS = 120
+
+logger = logging.getLogger(__name__)
 
 
 def _as_uuid_or_none(value: object) -> UUID | None:
@@ -250,9 +257,9 @@ async def _dispatch_tool(
         result = await _ws(query=args.get("query", ""), num_results=args.get("num_results", 5))
         return result.ok, result.summary, result.data
     elif tool_name == AgentToolName.sql_query:
-        from app.services.agent.tools.sql_query import sql_query as _sq
-        result = await _sq(sql=args.get("sql", ""))
-        return result.ok, result.summary, result.data
+        # H2 权限收口：sql_query 已下线（P0-02/03），任何调用一律拒绝。
+        # summary == FORBIDDEN_KB_SUMMARY 触发 runtime 自动写 agent.tool_denied 审计。
+        return False, FORBIDDEN_KB_SUMMARY, None
     else:
         return False, f"unknown or disallowed tool: {tool_name.value}", None
 
@@ -367,6 +374,10 @@ async def run_react_loop(
 
     G4-2.2：可传入 mode=AgentRunMode.edit 以正确记录编辑 run。
     generate_faq_draft 末步经 _dispatch_tool 执行（自身落 agent_approvals）。
+
+    B1-2：循环主体包 try/except 兜底——异常/取消时未收尾 steps 置 error、
+    run 收敛 failed/capped 并落库（P1-02）；正常路径终态由 finish_react_run
+    条件更新幂等落库。
     """
     effective_hooks = hooks or _NoopHooks()
     run = await create_agent_run(
@@ -384,6 +395,91 @@ async def run_react_loop(
         max_steps=max_steps,
     )
 
+    try:
+        outcome = await _run_react_loop_until_outcome(
+            db,
+            user_id=user_id,
+            thread_id=thread_id,
+            query=query,
+            workspace=workspace,
+            tool_scope=tool_scope,
+            planner=planner,
+            org_scope=org_scope,
+            effective_hooks=effective_hooks,
+            run=run,
+            max_steps=max_steps,
+            timeout_seconds=timeout_seconds,
+        )
+    except BaseException:
+        # 异常/取消兜底：未收尾 steps 置 error + run 收敛 failed/capped + 落库
+        try:
+            await _converge_failed_run(
+                db,
+                run_id=run.id,
+                user_id=user_id,
+                max_steps=max_steps,
+            )
+        except Exception:
+            logger.exception("run_react_loop 异常兜底落库失败: run=%s", run.id)
+        raise
+
+    await finish_react_run(
+        db,
+        run_id=run.id,
+        user_id=user_id,
+        outcome=outcome,
+    )
+    return outcome
+
+
+async def _converge_failed_run(
+    db: AsyncSession,
+    *,
+    run_id: UUID,
+    user_id: UUID,
+    max_steps: int,
+) -> None:
+    """B1-2 异常兜底：未收尾 steps 置 error + run 收敛终态并落库。
+
+    幂等：finish_agent_run 条件更新保证仅 running 可写终态，重复收敛不覆盖
+    （P1-02 / P0-01）；run 非 owner 或已终态则直接返回。
+    """
+    run = await db.get(AgentRun, run_id)
+    if run is None or run.user_id != user_id or run.status != AgentRunStatus.running:
+        return
+    await db.execute(
+        update(AgentStep)
+        .where(
+            AgentStep.run_id == run_id,
+            AgentStep.status == AgentStepStatus.running,
+        )
+        .values(status=AgentStepStatus.error)
+    )
+    status = (
+        AgentRunStatus.capped
+        if run.steps_used >= max_steps
+        else AgentRunStatus.failed
+    )
+    await finish_agent_run(db, run_id=run_id, user_id=user_id, status=status)
+    await db.commit()
+
+
+async def _run_react_loop_until_outcome(
+    db: AsyncSession,
+    *,
+    user_id: UUID,
+    thread_id: UUID,
+    query: str,
+    workspace: WorkspaceScope,
+    tool_scope: AgentToolScope,
+    planner: ToolPlanner,
+    org_scope: OrgScope | None,
+    effective_hooks: ToolRuntimeHooks,
+    run: AgentRun,
+    max_steps: int,
+    timeout_seconds: float,
+) -> AgentRunOutcome:
+    """ReAct 循环主体（返回 outcome；终态收敛由 run_react_loop 负责）。"""
     records: list[AgentStepRecord] = []
     steps_used = 0
     capped = False
@@ -430,8 +526,8 @@ async def run_react_loop(
             args_json=plan.args,
         )
 
-        # E4：外部工具统一计数门禁（每轮 ≤AGENT_MAX_EXTERNAL_CALLS 次，覆盖 web_search + sql_query）
-        _is_external = plan.tool_name in (AgentToolName.web_search.value, AgentToolName.sql_query.value)
+        # E4：外部工具统一计数门禁（每轮 ≤AGENT_MAX_EXTERNAL_CALLS 次；sql_query 已下线）
+        _is_external = plan.tool_name == AgentToolName.web_search.value
         if _is_external and external_calls >= settings.agent_max_external_calls_per_conversation:
             logger.warning("外部工具已达上限（≤%d 次/轮），跳过 %s",
                            settings.agent_max_external_calls_per_conversation, plan.tool_name)
@@ -602,11 +698,5 @@ async def run_react_loop(
         steps=tuple(records),
         # E2 信号 B：低置信度标记（循环外，outcome 构造时判定）
         low_confidence=_detect_low_confidence(records),
-    )
-    await finish_react_run(
-        db,
-        run_id=run.id,
-        user_id=user_id,
-        outcome=outcome,
     )
     return outcome

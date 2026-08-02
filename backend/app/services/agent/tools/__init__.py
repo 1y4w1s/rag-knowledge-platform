@@ -68,10 +68,6 @@ from app.services.agent.tools.web_search import (
     WebSearchResult,
     web_search,
 )
-from app.services.agent.tools.sql_query import (
-    QueryResult,
-    sql_query,
-)
 from app.services.agent.tools.registry import (
     ALL_AGENT_TOOL_NAMES,
     READ_ONLY_TOOL_NAMES,
@@ -156,6 +152,4 @@ __all__ = [
     "run_semantic_search",
     "WebSearchResult",
     "web_search",
-    "QueryResult",
-    "sql_query",
 ]

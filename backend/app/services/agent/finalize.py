@@ -156,10 +156,10 @@ async def prepare_agent_generation(
     merged = await merge_step_hits_to_chunks(db, steps)
     plan = gate_agent_chunks(query, merged, workspace_mode=workspace_mode)
 
-    # E4：从 steps 提取外部工具结果（web_search/sql_query）作为额外上下文
+    # E4：从 steps 提取外部工具结果（web_search；sql_query 已下线，H2 收口）
     external_parts: list[str] = []
     for step in steps:
-        if step.tool_name in ("web_search", "sql_query") and step.data:
+        if step.tool_name == "web_search" and step.data:
             data = step.data
             if hasattr(data, "ok") and data.ok:
                 items = getattr(data, "data", [])
@@ -169,10 +169,6 @@ async def prepare_agent_generation(
                         url = item.get("url", "")
                         snippet = item.get("snippet", "")
                         external_parts.append(f"- {title}: {snippet} ({url})")
-                elif step.tool_name == "sql_query":
-                    for row in items[:10]:
-                        fields = ", ".join(f"{k}={v}" for k, v in row.items())
-                        external_parts.append(f"- {fields}")
 
     if external_parts:
         plan = AgentGenerationPlan(

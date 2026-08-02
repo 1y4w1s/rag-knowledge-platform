@@ -60,7 +60,7 @@ from app.services.rag.thread_generation_lock import (
 )
 from app.services.rag.citations import is_kb_visible_in_org_scope
 from app.services.rag.message_builder import SSE_HEADERS, build_chat_message_list
-from app.services.rag.persistence import list_chat_messages
+from app.services.rag.persistence import list_chat_messages, save_chat_turn
 from app.services.rag.thread_persistence import (
     archive_kb_thread,
     create_kb_thread,

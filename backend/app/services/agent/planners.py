@@ -572,13 +572,6 @@ _TOOL_PARAM_SCHEMAS: dict[str, dict[str, Any]] = {
         },
         "required": ["query"],
     },
-    "sql_query": {
-        "type": "object",
-        "properties": {
-            "sql": {"type": "string", "description": "只读 SQL 查询（SELECT/EXPLAIN）"},
-        },
-        "required": ["sql"],
-    },
     "search_documents": {
         "type": "object",
         "properties": {
@@ -610,7 +603,6 @@ _TOOL_DESCRIPTIONS: dict[str, str] = {
     "search_documents": "文档搜索，按文件名或内容搜索文档元信息",
     "list_knowledge_bases": "列出用户当前可见的知识库列表",
     "web_search": "联网搜索（需要 SEARCH_API_KEY），返回搜索结果标题/URL/摘要",
-    "sql_query": "执行只读 SQL 查询（SELECT/EXPLAIN），返回结果行",
 }
 
 # LLM planner 只暴露可独立调用的只读 tool
@@ -619,16 +611,15 @@ _INDEPENDENT_TOOL_NAMES: tuple[str, ...] = (
     "search_documents",
     "list_knowledge_bases",
     "web_search",
-    "sql_query",
 )
 
 
 def _build_tool_descriptions(tool_specs: list[ToolSpec]) -> str:
     """将 tool 规格列表转为 LLM prompt 中的人类可读描述。"""
-    # E4：防御性过滤 — 外部工具关闭时剔除 web_search/sql_query
+    # E4：防御性过滤 — 外部工具关闭时剔除 web_search（sql_query 已下线）
     from app.core.config import settings
     if not settings.external_tools_enabled:
-        tool_specs = [ts for ts in tool_specs if ts.name not in ("web_search", "sql_query")]
+        tool_specs = [ts for ts in tool_specs if ts.name != "web_search"]
     lines: list[str] = []
     for spec in tool_specs:
         params = spec.parameters
@@ -817,7 +808,7 @@ class SafetyFrame:
         2. 每个 tool 名存在于 ALL_AGENT_TOOL_NAMES 中
         3. 没有写 tool
         4. 步数 ≤ max_steps（默认 5 步）
-        5. 外部工具关闭时拒绝 web_search/sql_query（E4 · 防御 prompt injection）
+        5. 外部工具关闭时拒绝 web_search（E4 · 防御 prompt injection）
         """
         violations: list[str] = []
 
@@ -837,7 +828,7 @@ class SafetyFrame:
                 violations.append(f"tool '{step.tool_name}' not in registry")
             if self._is_write_tool(step.tool_name):
                 violations.append(f"write tool '{step.tool_name}' not allowed")
-            if external_disabled and step.tool_name in ("web_search", "sql_query"):
+            if external_disabled and step.tool_name == "web_search":
                 violations.append(f"external tool '{step.tool_name}' disabled by config")
 
         if violations:
@@ -1074,10 +1065,10 @@ class LLMPlannerFactory:
             return ThoroughReadPlanner(query, default_kb_id=default_kb_id)
 
         tool_specs = safety_frame.all_tool_specs()
-        # E4：外部工具开关 — 关闭时剔除 web_search 和 sql_query
+        # E4：外部工具开关 — 关闭时剔除 web_search（sql_query 已下线）
         from app.core.config import settings
         if not settings.external_tools_enabled:
-            tool_specs = [ts for ts in tool_specs if ts.name not in ("web_search", "sql_query")]
+            tool_specs = [ts for ts in tool_specs if ts.name != "web_search"]
         return LLMPlanner(
             query,
             safety_frame=safety_frame,

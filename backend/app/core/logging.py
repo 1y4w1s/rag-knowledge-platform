@@ -23,9 +23,21 @@ _current_trace_id: ContextVar[str] = ContextVar("trace_id", default="")
 _current_user_id: ContextVar[str] = ContextVar("user_id", default="")
 
 
+def sanitize_trace_id(value: str | None) -> str:
+    """清理外部传入的 trace_id（X-Trace-ID / X-Request-ID），防止日志注入。
+
+    仅保留字母/数字/连字符/下划线，截断至 64 字符；无效时生成新 UUID。
+    """
+    if value:
+        cleaned = "".join(ch for ch in value if ch.isalnum() or ch in "-_")
+        if cleaned:
+            return cleaned[:64]
+    return uuid.uuid4().hex[:16]
+
+
 def set_trace_id(trace_id: str | None = None) -> str:
     """为当前请求设置 trace_id。未传入时自动生成。"""
-    tid = trace_id or uuid.uuid4().hex[:16]
+    tid = sanitize_trace_id(trace_id)
     _current_trace_id.set(tid)
     return tid
 

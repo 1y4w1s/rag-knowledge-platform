@@ -51,8 +51,8 @@ from app.api.versions import router as versions_router
 from app.api.webhooks import router as webhooks_router
 from app.api.evaluations import router as evaluations_router
 from app.core.config import settings
-from app.core.logging import get_trace_id, setup_logging, set_trace_id, set_user_id
-from app.core.otel import setup_otel
+from app.core.logging import setup_logging, set_trace_id, set_user_id
+from app.core.otel import _TraceIdSyncMiddleware, setup_otel
 import logging
 from app.core.security import JWTAuthMiddleware
 from app.api.middleware.rate_limit import RateLimitMiddleware
@@ -182,7 +182,10 @@ _check_production_guard()
 
 
 class TraceIdMiddleware(BaseHTTPMiddleware):
-    """为每个请求注入 trace_id，解析用户 ID（如已认证）。"""
+    """为每个请求注入 trace_id 上下文，解析用户 ID（如已认证）。
+
+    响应头 X-Trace-ID 由最外层 _TraceIdSyncMiddleware（otel.py）统一回写。
+    """
 
     async def dispatch(self, request, call_next):
         trace_id = request.headers.get("X-Trace-ID") or request.headers.get("X-Request-ID")
@@ -191,7 +194,6 @@ class TraceIdMiddleware(BaseHTTPMiddleware):
         if hasattr(request.state, "user_id"):
             set_user_id(str(request.state.user_id))
         response = await call_next(request)
-        response.headers["X-Trace-ID"] = get_trace_id()
         return response
 
 _origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
@@ -207,6 +209,8 @@ app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(RateLimitMiddleware)
 app.add_middleware(TraceIdMiddleware)
 app.add_middleware(JWTAuthMiddleware)
+# 最后注册 → 中间件栈最外层：保证任何响应（含 401/4xx/5xx）都回写 X-Trace-ID 头（P1-30）
+app.add_middleware(_TraceIdSyncMiddleware)
 
 for exc_cls, handler in EXCEPTION_HANDLERS:
     app.add_exception_handler(exc_cls, handler)

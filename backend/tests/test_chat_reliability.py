@@ -37,7 +37,7 @@ class _FakeStreamError:
     """模拟失败的流（HTTP 级别抛异常）。"""
 
     class _RaiseOnEnter:
-        async def raise_for_status(self) -> None:
+        def raise_for_status(self) -> None:
             raise RuntimeError("mock: 上游服务不可用 (502)")
 
         async def aiter_lines(self) -> AsyncIterator[str]:

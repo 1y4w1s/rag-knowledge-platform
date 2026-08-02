@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.agent_run import AgentRun
@@ -149,14 +149,30 @@ async def finish_agent_run(
     status: AgentRunStatus,
     assistant_message_id: UUID | None = None,
 ) -> AgentRun | None:
-    """结束 run（completed / failed / capped）。"""
+    """结束 run（completed / failed / capped）——条件更新幂等（B1-1）。
+
+    仅 running 态可写终态（UPDATE ... WHERE status='running'）：双路径重复 finish
+    不覆盖已落终态（P0-01）；run 非 owner 返回 None（G3-E10）。
+    """
     run = await get_agent_run_for_user(db, run_id=run_id, user_id=user_id)
     if run is None:
         return None
-    run.status = status
-    run.finished_at = _utcnow()
+    if run.status != AgentRunStatus.running:
+        # 幂等：终态已落，不再覆盖
+        return run
+    values: dict[str, Any] = {
+        "status": status,
+        "finished_at": _utcnow(),
+    }
     if assistant_message_id is not None:
-        run.assistant_message_id = assistant_message_id
-    db.add(run)
-    await db.flush()
+        values["assistant_message_id"] = assistant_message_id
+    await db.execute(
+        update(AgentRun)
+        .where(
+            AgentRun.id == run_id,
+            AgentRun.status == AgentRunStatus.running,
+        )
+        .values(**values)
+    )
+    await db.refresh(run)
     return run

@@ -24,6 +24,15 @@ R = TypeVar("R")
 # ── 重试策略 ──────────────────────────────────────────────────────────
 
 
+class CircuitBreakerOpenError(RuntimeError):
+    """熔断器 OPEN：快速失败信号（P1-10）。
+
+    由 ``retry_stream`` / ``async_retry`` 在闸门处抛出，调用方应：
+    - provider 链场景（chat_llm）→ 立即切换备用 provider；
+    - 无备用场景 → 直接失败，不产生超时放大。
+    """
+
+
 def should_retry(exception: Exception) -> bool:
     """判断异常是否可重试。
 
@@ -31,6 +40,10 @@ def should_retry(exception: Exception) -> bool:
     不可重试：客户端错误（4xx，除 429）、认证失败、格式错误。
     """
     exc_str = str(exception).lower()
+
+    # 熔断快速失败不可重试
+    if isinstance(exception, CircuitBreakerOpenError):
+        return False
 
     # 4xx 中，只有 429 (Too Many Requests) 可重试
     if "429" in exc_str or "too many requests" in exc_str:
@@ -77,18 +90,24 @@ async def async_retry(
         jitter_factor: jitter 比例（±jitter_factor * delay），默认 0.1。
         breaker_name: 熔断器名称（可选）。指定后，成功/耗尽时自动记录。
     """
+    breaker = get_breaker(breaker_name) if breaker_name is not None else None
     last_exc: Exception | None = None
     for attempt in range(max_retries + 1):
+        # P1-10 熔断闸门：OPEN 状态快速失败，不发起上游调用（防超时放大）
+        if breaker is not None and not breaker.allow_request:
+            raise CircuitBreakerOpenError(
+                f"熔断器 {breaker_name} 已打开，快速失败（recovery 后自动半开探活）"
+            )
         try:
             result = await func(*args, **kwargs)
-            if breaker_name is not None:
-                get_breaker(breaker_name).record_success()
+            if breaker is not None:
+                breaker.record_success()
             return result
         except Exception as exc:
             last_exc = exc
             if attempt >= max_retries or not should_retry(exc):
-                if breaker_name is not None:
-                    get_breaker(breaker_name).record_failure()
+                if breaker is not None:
+                    breaker.record_failure()
                 raise
             delay = min(base_delay * (2 ** attempt), max_delay)
             jitter = random.uniform(-delay * jitter_factor, delay * jitter_factor)
@@ -105,8 +124,8 @@ async def async_retry(
 
     # 仅当 last_exc is not None 时执行
     if last_exc is not None:
-        if breaker_name is not None:
-            get_breaker(breaker_name).record_failure()
+        if breaker is not None:
+            breaker.record_failure()
         raise last_exc
     raise RuntimeError("unreachable: async_retry completed without result or exception")
 
@@ -137,24 +156,30 @@ async def retry_stream(
         base_delay: 首次退避基准秒数。
         max_delay: 退避上限秒数。
     """
+    breaker = get_breaker(breaker_name) if breaker_name is not None else None
     last_exc: Exception | None = None
     ever_yielded = False
     for attempt in range(max_retries + 1):
+        # P1-10 熔断闸门：OPEN 状态快速失败（不重连、不等待退避）
+        if breaker is not None and not breaker.allow_request:
+            raise CircuitBreakerOpenError(
+                f"熔断器 {breaker_name} 已打开，快速失败（recovery 后自动半开探活）"
+            )
         try:
             stream = stream_factory()
             async for token in stream:
                 ever_yielded = True
                 yield token
             # 正常完成
-            if breaker_name is not None:
-                get_breaker(breaker_name).record_success()
+            if breaker is not None:
+                breaker.record_success()
             return
         except Exception as exc:
             last_exc = exc
             if attempt >= max_retries or not should_retry(exc):
                 # 从未成功 yield 过 → 记录熔断器失败
-                if not ever_yielded and breaker_name is not None:
-                    get_breaker(breaker_name).record_failure()
+                if not ever_yielded and breaker is not None:
+                    breaker.record_failure()
                 raise
             delay = min(base_delay * (2 ** attempt), max_delay)
             jitter = random.uniform(-delay * 0.1, delay * 0.1)
@@ -169,8 +194,8 @@ async def retry_stream(
             await asyncio.sleep(actual_delay)
 
     if last_exc is not None:
-        if not ever_yielded and breaker_name is not None:
-            get_breaker(breaker_name).record_failure()
+        if not ever_yielded and breaker is not None:
+            breaker.record_failure()
         raise last_exc
     raise RuntimeError("unreachable: retry_stream completed without result or exception")
 

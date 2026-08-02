@@ -66,6 +66,8 @@ services:
       HF_ENDPOINT: https://hf-mirror.com
       REDIS_URL: redis://redis:6379/1
       RATE_LIMIT_BACKEND: redis
+      # P0-05：单跳 nginx 反代，X-Forwarded-For 由 nginx 覆写为 $remote_addr
+      TRUSTED_PROXY_COUNT: "1"
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
       CELERY_TASK_ALWAYS_EAGER_LOCAL: "false"
@@ -90,7 +92,10 @@ services:
         max-size: "10m"
         max-file: "3"
     stop_grace_period: 30s
-    mem_limit: 6g
+    deploy:
+      resources:
+        limits:
+          memory: 6G
     ulimits:
       nofile:
         soft: 65536

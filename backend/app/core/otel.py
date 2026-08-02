@@ -11,12 +11,10 @@ from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-from starlette.requests import Request
-from starlette.responses import Response
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from app.core.config import settings
-from app.core.logging import set_trace_id
+from app.core.logging import sanitize_trace_id, set_trace_id
 
 logger = logging.getLogger(__name__)
 
@@ -52,9 +50,6 @@ def setup_otel(app) -> None:
         # httpx 调用追踪（LLM / Embedding API）
         HTTPXClientInstrumentor().instrument()
 
-        # 注册 Trace ID 对齐中间件（最外层，包裹所有请求）
-        app.add_middleware(_TraceIdSyncMiddleware)
-
         logger.info("OTel 链路追踪已启用: endpoint=%s", settings.otlp_endpoint)
 
     except Exception as exc:
@@ -68,16 +63,39 @@ def get_tracer() -> trace.Tracer:
     return trace.get_tracer(__name__)
 
 
-class _TraceIdSyncMiddleware(BaseHTTPMiddleware):
-    """将 OTel SpanContext.trace_id 同步到日志 ContextVar，实现日志 ↔ 链路关联。"""
+class _TraceIdSyncMiddleware:
+    """统一 trace_id 来源（P1-30）：优先取 X-Trace-ID 头，其次回退 OTel span。
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint,
-    ) -> Response:
-        span = trace.get_current_span()
-        span_context = span.get_span_context()
-        if span_context.is_valid:
-            # OTel trace_id 是 128 位整数 → 取后 16 位 hex 与日志对齐
-            trace_id_hex = format(span_context.trace_id, "032x")[:16]
-            set_trace_id(trace_id_hex)
-        return await call_next(request)
+    实现为纯 ASGI 中间件（最外层）：通过包装 send 在 http.response.start 阶段
+    注入 X-Trace-ID 头——包括中间件早返回的 401、以及 ServerErrorMiddleware 发送的
+    500 响应（其发送后必然 re-raise，BaseHTTPMiddleware 拿不到 response）。
+    """
+
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        headers = dict(scope.get("headers") or [])
+        raw = headers.get(b"x-trace-id") or headers.get(b"x-request-id")
+        trace_id = raw.decode("latin-1") if raw else None
+        if not trace_id:
+            span = trace.get_current_span()
+            span_context = span.get_span_context()
+            if span_context.is_valid:
+                # OTel trace_id 是 128 位整数 → 取后 16 位 hex 与日志对齐
+                trace_id = format(span_context.trace_id, "032x")[:16]
+        tid = sanitize_trace_id(trace_id)
+        set_trace_id(tid)
+
+        async def send_with_trace(message: Message) -> None:
+            if message["type"] == "http.response.start":
+                headers = list(message.get("headers", []))
+                headers.append((b"x-trace-id", tid.encode("latin-1")))
+                message = {**message, "headers": headers}
+            await send(message)
+
+        await self.app(scope, receive, send_with_trace)

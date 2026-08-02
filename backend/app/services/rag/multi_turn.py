@@ -10,6 +10,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.enums import MessageStatus
 from app.services.rag.generation import contextualize_query
 from app.services.rag.persistence import list_thread_messages
 
@@ -98,7 +99,11 @@ async def load_thread_history(
 ) -> list[dict[str, str]]:
     """返回本 user + thread 的 role/content 历史（时间正序；不含尚未落库的本轮）。"""
     rows = await list_thread_messages(db, thread_id=thread_id, user_id=user_id)
-    return [{"role": msg.role.value, "content": msg.content} for msg in rows]
+    return [
+        {"role": msg.role.value, "content": msg.content}
+        for msg in rows
+        if msg.status != MessageStatus.pending
+    ]
 
 
 async def prepare_multi_turn_query(

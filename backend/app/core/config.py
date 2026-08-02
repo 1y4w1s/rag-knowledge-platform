@@ -154,6 +154,9 @@ class Settings(BaseSettings):
     rate_limit_window_seconds: int = 60
     # C1 收口：限流后端（memory|redis）；RATE_LIMIT_BACKEND env 仍可覆盖（测试/部署）
     rate_limit_backend: str = "memory"
+    # P0-05 XFF 信任链：可信反代跳数。0=API 直连（忽略 X-Forwarded-For，防伪造）；
+    # 1=单跳 nginx（docker-compose 生产默认）；多跳按实际代理层数配置。
+    trusted_proxy_count: int = 0
 
     # ── 检索配置 ────────────────────────────────────────────────────
     vector_recall_k: int = 30       # 向量召回 Top-N（2026-07-18 从 20 调升到 30）
@@ -205,7 +208,6 @@ class Settings(BaseSettings):
 
     # ── E4 External Tools ─────────────────────────────────────────
     external_tools_enabled: bool = False
-    agent_db_url: str = ""  # C1 接线：sql_query 只读连接 URL（原 AGENT_DB_URL env 兼容）
     search_api_key: str = ""  # C1 收口：web_search 第三方凭据（原 SEARCH_API_KEY env 兼容）
     agent_max_external_calls_per_conversation: int = 3
 

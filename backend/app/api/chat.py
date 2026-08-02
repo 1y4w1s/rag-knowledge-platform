@@ -29,7 +29,7 @@ from app.schemas.citation import CitationResolveResponse
 from app.models.knowledge_base import KnowledgeBase
 from app.services.auth.api_rate_limit import ApiRateLimitKind, enforce_api_rate_limit
 from app.services.org.scope import resolve_org_scope
-from app.services.rag.chat import stream_chat_events
+from app.services.rag.chat import _with_sse_slot, stream_chat_events
 from app.services.rag.citations import (
     is_kb_visible_in_org_scope,
     resolve_citation,

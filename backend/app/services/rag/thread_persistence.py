@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import uuid
 from datetime import datetime, timezone
 from uuid import UUID
@@ -75,16 +74,21 @@ async def invalidate_thread_list_cache(user_id: UUID, thread_kind: ThreadKind, k
         pass
 
 
-async def _invalidate_cache_for_thread(thread_id: UUID) -> None:
-    """读取 thread 信息后失效其列表缓存。"""
-    # 从 DB 读取 thread 信息（需要独立 session）
+async def _invalidate_cache_for_thread(
+    db: AsyncSession,
+    thread_id: UUID,
+) -> None:
+    """失效 thread 列表缓存（复用当前会话，不再另开独立 session）。
+
+    原实现经 asyncio.ensure_future 开独立 session 后台失效：任务与请求生命周期
+    脱钩，连接池被 dispose 时任务滞留 → 连接泄漏、Postgres 连接数打满
+    （TooManyConnectionsError）。改为请求会话内联执行，Redis 不可用时静默失败。
+    """
     try:
-        from app.core.database import SessionLocal
-        async with SessionLocal() as db:
-            t = await db.get(ChatThread, thread_id)
-            if t is None:
-                return
-            await invalidate_thread_list_cache(t.user_id, t.thread_kind, t.kb_id)
+        t = await db.get(ChatThread, thread_id)
+        if t is None:
+            return
+        await invalidate_thread_list_cache(t.user_id, t.thread_kind, t.kb_id)
     except Exception:
         pass
 
@@ -156,8 +160,8 @@ async def touch_thread(
         .where(ChatThread.id == thread_id)
         .values(last_message_at=ts, updated_at=ts)
     )
-    # 异步失效缓存（不等待完成）
-    asyncio.ensure_future(_invalidate_cache_for_thread(thread_id))
+    # 失效列表缓存（内联执行 · 避免独立后台 session 泄漏连接）
+    await _invalidate_cache_for_thread(db, thread_id)
 
 
 # ── 合并 CRUD（code-refactor-B）：thread_kind 参数化 KB/Workspace ──

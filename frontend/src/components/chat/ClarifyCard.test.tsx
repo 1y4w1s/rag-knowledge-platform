@@ -20,7 +20,7 @@ function makeClarify(
 
 describe("G5 ClarifyCard", () => {
   it("renders all candidate options", () => {
-    render(<ClarifyCard clarify={makeClarify()} />);
+    render(<ClarifyCard clarify={makeClarify()} onSelect={() => {}} />);
     expect(screen.getByTestId("clarify-option-d1")).toBeDefined();
     expect(screen.getByTestId("clarify-option-d2")).toBeDefined();
     expect(screen.getByText("年假制度 v1.docx")).toBeDefined();
@@ -46,12 +46,23 @@ describe("G5 ClarifyCard", () => {
   });
 
   it("renders error message when present", () => {
-    render(<ClarifyCard clarify={makeClarify()} error="澄清失败，请重试" />);
+    render(
+      <ClarifyCard
+        clarify={makeClarify()}
+        error="澄清失败，请重试"
+        onSelect={() => {}}
+      />,
+    );
     expect(screen.getByText("澄清失败，请重试")).toBeDefined();
   });
 
   it("uses restore verb label for restore operation", () => {
-    render(<ClarifyCard clarify={makeClarify({ operation: "restore" })} />);
+    render(
+      <ClarifyCard
+        clarify={makeClarify({ operation: "restore" })}
+        onSelect={() => {}}
+      />,
+    );
     expect(screen.getByText(/请选择要恢复/)).toBeDefined();
   });
 });

@@ -6,6 +6,9 @@
 - iat >= password_changed_at → 有效
 
 单实例部署有效；多副本场景建议换 Redis。
+
+P0-04：吊销时间必须用 epoch（``time.time``）而非 monotonic——JWT iat 是
+unix 时间戳，monotonic 与 epoch 量纲不同会导致「吊销永不生效」。
 """
 
 from __future__ import annotations
@@ -21,7 +24,7 @@ _TTL = 86400 * 7  # 7 天自动清理
 
 def revoke_user_tokens(user_id: UUID) -> None:
     """用户改密后调用：标记该用户在此时间点前签发的所有 token 失效。"""
-    now = time.monotonic()
+    now = time.time()
     with _lock:
         _revoked_before[user_id] = now
 
@@ -31,17 +34,17 @@ def is_token_revoked(user_id: UUID, iat_timestamp: float | None) -> bool:
     if iat_timestamp is None:
         return False
     with _lock:
+        # 先清理过期条目再查表，避免用已过期记录的陈旧快照做比较
+        _prune_expired()
         revoked_at = _revoked_before.get(user_id)
         if revoked_at is None:
             return False
-        # 定期清理过期条目
-        _prune_expired()
         return iat_timestamp < revoked_at
 
 
 def _prune_expired() -> None:
     """清理超过 TTL 的吊销记录（锁外调用需持锁）。"""
-    cutoff = time.monotonic() - _TTL
+    cutoff = time.time() - _TTL
     expired = [uid for uid, ts in _revoked_before.items() if ts < cutoff]
     for uid in expired:
         del _revoked_before[uid]

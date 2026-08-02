@@ -407,6 +407,7 @@ async def retrieve_chunks(
     top_n = _rerank_pool_size(top_k)
     rw_policy = effective_query_rewrite_policy()
     used_multi = False
+    _force_multi = False
     vector_top_ids: list[UUID] | None = None
     fts_top_ids: list[UUID] | None = None
 
@@ -655,6 +656,7 @@ async def retrieve_workspace_chunks(
     vector_top_ids: list[UUID] | None = None
     fts_top_ids: list[UUID] | None = None
     rw_policy = effective_query_rewrite_policy()
+    _force_multi = False
 
     # B3：自适应检索策略
     strategy = select_strategy(query)

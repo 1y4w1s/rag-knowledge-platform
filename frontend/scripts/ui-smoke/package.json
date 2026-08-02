@@ -1,0 +1,13 @@
+{
+  "name": "ui-smoke",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "睿阁 UI smoke 验收：直连本机 Chrome 打开 http://localhost/ 验证登录链路",
+  "scripts": {
+    "smoke": "node ui-smoke.mjs"
+  },
+  "dependencies": {
+    "playwright-core": "^1.49.0"
+  }
+}
