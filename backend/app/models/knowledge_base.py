@@ -52,13 +52,13 @@ class KnowledgeBase(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     owner_user_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("users.id", ondelete="CASCADE"),
+        ForeignKey("users.id", ondelete="RESTRICT"),
         nullable=True,
         index=True,
     )
     owner_org_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("organizations.id", ondelete="CASCADE"),
+        ForeignKey("organizations.id", ondelete="RESTRICT"),
         nullable=True,
         index=True,
     )

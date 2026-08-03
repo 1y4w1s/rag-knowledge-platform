@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import pytest
-from fastapi import HTTPException
 from sqlalchemy import select
 
 from app.core.database import SessionLocal
+from app.core.exceptions import ForbiddenError
 from app.models.enums import GranteeType, GrantPermission
 from app.models.kb_unit_grant import KbUnitGrant
 from app.models.knowledge_base import KnowledgeBase
@@ -47,7 +47,7 @@ async def test_scope_company_admin_all_includes_every_dept_kb(org_iso: OrgIsolat
 
 async def test_scope_member_cannot_use_department_all(org_iso: OrgIsolationFixture) -> None:
     async with SessionLocal() as db:
-        with pytest.raises(HTTPException) as exc:
+        with pytest.raises(ForbiddenError) as exc:
             await resolve_org_scope(db, org_iso.rd_member, department_id="all")
     assert exc.value.status_code == 403
 
@@ -90,7 +90,7 @@ async def test_scope_grant_target_unit_visible_to_grantee_dept(org_iso: OrgIsola
 
 async def test_scope_forged_department_id_rejected(org_iso: OrgIsolationFixture) -> None:
     async with SessionLocal() as db:
-        with pytest.raises(HTTPException) as exc:
+        with pytest.raises(ForbiddenError) as exc:
             await resolve_org_scope(
                 db,
                 org_iso.rd_member,

@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import pytest
-from fastapi import HTTPException
 from sqlalchemy import select
 
 from app.core.database import SessionLocal
 from app.core.deps import KbAction, require_kb_access
+from app.core.exceptions import ForbiddenError
 from app.models.knowledge_base import KnowledgeBase
 from tests.fixtures.org_isolation import OrgIsolationFixture
 
@@ -16,7 +16,7 @@ pytestmark = pytest.mark.asyncio
 
 async def test_require_kb_access_sibling_department_403(org_iso: OrgIsolationFixture) -> None:
     async with SessionLocal() as db:
-        with pytest.raises(HTTPException) as exc:
+        with pytest.raises(ForbiddenError) as exc:
             await require_kb_access(
                 kb_id=org_iso.mkt_kb_id,
                 action=KbAction.read,

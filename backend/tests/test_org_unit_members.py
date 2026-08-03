@@ -230,7 +230,7 @@ async def test_unit_member_s7_org_remove_cascades_unit_memberships(
 
 @pytest.mark.asyncio
 async def test_unit_member_e5_primary_on_unjoined_unit(client: AsyncClient) -> None:
-    """E5：把用户主部门设为未加入的节点 — 400。"""
+    """E5：把用户主部门设为未加入的节点 — 422。"""
     headers, admin_user = await _register_org_admin(client, prefix="e5-member-admin")
     root_id = (
         await client.get("/api/v1/org-units", headers=headers)
@@ -255,7 +255,7 @@ async def test_unit_member_e5_primary_on_unjoined_unit(client: AsyncClient) -> N
         headers=headers,
         json={"is_primary": True},
     )
-    assert patch_resp.status_code == 400
+    assert patch_resp.status_code == 422
     assert patch_resp.json()["detail"] == "用户未加入该部门"
 
 

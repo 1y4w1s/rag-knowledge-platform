@@ -348,7 +348,7 @@ async def test_org_unit_e4_sibling_duplicate_name(client: AsyncClient) -> None:
 
 @pytest.mark.asyncio
 async def test_org_unit_e10_name_too_long(client: AsyncClient) -> None:
-    """E10：超长部门名 65 字 — 400。"""
+    """E10：超长部门名 65 字 — 422。"""
     headers, _user = await _register_org_admin(client, prefix="e10-admin")
     root_id = (
         await client.get("/api/v1/org-units", headers=headers)

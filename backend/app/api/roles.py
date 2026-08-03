@@ -144,7 +144,8 @@ async def update_role(
         actor_user_id=admin.id,
         resource_type="role",
         resource_id=role_id,
-        metadata={"name": role.name},
+        # P1-20 审计补强：权限位（is_admin_level）变更须留痕，与 role.create 口径一致。
+        metadata={"name": role.name, "is_admin_level": role.is_admin_level},
     )
     await db.commit()
 

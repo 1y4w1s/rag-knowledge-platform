@@ -3,9 +3,10 @@
 按 handoff-dissolve-org.md 约定：
 1. 验证 Owner + confirm_name
 2. 查该组织下所有 KB → remove_kb_tree 磁盘清盘
-3. 成员 account_type 重置
-4. 删 org_unit_members → org_units → organization_members → organization
-5. 审计落库 → commit（失败全回滚）
+3. 显式删该组织下全部 KB 行（P1-23：owner FK CASCADE → RESTRICT，删 org 前必须先删 KB）
+4. 成员 account_type 重置
+5. 删 org_unit_members → org_units → organization_members → organization
+6. 审计落库 → commit（失败全回滚）
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ from uuid import UUID
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import ForbiddenError, NotFoundError, ValidationError
+from app.core.exceptions import NotFoundError, ValidationError
 from app.models.enums import AccountType
 from app.models.knowledge_base import KnowledgeBase
 from app.models.org_unit import OrgUnit
@@ -81,7 +82,7 @@ async def dissolve_organization(
         actor_user_id=acting_user_id,
         resource_type="organization",
         resource_id=org_id,
-        details={
+        metadata={
             "org_name": org.name,
             "kb_count": len(kb_ids),
             "member_count": len(members),
@@ -89,7 +90,15 @@ async def dissolve_organization(
     )
 
     # 7. 级联删除（顺序：子表 → 父表）
-    # 7a. 删除部门成员
+    # 7a. 删除组织下全部 KB 行（P1-23：owner FK 已改 RESTRICT，删 org 前必须
+    #     显式删 KB；documents→chunks→mentions→relations→webhooks→approvals
+    #     等子树由 DB CASCADE 随行清除，磁盘清盘见步骤 4）
+    if kb_ids:
+        await db.execute(
+            delete(KnowledgeBase).where(KnowledgeBase.owner_org_id == org_id)
+        )
+
+    # 7b. 删除部门成员
     unit_ids_stmt = select(OrgUnit.id).where(OrgUnit.org_id == org_id)
     unit_ids = (await db.scalars(unit_ids_stmt)).all()
     if unit_ids:
@@ -99,16 +108,16 @@ async def dissolve_organization(
             )
         )
 
-    # 7b. 删除部门
+    # 7c. 删除部门
     await db.execute(delete(OrgUnit).where(OrgUnit.org_id == org_id))
 
-    # 7c. 删除组织成员
+    # 7d. 删除组织成员
     await db.execute(
         delete(OrganizationMember).where(OrganizationMember.org_id == org_id)
     )
 
-    # 7d. 删除组织记录
-    await db.delete(org)
+    # 7e. 删除组织记录（批量删，避免 ORM 对已加载子集合先做 FK 置 NULL）
+    await db.execute(delete(Organization).where(Organization.id == org_id))
 
     # 8. 提交
     await db.commit()
