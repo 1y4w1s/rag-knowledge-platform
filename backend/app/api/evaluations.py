@@ -15,7 +15,8 @@ from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.deps import CurrentUser, get_current_user
+from app.core.deps import CurrentUser, get_current_user, require_org_role
+from app.models.enums import OrgRole
 from app.models.evaluation_run import EvaluationRun
 from app.schemas.evaluation import (
     EvaluationRunCreate,
@@ -142,10 +143,10 @@ async def compare_runs(
 @router.post("/runs", response_model=EvaluationRunOut, status_code=201)
 async def create_run(
     data: EvaluationRunCreate,
-    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    current_user: Annotated[CurrentUser, Depends(require_org_role(OrgRole.admin))],
     db: AsyncSession = Depends(get_db),
 ):
-    """手动记录一次评测运行结果。"""
+    """手动记录一次评测运行结果（仅企业 owner/admin；评测为平台级运营数据）。"""
     run = EvaluationRun(
         id=uuid.uuid4(),
         run_id=data.run_id,

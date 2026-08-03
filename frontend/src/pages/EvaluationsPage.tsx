@@ -82,6 +82,9 @@ export function EvaluationsPage() {
   return (
     <div className="mx-auto max-w-[1180px] px-7 pb-16 pt-7">
       <SectionTitle label="RAG 评测" />
+      <p className="mb-6 text-xs text-[var(--mut-warm)]">
+        平台级评测基线，非租户数据：展示全局数据集与质量指标，仅企业管理员可写入评测记录。
+      </p>
 
       {/* ── 标签栏 ── */}
       <div className="mb-6 flex gap-0 border-b border-[var(--line2)]">
