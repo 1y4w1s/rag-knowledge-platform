@@ -19,9 +19,14 @@ from app.core import retry as retry_mod
 
 @pytest.fixture(autouse=True)
 def _reset_breakers() -> None:
+    """复位熔断器与降级状态：避免 OPEN/降级乘数泄漏到同批限流用例。"""
+    from app.core.degradation import reset_stabilization
+
     reset_all_breakers()
+    reset_stabilization()
     yield
     reset_all_breakers()
+    reset_stabilization()
 
 
 def _failing_factory(calls: dict[str, int]):

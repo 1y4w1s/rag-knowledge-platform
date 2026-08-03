@@ -1,6 +1,7 @@
 """Upload/storage failure tests — mock fault injection, zero production changes.
 
-With OSError → 500 exception_handler now registered.
+存储 OSError 按 P2-02 与依赖故障区分：exception_handler 统一映射 503
+「存储服务异常」（非 500 编程错误）。
 """
 from __future__ import annotations
 
@@ -31,7 +32,7 @@ async def test_upload_storage_write_fails(
     upload_dir: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Upload write_bytes OSError -> HTTP 500 + no doc stored."""
+    """Upload write_bytes OSError -> HTTP 503 + no doc stored."""
     headers, user = await register_and_login(prefix="upload-storage-fail")
     kb = await _create_kb(client, headers, user, name="Write Fail KB")
 
@@ -45,7 +46,7 @@ async def test_upload_storage_write_fails(
         headers=headers,
         files=[("files", ("fail.txt", b"hello", "text/plain"))],
     )
-    assert resp.status_code == 500
+    assert resp.status_code == 503
     assert "存储服务异常" in resp.text
 
     import sqlalchemy as sa

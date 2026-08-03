@@ -25,7 +25,7 @@ async def test_sa2_upload_rejects_non_whitelist_extension(
     register_and_login,
     upload_dir: Path,
 ) -> None:
-    """SA-2（PRD §10）：上传非白名单文件（如 .exe）→ 400，不落库。"""
+    """SA-2（PRD §10）：上传非白名单文件（如 .exe）→ 422，不落库。"""
     headers, user = await register_and_login(prefix="sa2-upload")
     kb = await _create_kb(client, headers, user)
 

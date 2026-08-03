@@ -63,11 +63,13 @@ def upload_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 
 @pytest.mark.asyncio
-async def test_delete_document_cascades_chunks_and_storage(
+async def test_delete_document_soft_deletes_and_keeps_chunks_storage(
     client: AsyncClient,
     register_and_login,
     upload_dir: Path,
 ) -> None:
+    """H3 软删语义：DELETE 只打 deleted_at，DB 行 / chunk / 磁盘文件均保留
+    至永久删除或过期 purge（对齐 production `delete_document` 行为）。"""
     headers, user = await register_and_login(prefix="doc-delete")
     kb = await _create_kb(client, headers, user)
 
@@ -94,17 +96,19 @@ async def test_delete_document_cascades_chunks_and_storage(
     assert delete_resp.status_code == 204
 
     async with SessionLocal() as db:
-        assert await db.get(Document, uuid.UUID(doc_id)) is None
+        doc = await db.get(Document, uuid.UUID(doc_id))
+        assert doc is not None, "软删后文档行应保留"
+        assert doc.deleted_at is not None, "软删应只置 deleted_at"
         remaining_chunks = await db.scalar(
             select(func.count())
             .select_from(DocumentChunk)
             .where(DocumentChunk.document_id == uuid.UUID(doc_id))
         )
-        assert remaining_chunks == 0
+        assert remaining_chunks and remaining_chunks > 0, "软删后 chunk 应保留至 purge"
 
     doc_dir = upload_dir / kb["id"] / doc_id
-    assert not doc_dir.exists()
-    assert not any(p.is_file() for p in upload_dir.rglob("*") if doc_id in str(p))
+    assert doc_dir.exists(), "软删后磁盘文件应保留"
+    assert any(p.is_file() for p in upload_dir.rglob("*") if doc_id in str(p))
 
 
 @pytest.mark.asyncio
@@ -247,7 +251,9 @@ async def test_delete_queued_document_still_allowed(
     assert resp.status_code == 204
 
     async with SessionLocal() as db:
-        assert await db.get(Document, doc_id) is None
+        doc = await db.get(Document, doc_id)
+        assert doc is not None, "软删后文档行应保留"
+        assert doc.deleted_at is not None, "软删应只置 deleted_at"
 
 
 @pytest.mark.asyncio

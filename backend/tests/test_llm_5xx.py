@@ -11,6 +11,20 @@ from app.services.rag.generation import stream_deepseek_tokens
 from tests.conftest import create_test_kb as _create_kb
 
 
+@pytest.fixture(autouse=True)
+def _reset_llm_fault_state() -> None:
+    """5xx 注入会真实触发 LLM 熔断/降级；测试后必须复位，避免污染同批限流用例
+    （degradation 乘数会使 invite 等限流断言提前 429）。"""
+    from app.core.degradation import reset_stabilization
+    from app.core.retry import reset_all_breakers
+
+    reset_all_breakers()
+    reset_stabilization()
+    yield
+    reset_all_breakers()
+    reset_stabilization()
+
+
 class _MockStream5xx:
     async def __aenter__(self) -> httpx.Response:
         req = httpx.Request("POST", "http://test/chat/completions")
