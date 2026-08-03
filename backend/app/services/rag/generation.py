@@ -8,6 +8,7 @@ from __future__ import annotations
 import re
 from collections.abc import AsyncIterator
 
+from app.core.config import settings
 from app.services.rag.chat_llm import stream_deepseek_tokens
 from app.services.rag.confidence_reply import AnswerConfidence
 from app.services.rag.redact import scrub_llm_context
@@ -282,6 +283,10 @@ async def expand_queries(query: str) -> list[str]:
     """将问题扩展为 3 个不同表述的检索查询，用于多路召回。失败时返回 [query]。"""
     if not query.strip():
         return [query]
+    # LLM 未配置（deepseek/tongyi 均无 key）时 stream_chat_tokens 会输出兜底文案
+    # 「根据知识库内容回答」，不能当作改写变体注入检索（否则污染 Top-N）。
+    if not (settings.deepseek_api_key or settings.tongyi_api_key):
+        return [query]
 
     prompt = MULTI_QUERY_PROMPT.format(query=query)
     try:
@@ -346,6 +351,9 @@ SSO 单点登录 支持 版本
 async def decompose_query(query: str) -> list[str]:
     """将复合问题拆分为多个独立子查询。简单问题返回 [query]。"""
     if not query.strip():
+        return [query]
+    # 同 expand_queries：LLM 未配置时兜底文案不是真实子查询，直接退化单查询。
+    if not (settings.deepseek_api_key or settings.tongyi_api_key):
         return [query]
 
     prompt = DECOMPOSE_PROMPT.format(query=query)

@@ -13,6 +13,7 @@ from app.services.rag.generation import (
     build_messages,
     compress_history,
     contextualize_query,
+    decompose_query,
     expand_queries,
     no_context_reply_for,
     rewrite_query,
@@ -255,6 +256,36 @@ def test_expand_queries_empty_returns_single() -> None:
 
     result = asyncio.run(expand_queries(""))
     assert result == [""]
+
+
+def test_expand_queries_no_llm_key_returns_single(monkeypatch: pytest.MonkeyPatch) -> None:
+    """无 LLM Key 时 expand_queries 必须退化单查询，
+    禁止把 stream_chat_tokens 的兜底文案「根据知识库内容回答」当作改写变体注入检索。"""
+    import asyncio
+
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "deepseek_api_key", "")
+    monkeypatch.setattr(settings, "tongyi_api_key", "")
+
+    query = "年假有多少天"
+    result = asyncio.run(expand_queries(query))
+    assert result == [query]
+
+
+def test_decompose_query_no_llm_key_returns_single(monkeypatch: pytest.MonkeyPatch) -> None:
+    """无 LLM Key 时 decompose_query 必须退化单查询（CI 无 Key 下复合题
+    GQ-18/45/60/68/79 Hit@3 miss 的根因：兜底文案被当成子查询前置污染 Top-N）。"""
+    import asyncio
+
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "deepseek_api_key", "")
+    monkeypatch.setattr(settings, "tongyi_api_key", "")
+
+    query = "请假超过3天需要谁审批？超过7天呢？"
+    result = asyncio.run(decompose_query(query))
+    assert result == [query]
 
 
 def test_expand_multi_prompt_format() -> None:
