@@ -5,19 +5,57 @@ import { Button } from "@/components/ui/button";
 import {
   createApiKey,
   deleteApiKey,
+  fetchAccountSettings,
   listApiKeys,
   type ApiKeyCreateResponse,
   type ApiKeyItem,
+  type AccountSettings,
 } from "@/lib/settings-api";
+
+const DEFAULT_EXPIRY_DAYS = 90;
+
+function todayLocalDate(): string {
+  const d = new Date();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
+function defaultExpiryDate(): string {
+  const d = new Date(Date.now() + DEFAULT_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${d.getFullYear()}-${month}-${day}`;
+}
+
+/** 日期选择值（本地）→ 当日 23:59:59 的 UTC ISO，交给后端落库。 */
+function toEndOfDayIso(dateValue: string): string {
+  const [y, m, d] = dateValue.split("-").map(Number);
+  return new Date(y, m - 1, d, 23, 59, 59, 999).toISOString();
+}
+
+function formatExpiry(iso: string | null): string {
+  if (!iso) return "永久有效";
+  return `有效期至 ${new Date(iso).toLocaleDateString("zh-CN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })}`;
+}
 
 export function ApiKeyManager() {
   const [keys, setKeys] = useState<ApiKeyItem[]>([]);
+  const [account, setAccount] = useState<AccountSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [newKey, setNewKey] = useState<ApiKeyCreateResponse | null>(null);
   const [keyName, setKeyName] = useState("");
+  const [expiryDate, setExpiryDate] = useState(defaultExpiryDate());
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+
+  const canCreate =
+    account?.account_type === "enterprise" && account?.org_role === "admin";
 
   const loadKeys = useCallback(async () => {
     setLoading(true);
@@ -35,15 +73,25 @@ export function ApiKeyManager() {
     void loadKeys();
   }, [loadKeys]);
 
+  useEffect(() => {
+    void fetchAccountSettings()
+      .then(setAccount)
+      .catch(() => setAccount(null));
+  }, []);
+
   async function handleCreate() {
     const name = keyName.trim();
     if (!name) return;
     setCreating(true);
     setError(null);
     try {
-      const result = await createApiKey(name);
+      const result = await createApiKey(
+        name,
+        expiryDate ? toEndOfDayIso(expiryDate) : null,
+      );
       setNewKey(result);
       setKeyName("");
+      setExpiryDate(defaultExpiryDate());
       await loadKeys();
     } catch (err) {
       setError(err instanceof Error ? err.message : "创建失败");
@@ -91,33 +139,60 @@ export function ApiKeyManager() {
           <p className="mt-2 text-sm text-red-600">{error}</p>
         ) : null}
 
-        <div className="mt-2 flex items-end gap-2">
-          <div className="flex-1">
-            <label htmlFor="api-key-name" className="settings-field-label">
-              名称
-            </label>
-            <input
-              id="api-key-name"
-              type="text"
-              value={keyName}
-              onChange={(e) => setKeyName(e.target.value)}
-              placeholder="名称"
-              className="settings-field-input"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void handleCreate();
-              }}
-            />
+        {canCreate ? (
+          <div className="mt-3">
+            <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+              API Key 等同账号密码，拥有账号全部权限；请妥善保管，泄露视为账号泄露。
+            </div>
+            <div className="mt-2 flex items-end gap-2">
+              <div className="flex-1">
+                <label htmlFor="api-key-name" className="settings-field-label">
+                  名称
+                </label>
+                <input
+                  id="api-key-name"
+                  type="text"
+                  value={keyName}
+                  onChange={(e) => setKeyName(e.target.value)}
+                  placeholder="名称"
+                  className="settings-field-input"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void handleCreate();
+                  }}
+                />
+              </div>
+              <div className="flex-1">
+                <label htmlFor="api-key-expiry" className="settings-field-label">
+                  有效期
+                </label>
+                <input
+                  id="api-key-expiry"
+                  type="date"
+                  value={expiryDate}
+                  min={todayLocalDate()}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                  className="settings-field-input"
+                />
+              </div>
+              <Button
+                type="button"
+                variant="brand"
+                size="sm"
+                disabled={creating || !keyName.trim()}
+                onClick={() => void handleCreate()}
+              >
+                {creating ? "创建中…" : "创建"}
+              </Button>
+            </div>
+            <p className="mt-1 text-xs text-muted">
+              默认建议 {DEFAULT_EXPIRY_DAYS} 天；清空后为永久有效。
+            </p>
           </div>
-          <Button
-            type="button"
-            variant="brand"
-            size="sm"
-            disabled={creating || !keyName.trim()}
-            onClick={() => void handleCreate()}
-          >
-            {creating ? "创建中…" : "创建"}
-          </Button>
-        </div>
+        ) : (
+          <p className="mt-2 text-xs text-muted">
+            仅团队管理员或所有者可创建 API Key。
+          </p>
+        )}
 
         {newKey ? (
           <div className="mt-4 rounded-md border border-amber-200 bg-amber-50 p-3">
@@ -164,6 +239,9 @@ export function ApiKeyManager() {
                     <code className="rounded bg-[var(--surf2)] px-1.5 py-0.5 font-mono text-xs text-muted">
                       {key.prefix}…
                     </code>
+                    <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">
+                      全权
+                    </span>
                     {!key.is_active ? (
                       <span className="rounded bg-red-100 px-1.5 py-0.5 text-xs text-red-700">
                         已撤销
@@ -175,6 +253,7 @@ export function ApiKeyManager() {
                     {key.last_used_at
                       ? ` · 上次使用 ${new Date(key.last_used_at).toLocaleDateString("zh-CN")}`
                       : " · 尚未使用"}
+                    {` · ${formatExpiry(key.expires_at)}`}
                   </p>
                 </div>
                 {key.is_active ? (

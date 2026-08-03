@@ -15,7 +15,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.deps import get_current_user, CurrentUser
+from app.core.exceptions import ForbiddenError, ValidationError
 from app.models.api_key import ApiKey
+from app.models.enums import AccountType, OrgRole
 from app.services.auth.api_key_auth import generate_api_key, hash_api_key
 from app.services.audit.log import write_audit_log
 
@@ -25,7 +27,7 @@ router = APIRouter(prefix="/api-keys", tags=["api-keys"])
 
 class ApiKeyCreateRequest(BaseModel):
     name: str
-    scopes: str = ""
+    expires_at: datetime | None = None  # 选填；须为未来时间，否则 422
 
 
 class ApiKeyCreateResponse(BaseModel):
@@ -34,6 +36,7 @@ class ApiKeyCreateResponse(BaseModel):
     prefix: str
     raw_key: str
     scopes: str
+    expires_at: datetime | None
     created_at: datetime
 
 
@@ -58,7 +61,25 @@ async def create_api_key(
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> ApiKeyCreateResponse:
-    """创建新的 API Key。返回 raw_key 仅此一次。"""
+    """创建新的 API Key。返回 raw_key 仅此一次。
+
+    P1-17（已拍板选 B）：API Key = 账号级全权凭证，等同账号密码。
+    - 仅 enterprise owner/admin 可创建（personal / member 一律 403，fail-closed）；
+    - ``expires_at`` 选填，须为未来时间（否则 422）；
+    - ``scopes`` 入参不再生效（Pydantic v2 忽略多余字段），固定落库 ``""``。
+    """
+    if current_user.account_type != AccountType.enterprise:
+        raise ForbiddenError(detail="仅团队账号可创建 API Key")
+    if not current_user.is_owner and current_user.org_role != OrgRole.admin:
+        raise ForbiddenError(detail="仅团队管理员或所有者可创建 API Key")
+
+    expires_at = body.expires_at
+    if expires_at is not None:
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at <= datetime.now(timezone.utc):
+            raise ValidationError(detail="有效期必须晚于当前时间")
+
     raw_key, prefix, key_hash = generate_api_key()
 
     api_key = ApiKey(
@@ -67,8 +88,9 @@ async def create_api_key(
         key_hash=key_hash,
         prefix=prefix,
         name=body.name,
-        scopes=body.scopes,
+        scopes="",  # P1-17：scopes 入参忽略，固定 ""（全权凭证）
         is_active=True,
+        expires_at=expires_at,
     )
     db.add(api_key)
     await db.flush()
@@ -79,7 +101,11 @@ async def create_api_key(
         actor_user_id=current_user.id,
         resource_type="api_key",
         resource_id=api_key.id,
-        metadata={"name": body.name, "prefix": prefix},
+        metadata={
+            "name": body.name,
+            "prefix": prefix,
+            "expires_at": expires_at.isoformat() if expires_at else None,
+        },
     )
     await db.flush()
     # A3 写端点纪律（P0-07）：create 此前只 flush 不 commit，session 关闭回滚 → API Key 永不落库。
@@ -91,6 +117,7 @@ async def create_api_key(
         prefix=api_key.prefix,
         raw_key=raw_key,
         scopes=api_key.scopes,
+        expires_at=api_key.expires_at,
         created_at=api_key.created_at,
     )
 

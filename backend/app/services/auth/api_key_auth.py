@@ -72,8 +72,16 @@ async def authenticate_api_key(
         from datetime import datetime, timezone
 
         if datetime.now(timezone.utc) > api_key.expires_at:
-            api_key.is_active = False
-            await db.flush()
+            # P1-17 验收钉死：过期自动停用必须落库。401 路径下请求级 session
+            # 随异常回滚（get_db 不 commit），故用独立会话立即 commit
+            # （对齐 agent.py「独立会话、立即 commit，避免被主事务回滚吞掉」）。
+            from app.core.database import SessionLocal
+
+            async with SessionLocal() as stop_db:
+                row = await stop_db.get(ApiKey, api_key.id)
+                if row is not None:
+                    row.is_active = False
+                    await stop_db.commit()
             return None
 
     # 更新 last_used_at

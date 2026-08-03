@@ -154,12 +154,13 @@ export interface ApiKeyCreateResponse {
   prefix: string;
   raw_key: string;
   scopes: string;
+  expires_at: string | null;
   created_at: string;
 }
 
 export async function createApiKey(
   name: string,
-  scopes = "",
+  expiresAt: string | null = null,
 ): Promise<ApiKeyCreateResponse> {
   const token = getAccessToken();
   if (!token) throw new Error("未登录");
@@ -170,7 +171,7 @@ export async function createApiKey(
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ name, scopes }),
+    body: JSON.stringify({ name, expires_at: expiresAt }),
   });
   if (!res.ok) throw new Error(await parseSettingsError(res));
   return (await res.json()) as ApiKeyCreateResponse;
