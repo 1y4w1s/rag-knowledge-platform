@@ -191,7 +191,9 @@ async def enforce_api_rate_limit(
     if get_rate_limit_backend() == "redis":
         try:
             ts = wall_now(now)
-            uid = str(user_id) if user_id is not None else f"ip:{ip or 'unknown'}"
+            # 仅 IP 流（如注册/邀请码校验）用 anon: 前缀，避免与下方 ip 级桶
+            # `rl:api:{kind}:ip:{ip}` 同键（否则每次请求双计数，上限隐性减半）
+            uid = str(user_id) if user_id is not None else f"anon:{ip or 'unknown'}"
             key = _redis_key(kind, uid)
             allowed = await redis_sliding_allow(
                 key,

@@ -22,8 +22,16 @@ _chat_answers: dict[tuple[str, str], int] = defaultdict(int)
 _rate_limit_rejected: dict[str, int] = defaultdict(int)
 _start_time: float = time.time()
 
-# NW-26：限流 429 五档（扁平 kind，固定 scrape）
-RATE_LIMIT_REJECT_KINDS = ("login", "forgot", "chat", "upload", "search")
+# NW-26：限流 429 五档 → T6-O-7：补 register（注册/邀请码校验复用桶）+ global（全局限流中间件）
+RATE_LIMIT_REJECT_KINDS = (
+    "login",
+    "forgot",
+    "chat",
+    "upload",
+    "search",
+    "register",
+    "global",
+)
 
 _BACKLOG_TTL_S = 10.0
 _backlog_cache: dict[str, int] | None = None
@@ -75,7 +83,7 @@ def inc_chat_answer(confidence: str, mode: str) -> None:
 
 
 def inc_rate_limit_rejected(kind: str) -> None:
-    """限流拒绝（429）计数。kind=login|forgot|chat|upload|search。"""
+    """限流拒绝（429）计数。kind=login|forgot|chat|upload|search|register|global。"""
     if kind not in RATE_LIMIT_REJECT_KINDS:
         return
     _rate_limit_rejected[kind] += 1

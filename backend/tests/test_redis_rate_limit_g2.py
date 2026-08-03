@@ -11,7 +11,7 @@ import pytest
 from app.core.exceptions import RateLimitError
 from app.services.auth import api_rate_limit as api_rl
 from app.services.auth import login_rate_limit as login_rl
-from app.services.auth.api_rate_limit import ApiRateLimitKind, enforce_api_rate_limit
+from app.services.auth.api_rate_limit import ApiRateLimitKind
 from app.services.auth.rate_limit_store import (
     redis_sliding_allow,
     reset_rate_limit_backend_cache,
@@ -109,6 +109,10 @@ class _FakeRedis:
         return n
 
 
+# 恢复真实限流实现：直接调用 enforce_api_rate_limit 的用例需真实 429
+pytestmark = pytest.mark.usefixtures("real_api_rate_limit")
+
+
 @pytest.fixture
 def fake_redis(monkeypatch: pytest.MonkeyPatch) -> _FakeRedis:
     fake = _FakeRedis()
@@ -134,9 +138,9 @@ async def test_redis_api_exceeds_limit(
     monkeypatch.setattr(api_rl, "CHAT_MAX_REQUESTS", 3)
     uid = uuid4()
     for _ in range(3):
-        await enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
+        await api_rl.enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
     with pytest.raises(RateLimitError):
-        await enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
+        await api_rl.enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
 
 
 @pytest.mark.asyncio
@@ -151,10 +155,10 @@ async def test_redis_api_fallback_on_error(monkeypatch: pytest.MonkeyPatch) -> N
     monkeypatch.setattr("app.core.redis.get_redis", _boom)
     api_rl.reset_all_api_rate_limits()
     uid = uuid4()
-    await enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
-    await enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
+    await api_rl.enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
+    await api_rl.enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
     with pytest.raises(RateLimitError):
-        await enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
+        await api_rl.enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
     monkeypatch.delenv("RATE_LIMIT_BACKEND", raising=False)
     reset_rate_limit_backend_cache()
     api_rl.reset_all_api_rate_limits()

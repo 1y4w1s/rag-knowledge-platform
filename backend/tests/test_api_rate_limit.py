@@ -9,10 +9,13 @@ from app.core.exceptions import RateLimitError
 from app.services.auth import api_rate_limit as rl
 from app.services.auth.api_rate_limit import (
     ApiRateLimitKind,
-    enforce_api_rate_limit,
     reset_all_api_rate_limits,
 )
 from tests.conftest import create_test_kb as _create_kb
+
+
+# 恢复真实限流实现（conftest 默认 noop），断言真实 429 行为而非空跑
+pytestmark = pytest.mark.usefixtures("real_api_rate_limit")
 
 
 @pytest.fixture(autouse=True)
@@ -196,11 +199,11 @@ async def test_ip_bucket_blocks_second_user_unit(
     uid_b = uuid.uuid4()
     shared_ip = "203.0.113.10"
 
-    await enforce_api_rate_limit(ApiRateLimitKind.chat, uid_a, ip=shared_ip)
-    await enforce_api_rate_limit(ApiRateLimitKind.chat, uid_a, ip=shared_ip)
+    await rl.enforce_api_rate_limit(ApiRateLimitKind.chat, uid_a, ip=shared_ip)
+    await rl.enforce_api_rate_limit(ApiRateLimitKind.chat, uid_a, ip=shared_ip)
 
     with pytest.raises(RateLimitError) as exc:
-        await enforce_api_rate_limit(ApiRateLimitKind.chat, uid_b, ip=shared_ip)
+        await rl.enforce_api_rate_limit(ApiRateLimitKind.chat, uid_b, ip=shared_ip)
     assert "对话" in str(exc.value.detail)
 
 

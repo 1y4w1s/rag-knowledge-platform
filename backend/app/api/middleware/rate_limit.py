@@ -21,6 +21,7 @@ from app.services.rate_limit import (
     remaining,
     window_reset_seconds,
 )
+from app.services.observability.metrics_registry import inc_rate_limit_rejected
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         if is_rate_limited(ip):
             retry_after = window_reset_seconds(ip)
             logger.warning("Rate limit exceeded: ip=%s path=%s", ip, path)
+            # T6-O-7：HTTP 层 429 必须计入限流指标（全局限流中间件此前静默）
+            inc_rate_limit_rejected("global")
             return JSONResponse(
                 status_code=HTTP_429_TOO_MANY_REQUESTS,
                 content={

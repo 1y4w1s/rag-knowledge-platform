@@ -57,8 +57,13 @@ async def register(
 @router.post("/invites/validate", response_model=InviteValidateResponse)
 async def validate_invite(
     body: InviteValidateRequest,
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> InviteValidateResponse:
+    # P1-21 邀请码枚举：复用注册限流桶（匿名注册流同 IP 10 次/小时，含 register/validate）
+    await enforce_api_rate_limit(
+        ApiRateLimitKind.register, ip=get_client_ip(request),
+    )
     org, _invite = await resolve_valid_invite(db, body.code)
     return InviteValidateResponse(org_id=org.id, org_name=org.name)
 

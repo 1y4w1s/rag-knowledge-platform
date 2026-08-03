@@ -11,7 +11,7 @@ from app.core.config import settings
 from app.core.exceptions import RateLimitError
 from app.services.auth import api_rate_limit as api_rl
 from app.services.auth import login_rate_limit as login_rl
-from app.services.auth.api_rate_limit import ApiRateLimitKind, enforce_api_rate_limit
+from app.services.auth.api_rate_limit import ApiRateLimitKind
 from app.services.auth.login_rate_limit import enforce_forgot_password_rate_limit
 from app.services.observability.metrics_registry import (
     RATE_LIMIT_REJECT_KINDS,
@@ -19,6 +19,10 @@ from app.services.observability.metrics_registry import (
 )
 
 METRICS_TOKEN = "test-metrics-token"
+
+
+# 恢复真实限流实现：本模块直接调用 enforce_api_rate_limit 的用例需真实 429
+pytestmark = pytest.mark.usefixtures("real_api_rate_limit")
 
 
 @pytest.fixture(autouse=True)
@@ -57,10 +61,10 @@ async def test_chat_429_increments_metrics(
 ) -> None:
     monkeypatch.setattr(api_rl, "CHAT_MAX_REQUESTS", 2)
     uid = uuid4()
-    await enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
-    await enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
+    await api_rl.enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
+    await api_rl.enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
     with pytest.raises(RateLimitError):
-        await enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
+        await api_rl.enforce_api_rate_limit(ApiRateLimitKind.chat, uid)
 
     resp = await client.get("/metrics")
     assert 'ruige_rate_limit_rejected_total{kind="chat"} 1' in resp.text
@@ -75,12 +79,12 @@ async def test_upload_and_search_429_kinds(
     monkeypatch.setattr(api_rl, "UPLOAD_MAX_REQUESTS", 1)
     monkeypatch.setattr(api_rl, "SEARCH_MAX_REQUESTS", 1)
     u1, u2 = uuid4(), uuid4()
-    await enforce_api_rate_limit(ApiRateLimitKind.upload, u1)
+    await api_rl.enforce_api_rate_limit(ApiRateLimitKind.upload, u1)
     with pytest.raises(RateLimitError):
-        await enforce_api_rate_limit(ApiRateLimitKind.upload, u1)
-    await enforce_api_rate_limit(ApiRateLimitKind.search, u2)
+        await api_rl.enforce_api_rate_limit(ApiRateLimitKind.upload, u1)
+    await api_rl.enforce_api_rate_limit(ApiRateLimitKind.search, u2)
     with pytest.raises(RateLimitError):
-        await enforce_api_rate_limit(ApiRateLimitKind.search, u2)
+        await api_rl.enforce_api_rate_limit(ApiRateLimitKind.search, u2)
 
     body = (await client.get("/metrics")).text
     assert 'ruige_rate_limit_rejected_total{kind="upload"} 1' in body
