@@ -10,18 +10,20 @@ sys.modules，导致全量收集时 3 个 metrics 测试 ImportError（CI collec
 """
 from __future__ import annotations
 
+import asyncio
 import os
 import sys
 from collections.abc import AsyncIterator
+from typing import Self
 
 # 确保能找到 app 模块
 _BACKEND_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 if _BACKEND_DIR not in sys.path:
     sys.path.insert(0, _BACKEND_DIR)
 
-from app.core.config import settings
-from app.services.rag import chat_llm
-from app.services.rag.chat_llm import _build_chat_provider_chain, _endpoint_for
+from app.core.config import settings  # noqa: E402
+from app.services.rag import chat_llm  # noqa: E402
+from app.services.rag.chat_llm import _build_chat_provider_chain, _endpoint_for  # noqa: E402
 
 
 # ── Mock 辅助类 ───────────────────────────────────────────────────
@@ -57,7 +59,7 @@ class _FakeStreamErr:
             return
             yield
 
-        async def __aenter__(self) -> _RaiseOnEnter:
+        async def __aenter__(self) -> Self:
             return self
 
         async def __aexit__(self, *args: object) -> None:
@@ -203,9 +205,6 @@ async def _run_stream_raises(primary_ok=False, fallback_ok=False, fallback_key=T
 
 
 # ── async 测试 ────────────────────────────────────────────────────
-
-
-import asyncio
 
 
 def test_primary_succeeds():

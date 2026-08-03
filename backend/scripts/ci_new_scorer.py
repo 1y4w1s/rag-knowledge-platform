@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """CI 中运行新评分引擎对比旧引擎输出。"""
-import asyncio, json, os, sys
+import asyncio
+import json
+import os
+import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 async def main():
@@ -51,7 +54,7 @@ async def main():
 
     n = len(cases)
     print(f"New scorer (ContentMatch): {new_hits}/{n} = {new_hits/n*100:.1f}%")
-    print(f"Note: Compare with old engine's 95.5% baseline")
+    print("Note: Compare with old engine's 95.5% baseline")
 
 if __name__ == "__main__":
     asyncio.run(main())

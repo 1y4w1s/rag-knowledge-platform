@@ -10,8 +10,6 @@ from app.core.exceptions import ValidationError, ConflictError, UnauthorizedErro
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-logger = logging.getLogger(__name__)
-
 from app.models.enums import AccountType, OrgRole, UnitRole
 from app.models.organization import Organization
 from app.models.organization_member import OrganizationMember
@@ -38,6 +36,8 @@ from app.services.auth.username import normalize_nickname, validate_username
 from app.services.observability.metrics_registry import inc_rate_limit_rejected
 from app.services.org.units import add_unit_member, create_org_root_unit
 from app.services.organization.invites import resolve_valid_invite
+
+logger = logging.getLogger(__name__)
 
 
 def _validate_password(password: str) -> None:

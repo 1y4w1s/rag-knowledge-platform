@@ -4,14 +4,12 @@ from __future__ import annotations
 
 import hashlib
 import secrets
-from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import TokenClaims
 from app.models.api_key import ApiKey
-from app.models.enums import AccountType
 from app.models.user import User
 
 API_KEY_PREFIX = "zkan_"

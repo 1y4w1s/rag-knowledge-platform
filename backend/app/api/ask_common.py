@@ -3,7 +3,6 @@
 from uuid import UUID
 
 from app.core.exceptions import BadRequestError, ForbiddenError
-from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 

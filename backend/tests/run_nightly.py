@@ -12,9 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
-import sys
 import time
-from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -54,7 +52,6 @@ async def run_nightly() -> dict:
     if not kb_id:
         logger.warning("未配置 nightly_kb_id，跳过检索评测")
     else:
-        import uuid
         from uuid import UUID
         kb_uuid = UUID(kb_id) if isinstance(kb_id, str) else kb_id
 

@@ -11,11 +11,9 @@
 
 from __future__ import annotations
 
-import dataclasses
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from uuid import UUID
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession

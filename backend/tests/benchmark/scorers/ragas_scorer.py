@@ -7,7 +7,6 @@ from __future__ import annotations
 import logging
 import os
 import warnings
-from typing import Any
 
 os.environ.setdefault("GIT_PYTHON_REFRESH", "quiet")
 
@@ -30,11 +29,8 @@ except ImportError:
     _sys.modules["langchain_community.chat_models.vertexai"] = _vertex_mod
 
 from .base import (
-    EvalScorer,
     RetrievalScore,
     GenerationScore,
-    Expect,
-    RetrievedChunk,
 )
 
 logger = logging.getLogger(__name__)

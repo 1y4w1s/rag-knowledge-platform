@@ -36,10 +36,6 @@ from app.services.agent.tools.document_write import (
     DocumentWriteFailure,
     DocumentWriteToolResult,
 )
-from app.services.agent.planners import (
-    DocumentWritePlanner,
-    create_document_write_planner,
-)
 from app.services.agent.tools.registry import AgentToolName
 from app.services.agent.tools.scope import AgentToolScope
 from app.services.agent.types import (
@@ -66,7 +62,7 @@ from app.services.rag.generation import (
     stream_no_context_reply,
 )
 from app.services.rag.multi_turn import prepare_multi_turn_query
-from app.services.rag.persistence import save_chat_turn, save_workspace_chat_turn
+from app.services.rag.persistence import save_chat_turn
 from app.services.rag.thread_persistence import (
     normalize_workspace_department_key,
     resolve_thread_for_message,
@@ -1068,7 +1064,6 @@ async def _render_document_write_sse(
     reason = result.reason if result is not None else None
 
     token_text = ""
-    sse_tail: list[str] = []  # 提案/澄清/拒答事件（done 之前）
 
     # 2a) 歧义澄清优先（0 写结果 + planner 标记 ambiguous + 有多篇候选）
     if (
@@ -1152,6 +1147,7 @@ async def stream_agent_document_write_events(
     tool_scope: AgentToolScope,
     planner: ToolPlanner,
     org_scope: OrgScope | None = None,
+    current_user: CurrentUser | None = None,
     workspace_mode: bool = False,
     can_adopt: bool = False,
     save_turn: SaveTurnFn,

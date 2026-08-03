@@ -7,10 +7,9 @@
 4. page_number 对 chunk.page_number 做精确匹配
 5. 返回 top_k 内的命中情况
 """
-from typing import Any
 from .base import (
-    EvalScorer, RetrievalScore, GenerationScore,
-    Expect, RetrievedChunk, hit_positions, compute_scores,
+    RetrievalScore, GenerationScore,
+    Expect, RetrievedChunk, compute_scores,
 )
 
 

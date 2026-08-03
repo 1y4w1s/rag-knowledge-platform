@@ -1,5 +1,8 @@
 """Enterprise QA 检索评测（已弃用，请用 scripts/run_benchmark.py --dataset enterprise_qa）。入库 6 份文档 → 108 题检索 → L1-L4 分层报告。"""
-import asyncio, json, os, uuid
+import asyncio
+import json
+import os
+import uuid
 from pathlib import Path
 
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
@@ -78,12 +81,18 @@ async def main():
                     content = (ck.content or "").lower()
                     st = (ck.heading_path or ck.section_title or "").lower()
                     ok = True
-                    if cc and cc not in content: ok = False
-                    if sp and sp not in st: ok = False
-                    if hp and hp not in st: ok = False
-                    if ok: hit = True; break
+                    if cc and cc not in content:
+                        ok = False
+                    if sp and sp not in st:
+                        ok = False
+                    if hp and hp not in st:
+                        ok = False
+                    if ok:
+                        hit = True
+                        break
 
-            if hit: by_level[level]["hit"] += 1
+            if hit:
+                by_level[level]["hit"] += 1
             results.append({"case_id": case["case_id"], "level": level, "query": case["query"][:40], "hit": hit})
 
             if (i+1) % 20 == 0:
@@ -101,7 +110,8 @@ async def main():
         ok = rate >= th
         tag = "PASS" if ok else "FAIL"
         print(f"  {level}: {s['hit']}/{s['total']} = {rate:.0%} (门禁 >= {th:.0%})  {tag}")
-        if not ok: all_pass = False
+        if not ok:
+            all_pass = False
 
     total_hits = sum(1 for r in results if r["hit"])
     print(f"  总体: {total_hits}/{len(results)} = {total_hits/max(1,len(results)):.0%}  Hit@{HIT_K}")
@@ -109,15 +119,16 @@ async def main():
     fails = [r for r in results if not r["hit"]]
     if fails:
         print(f"\n  失败 ({len(fails)}):")
-        for r in fails: print(f"    [{r['level']}] {r['case_id']}: {r['query']}")
+        for r in fails:
+            print(f"    [{r['level']}] {r['case_id']}: {r['query']}")
 
     summary = {"dataset": "enterprise_qa", "total": len(results), "hit_k": HIT_K,
-        "by_level": {l: {"total": s["total"], "hit": s["hit"],
-            "rate": round(s["hit"]/max(1,s["total"]),4)} for l,s in sorted(by_level.items())},
+        "by_level": {level: {"total": s["total"], "hit": s["hit"],
+            "rate": round(s["hit"]/max(1,s["total"]),4)} for level, s in sorted(by_level.items())},
         "overall_hit_rate": round(total_hits/max(1,len(results)),4)}
     Path("/app/benchmark_results/enterprise_qa.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(f"\n结果: /app/benchmark_results/enterprise_qa.json")
+    print("\n结果: /app/benchmark_results/enterprise_qa.json")
     print(f"{'='*60}\nALL {'PASS' if all_pass else 'FAIL'} {'✅' if all_pass else '❌'}")
 
 asyncio.run(main())

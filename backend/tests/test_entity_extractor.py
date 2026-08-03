@@ -3,7 +3,6 @@
 from unittest.mock import MagicMock, patch
 
 import httpx
-import pytest
 
 from app.services.rag.entity_extractor import (
     _try_parse_json,

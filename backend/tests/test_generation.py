@@ -7,10 +7,7 @@ import uuid
 import pytest
 
 from app.services.rag.generation import (
-    COMPRESS_PROMPT,
     CONTEXTUALIZE_PROMPT,
-    KEEP_RECENT_ROUNDS,
-    MAX_ROUNDS_BEFORE_COMPRESS,
     MULTI_QUERY_PROMPT,
     SYSTEM_PROMPT,
     build_messages,

@@ -7,11 +7,11 @@
 import logging
 from uuid import UUID
 
-from sqlalchemy import delete, select, text
+from sqlalchemy import delete, text
 from sqlalchemy.exc import ProgrammingError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.entity import Entity, EntityMention, Relation
+from app.models.entity import Entity
 
 logger = logging.getLogger(__name__)
 

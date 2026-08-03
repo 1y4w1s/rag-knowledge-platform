@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import uuid
 
-import pytest
 
 from app.services.agent.runtime import _detect_low_confidence, _detect_reflection_signal
 from app.services.agent.types import AgentRunOutcome, AgentStepRecord

@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import uuid
 from pathlib import Path
-from uuid import UUID
 
 import pytest
 from httpx import AsyncClient
@@ -18,9 +17,8 @@ from app.models.enums import DocumentStatus
 from app.services.ingestion import embedder
 from app.services.ingestion.pipeline import process_document_ingestion
 from app.services.rag.retrieval import retrieve_chunks
-from app.services.rag.types import RetrievedChunk
+from tests.conftest import create_test_kb as _create_kb
 from tests.golden_qa_loader import (
-    FIXTURES,
     GOLDEN_DOCX,
     GOLDEN_MD,
     GOLDEN_QA_CASES,
@@ -117,8 +115,6 @@ def upload_dir(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
     return tmp_path
 
-
-from tests.conftest import create_test_kb as _create_kb
 
 # R5-2 经典门禁题（历史 12/12；fixture 若缺号则取现有）
 _GATE_IDS = {f"GQ-{i}" for i in range(1, 13)}

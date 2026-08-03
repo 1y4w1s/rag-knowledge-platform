@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import uuid
-from pathlib import Path
 
 import pytest
 from httpx import AsyncClient
@@ -21,14 +20,12 @@ from app.services.ingestion.pipeline import process_document_ingestion
 from app.services.rag.retrieval import retrieve_chunks
 from tests.conftest import create_test_kb as _create_kb
 from tests.golden_qa_loader import (
-    FIXTURES,
     GOLDEN_MD,
     GOLDEN_DOCX,
     GOLDEN_QA_CASES,
     HIT_K,
     chunk_matches,
     hit_at_k,
-    reciprocal_rank,
 )
 
 HIT_RATE_MIN = 0.85
@@ -115,7 +112,7 @@ async def test_full_gate_retrieval(
     rej_acc = reject_correct / max(1, reject_total)
 
     print(f"\n{'='*50}")
-    print(f"全量门禁报告")
+    print("全量门禁报告")
     print(f"{'='*50}")
     print(f"  总题数:    {len(GOLDEN_QA_CASES)}")
     print(f"  普通题:    {hits}/{total} = {hit_rate:.1%}  (门禁: {HIT_RATE_MIN:.0%})")

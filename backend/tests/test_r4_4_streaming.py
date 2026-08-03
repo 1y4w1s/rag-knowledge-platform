@@ -22,7 +22,7 @@ from app.services.ingestion.pipeline import process_document_ingestion
 from app.services.rag.persistence import get_message_by_id
 from app.services.rag.thread_persistence import create_kb_thread, create_workspace_thread
 from app.services.workspace.scope import WorkspaceKind, resolve_workspace
-from tests.conftest import create_test_kb as _create_kb, unique_email, unique_username
+from tests.conftest import create_test_kb as _create_kb
 
 FIXTURES = Path(__file__).parent / "fixtures"
 GOLDEN_MD = FIXTURES / "golden_handbook.md"
@@ -53,7 +53,7 @@ def _assert_sse_frames_well_formed(raw: str) -> None:
     for block in blocks:
         assert "event: " in block
         assert "data: " in block
-        data_line = next(l for l in block.splitlines() if l.startswith("data: "))
+        data_line = next(line for line in block.splitlines() if line.startswith("data: "))
         json.loads(data_line.removeprefix("data: ").strip())
 
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
+from typing import Self
 
 import pytest
 
@@ -44,7 +45,7 @@ class _FakeStreamError:
             return
             yield  # type: ignore[unreachable]
 
-        async def __aenter__(self) -> _RaiseOnEnter:
+        async def __aenter__(self) -> Self:
             return self
 
         async def __aexit__(self, *args: object) -> None:

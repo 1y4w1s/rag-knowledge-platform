@@ -180,7 +180,6 @@ async def _run_kb_edit_sse(
     }
     db = AsyncMock(spec=AsyncSession)
     db.get = AsyncMock(return_value=fake_approval)
-    save_turn = AsyncMock(return_value=uuid.uuid4())
 
     planner = create_edit_tool_planner("年假 FAQ", default_kb_id=path_kb_id)
     frames = stream_agent_kb_edit_events(
@@ -337,7 +336,6 @@ def test_can_user_adopt_kb_personal_not_owner() -> None:
 
 def test_can_user_adopt_kb_org_admin_writable() -> None:
     uid = uuid.uuid4()
-    kb_id = uuid.uuid4()
     kb = _KB(owner_org_id=uuid.uuid4())
     assert can_user_adopt_kb(_admin(uid), kb, _OrgScope(writable=True)) is True
 

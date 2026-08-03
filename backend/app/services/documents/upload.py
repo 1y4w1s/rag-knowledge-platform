@@ -5,8 +5,7 @@ import uuid
 import re
 from pathlib import Path
 
-import asyncio
-from fastapi import BackgroundTasks, UploadFile, status
+from fastapi import BackgroundTasks, UploadFile
 from app.core.exceptions import ValidationError, ConflictError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession

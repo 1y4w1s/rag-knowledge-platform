@@ -15,12 +15,10 @@ from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
 from app.models.enums import DocumentStatus
 from app.services.ingestion.pipeline import process_document_ingestion
+from tests.conftest import create_test_kb as _create_kb
 
 FIXTURES = Path(__file__).parent / "fixtures"
 GOLDEN_MD = FIXTURES / "golden_handbook.md"
-
-
-from tests.conftest import create_test_kb as _create_kb
 
 
 async def _ingest_fixture(

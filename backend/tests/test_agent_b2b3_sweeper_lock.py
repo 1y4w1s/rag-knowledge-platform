@@ -47,7 +47,7 @@ from tests._a2a3b2b3_helpers import (
     audit_count,
     get_approval,
     insert_approval,
-    upload_dir,
+    upload_dir,  # noqa: F401  # pytest fixture re-export（参数按名解析，ruff 静态分析不可见）
     utcnow,
 )
 from tests.conftest import create_test_kb
@@ -183,7 +183,7 @@ async def test_b2_sweeper_marks_expired_approvals(
 async def test_b2_fresh_approval_resolve_still_200(
     client: AsyncClient,
     register_and_login,
-    upload_dir,
+    upload_dir,  # noqa: F811  # fixture 按名解析（ruff 静态分析不可见）
 ) -> None:
     """TTL 内 pending 审批照常可采纳（惰性过期不误伤）。"""
     headers, user = await register_and_login(prefix="b2-fresh")

@@ -8,7 +8,8 @@ from __future__ import annotations
 import re
 from collections.abc import AsyncIterator
 
-from app.services.rag.chat_llm import stream_chat_tokens, stream_deepseek_tokens
+from app.services.rag.chat_llm import stream_deepseek_tokens
+from app.services.rag.confidence_reply import AnswerConfidence
 from app.services.rag.redact import scrub_llm_context
 from app.services.rag.types import RetrievedChunk
 
@@ -442,8 +443,6 @@ def _detect_and_hint_noise(
     2. 有 chunk 的相似度低于 _NOISE_SIM_ABSOLUTE → 明确噪音
     3. refuse 置信度不触发（不调 LLM）
     """
-    from app.services.rag.confidence_reply import AnswerConfidence
-
     if not sorted_chunks or confidence is AnswerConfidence.refuse:
         return None
 
@@ -483,7 +482,6 @@ def build_messages(
 ) -> list[dict[str, str]]:
     from app.services.rag.confidence_reply import (
         PARTIAL_ANSWER_PROMPT_NOTE,
-        AnswerConfidence,
         classify_answer_confidence,
     )
 
@@ -622,7 +620,8 @@ async def verify_answer(
         answer=answer,
     )
     try:
-        import asyncio, json, re
+        import json
+        import re
 
         parts = []
         async for token in stream_deepseek_tokens([{"role": "user", "content": prompt}]):

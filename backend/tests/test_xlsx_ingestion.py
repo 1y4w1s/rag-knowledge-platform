@@ -23,7 +23,6 @@ pytestmark = pytest.mark.asyncio
 def _make_golden_xlsx(path: Path) -> None:
     """Create a small test xlsx with 2 sheets containing table data."""
     import openpyxl
-    from openpyxl.styles import Font
 
     wb = openpyxl.Workbook()
 

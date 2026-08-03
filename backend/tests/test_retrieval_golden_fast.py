@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import uuid
-from pathlib import Path
 
 import pytest
 from httpx import AsyncClient
@@ -20,10 +19,8 @@ from app.services.ingestion import embedder
 from app.services.rag.retrieval import retrieve_chunks
 from tests.conftest import create_test_kb as _create_kb
 from tests.golden_qa_loader import (
-    FIXTURES,
     GOLDEN_MD,
     GOLDEN_QA_CASES,
-    HIT_K,
     chunk_matches,
     hit_at_k,
 )

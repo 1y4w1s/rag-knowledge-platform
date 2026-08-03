@@ -1,9 +1,8 @@
 """文档可见性过滤测试：member 看不到 admin_only 文档。"""
 
-from uuid import UUID
 
 import pytest
-from httpx import AsyncClient, Response
+from httpx import AsyncClient
 
 
 @pytest.mark.asyncio

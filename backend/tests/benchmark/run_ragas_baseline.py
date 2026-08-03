@@ -316,7 +316,6 @@ async def run_full_evaluation(
     avg_correctness = sum(all_correctness) / n if n > 0 else 0.0
 
     # 构造报告（模拟 DatasetReport 格式供 ReportGenerator 消费）
-    from dataclasses import dataclass
     from tests.benchmark.schemas import GenerationMetrics, DatasetReport
 
     gen_metrics = GenerationMetrics(

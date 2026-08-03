@@ -15,18 +15,15 @@ from pathlib import Path
 
 import pytest
 
-from app.core.config import settings
 from app.core.database import SessionLocal
 from app.models.enums import DocumentStatus
 from app.services.rag.generation import build_messages, stream_deepseek_tokens
 from app.services.rag.retrieval import retrieve_chunks
 from tests.conftest import create_test_kb as _create_kb
 from tests.golden_qa_loader import (
-    FIXTURES,
     GOLDEN_MD,
     GOLDEN_QA_CASES,
     HIT_K,
-    chunk_matches,
     hit_at_k,
 )
 

@@ -89,7 +89,6 @@ class TestAuditMemoryWrite:
 
     def test_confidence_range_low(self) -> None:
         """confidence < 0.3 → low。"""
-        from app.services.audit.agent import audit_agent_memory_write
 
         # 通过读取函数体确认离散化逻辑，测试元数据构造
         metadata = _simulate_audit_metadata(0.2)

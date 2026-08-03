@@ -12,17 +12,14 @@ from httpx import AsyncClient
 
 from app.core.config import settings
 from app.core.database import SessionLocal
-from app.models.enums import DocumentStatus
 from app.schemas.auth import UserPublic
-from app.services.agent.dispatch import build_workspace_tool_scope
 from app.services.agent.planners import QueryDepth, query_depth
 from app.services.agent.runtime import _detect_reflection_signal
-from app.services.agent.stream import stream_agent_kb_events, stream_agent_workspace_events
+from app.services.agent.stream import stream_agent_kb_events
 from app.services.agent.tools.scope import AgentToolScope
 from app.services.agent.types import AgentStepRecord, ToolCallPlan
-from app.services.org.scope import resolve_org_scope_for_workspace
-from app.services.rag.thread_persistence import create_kb_thread, create_workspace_thread
-from app.services.workspace.scope import WorkspaceKind, resolve_workspace
+from app.services.rag.thread_persistence import create_kb_thread
+from app.services.workspace.scope import resolve_workspace
 from tests.conftest import create_test_kb
 from tests.golden_agent_qa_loader import (
     GOLDEN_AGENT_MD,
@@ -220,7 +217,6 @@ def _assert_case(case: AgentGoldenCase, events: list[tuple[str, dict]]) -> None:
     tool_results = [data for name, data in events if name == "tool_result"]
     citations = [data for name, data in events if name == "citation"]
     tool_starts = [data for name, data in events if name == "tool_start"]
-    tokens = "".join(data.get("text", "") for name, data in events if name == "token")
 
     # 所有非 REFLECTION/DEGRADE 类别须完成 agent run
     if case.category not in ("REFLECTION", "DEGRADE"):

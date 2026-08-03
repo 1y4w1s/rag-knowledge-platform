@@ -10,10 +10,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.deps import CurrentUser, get_current_user, require_org_role, require_org_scope
+from app.core.deps import CurrentUser, get_current_user, require_org_scope
 from app.models.enums import OrgRole
 from app.models.custom_role import CustomRole
-from app.models.organization_member import OrganizationMember
 from app.services.audit.log import write_audit_log
 from pydantic import BaseModel, Field, field_validator
 from datetime import datetime

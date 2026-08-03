@@ -9,7 +9,14 @@
 - KB 清理（脚本结束自动删除）
 - 密码从环境变量读取
 """
-import argparse, asyncio, base64, bz2, json, os, sys, time, uuid
+import argparse
+import asyncio
+import base64
+import bz2
+import json
+import os
+import sys
+import uuid
 from pathlib import Path
 
 os.environ.setdefault("RAG_RATE_LIMIT_MODE", "bypass")

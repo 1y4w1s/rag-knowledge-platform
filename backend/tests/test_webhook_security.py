@@ -2,11 +2,8 @@
 from __future__ import annotations
 
 import pytest
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy import select
 
 from app.core.database import SessionLocal
-from app.main import app
 from app.models.webhook import Webhook
 from app.services.webhook.security import decrypt_secret, encrypt_secret
 from tests.conftest import create_test_kb

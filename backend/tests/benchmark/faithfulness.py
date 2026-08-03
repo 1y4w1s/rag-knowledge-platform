@@ -19,7 +19,6 @@ import logging
 import re
 from typing import Any
 
-from app.core.http_client import get_deepseek_client
 from app.services.rag.generation import stream_deepseek_tokens
 
 logger = logging.getLogger(__name__)

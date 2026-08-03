@@ -32,4 +32,4 @@ async def test_long_conversation():
             r = await c.get("/api/v1/search/documents", headers=h,
                             params={"workspace": "personal", "q": q, "mode": "content", "limit": 3})
             assert r.status_code == 200, f"第 {i+1} 轮失败: {r.status_code}"
-        print(f"10 轮对话全部成功")
+        print("10 轮对话全部成功")

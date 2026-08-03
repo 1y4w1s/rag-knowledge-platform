@@ -21,7 +21,7 @@ from uuid import UUID
 
 from fastapi import BackgroundTasks, HTTPException, status
 from app.core.config import settings
-from app.core.exceptions import NotFoundError, ConflictError, ServiceError
+from app.core.exceptions import NotFoundError, ConflictError, ServiceError, ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import CurrentUser, KbAction, require_kb_access

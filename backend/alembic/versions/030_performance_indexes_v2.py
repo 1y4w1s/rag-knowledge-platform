@@ -14,7 +14,6 @@ Create Date: 2026-07-15
 
 from __future__ import annotations
 
-from collections.abc import Sequence
 
 from alembic import op
 import sqlalchemy as sa

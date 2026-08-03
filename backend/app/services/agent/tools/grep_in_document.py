@@ -58,8 +58,6 @@ async def run_grep_in_document(
             ok=False, data=None, summary="search pattern must not be empty"
         )
 
-    ctx = max(1, min(context_lines or DEFAULT_CONTEXT_LINES, MAX_CONTEXT_LINES))
-
     doc = await db.get(Document, document_id)
     # M8：visible_kb_ids=None（个人 workspace）时不可用 `not in None`（TypeError）；
     # 统一走 scope 防御校验（None = 全部可见）。

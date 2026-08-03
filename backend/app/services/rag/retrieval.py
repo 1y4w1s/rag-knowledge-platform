@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import re
 import time
 from uuid import UUID
 
@@ -72,17 +71,12 @@ _COMPOSITE_PREPEND = 3
 logger = logging.getLogger(__name__)
 
 # ── 向后兼容导出（Phase 1 重构后，原函数已迁至 executor/planner） ──
-from app.services.rag.executor import (
-    chunk_to_citation,
-    enforce_kb_scope,
-    enforce_workspace_scope,
-    excerpt as _excerpt,
-    load_parent_contents,
-    merge_recall_rows,
-    visible_kb_clause,
-    workspace_chunk_to_citation,
+from app.services.rag.executor import (  # noqa: E402
+    chunk_to_citation,  # noqa: F401
+    excerpt as _excerpt,  # noqa: F401
+    visible_kb_clause,  # noqa: F401
+    workspace_chunk_to_citation,  # noqa: F401
 )
-from app.services.rag.planner import adaptive_top_k as _adaptive_top_k, should_skip_rerank as _should_skip_rerank
 
 # 私有别名——保持旧有调用方的 _enforce_kb_scope 等导入
 _enforce_kb_scope = enforce_kb_scope

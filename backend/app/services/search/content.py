@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import uuid
 
 from sqlalchemy import case, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession

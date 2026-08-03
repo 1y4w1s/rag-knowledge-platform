@@ -212,7 +212,7 @@ async def main():
     report_gen.add_report(report)
     timestamp = time.strftime("%Y%m%d_%H%M%S")
     filename = f"generation_ragas_golden_qa_{timestamp}"
-    paths = report_gen.export_all(filename)
+    report_gen.export_all(filename)
 
     # 同时保存前端可读的简洁格式
     frontend_file = BENCHMARK_RESULTS / f"{filename}.json"
@@ -261,7 +261,7 @@ async def main():
     print(f"  Correctness:       {avg_correctness*100:6.2f}%")
     print(f"  跳过(拒答):        {rejection_skipped}")
     print(f"  跳过(失败):        {skipped}")
-    print(f"  Baseline:          64.72%")
+    print("  Baseline:          64.72%")
     print(f"  Delta:             {avg_faithfulness*100 - 64.72:+.2f}pp")
     print(f"{'='*60}")
     print(f"\n结果已保存: {frontend_file}")

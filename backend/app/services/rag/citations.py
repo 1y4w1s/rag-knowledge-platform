@@ -2,7 +2,6 @@
 
 import uuid
 
-from fastapi import status
 from app.core.exceptions import NotFoundError
 from sqlalchemy.ext.asyncio import AsyncSession
 

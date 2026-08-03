@@ -1,5 +1,6 @@
 """从 CRAG 数据提取英文文档"""
-import bz2, json
+import bz2
+import json
 from pathlib import Path
 
 src = Path("/app/data/benchmark/crag/crag_task_1_and_2_dev_v4.jsonl.bz2")

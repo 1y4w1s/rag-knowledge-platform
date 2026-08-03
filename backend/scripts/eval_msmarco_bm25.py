@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """msmarco BM25 基线评测 v4（双扫描：第一次统计，第二次同时对43查询打分）。"""
-import asyncio, json, logging, os, time, math
+import asyncio
+import json
+import logging
+import time
+import math
 from pathlib import Path
 from collections import Counter
-from statistics import median
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("msmarco_eval_v4")
@@ -86,7 +89,6 @@ async def main():
 
     # 预处理所有查询的 terms
     query_terms_list = [list(set(q["text"].lower().split())) for q in valid_queries]
-    query_ids = [q["_id"] for q in valid_queries]
     k1, b = 1.5, 0.75
     top_k = 3
 

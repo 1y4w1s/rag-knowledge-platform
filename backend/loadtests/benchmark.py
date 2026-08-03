@@ -1,5 +1,8 @@
 """睿阁压测脚本"""
-import os, random, uuid, time, pathlib
+import random
+import uuid
+import time
+import pathlib
 from locust import HttpUser, between, task
 
 QUESTIONS = ["员工年假有几天？", "迟到怎么处理？", "加班费怎么算？"]

@@ -2,7 +2,13 @@
 在 Docker 容器内运行：
     python -m tests.benchmark.tests.run_ragas_ablation
 """
-import asyncio, json, logging, os, sys, time, uuid
+import asyncio
+import json
+import logging
+import os
+import sys
+import time
+import uuid
 from pathlib import Path
 
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
@@ -36,7 +42,8 @@ async def main():
                 break
             await asyncio.sleep(2)
         else:
-            logger.error("Ingestion timeout"); sys.exit(1)
+            logger.error("Ingestion timeout")
+            sys.exit(1)
 
     from tests.benchmark.loaders.golden_qa import GoldenQADataset
     from tests.benchmark.rate_limit import RateLimitWrapper

@@ -187,8 +187,6 @@ def _patch_edit_runtime(monkeypatch, outcome, citations, *, tool_events):
 
 
 async def _run_edit_sse(monkeypatch, outcome, citations, *, can_adopt=False, kb_id=None):
-    run_id = outcome.run_id
-    approval_id = uuid.uuid4()
     tool_events = _tool_event_tuples()
 
     _patch_edit_runtime(monkeypatch, outcome, citations, tool_events=tool_events)

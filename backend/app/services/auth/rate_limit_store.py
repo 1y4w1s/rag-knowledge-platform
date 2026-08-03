@@ -12,9 +12,9 @@ import time
 import uuid
 from typing import Any
 
-logger = logging.getLogger(__name__)
-
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 _BACKEND: str | None = None
 

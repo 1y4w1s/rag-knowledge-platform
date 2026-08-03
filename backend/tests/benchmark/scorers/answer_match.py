@@ -4,8 +4,8 @@
 - expect.answer 的前 40 字符对 chunk.content 做 case-insensitive 子串匹配
 """
 from .base import (
-    EvalScorer, RetrievalScore, GenerationScore,
-    Expect, RetrievedChunk, hit_positions, compute_scores,
+    RetrievalScore, GenerationScore,
+    Expect, RetrievedChunk, compute_scores,
 )
 
 

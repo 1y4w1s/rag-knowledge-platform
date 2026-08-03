@@ -10,7 +10,6 @@ from uuid import UUID
 
 from app.models.knowledge_base import KnowledgeBase
 from app.services.agent.planners import (
-    DocumentWritePlanner,
     EditFaqDraftPlanner,
     LLMPlanner,
     LLMPlannerFactory,

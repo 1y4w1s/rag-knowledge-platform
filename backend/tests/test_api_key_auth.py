@@ -90,7 +90,6 @@ async def test_api_key_create_and_list(
     assert data["raw_key"].startswith("zkan_")
     assert data["scopes"] == ""
     assert data["expires_at"] is None
-    raw_key = data["raw_key"]
 
     # 列出 Key
     resp = await client.get("/api/v1/api-keys", headers=headers)

@@ -7,7 +7,7 @@ import uuid
 import pytest
 from httpx import AsyncClient
 
-from tests.fixtures.org_members import _create_org_member_and_login, _register_personal_user
+from tests.fixtures.org_members import _create_org_member_and_login
 
 pytestmark = pytest.mark.asyncio
 

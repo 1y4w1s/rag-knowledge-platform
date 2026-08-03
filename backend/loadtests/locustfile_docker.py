@@ -1,7 +1,6 @@
 """睿阁 — Locust 性能压测（容器内运行版）"""
 from __future__ import annotations
 
-import json
 import random
 import uuid
 

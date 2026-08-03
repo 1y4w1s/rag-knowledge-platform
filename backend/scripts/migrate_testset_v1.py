@@ -6,7 +6,8 @@
   - content_contains 为纯数字或 ≤3字符公式值 → calculation（需要人工复核）
   - 其余 → direct
 """
-import json, os, shutil, re, sys
+import json
+import os
 from collections import Counter
 
 BASE = os.path.join(os.path.dirname(__file__), "..", "tests", "fixtures")
@@ -78,7 +79,6 @@ def copy_with_meta():
         total = len(cases)
         added_qt = 0
         added_mt = 0
-        added_rejection = 0
         added_golden = 0
 
         for c in cases:

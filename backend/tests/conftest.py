@@ -22,13 +22,13 @@ _arl.enforce_api_rate_limit = _api_rate_limit_noop  # type: ignore[method-assign
 API_RATE_LIMIT_NOOP = _api_rate_limit_noop
 del _arl
 
-# 全局限流 100 req/min/IP
-from app.core.config import settings as _settings
+# 全局限流 100 req/min/IP（必须在 import app.main 前完成，故这几处导入后置）
+from app.core.config import settings as _settings  # noqa: E402
 _settings.rate_limit_enabled = False
 settings = _settings  # for fixtures that reference conftest.settings
 del _settings
-from app.core.database import engine
-from app.main import app
+from app.core.database import engine  # noqa: E402
+from app.main import app  # noqa: E402
 
 # 注册 tests/fixtures/*.py 中的共享 fixture（如 org_iso）
 pytest_plugins = ["tests.fixtures.org_isolation"]

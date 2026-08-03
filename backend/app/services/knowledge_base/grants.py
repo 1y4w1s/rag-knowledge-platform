@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from fastapi import status
 from app.core.exceptions import NotFoundError, ForbiddenError, ValidationError, ConflictError
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError

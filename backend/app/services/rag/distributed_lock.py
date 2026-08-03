@@ -17,7 +17,6 @@ import asyncio
 import logging
 import time
 import uuid
-from typing import Any
 
 from app.core.config import settings
 

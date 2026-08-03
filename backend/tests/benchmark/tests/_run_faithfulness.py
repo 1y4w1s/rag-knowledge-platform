@@ -4,7 +4,10 @@ Generation Faithfulness + Citation Accuracy 评测。
 1. Faithfulness: 回答中的每个事实是否都能在检索片段中找到依据
 2. Citation Accuracy: [片段N] 引用是否指向包含对应信息的片段
 """
-import asyncio, json, os, uuid
+import asyncio
+import json
+import os
+import uuid
 from pathlib import Path
 
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
@@ -57,13 +60,16 @@ async def main():
     up = Path(settings.upload_dir)
     src = FIXTURES / "golden_handbook.md"
     did = uuid.uuid4()
-    sd = up / str(kb_id) / str(did); sd.mkdir(parents=True, exist_ok=True)
-    sp = sd / src.name; sp.write_bytes(src.read_bytes())
+    sd = up / str(kb_id) / str(did)
+    sd.mkdir(parents=True, exist_ok=True)
+    sp = sd / src.name
+    sp.write_bytes(src.read_bytes())
     async with SessionLocal() as db:
         doc = Doc(id=did, kb_id=kb_id, filename=src.name,
             file_type="md", file_size=sp.stat().st_size,
             storage_path=str(sp), status=DocumentStatus.queued, uploaded_by=uid)
-        db.add(doc); await db.commit()
+        db.add(doc)
+        await db.commit()
         await process_document_ingestion(did)
     print("Ingestion done")
 
@@ -181,7 +187,6 @@ async def main():
         "total": n,
         "total_citations": total_citations,
     }
-    from datetime import timezone
     async with engine.connect() as conn:
         await conn.execute(text("""
             INSERT INTO evaluation_runs (id, run_id, dataset_name, mode, total_queries,
@@ -201,6 +206,6 @@ async def main():
             "now": datetime.now(timezone.utc),
         })
         await conn.commit()
-    print(f"\n结果已保存到 evaluation_runs")
+    print("\n结果已保存到 evaluation_runs")
 
 asyncio.run(main())

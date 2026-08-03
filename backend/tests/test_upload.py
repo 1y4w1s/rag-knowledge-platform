@@ -86,7 +86,6 @@ async def test_personal_user_can_upload_document(
     assert doc["uploaded_by"] == user["id"]
     assert doc["kb_id"] == kb["id"]
 
-    stored = Path(doc["storage_path"] if "storage_path" in doc else "")
     # response 不含 storage_path；查磁盘
     disk_files = list(upload_dir.rglob("*"))
     assert any(f.is_file() for f in disk_files)

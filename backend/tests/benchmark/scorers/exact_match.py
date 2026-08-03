@@ -4,7 +4,7 @@
 当前未使用，为 Phase 3 外部基准预留。
 """
 from .base import (
-    EvalScorer, RetrievalScore, GenerationScore,
+    RetrievalScore, GenerationScore,
     Expect, RetrievedChunk, compute_scores,
 )
 

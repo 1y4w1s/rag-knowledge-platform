@@ -2,7 +2,6 @@
 
 from uuid import UUID
 
-from fastapi import status
 from app.core.exceptions import ValidationError, ConflictError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession

@@ -253,15 +253,15 @@ async def main():
     # 统计
     by_level = {}
     for c in all_cases:
-        l = c.get("difficulty", "L1")
-        by_level[l] = by_level.get(l, 0) + 1
+        level = c.get("difficulty", "L1")
+        by_level[level] = by_level.get(level, 0) + 1
     by_tag = {}
     for c in all_cases:
         for t in c.get("tags", []):
             by_tag[t] = by_tag.get(t, 0) + 1
 
     print(f"\n{'='*60}")
-    print(f"Enterprise QA 验收集生成完毕！")
+    print("Enterprise QA 验收集生成完毕！")
     print(f"{'='*60}")
     print(f"总数: {len(all_cases)} 题")
     print(f"按难度: {', '.join(f'{k}={v}' for k, v in sorted(by_level.items()))}")

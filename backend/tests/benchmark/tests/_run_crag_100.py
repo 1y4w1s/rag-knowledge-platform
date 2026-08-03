@@ -1,7 +1,11 @@
 """CRAG 100 题外部检索基线（已弃用，请用 scripts/run_crag.py --sample 100）。
 从 CRAG 数据提取 100 条 query + page_snippet 作为文档，入库后跑 Hit@3。
 """
-import asyncio, bz2, json, os, uuid
+import asyncio
+import bz2
+import json
+import os
+import uuid
 from pathlib import Path
 
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
@@ -17,7 +21,8 @@ async def main():
     from app.models.enums import DocumentStatus
     from app.services.ingestion.pipeline import process_document_ingestion
     from app.services.rag.retrieval import retrieve_chunks
-    import base64; PW = base64.b64decode("SnVkZ2VQYXNzMTIzIQ==").decode()
+    import base64
+    PW = base64.b64decode("SnVkZ2VQYXNzMTIzIQ==").decode()
 
     # 1. 从 CRAG 读取 100 条
     print("Loading 100 CRAG samples...")
@@ -46,7 +51,8 @@ async def main():
         email = f"crag100-{uuid.uuid4().hex[:8]}@e.com"
         await c.post("/api/v1/auth/register", json={"email": email, "username": f"crag100{uuid.uuid4().hex[:8]}", "password": PW, "account_type": "personal"})
         resp = await c.post("/api/v1/auth/login", json={"identifier": email, "password": PW})
-        j = resp.json(); uid = uuid.UUID(j["user"]["id"])
+        j = resp.json()
+        uid = uuid.UUID(j["user"]["id"])
         headers = {"Authorization": f"Bearer {j['access_token']}"}
         r = await c.post("/api/v1/knowledge-bases?workspace=personal", headers=headers, json={"name": "CRAG100"})
         kb_id = uuid.UUID(r.json()["id"])
@@ -57,11 +63,15 @@ async def main():
         content = s["doc_content"].encode()
         if len(content) < 20:
             continue
-        did = uuid.uuid4(); sd = up / str(kb_id) / str(did); sd.mkdir(parents=True, exist_ok=True)
-        sp = sd / f"crag_{i}.md"; sp.write_bytes(content)
+        did = uuid.uuid4()
+        sd = up / str(kb_id) / str(did)
+        sd.mkdir(parents=True, exist_ok=True)
+        sp = sd / f"crag_{i}.md"
+        sp.write_bytes(content)
         async with SessionLocal() as db:
             doc = Doc(id=did, kb_id=kb_id, filename=f"crag_{i}.md", file_type="md", file_size=len(content), storage_path=str(sp), status=DocumentStatus.queued, uploaded_by=uid)
-            db.add(doc); await db.commit()
+            db.add(doc)
+            await db.commit()
             await process_document_ingestion(did)
         # 每 20 条打印
         if (i+1) % 20 == 0:
@@ -80,8 +90,10 @@ async def main():
                 if answer_key:
                     for ck in chunks[:3]:
                         if answer_key in (ck.content or "").lower():
-                            hit = True; break
-            if hit: hits += 1
+                            hit = True
+                            break
+            if hit:
+                hits += 1
             if (i+1) % 20 == 0:
                 print(f"  [{i+1}/{len(qa_cases)}] {hits}/{i+1}={hits/max(1,i+1):.0%}")
 

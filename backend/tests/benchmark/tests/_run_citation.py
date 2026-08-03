@@ -1,5 +1,9 @@
 """Citation Accuracy 评测：验证对话模式下的 [片段N] 引用准确性。"""
-import asyncio, json, os, re, uuid
+import asyncio
+import json
+import os
+import re
+import uuid
 from pathlib import Path
 
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
@@ -97,8 +101,6 @@ async def main():
     n = len(results)
     has_cite = sum(1 for r in results if r["has_citations"])
     has_inline = sum(1 for r in results if r["has_inline_refs"])
-    total_refs = sum(r["total"] for r in results)
-    valid_refs = sum(r["valid"] for r in results)
     total_events = sum(r["citation_event_count"] for r in results)
 
     print(f"\n{'='*60}")

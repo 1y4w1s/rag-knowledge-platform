@@ -17,7 +17,7 @@ from app.models.enums import DocumentStatus
 from app.services.ingestion.pipeline import process_document_ingestion
 from app.services.rag.retrieval import retrieve_chunks
 from tests.conftest import create_test_kb as _create_kb
-from tests.golden_qa_loader import chunk_matches, hit_at_k
+from tests.golden_qa_loader import hit_at_k
 
 FIXTURES = Path("/app/tests/fixtures")
 QA_PATH = FIXTURES / "enterprise_qa.json"
@@ -175,12 +175,13 @@ async def test_enterprise_qa_retrieval(
         "dataset": "enterprise_qa",
         "total": len(results),
         "hit_k": hit_k,
-        "by_level": {l: {"total": s["total"], "hit": s["hit"], "rate": s["hit"]/max(1,s["total"])} for l, s in by_level.items()},
+        "by_level": {level: {"total": s["total"], "hit": s["hit"], "rate": s["hit"]/max(1,s["total"])} for level, s in by_level.items()},
         "overall_hit_rate": total_hits / max(1, len(results)),
     }
-    import os, json as _json
+    import os
+    import json as _json
     os.makedirs("/app/benchmark_results", exist_ok=True)
     Path("/app/benchmark_results/enterprise_qa.json").write_text(
         _json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
     )
-    print(f"\n结果已保存: /app/benchmark_results/enterprise_qa.json")
+    print("\n结果已保存: /app/benchmark_results/enterprise_qa.json")

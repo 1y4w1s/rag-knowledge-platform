@@ -15,7 +15,7 @@ from app.services.audit.log import write_audit_log
 from app.models.document import Document
 from app.models.enums import DocumentStatus
 from app.services.ingestion.enqueue import enqueue_document_ingestion
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, field_validator
 
 router = APIRouter(prefix="/batch", tags=["batch"])
 

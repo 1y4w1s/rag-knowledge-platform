@@ -5,14 +5,13 @@ from __future__ import annotations
 import uuid
 from datetime import date
 
-from fastapi import status
 from app.core.exceptions import NotFoundError
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.deps import CurrentUser, KbAction, require_kb_access
 from app.models.document import Document
-from app.models.enums import DocumentVisibility, OrgRole
+from app.models.enums import DocumentVisibility
 from app.schemas.document import DocumentListResponse, DocumentResponse
 from app.services.documents.filters import (
     apply_document_list_filters,

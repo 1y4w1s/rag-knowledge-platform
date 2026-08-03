@@ -179,7 +179,8 @@ class LLMJudge:
 
     async def verify_calibration(self, calibration_path: str | None = None) -> dict:
         """用预标注校准集验证评分一致性。"""
-        import json, os
+        import json
+        import os
         path = calibration_path or os.path.join(
             os.path.dirname(__file__), "..", "fixtures", "judge_calibration.json"
         )

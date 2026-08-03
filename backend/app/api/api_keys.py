@@ -18,7 +18,7 @@ from app.core.deps import get_current_user, CurrentUser
 from app.core.exceptions import ForbiddenError, ValidationError
 from app.models.api_key import ApiKey
 from app.models.enums import AccountType, OrgRole
-from app.services.auth.api_key_auth import generate_api_key, hash_api_key
+from app.services.auth.api_key_auth import generate_api_key
 from app.services.audit.log import write_audit_log
 
 logger = logging.getLogger(__name__)

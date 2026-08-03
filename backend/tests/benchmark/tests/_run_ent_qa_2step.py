@@ -1,5 +1,9 @@
 """分两步跑 Enterprise QA：先单独入库文档，再跑检索评测。"""
-import asyncio, json, os, re, uuid
+import asyncio
+import json
+import os
+import re
+import uuid
 from pathlib import Path
 
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
@@ -95,14 +99,21 @@ async def run_queries():
                     content = _norm(ck.content or "")
                     st = _norm(ck.heading_path or ck.section_title or "")
                     ok = True
-                    if cc and cc not in content: ok = False
-                    if sp and sp not in st: ok = False
-                    if hp and hp not in st: ok = False
-                    if ok: hit = True; break
+                    if cc and cc not in content:
+                        ok = False
+                    if sp and sp not in st:
+                        ok = False
+                    if hp and hp not in st:
+                        ok = False
+                    if ok:
+                        hit = True
+                        break
 
-            if hit: by_level[level]["hit"] += 1
+            if hit:
+                by_level[level]["hit"] += 1
             results.append({"case_id": case["case_id"], "level": level, "query": case["query"][:40], "hit": hit})
-            if (i+1) % 25 == 0: print(f"  [{i+1}/{len(cases)}]")
+            if (i+1) % 25 == 0:
+                print(f"  [{i+1}/{len(cases)}]")
 
     print(f"\n{'='*60}")
     print(f"Enterprise QA 检索评测 ({len(cases)} 题, Hit@{HIT_K})")
@@ -115,7 +126,8 @@ async def run_queries():
         ok = rate >= th
         tag = "PASS" if ok else "FAIL"
         print(f"  {level}: {s['hit']}/{s['total']} = {rate:.0%}  (门禁 >= {th:.0%})  {tag}")
-        if not ok: all_pass = False
+        if not ok:
+            all_pass = False
 
     total_hits = sum(1 for r in results if r["hit"])
     print(f"  总体: {total_hits}/{len(results)} = {total_hits/max(1,len(results)):.0%}")
@@ -123,12 +135,13 @@ async def run_queries():
     fails = [r for r in results if not r["hit"]]
     if fails:
         print(f"\n  失败 ({len(fails)}):")
-        for r in fails: print(f"    [{r['level']}] {r['case_id']}: {r['query']}")
+        for r in fails:
+            print(f"    [{r['level']}] {r['case_id']}: {r['query']}")
     print(f"\n{'='*60}\nALL {'PASS' if all_pass else 'FAIL'} {'✅' if all_pass else '❌'}")
 
     summary = {"dataset": "enterprise_qa", "total": len(results), "hit_k": HIT_K,
-        "by_level": {l: {"total": s["total"], "hit": s["hit"],
-            "rate": round(s["hit"]/max(1,s["total"]),4)} for l,s in sorted(by_level.items())},
+        "by_level": {level: {"total": s["total"], "hit": s["hit"],
+            "rate": round(s["hit"]/max(1,s["total"]),4)} for level, s in sorted(by_level.items())},
         "overall_hit_rate": round(total_hits/max(1,len(results)),4)}
     Path("/app/benchmark_results/enterprise_qa.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")

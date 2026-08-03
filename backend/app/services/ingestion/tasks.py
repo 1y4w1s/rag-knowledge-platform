@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import anyio
-import asyncio
 import logging
 from uuid import UUID
 
@@ -35,6 +34,6 @@ def ingest_document_task(self, doc_id: str) -> dict:
         anyio.run(process_document_ingestion, UUID(doc_id))
         logger.info("ingestion task completed: doc_id=%s", doc_id)
         return {"status": "completed", "doc_id": doc_id}
-    except Exception as exc:
+    except Exception:
         logger.exception("ingestion task failed: doc_id=%s", doc_id)
         raise  # Celery 根据 autoretry_for 自动重试

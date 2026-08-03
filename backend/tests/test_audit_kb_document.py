@@ -6,12 +6,10 @@ import uuid
 
 import pytest
 from httpx import AsyncClient
-from sqlalchemy import select
 
 from app.core.database import SessionLocal
 from app.models.document import Document
 from app.models.enums import DocumentStatus
-from app.services.auth.password import hash_password
 from tests.conftest import create_test_kb
 from tests.fixtures.audit_events import _count_audit_logs, _latest_audit_log
 

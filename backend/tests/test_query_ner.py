@@ -253,7 +253,7 @@ class TestGraphEntityRecallNERFallback:
             from app.services.rag.retrieval import graph_entity_recall
 
             mock_db = AsyncMock()
-            result = await graph_entity_recall(mock_db, ANY, "华为", [])
+            await graph_entity_recall(mock_db, ANY, "华为", [])
             mock_ner.assert_not_called()
 
     @pytest.mark.asyncio
@@ -275,6 +275,6 @@ class TestGraphEntityRecallNERFallback:
             mock_execute_all.scalars.return_value.all.return_value = [mock_entity]
             mock_db.execute = AsyncMock(return_value=mock_execute_all)
 
-            result = await graph_entity_recall(mock_db, ANY, "华为", [])
+            await graph_entity_recall(mock_db, ANY, "华为", [])
 
             mock_ner.assert_not_called()

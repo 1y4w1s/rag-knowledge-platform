@@ -1,6 +1,5 @@
 """用 DeepSeek 生成 6 份模拟企业文档（语料合成）。"""
 import asyncio
-import json
 from pathlib import Path
 
 FIXTURES = Path("/app/tests/fixtures")

@@ -15,7 +15,7 @@ from app.models.enums import AccountType, OrgRole
 from app.models.organization_member import OrganizationMember
 from app.models.user import User
 from app.services.auth.password import hash_password
-from tests.conftest import create_test_kb, unique_email, unique_username, workspace_query
+from tests.conftest import create_test_kb, unique_email, unique_username
 
 
 async def _register_org_admin(
@@ -178,7 +178,7 @@ async def test_list_audit_logs_pagination(
 
     for idx in range(3):
         await _seed_audit_log(
-            action=f"document.delete",
+            action="document.delete",
             actor_user_id=actor_id,
             kb_id=kb_id,
             created_at=datetime.now(UTC) - timedelta(minutes=idx),

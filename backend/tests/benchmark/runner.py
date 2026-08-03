@@ -196,7 +196,7 @@ class BenchmarkRunner:
                     self._retrieve_fn, q.query, self.kb_id, top_k,
                     label="retrieval-%s" % q.case_id,
                 )
-            except Exception as e:
+            except Exception:
                 skipped += 1
                 # 回滚适配器的 DB 会话，防止 InFailedSQLTransaction
                 try:
@@ -282,7 +282,6 @@ class BenchmarkRunner:
     def _eval_retrieval(
         self, q: BenchmarkQuery, chunks: list, top_k: int, latency_ms: float,
     ) -> RetrievalResult:
-        from tests.golden_qa_loader import chunk_matches as _chunk_match
 
         chunk_ids = [str(c.chunk_id) for c in chunks[:top_k]]
         scores = [float(c.similarity) for c in chunks[:top_k]]
@@ -570,7 +569,8 @@ def _judge_rejection(
         from app.services.rag.generation import NO_CONTEXT_REPLY, NO_CONTEXT_REPLY_EN
     except Exception:
         return False, "answered with content"
-    _norm = lambda s: s.replace(" ", "").strip()
+    def _norm(s: str) -> str:
+        return s.replace(" ", "").strip()
     if _norm(text) == _norm(NO_CONTEXT_REPLY) or _norm(text) == _norm(NO_CONTEXT_REPLY_EN):
         return True, "matched no-context reply"
     return False, "answered with content"

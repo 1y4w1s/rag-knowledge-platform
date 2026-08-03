@@ -1,5 +1,10 @@
 """Faithfulness 评测：50 题抽样。"""
-import asyncio, json, os, uuid, random, base64
+import asyncio
+import json
+import os
+import uuid
+import random
+import base64
 from pathlib import Path
 
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
@@ -44,7 +49,8 @@ async def main():
         email = f"ffull-{uuid.uuid4().hex[:8]}@e.com"
         await c.post("/api/v1/auth/register", json={"email": email, "username": f"ffull{uuid.uuid4().hex[:8]}", "password": PW, "account_type": "personal"})
         resp = await c.post("/api/v1/auth/login", json={"identifier": email, "password": PW})
-        j = resp.json(); uid = uuid.UUID(j["user"]["id"])
+        j = resp.json()
+        uid = uuid.UUID(j["user"]["id"])
         headers = {"Authorization": f"Bearer {j['access_token']}"}
         r = await c.post("/api/v1/knowledge-bases?workspace=personal", headers=headers, json={"name": "FaithFull2"})
         kb_id = uuid.UUID(r.json()["id"])
@@ -52,11 +58,15 @@ async def main():
     up = Path(settings.upload_dir)
     src = FIXTURES / "golden_handbook.md"
     did = uuid.uuid4()
-    sd = up / str(kb_id) / str(did); sd.mkdir(parents=True, exist_ok=True)
-    sp = sd / src.name; sp.write_bytes(src.read_bytes())
+    sd = up / str(kb_id) / str(did)
+    sd.mkdir(parents=True, exist_ok=True)
+    sp = sd / src.name
+    sp.write_bytes(src.read_bytes())
     async with SessionLocal() as db:
         doc = Doc(id=did, kb_id=kb_id, filename=src.name, file_type="md", file_size=sp.stat().st_size, storage_path=str(sp), status=DocumentStatus.queued, uploaded_by=uid)
-        db.add(doc); await db.commit(); await process_document_ingestion(did)
+        db.add(doc)
+        await db.commit()
+        await process_document_ingestion(did)
     print("Ingestion done")
 
     data = json.loads((FIXTURES / "golden_qa.json").read_text(encoding="utf-8"))

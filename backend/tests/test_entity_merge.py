@@ -5,16 +5,15 @@
 """
 
 import pytest
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 from sqlalchemy import text as raw_text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import SessionLocal
 from app.services.rag.entity_merge import merge_fuzzy_entities
-from app.models.entity import Entity, EntityMention, Relation
+from app.models.entity import Entity
 from app.models.knowledge_base import KnowledgeBase
-from app.models.audit_log import AuditLog
 
 
 @pytest.fixture
@@ -209,7 +208,7 @@ async def test_merge_chain_guard(db: AsyncSession, test_kb: KnowledgeBase) -> No
     db.add_all([e1, e2, e3])
     await db.flush()
 
-    result = await merge_fuzzy_entities(db, kb_id, threshold=0.3, dry_run=False)
+    await merge_fuzzy_entities(db, kb_id, threshold=0.3, dry_run=False)
     await db.commit()
 
     # 至少应当合并掉 1 个，且不抛 FK 异常

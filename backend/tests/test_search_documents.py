@@ -246,7 +246,6 @@ async def test_s7_personal_workspace_excludes_team_docs(
         org_name="S7 公司",
     )
     user_id = uuid.UUID(user["id"])
-    org_id = user["org_id"]
 
     team_kb = await create_test_kb(
         client, headers, user, name="S7 团队库", workspace_kind="organization"

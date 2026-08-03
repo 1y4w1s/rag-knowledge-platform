@@ -1,7 +1,9 @@
 """新旧评分引擎对比脚本。
 对 Golden QA v1.0 分别用旧引擎和 ContentMatchScorer 评分，输出差异。
 """
-import json, os, sys
+import json
+import os
+import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "tests"))
 
 from benchmark.scorers.content_match import ContentMatchScorer
@@ -51,7 +53,6 @@ def main():
     for i, case in enumerate(cases):
         expect = case.get("expect", {})
         cc = expect.get("content_contains", "")
-        valid = True
         # 验证 content_contains 能在模拟 chunk 中匹配
         fake_chunks = [{"content": f"相关文本内容包含{cc}在内的完整段落", "section_title": expect.get("section_title", ""), "heading_path": ""}]
         

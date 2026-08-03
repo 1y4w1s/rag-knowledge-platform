@@ -18,12 +18,10 @@ from app.models.enums import DocumentStatus
 from app.services.ingestion.pipeline import process_document_ingestion
 from app.services.rag.retrieval import retrieve_chunks
 from app.services.rag.rrf import reciprocal_rank_fusion
+from tests.conftest import create_test_kb as _create_kb
 
 FIXTURES = Path(__file__).parent / "fixtures"
 GOLDEN_MD = FIXTURES / "golden_handbook.md"
-
-
-from tests.conftest import create_test_kb as _create_kb
 
 
 async def _ingest_fixture(

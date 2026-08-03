@@ -234,10 +234,9 @@ async def update_document_visibility(
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> DocumentResponse:
     """修改文档可见性（仅上传者/团队 Admin/Owner 可操作）。"""
-    from app.models.enums import DocumentVisibility, DocumentVisibility as DocVisEnum
     from app.services.documents.listing import get_document
 
-    doc_resp = await get_document(db, current_user, kb_id, doc_id)
+    await get_document(db, current_user, kb_id, doc_id)
     doc = await db.get(Document, doc_id)
 
     # 权限检查：上传者 或 团队 Admin/Owner 可改

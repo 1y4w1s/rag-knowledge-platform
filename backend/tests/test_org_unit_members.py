@@ -10,7 +10,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import SessionLocal
-from app.models.enums import AccountType, OrgRole, UnitRole
+from app.models.enums import AccountType, OrgRole
 from app.models.org_unit import OrgUnit
 from app.models.org_unit_member import OrgUnitMember
 from app.models.organization_member import OrganizationMember

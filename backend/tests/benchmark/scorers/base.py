@@ -149,7 +149,6 @@ def hit_positions(
 
     for i, ck in enumerate(chunks[:top_k]):
         content = ck.content.lower()
-        heading = (ck.heading_path or ck.section_title or "").lower()
 
         matched = False
         if expect.content_contains:

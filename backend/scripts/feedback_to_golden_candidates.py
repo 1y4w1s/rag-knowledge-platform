@@ -15,8 +15,7 @@ import argparse
 import asyncio
 import json
 import sys
-from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 
 _ROOT = Path(__file__).resolve().parents[1]

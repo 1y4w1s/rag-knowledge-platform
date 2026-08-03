@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import uuid
 
-import pytest
 
 from app.services.rag.generation import (
     CITATION_DENSITY_THRESHOLD,

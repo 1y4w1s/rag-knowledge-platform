@@ -1,5 +1,6 @@
 """用 DeepSeek 生成 Python 语言 Wikipedia 文章"""
-import asyncio, os
+import asyncio
+import os
 from pathlib import Path
 
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"

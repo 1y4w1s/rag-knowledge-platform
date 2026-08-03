@@ -2,7 +2,6 @@
 
 from uuid import UUID
 
-from fastapi import status
 from app.core.exceptions import ServiceError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession

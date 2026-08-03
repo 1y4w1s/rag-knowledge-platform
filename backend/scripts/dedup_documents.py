@@ -21,9 +21,8 @@ logger = logging.getLogger(__name__)
 
 async def main(dry_run: bool = True) -> None:
     from app.core.database import SessionLocal
-    from app.models.document import Document
     from app.services.ops.maintenance_tracker import record_maintenance
-    from sqlalchemy import select, text
+    from sqlalchemy import text
 
     async with SessionLocal() as db:
         # 查找重复文档

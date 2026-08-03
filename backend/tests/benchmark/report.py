@@ -6,7 +6,6 @@ import json
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 from tests.benchmark.schemas import DatasetReport
 
@@ -52,7 +51,7 @@ class ReportGenerator:
     def to_markdown(self, filename: str = "report.md") -> Path:
         """输出 Markdown 摘要报告。"""
         lines = [
-            f"# 睿阁 RAG 评测报告",
+            "# 睿阁 RAG 评测报告",
             f"生成时间: {self.timestamp}",
             "",
             "---",
@@ -81,8 +80,8 @@ class ReportGenerator:
             ret = r.retrieval
             lines.extend([
                 "### 检索质量",
-                f"| 指标 | 得分 |",
-                f"|------|------|",
+                "| 指标 | 得分 |",
+                "|------|------|",
                 f"| Hit@1 | {ret.hit_at_1:.1%} |",
                 f"| Hit@3 | {ret.hit_at_3:.1%} |",
                 f"| Hit@5 | {ret.hit_at_5:.1%} |",
@@ -107,8 +106,8 @@ class ReportGenerator:
             gen = r.generation
             lines.extend([
                 "### 生成质量",
-                f"| 指标 | 得分 |",
-                f"|------|------|",
+                "| 指标 | 得分 |",
+                "|------|------|",
                 f"| 正确性 | {gen.correctness:.1%} |",
                 f"| 忠实度 | {gen.faithfulness:.1%} |",
                 f"| 幻觉率 | {gen.hallucination_rate:.1%} |",

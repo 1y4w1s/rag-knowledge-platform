@@ -3,12 +3,10 @@
 from __future__ import annotations
 
 import pytest
-from sqlalchemy import select
 
 from app.core.database import SessionLocal
 from app.core.deps import KbAction, require_kb_access
 from app.core.exceptions import ForbiddenError
-from app.models.knowledge_base import KnowledgeBase
 from tests.fixtures.org_isolation import OrgIsolationFixture
 
 pytestmark = pytest.mark.asyncio

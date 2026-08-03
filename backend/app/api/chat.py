@@ -4,7 +4,7 @@ from typing import Annotated
 from uuid import UUID
 
 from app.core.exceptions import ForbiddenError, NotFoundError
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import StreamingResponse
 from app.api.disconnect_guard import with_disconnect_guard
 from sqlalchemy.ext.asyncio import AsyncSession

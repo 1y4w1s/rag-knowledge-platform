@@ -75,7 +75,7 @@ def test_composite_recall_uses_pure_rrf_and_sub_queries(monkeypatch: pytest.Monk
     import uuid
 
     from app.services.rag import retrieval as retrieval_mod
-    from app.services.rag.types import RetrievedChunk, _RecallRow
+    from app.services.rag.types import _RecallRow
 
     kb = uuid.uuid4()
     base_a, base_b = uuid.uuid4(), uuid.uuid4()

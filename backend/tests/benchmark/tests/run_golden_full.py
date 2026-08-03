@@ -65,7 +65,7 @@ async def main():
             r = await client.get(f"/api/v1/knowledge-bases/{kb_id}/documents?workspace=personal&per_page=1", headers=headers)
             items = r.json().get("items", [])
             if items and items[0].get("status") == "completed":
-                logger.info(f"Ingestion 完成")
+                logger.info("Ingestion 完成")
                 break
             await asyncio.sleep(2)
 
@@ -92,10 +92,15 @@ async def main():
                 sp = expect.get("section_title", "").lower()
                 hp = expect.get("heading_path_contains", "").lower()
                 ok = True
-                if cc and cc not in content: ok = False
-                if sp and sp not in st: ok = False
-                if hp and hp not in st: ok = False
-                if ok: match_pos.append(pos); break
+                if cc and cc not in content:
+                    ok = False
+                if sp and sp not in st:
+                    ok = False
+                if hp and hp not in st:
+                    ok = False
+                if ok:
+                    match_pos.append(pos)
+                    break
 
             hit = len(match_pos) > 0 and not is_rej
             mrr = 1.0 / (match_pos[0] + 1) if match_pos else 0.0
@@ -111,7 +116,8 @@ async def main():
                     rejection["correct"] += 1
 
             results.append({"case_id": case["case_id"], "hit": hit, "mrr": mrr, "is_rej": is_rej, "tags": tags, "ms": round(elapsed_ms)})
-            for tag in tags: by_tag.setdefault(tag, []).append(hit)
+            for tag in tags:
+                by_tag.setdefault(tag, []).append(hit)
 
             if (i + 1) % 50 == 0:
                 h = sum(1 for r2 in results if r2["hit"])
@@ -132,7 +138,7 @@ async def main():
         print(f"  拒答正确率: {rejection['correct']}/{rejection['total']} = {rej_acc:.0%}")
         print(f"  延迟:       P50={latencies[n//2]:.0f}ms P95={latencies[int(n*0.95)]:.0f}ms")
 
-        print(f"\n按章节拆解:")
+        print("\n按章节拆解:")
         for tag, h in sorted(by_tag.items()):
             print(f"  {tag:20s} {sum(h):3d}/{len(h):3d} = {sum(h)/len(h):.0%}")
 
@@ -155,7 +161,7 @@ async def main():
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 
-        print(f"\n--- RAW DATA ---")
+        print("\n--- RAW DATA ---")
         print(json.dumps(summary, ensure_ascii=False, indent=2))
         print(f"\n结果已保存: {out}")
 

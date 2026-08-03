@@ -65,7 +65,6 @@ from app.services.rag.thread_persistence import (
     archive_workspace_thread,
     create_workspace_thread,
     export_thread_messages,
-    get_thread_or_404,
     get_workspace_thread_for_user,
     hard_delete_message,
     list_workspace_threads,

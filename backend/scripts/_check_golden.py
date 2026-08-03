@@ -1,5 +1,5 @@
 """验证 Golden 门禁当前状态"""
-import subprocess, json, sys
+import subprocess
 
 # 在容器内跑测试
 result = subprocess.run(

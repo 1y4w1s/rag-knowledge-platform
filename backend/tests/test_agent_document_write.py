@@ -17,7 +17,6 @@ import uuid
 from datetime import datetime, timezone
 from uuid import UUID
 
-import pytest
 from httpx import AsyncClient
 
 from app.core.database import SessionLocal

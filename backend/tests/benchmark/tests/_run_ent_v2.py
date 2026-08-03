@@ -1,5 +1,8 @@
 """入库6份文档（新切片策略）并跑 Enterprise QA。复用已有 KB。"""
-import asyncio, json, os, uuid
+import asyncio
+import json
+import os
+import uuid
 from pathlib import Path
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
 FIXTURES = Path("/app/tests/fixtures")
@@ -30,20 +33,22 @@ async def ingest():
     up = Path(settings.upload_dir)
     for f in sorted(FIXTURES.glob("acme_*.md")):
         did = uuid.uuid4()
-        sd = up / str(kb_id) / str(did); sd.mkdir(parents=True, exist_ok=True)
-        sp = sd / f.name; sp.write_bytes(f.read_bytes())
+        sd = up / str(kb_id) / str(did)
+        sd.mkdir(parents=True, exist_ok=True)
+        sp = sd / f.name
+        sp.write_bytes(f.read_bytes())
         async with SessionLocal() as db:
             doc = Document(id=did, kb_id=kb_id, filename=f.name,
                 file_type="md", file_size=sp.stat().st_size,
                 storage_path=str(sp), status=DocumentStatus.queued, uploaded_by=uid)
-            db.add(doc); await db.commit()
+            db.add(doc)
+            await db.commit()
             await process_document_ingestion(did)
         print(f"  {f.name} ✓")
     print(f"KB_ID={kb_id}")
     Path("/tmp/ent2_kb.txt").write_text(str(kb_id))
 
 async def query():
-    import asyncio
     from app.core.database import SessionLocal
     from app.services.rag.retrieval import retrieve_chunks
     from app.models.document_chunk import DocumentChunk
@@ -59,7 +64,7 @@ async def query():
     async with SessionLocal() as db:
         r = await db.execute(select(Document).where(Document.kb_id == kb_id))
         docs = r.scalars().all()
-        print(f"\nChunk stats:")
+        print("\nChunk stats:")
         for d in docs:
             r2 = await db.execute(select(DocumentChunk).where(DocumentChunk.document_id == d.id))
             chunks = r2.scalars().all()
@@ -87,15 +92,24 @@ async def query():
                     content = (ck.content or "").lower()
                     st = (ck.heading_path or ck.section_title or "").lower()
                     ok = True
-                    if cc and cc not in content: ok = False
-                    if sp and sp not in st: ok = False
-                    if hp and hp not in st: ok = False
-                    if ok: hit = True; break
-            if hit: by_level[level]["hit"] += 1
+                    if cc and cc not in content:
+                        ok = False
+                    if sp and sp not in st:
+                        ok = False
+                    if hp and hp not in st:
+                        ok = False
+                    if ok:
+                        hit = True
+                        break
+            if hit:
+                by_level[level]["hit"] += 1
             results.append(hit)
-            if (i+1) % 25 == 0: print(f"  [{i+1}/{len(cases)}]")
+            if (i+1) % 25 == 0:
+                print(f"  [{i+1}/{len(cases)}]")
 
-    n = len(results); hits = sum(results); hit3 = hits/max(1,n)
+    n = len(results)
+    hits = sum(results)
+    hit3 = hits/max(1,n)
     print(f"\n{'='*60}")
     print(f"Enterprise QA v2 ({n} 题, Hit@{HIT_K})")
     print(f"{'='*60}")

@@ -27,7 +27,6 @@ from app.schemas.dashboard import (
     DashboardRecentThread,
     DashboardTrendPoint,
 )
-from app.services.org.scope import OrgScope
 from app.services.workspace.scope import WorkspaceKind, WorkspaceScope
 
 

@@ -7,7 +7,6 @@ Usage:
 
 from __future__ import annotations
 
-import itertools
 import json
 import logging
 import os
@@ -199,7 +198,6 @@ def main():
         report_path = RESULTS_DIR / f"ablation_{dataset.replace('/', '_')}_{time.strftime('%Y%m%d_%H%M%S')}.md"
         report_path.write_text(report, encoding="utf-8")
         logger.info("报告已保存: %s", report_path)
-        import sys
         report_text = "\n" + report + "\n"
         try:
             print(report_text)

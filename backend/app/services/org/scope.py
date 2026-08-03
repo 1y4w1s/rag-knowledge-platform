@@ -17,7 +17,8 @@ from app.models.org_unit import OrgUnit
 from app.models.org_unit_member import OrgUnitMember
 from app.schemas.auth import UserPublic
 from app.services.workspace.scope import WorkspaceKind, WorkspaceScope
-from sqlalchemy import and_, or_, select
+from sqlalchemy import ColumnElement, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 
 class DepartmentContext(str, Enum):

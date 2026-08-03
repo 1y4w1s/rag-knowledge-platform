@@ -1,5 +1,8 @@
 """Enterprise QA query phase. KB_ID=bad0799a-c840-4563-89ac-5a00aa0b72a7"""
-import asyncio, json, os, uuid
+import asyncio
+import json
+import os
+import uuid
 from pathlib import Path
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
 KB_ID = "bad0799a-c840-4563-89ac-5a00aa0b72a7"

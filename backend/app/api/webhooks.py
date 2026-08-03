@@ -7,7 +7,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import Response
 from pydantic import AnyHttpUrl, BaseModel, Field, field_validator
-from sqlalchemy import select, delete
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -61,7 +61,7 @@ async def list_webhooks(
 ) -> list[WebhookResponse]:
     await require_kb_access(kb_id=kb_id, action=KbAction.admin, current_user=current_user, db=db)
     result = await db.execute(
-        select(Webhook).where(Webhook.kb_id == kb_id, Webhook.is_active == True)
+        select(Webhook).where(Webhook.kb_id == kb_id, Webhook.is_active)
     )
     return [
         WebhookResponse(id=w.id, url=w.url, events=w.events, is_active=w.is_active, created_at=w.created_at)

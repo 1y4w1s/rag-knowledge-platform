@@ -90,7 +90,6 @@ async def main() -> None:
 
     # 导入后端模块（需在设置环境之后）
     from app.core.database import SessionLocal
-    from app.services.ingestion.embedder import _mock_vector
     from tests.benchmark.loaders import list_datasets, get_loader
     from tests.benchmark.rate_limit import RateLimitWrapper
     from tests.benchmark.runner import BenchmarkRunner

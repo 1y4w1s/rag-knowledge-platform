@@ -33,7 +33,6 @@ from app.services.audit.agent import (
     audit_agent_approval_created,
     safe_audit,
 )
-from app.services.audit.log import write_audit_log
 
 NO_BASIS_SUMMARY = "库内无足够依据，未生成 FAQ 草稿"
 BAD_FILENAME_SUMMARY = "filename 须以 .md 结尾"

@@ -16,11 +16,9 @@ from uuid import UUID
 
 import pytest
 from sqlalchemy import text
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import SessionLocal
-from app.models.agent_approval import AgentApproval
 from app.models.agent_run import AgentRun
 from app.models.chat_thread import ChatThread
 from app.models.document import Document
@@ -28,7 +26,6 @@ from app.models.document_chunk import DocumentChunk
 from app.models.enums import (
     AgentRunMode,
     AgentRunStatus,
-    ApprovalKind,
     ApprovalStatus,
     DocumentStatus,
     DocumentVisibility,

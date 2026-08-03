@@ -1,5 +1,6 @@
 """evaluation_runs 定期清理：删除 90 天前的记录。"""
-import asyncio, sys
+import asyncio
+import sys
 sys.path.insert(0, "backend")
 
 async def main():

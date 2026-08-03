@@ -16,6 +16,7 @@ from uuid import UUID
 from app.services.agent.tools.registry import (
     ALL_AGENT_TOOL_NAMES,
     AgentToolName,
+    READ_ONLY_TOOL_NAMES,
     ReadOnlyToolName,
 )
 from app.services.agent.tools.search_documents import (

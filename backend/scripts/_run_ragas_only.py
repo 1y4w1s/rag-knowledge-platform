@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 """从已保存的 Faithfulness 结果重新运行 RAGAS 对比（仅 faithfulness）"""
-import asyncio, json, logging, os, time
+import asyncio
+import json
+import logging
+import os
+import time
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -69,7 +73,8 @@ async def main():
         result = evaluate(data_hf, metrics=[faithfulness], llm=deepseek_llm)
     except Exception as e:
         logger.error("RAGAS evaluate 失败: %s", e)
-        import traceback; traceback.print_exc()
+        import traceback
+        traceback.print_exc()
         return
     elapsed = time.time() - t0
     logger.info("RAGAS 完成 (%.1fs)", elapsed)

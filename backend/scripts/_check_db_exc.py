@@ -11,7 +11,6 @@ async def test():
         print("Type:", type(e).__name__)
         print("Module:", type(e).__module__)
         print("Msg:", str(e)[:200])
-        import sqlalchemy.exc
         for cls in type(e).__mro__:
             if cls.__module__.startswith("sqlalchemy") or cls.__module__.startswith("asyncpg"):
                 print(f"  MRO: {cls}")

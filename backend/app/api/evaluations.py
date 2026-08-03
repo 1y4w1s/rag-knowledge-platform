@@ -359,7 +359,7 @@ async def get_ragas_scores(
                         "skipped": ds_entry.get("skipped", 0),
                         "filename": ragas_file.name,
                     })
-        except Exception as e:
+        except Exception:
             pass  # 静默忽略
 
     return {

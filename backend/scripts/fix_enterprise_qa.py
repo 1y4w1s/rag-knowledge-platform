@@ -5,7 +5,9 @@
 2. 扩展超短值（≤3字符）
 3. 重复值去重（加文档上下文）
 """
-import json, re, os, sys
+import json
+import re
+import os
 from collections import Counter, defaultdict
 
 # ── 加载数据 ──
@@ -133,7 +135,7 @@ for cc, indices in cc_groups.items():
                     fixes["duplicate"] += 1
 
 # ── 输出统计 ──
-print(f"\n修复统计:")
+print("\n修复统计:")
 for k, v in fixes.items():
     print(f"  {k}: {v}")
 
@@ -144,7 +146,7 @@ da_after = [v for v in cc_after if v.startswith("答")]
 dup_after = sum(1 for k,v in Counter(cc_after).items() if v > 1)
 pure_num_after = [v for v in cc_after if v.strip().isdigit()]
 
-print(f"\n修复后:")
+print("\n修复后:")
 print(f"  ≤3字符: {len(short_after)} (原47)")
 print(f"  答开头: {len(da_after)} (原18)")
 print(f"  重复组: {dup_after} (原18)")

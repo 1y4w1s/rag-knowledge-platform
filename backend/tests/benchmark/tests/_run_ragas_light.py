@@ -145,7 +145,7 @@ async def main() -> None:
         skip_gt = 0
 
         for i in range(n):
-            q, ans, ctxs, gt = (
+            _q, ans, ctxs, gt = (
                 dataset["question"][i], dataset["answer"][i],
                 dataset["contexts"][i], dataset["ground_truth"][i],
             )

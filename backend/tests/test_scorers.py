@@ -1,13 +1,13 @@
 """Scorer 单元测试。"""
 
-import sys, os
+import sys
+import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 from tests.benchmark.scorers.base import (
-    Expect, RetrievedChunk, RetrievalScore, ndcg_at_k, compute_scores
+    Expect, RetrievedChunk, ndcg_at_k
 )
 from tests.benchmark.scorers.content_match import ContentMatchScorer
-from tests.benchmark.scorers.answer_match import AnswerMatchScorer
 
 
 # ── 测试数据 ──
@@ -102,7 +102,7 @@ def test_correct_rejection():
     """拒答：没有任何 chunk 匹配。"""
     expect = Expect(content_contains="完全不存在")
     # 模拟设置 expect_rejection（通过 RetrievalScore 的 correct_rejection 字段）
-    result = scorer.score_retrieval("", CHUNKS, expect)
+    scorer.score_retrieval("", CHUNKS, expect)
     # 手动设置 correct_rejection
     class RejectionExpect:
         content_contains = "完全不存在"

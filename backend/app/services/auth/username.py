@@ -2,7 +2,6 @@
 
 import re
 
-from fastapi import status
 from app.core.exceptions import ValidationError
 
 USERNAME_PATTERN = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_]{2,31}$")

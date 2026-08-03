@@ -26,6 +26,7 @@ import argparse
 import asyncio
 import json
 import logging
+import math
 import os
 import sys
 import time
@@ -46,7 +47,6 @@ DEFAULT_OUTPUT = DOCS_DIR / "baseline-ragas.json"
 
 def _safe_float(val: float) -> float | None:
     """将 NaN/Inf 转为 None，确保 JSON 序列化安全。"""
-    import math
     if val is None or (isinstance(val, float) and (math.isnan(val) or math.isinf(val))):
         return None
     return round(val, 4)

@@ -58,7 +58,6 @@ class SlidingWindowCounter:
             # 清理过期时间戳
             self._timestamps = [t for t in self._timestamps if t > cutoff]
             if len(self._timestamps) >= self.max_requests:
-                wait = self._timestamps[0] + self.window_seconds - now
                 return False, max(0, self.max_requests - len(self._timestamps))
             self._timestamps.append(now)
             remaining = self.max_requests - len(self._timestamps)

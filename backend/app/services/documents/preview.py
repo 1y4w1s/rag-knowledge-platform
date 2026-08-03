@@ -3,7 +3,6 @@
 import uuid
 from pathlib import Path
 
-from fastapi import status
 from fastapi.responses import FileResponse, PlainTextResponse
 from app.core.exceptions import NotFoundError, ConflictError
 from sqlalchemy.ext.asyncio import AsyncSession

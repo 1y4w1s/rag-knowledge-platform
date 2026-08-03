@@ -9,7 +9,6 @@ v1.0 企业评测体系 Phase 2 扩展：
 
 from __future__ import annotations
 
-import uuid
 from dataclasses import dataclass, field
 from typing import Any, Literal
 

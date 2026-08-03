@@ -24,7 +24,6 @@ from uuid import UUID
 import pytest
 from fastapi import BackgroundTasks
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import SessionLocal

@@ -3,52 +3,35 @@
 from __future__ import annotations
 
 import asyncio
-from app.services.rag.cjk import segment_cjk
 import logging
-
-# 并发 ingestion 上限（防止 BackgroundTasks 无界堆积）
-_INGESTION_SEMAPHORE = asyncio.Semaphore(5)
-
 import uuid
-
 from datetime import datetime, timezone
-
 from pathlib import Path
-
 from uuid import UUID
-
-
 
 from sqlalchemy import delete, select, text
 
-
-
 from app.core.database import SessionLocal
-
 from app.models.document import Document
-
 from app.models.document_chunk import DocumentChunk
-
 from app.models.enums import DocumentStatus
-
 from app.models.webhook import Webhook
-
 from app.services.ingestion.chunker import structure_chunk
-
 from app.services.ingestion.embedder import (
     current_embedding_model,
     embed_texts,
     embedding_input_text,
     try_embed_texts,
 )
-
 from app.services.ingestion.parser import parse_document
 from app.services.ingestion.parser_pdf import detect_scanned_pdf
-
 from app.services.ingestion.types import ChunkDraft, IngestionConfig
+from app.services.rag.cjk import segment_cjk
 from app.services.rag.embed_route import REASON_EMBEDDING_EN_FAILED, is_mostly_english
 from app.services.rag.entity_extractor import extract_entities_for_document
 
+# 并发 ingestion 上限（防止 BackgroundTasks 无界堆积）
+_INGESTION_SEMAPHORE = asyncio.Semaphore(5)
 
 logger = logging.getLogger(__name__)
 
@@ -515,7 +498,7 @@ async def _trigger_webhooks(
         result = await db.execute(
             select(Webhook).where(
                 Webhook.kb_id == doc.kb_id,
-                Webhook.is_active == True,
+                Webhook.is_active,
                 Webhook.events.contains("document.completed"),
             )
         )
@@ -546,7 +529,7 @@ async def _trigger_webhooks_on_failure(document_id: UUID, error_message: str) ->
             result = await db.execute(
                 select(Webhook).where(
                     Webhook.kb_id == doc.kb_id,
-                    Webhook.is_active == True,
+                    Webhook.is_active,
                     Webhook.events.contains("document.completed"),
                 )
             )

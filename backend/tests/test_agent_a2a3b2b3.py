@@ -12,7 +12,6 @@ import json
 import uuid
 from pathlib import Path
 
-import pytest
 from httpx import AsyncClient
 from sqlalchemy import func, select
 
@@ -38,7 +37,7 @@ from app.services.workspace.scope import WorkspaceKind, WorkspaceScope
 from tests._a2a3b2b3_helpers import (
     audit_count,
     insert_approval,
-    upload_dir,
+    upload_dir,  # noqa: F401  # pytest fixture re-export（参数按名解析，ruff 静态分析不可见）
 )
 from tests.conftest import create_test_kb
 from tests.test_agent_runtime import SequencePlanner
@@ -98,7 +97,7 @@ async def _collect_agent_kb_stream(
 async def test_a2_agent_stream_single_commit_and_run_link(
     client: AsyncClient,
     register_and_login,
-    upload_dir: Path,
+    upload_dir: Path,  # noqa: F811  # fixture 按名解析（ruff 静态分析不可见）
 ) -> None:
     """A2 正常路径：done 事件 + user/assistant 一次 commit + run 终态 + assistant_message_id 回填。"""
     headers, user = await register_and_login(prefix="a2-dwc")
@@ -152,7 +151,7 @@ async def test_a2_agent_stream_single_commit_and_run_link(
 async def test_a2_agent_stream_disconnect_persists_partial(
     client: AsyncClient,
     register_and_login,
-    upload_dir: Path,
+    upload_dir: Path,  # noqa: F811  # fixture 按名解析（ruff 静态分析不可见）
 ) -> None:
     """A2 断线兜底（P1-08）：首帧后关闭 → user 问句 + interrupted partial 落库，run 终态落库。"""
     headers, user = await register_and_login(prefix="a2-disconnect")
@@ -253,7 +252,7 @@ async def test_a3_memory_upsert_independent_session(
 async def test_a3_adopt_flush_before_write_file_and_audit(
     client: AsyncClient,
     register_and_login,
-    upload_dir: Path,
+    upload_dir: Path,  # noqa: F811  # fixture 按名解析（ruff 静态分析不可见）
 ) -> None:
     """真实 adopt：resolve 200 → Document 行 + 磁盘文件（commit 后）+ adopted 状态 + 审计。"""
     headers, user = await register_and_login(prefix="a3-adopt")
@@ -288,7 +287,7 @@ async def test_a3_adopt_flush_before_write_file_and_audit(
 async def test_a3_adopt_concurrent_single_document(
     client: AsyncClient,
     register_and_login,
-    upload_dir: Path,
+    upload_dir: Path,  # noqa: F811  # fixture 按名解析（ruff 静态分析不可见）
 ) -> None:
     """H3 并发 adopt：行锁串行化 → 一 200 一 409，且只产生一个 Document。"""
     headers, user = await register_and_login(prefix="a3-concurrent")

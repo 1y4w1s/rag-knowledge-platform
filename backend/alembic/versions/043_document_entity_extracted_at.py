@@ -8,11 +8,9 @@ Create Date: 2026-07-29 00:00:00.000000
 """
 from __future__ import annotations
 
-from typing import Sequence
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 revision: str = "043_document_entity_extracted_at"
 down_revision: str | None = "042_entities_relations"

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from datetime import date, datetime, time, timezone
 
-from fastapi import status
 from app.core.exceptions import ValidationError
 from sqlalchemy import ColumnElement, and_
 

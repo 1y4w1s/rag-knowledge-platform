@@ -18,7 +18,6 @@ import time
 from uuid import UUID
 
 from app.core.database import SessionLocal
-from app.core.latency import get_tracker
 from app.services.rag.retrieval import retrieve_chunks
 
 logging.basicConfig(

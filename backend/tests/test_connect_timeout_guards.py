@@ -15,7 +15,7 @@ import pytest
 import app.core.redis as redis_core
 from app.api import health as health_api
 from app.core.config import settings
-from app.core.database import _build_engine, check_database, engine
+from app.core.database import _build_engine, engine
 from app.core.http_client import close_all_clients, get_deepseek_client, get_tongyi_client
 
 

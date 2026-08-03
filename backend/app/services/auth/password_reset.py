@@ -14,7 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.exceptions import RateLimitError, ValidationError
+from app.core.exceptions import ValidationError
 from app.models.user import User
 from app.services.auth.email import send_email_smtp
 from app.services.auth.password import hash_password, validate_password_strength

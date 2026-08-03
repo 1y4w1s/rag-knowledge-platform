@@ -23,10 +23,10 @@ import asyncio
 import json
 import os
 import re
-import sys
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 from uuid import UUID
 
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
@@ -117,7 +117,6 @@ async def main() -> None:
     args = parser.parse_args()
     _set_args(args)
 
-    from app.core.database import SessionLocal
     from app.core.config import settings
     from app.services.rag.cache import set_query_cache_enabled
 
@@ -269,7 +268,7 @@ async def _main_impl(scope: str) -> None:
         lift = [r for r in rows if not r["hits"]["off"] and r["hits"]["conditional"]]
         hurt = [r for r in rows if r["hits"]["off"] and not r["hits"]["conditional"]]
         both = [r for r in rows if r["hits"]["off"] and r["hits"]["conditional"]]
-        print(f"\n  conditional vs off:")
+        print("\n  conditional vs off:")
         print(f"    conditional 救回（off miss & cond hit）: {len(lift)} 题")
         for r in lift:
             print(f"      {r['case_id']} {r['difficulty']} rank_off={r['ranks']['off']} rank_cond={r['ranks']['conditional']} q={r['query'][:50]}")
@@ -282,7 +281,7 @@ async def _main_impl(scope: str) -> None:
     if "off" in modes and "always" in modes:
         hurt_always = [r for r in rows if r["hits"]["off"] and not r["hits"]["always"]]
         lift_always = [r for r in rows if not r["hits"]["off"] and r["hits"]["always"]]
-        print(f"\n  always vs off（对照，实验 N 已实锤负排序）:")
+        print("\n  always vs off（对照，实验 N 已实锤负排序）:")
         print(f"    always 负排序: {len(hurt_always)} 题；救回: {len(lift_always)} 题；净变化: {len(lift_always) - len(hurt_always)} 题")
 
     if scope == "all":
@@ -294,7 +293,7 @@ async def _main_impl(scope: str) -> None:
             s["total"] += 1
             for m in modes:
                 s[m] = s.get(m, 0) + (1 if r["hits"].get(m) else 0)
-        print(f"\n  按难度分层（Hit@3 " + " / ".join(modes) + "）:")
+        print("\n  按难度分层（Hit@3 " + " / ".join(modes) + "）:")
         for lv in ["L1", "L2", "L3", "L4"]:
             s = by_level.get(lv, {"total": 0})
             parts = "  |  ".join(

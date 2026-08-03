@@ -1,5 +1,9 @@
 """基线模拟评测：is_composite_query 恒 False（composite 永不触发）+ 归一化判定。"""
-import asyncio, json, os, re, uuid
+import asyncio
+import json
+import os
+import re
+import uuid
 from pathlib import Path
 
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
@@ -47,10 +51,15 @@ async def run_queries():
                     content = _norm(ck.content or "")
                     st = _norm(ck.heading_path or ck.section_title or "")
                     ok = True
-                    if cc and cc not in content: ok = False
-                    if sp and sp not in st: ok = False
-                    if hp and hp not in st: ok = False
-                    if ok: hit = True; break
+                    if cc and cc not in content:
+                        ok = False
+                    if sp and sp not in st:
+                        ok = False
+                    if hp and hp not in st:
+                        ok = False
+                    if ok:
+                        hit = True
+                        break
             if hit:
                 by_level[level]["hit"] += 1
             results.append({"case_id": case["case_id"], "level": level, "query": case["query"], "hit": hit})
@@ -73,8 +82,8 @@ async def run_queries():
             print(f"    [{r['level']}] {r['case_id']}: {r['query'][:44]}")
 
     summary = {"dataset": "enterprise_qa_base_sim", "total": len(results), "hit_k": HIT_K,
-        "by_level": {l: {"total": s["total"], "hit": s["hit"],
-            "rate": round(s["hit"]/max(1,s["total"]),4)} for l, s in sorted(by_level.items())},
+        "by_level": {level: {"total": s["total"], "hit": s["hit"],
+            "rate": round(s["hit"]/max(1,s["total"]),4)} for level, s in sorted(by_level.items())},
         "overall_hit_rate": round(total_hits/max(1,len(results)),4)}
     Path("/app/benchmark_results/enterprise_qa_base_sim.json").write_text(
         json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8")

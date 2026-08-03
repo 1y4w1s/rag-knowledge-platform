@@ -13,7 +13,6 @@ import time
 from collections import OrderedDict
 from typing import Sequence
 
-import httpx
 
 from app.core.config import settings
 from app.core.http_client import get_tongyi_client

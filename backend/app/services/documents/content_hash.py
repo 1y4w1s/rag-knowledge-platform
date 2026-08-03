@@ -3,7 +3,6 @@
 import hashlib
 import uuid
 
-from fastapi import status
 from app.core.exceptions import ConflictError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession

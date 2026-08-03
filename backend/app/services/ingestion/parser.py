@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from collections.abc import Callable
 from pathlib import Path
 
 from app.services.ingestion.parser_pdf import (
-    _merge_cross_page_blocks,
+    _merge_cross_page_blocks,  # noqa: F401  # 向后兼容再导出（tests/test_chunker.py 依赖）
     detect_scanned_pdf,
     parse_pdf,
     parse_pdf_ocr,
@@ -22,9 +23,6 @@ CHAPTER_RE = re.compile(
     r"#{1,3}\s+.+)$"
 )
 MD_HEADER_RE = re.compile(r"^(#{1,3})\s+(.+)$")
-
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -415,7 +413,6 @@ def parse_image_ocr(path: Path) -> list[ParsedBlock]:
     # C1-2：Vision LLM 图片描述增强（即使 OCR 空也尝试）
     if path and path.exists():
         try:
-            from app.services.rag.chat_vision import complete_chat_vision_sync
 
             enriched = _enrich_with_vision_sync(path, cleaned)
             if enriched:

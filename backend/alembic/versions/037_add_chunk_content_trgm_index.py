@@ -10,7 +10,6 @@ Revises: d057befd441b
 from __future__ import annotations
 
 from alembic import op
-import sqlalchemy as sa
 
 revision = "037"
 down_revision = "036"

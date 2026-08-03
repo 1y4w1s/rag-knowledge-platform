@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from enum import Enum
 from uuid import UUID
 
-from fastapi import status
 from app.core.exceptions import ValidationError, ForbiddenError
 from sqlalchemy import ColumnElement, select
 from sqlalchemy.ext.asyncio import AsyncSession
