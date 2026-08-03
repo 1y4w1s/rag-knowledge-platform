@@ -32,7 +32,15 @@ async def get_redis() -> Redis:
     global _pool
     if _pool is None:
         url = get_redis_url()
-        _pool = ConnectionPool.from_url(url, max_connections=20)
+        # P0-11 连接超时守卫：显式 socket/connect timeout，失败快速抛出而非挂死；
+        # retry_on_timeout=False（redis-py 默认）保持 fail-fast 语义，由调用方降级/拒答。
+        _pool = ConnectionPool.from_url(
+            url,
+            max_connections=20,
+            socket_timeout=settings.redis_socket_timeout_seconds,
+            socket_connect_timeout=settings.redis_connect_timeout_seconds,
+            retry_on_timeout=False,
+        )
         logger.info("Redis 连接池已创建: %s", url)
     return Redis(connection_pool=_pool)
 

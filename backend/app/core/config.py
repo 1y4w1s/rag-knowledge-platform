@@ -116,6 +116,11 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = 120.0
     rerank_timeout_seconds: float = 60.0
     embed_timeout_seconds: float = 60.0
+    # P0-11 连接超时守卫：外部连接显式 socket/connect timeout，探活不挂死
+    redis_socket_timeout_seconds: float = 5.0   # 单次 Redis 操作 socket 超时（秒）
+    redis_connect_timeout_seconds: float = 5.0  # Redis TCP 建连超时（秒）
+    db_connect_timeout_seconds: float = 10.0    # asyncpg 建连超时（默认 60s 过长）
+    db_pool_timeout_seconds: float = 10.0       # SQLAlchemy 连接池排队等待超时（默认 30s）
 
     retry_max_attempts: int = 2
     retry_base_delay: float = 1.0
@@ -216,6 +221,9 @@ class Settings(BaseSettings):
     agent_run_stale_minutes: int = 15
     # pending 审批 TTL（惰性判定：created_at + TTL；resolve 入口先判过期）
     agent_approval_ttl_hours: float = 24.0
+    # H1/M17：Member 编辑模式 FAQ 草稿生成配额（0=关闭配额闸）
+    agent_member_faq_thread_quota: int = 3   # 每 thread 最多 pending adopt_faq 卡数
+    agent_member_faq_daily_quota: int = 10   # 每日最多创建 adopt_faq 审批数
     # 同 thread 生成锁/SSE 槽位持有上限（分布式锁 TTL，30min 兜底自动过期）
     agent_run_lock_ttl_seconds: int = 1800
 
