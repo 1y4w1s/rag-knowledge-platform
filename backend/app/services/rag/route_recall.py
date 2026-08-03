@@ -208,16 +208,19 @@ def _base_stmt(
     hide_admin_only: bool,
 ):
     stmt = (
-        select(DocumentChunk, Document.filename)
+        select(
+            DocumentChunk,
+            Document.filename,
+            KnowledgeBase.name.label("kb_name"),
+        )
         .join(Document, DocumentChunk.document_id == Document.id)
+        .join(KnowledgeBase, Document.kb_id == KnowledgeBase.id)
         .where(Document.deleted_at.is_(None))
     )
     if kb_id is not None:
         stmt = stmt.where(DocumentChunk.kb_id == kb_id)
     if scope_clause is not None:
-        stmt = stmt.join(KnowledgeBase, Document.kb_id == KnowledgeBase.id).where(
-            scope_clause
-        )
+        stmt = stmt.where(scope_clause)
     if hide_admin_only:
         stmt = stmt.where(Document.visibility != DocumentVisibility.admin_only)
     if visible_kb_ids is not None:
@@ -256,7 +259,10 @@ async def _title_token_match(
         .limit(limit)
     )
     result = (await db.execute(stmt)).all()
-    return [_RecallRow(chunk=c, filename=fn) for c, fn in result]
+    return [
+        _RecallRow(chunk=c, filename=fn, kb_name=kb_name)
+        for c, fn, kb_name in result
+    ]
 
 
 async def _matching_document_ids(
@@ -323,11 +329,20 @@ async def _doc_scoped_chunks(
     if prefer:
         hit = (await db.execute(stmt.where(or_(*prefer)).limit(limit))).all()
         if hit:
-            return [_RecallRow(chunk=c, filename=fn) for c, fn in hit]
+            return [
+                _RecallRow(chunk=c, filename=fn, kb_name=kb_name)
+                for c, fn, kb_name in hit
+            ]
     if soft:
         hit = (await db.execute(stmt.where(or_(*soft)).limit(limit))).all()
-        return [_RecallRow(chunk=c, filename=fn) for c, fn in hit]
+        return [
+            _RecallRow(chunk=c, filename=fn, kb_name=kb_name)
+            for c, fn, kb_name in hit
+        ]
     hit = (
         await db.execute(stmt.order_by(DocumentChunk.chunk_index).limit(limit))
     ).all()
-    return [_RecallRow(chunk=c, filename=fn) for c, fn in hit]
+    return [
+        _RecallRow(chunk=c, filename=fn, kb_name=kb_name)
+        for c, fn, kb_name in hit
+    ]

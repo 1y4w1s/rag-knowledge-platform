@@ -86,7 +86,10 @@ async def test_full_gate_retrieval(
     await _ingest_doc(kb_id, user_id, GOLDEN_MD, "md", upload_dir)
 
     if GOLDEN_DOCX.exists():
-        from app.services.ingestion.parser.docx_parser import parse_docx
+        # 导入可用性校验：真实解析器位于 parser 模块（docx_parser 为旧错误路径）
+        from app.services.ingestion.parser import parse_docx
+
+        assert callable(parse_docx)
         await _ingest_doc(kb_id, user_id, GOLDEN_DOCX, "docx", upload_dir)
 
     # 逐题检索

@@ -1,10 +1,13 @@
 """并发检索测试：10 路并发查询，验证结果不串。"""
 import asyncio
 import uuid
+from pathlib import Path
 from httpx import ASGITransport, AsyncClient
 from app.main import app
 from app.core.database import SessionLocal
 from app.services.rag.retrieval import retrieve_chunks
+
+FIXTURES = Path(__file__).parent / "fixtures"
 
 QUERIES = [
     "员工年假有几天？", "加班费怎么算？", "迟到怎么处理？",
@@ -26,7 +29,7 @@ async def test_10_concurrent_retrievals():
         h = {"Authorization": f"Bearer {r.json()['access_token']}"}
         r = await c.post("/api/v1/knowledge-bases?workspace=personal", headers=h, json={"name": "Concurrent-KB"})
         kb_id = r.json()["id"]
-        with open("/app/tests/fixtures/golden_handbook.md", "rb") as f:
+        with open(FIXTURES / "golden_handbook.md", "rb") as f:
             await c.post(f"/api/v1/knowledge-bases/{kb_id}/documents?workspace=personal",
                          headers=h, files={"files": ("hb.md", f, "text/markdown")})
         for _ in range(20):

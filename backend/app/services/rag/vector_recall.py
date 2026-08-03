@@ -10,6 +10,7 @@ from sqlalchemy.orm import InstrumentedAttribute
 from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
 from app.models.enums import DocumentVisibility
+from app.models.knowledge_base import KnowledgeBase
 from app.services.rag.types import _RecallRow
 
 
@@ -102,8 +103,9 @@ async def _vector_recall_workspace(
     distance = col.cosine_distance(query_vec).label("distance")
     scope_clause = kb_scope_clause(scope, org_scope)
     stmt = (
-        select(DocumentChunk, Document.filename, distance)
+        select(DocumentChunk, Document.filename, KnowledgeBase.name.label("kb_name"), distance)
         .join(Document, DocumentChunk.document_id == Document.id)
+        .join(KnowledgeBase, Document.kb_id == KnowledgeBase.id)
         .where(scope_clause)
         .where(col.is_not(None))
         .where(DocumentChunk.chunk_kind != "parent")
@@ -117,7 +119,14 @@ async def _vector_recall_workspace(
     stmt = stmt.order_by(distance).limit(limit)
     rows = (await db.execute(stmt)).all()
     results = []
-    for chunk, filename, dist in rows:
+    for chunk, filename, kb_name, dist in rows:
         similarity = max(0.0, 1.0 - float(dist))
-        results.append(_RecallRow(chunk=chunk, filename=filename, vector_similarity=similarity))
+        results.append(
+            _RecallRow(
+                chunk=chunk,
+                filename=filename,
+                kb_name=kb_name,
+                vector_similarity=similarity,
+            )
+        )
     return results

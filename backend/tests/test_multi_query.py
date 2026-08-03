@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import uuid
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -103,6 +103,10 @@ async def test_retrieve_skips_low_confidence_expand_when_rewrite_on(
     monkeypatch.setattr(settings, "query_rewrite_policy", "off")
     monkeypatch.setattr(settings, "rerank_enabled", False)
     monkeypatch.setattr(retrieval_mod, "query_cache_enabled", lambda: False)
+    # 不固定策略：query="年假" 命中 select_strategy → simple，db 空行使首检
+    # fused 为空 → 回落到 medium → rewrite 桥接 always → want_multi 分支。
+    # 该路径曾因 hyde_variants 未绑定抛 UnboundLocalError（生产 500），此处
+    # 即真实缺陷路径回归断言；修复后 simple 回落分支必须绑定 hyde_variants=None。
 
     kb_id = uuid.uuid4()
     chunk_id = uuid.uuid4()
@@ -160,7 +164,13 @@ async def test_retrieve_skips_low_confidence_expand_when_rewrite_on(
         AsyncMock(side_effect=lambda q, cands, top_k=5: cands[:top_k]),
     )
 
+    # db 为 AsyncMock：vector/FTS 首检需返回空行（(await db.execute(stmt)).all() → []），
+    # 使策略回落到 medium → multi 分支。注意 execute 结果必须是同步 MagicMock——
+    # AsyncMock 的子属性调用会返回协程，而代码里 `.all()` 是同步调用，不做 await
+    # （此前因此报 TypeError: 'coroutine' object is not iterable）。
     db = AsyncMock()
+    db.execute.return_value = MagicMock()
+    db.execute.return_value.all.return_value = []
     result = await retrieval_mod.retrieve_chunks(db, kb_id=kb_id, query="年假", top_k=3)
     assert len(result) == 1
     assert expand_called["n"] == 0

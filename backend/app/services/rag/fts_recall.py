@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
 from app.models.enums import DocumentVisibility
+from app.models.knowledge_base import KnowledgeBase
 from app.services.rag.cjk import segment_cjk
 from app.services.rag.types import _RecallRow
 
@@ -127,8 +128,9 @@ async def _fts_recall_workspace(
             f"%{_escape_ilike(query)}%", escape="\\"
         )
     stmt = (
-        select(DocumentChunk, Document.filename, rank)
+        select(DocumentChunk, Document.filename, KnowledgeBase.name.label("kb_name"), rank)
         .join(Document, DocumentChunk.document_id == Document.id)
+        .join(KnowledgeBase, Document.kb_id == KnowledgeBase.id)
         .where(scope_clause)
         .where(fts_condition)
     )
@@ -141,8 +143,13 @@ async def _fts_recall_workspace(
     stmt = stmt.order_by(rank.desc()).limit(limit)
     rows = (await db.execute(stmt)).all()
     results = []
-    for chunk, filename, fts_rank in rows:
+    for chunk, filename, kb_name, fts_rank in rows:
         results.append(
-            _RecallRow(chunk=chunk, filename=filename, fts_rank=float(fts_rank))
+            _RecallRow(
+                chunk=chunk,
+                filename=filename,
+                kb_name=kb_name,
+                fts_rank=float(fts_rank),
+            )
         )
     return results

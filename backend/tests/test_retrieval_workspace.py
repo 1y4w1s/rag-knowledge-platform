@@ -20,6 +20,7 @@ from app.schemas.chat import CitationPayload
 from app.services.ingestion.pipeline import process_document_ingestion
 from app.services.org.scope import resolve_org_scope
 from app.services.rag.diversity import apply_kb_diversity
+from app.services.rag.cjk import segment_cjk
 from app.services.rag.retrieval import (
     chunk_to_citation,
     retrieve_workspace_chunks,
@@ -110,7 +111,9 @@ async def _seed_chunk(
             "UPDATE document_chunks SET content_tsv = to_tsvector('simple', :src) "
             "WHERE id = :chunk_id"
         ),
-        {"src": content, "chunk_id": chunk_id},
+        # 与生产入库口径一致（pipeline.py 用 segment_cjk(content) 建 tsvector），
+        # 否则中文 seed 与查询端分词不匹配，FTS 命中率为 0（存量失败根因）。
+        {"src": segment_cjk(content), "chunk_id": chunk_id},
     )
 
 

@@ -400,7 +400,7 @@ async def retrieve_chunks(
 
     # 查询缓存命中则直接返回
     if query_cache_enabled():
-        cached = await get_query_cache(kb_id, query)
+        cached = await get_query_cache(kb_id, query, hide_admin_only=hide_admin_only)
         if cached is not None:
             return cached
 
@@ -435,6 +435,7 @@ async def retrieve_chunks(
         )
         if not fused:
             strategy = RetrievalStrategy.medium
+            hyde_variants = None
         else:
             _parent = await load_parent_contents(db, [row.chunk for row in merged.values()])
             _cand = _build_candidates(fused, merged, _parent, kb_id, None)
@@ -572,7 +573,7 @@ async def retrieve_chunks(
 
     # 写缓存（仅缓存 KB 级检索结果）
     if query_cache_enabled():
-        await set_query_cache(kb_id, query, result)
+        await set_query_cache(kb_id, query, result, hide_admin_only=hide_admin_only)
     # D1 GraphRAG：实体匹配召回（低权重 0.3，不参与 rerank/adaptive_k）
     result = await graph_entity_recall(db, kb_id, query, result, context=context)
     return result
@@ -687,6 +688,7 @@ async def retrieve_workspace_chunks(
             logger.info("strategy=simple_ws query_len=%d top_k=%d", len(query), len(_cand[:top_k]))
             return _cand[:top_k]
         strategy = RetrievalStrategy.medium
+        hyde_variants = None
 
     # complex → 强制多查询 + HyDE 注入
     elif strategy == RetrievalStrategy.complex:

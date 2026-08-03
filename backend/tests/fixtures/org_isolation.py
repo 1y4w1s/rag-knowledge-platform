@@ -25,6 +25,7 @@ from app.models.organization_member import OrganizationMember
 from app.models.user import User
 from app.services.auth.password import hash_password
 from app.services.org.units import add_unit_member, create_org_root_unit, create_org_unit
+from app.services.rag.cjk import segment_cjk
 from tests.conftest import unique_email, unique_username
 
 
@@ -259,7 +260,7 @@ async def _seed_kb_document_with_chunk(
             "UPDATE document_chunks SET content_tsv = to_tsvector('simple', :src) "
             "WHERE id = :chunk_id"
         ),
-        {"src": content, "chunk_id": chunk_id},
+        {"src": segment_cjk(content), "chunk_id": chunk_id},
     )
 
 
@@ -304,6 +305,6 @@ async def _seed_kb_document_with_ids(
             "UPDATE document_chunks SET content_tsv = to_tsvector('simple', :src) "
             "WHERE id = :chunk_id"
         ),
-        {"src": content, "chunk_id": chunk_id},
+        {"src": segment_cjk(content), "chunk_id": chunk_id},
     )
     return doc_id, chunk_id
