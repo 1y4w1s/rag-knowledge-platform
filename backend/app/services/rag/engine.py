@@ -223,6 +223,7 @@ class ChatEngine:
             str(self.kb_id) if self.kb_id else None,
             self.workspace,
             messages,
+            str(self.user_id),
         )
         if cached is not None:
             self.citations = cached.get("citations", self.citations)
@@ -359,6 +360,7 @@ class ChatEngine:
             self.workspace,
             messages,
             cache_payload,
+            str(self.user_id),
         )
 
         done: dict = {"citations": self.citations}

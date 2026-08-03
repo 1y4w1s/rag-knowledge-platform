@@ -142,16 +142,66 @@ class TestChatEngineIntegration:
     """通过 ChatEngine.stream() 验证 LLM 响应缓存集成。"""
 
     @pytest.fixture(autouse=True)
-    async def _setup(self, db_session):
-        self.db = db_session
+    async def _setup(self, db_session, monkeypatch):
+        """真实 DB session + 真实 user/KB（chat_threads/messages 有 FK，落库需要真实行），
+        并 mock 检索返回高相似片段，让引擎稳定走「正常生成 + 缓存」链路。"""
+        from app.models.enums import AccountType
+        from app.models.knowledge_base import KnowledgeBase
+        from app.models.user import User
+        from app.services.auth.password import hash_password
+        from app.services.rag.types import RetrievedChunk
+        from tests.conftest import unique_email, unique_username
 
-    async def _run_engine(self, kb_id: str, message: str) -> dict:
+        self.db = db_session
+        self.user = User(
+            id=uuid.uuid4(),
+            email=unique_email("cache-eng"),
+            username=unique_username("cacheeng"),
+            password_hash=hash_password("Test123!@"),
+            account_type=AccountType.personal,
+        )
+        self.kb = KnowledgeBase(
+            id=uuid.uuid4(),
+            name="缓存集成测试库",
+            owner_user_id=self.user.id,
+        )
+        self.db.add(self.user)
+        await self.db.commit()
+        self.db.add(self.kb)
+        await self.db.commit()
+
+        fake_chunk = RetrievedChunk(
+            kb_id=self.kb.id,
+            chunk_id=uuid.uuid4(),
+            document_id=uuid.uuid4(),
+            doc_name="预算手册.md",
+            content="年度预算有一千万元，用于研发投入。",
+            page_number=1,
+            section_title="预算",
+            heading_path="预算",
+            similarity=0.95,
+        )
+
+        async def _fake_retrieve(db, *, kb_id, query, top_k=5, **kwargs):
+            return [fake_chunk]
+
+        monkeypatch.setattr(
+            "app.services.rag.engine.retrieve_chunks",
+            _fake_retrieve,
+        )
+
+    async def _run_engine(
+        self,
+        kb_id: str | None = None,
+        message: str = "",
+        user_id=None,
+    ) -> dict:
         """执行一次 ChatEngine.stream()，收集 done 事件。"""
         engine = ChatEngine(
             db=self.db,
-            user_id=uuid.uuid4(),
+            user_id=user_id or self.user.id,
             message=message,
-            kb_id=uuid.UUID(kb_id) if kb_id else None,
+            kb_id=uuid.UUID(kb_id) if kb_id else self.kb.id,
             workspace="personal",
         )
         result = {}
@@ -162,15 +212,16 @@ class TestChatEngineIntegration:
 
     async def test_same_question_cache_hit(self):
         """同一问题第二次调用应命中 LLM 响应缓存（跳过 LLM 调用）。"""
-        kb_id = str(uuid.uuid4())
+        kb_id = str(self.kb.id)
+        uid = self.user.id
 
         # 第一次：走完整链路（含 mock LLM）
-        result1 = await self._run_engine(kb_id, "年度预算有多少？")
+        result1 = await self._run_engine(kb_id, "年度预算有多少？", user_id=uid)
         snap_before = cache_hit_snapshot()
         llm_hits_before = snap_before.get("llm_response", 0)
 
         # 第二次：同一问题应命中缓存
-        result2 = await self._run_engine(kb_id, "年度预算有多少？")
+        result2 = await self._run_engine(kb_id, "年度预算有多少？", user_id=uid)
         snap_after = cache_hit_snapshot()
         llm_hits_after = snap_after.get("llm_response", 0)
 
@@ -183,7 +234,7 @@ class TestChatEngineIntegration:
 
     async def test_different_question_cache_miss(self):
         """不同问题不应命中缓存。"""
-        kb_id = str(uuid.uuid4())
+        kb_id = str(self.kb.id)
 
         await self._run_engine(kb_id, "问题A")
         snap1 = cache_hit_snapshot()

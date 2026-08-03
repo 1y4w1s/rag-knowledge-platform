@@ -33,6 +33,7 @@ from app.services.documents.lifecycle import delete_document, retry_document
 from app.services.documents.listing import get_document, list_documents
 from app.services.documents.preview import get_document_preview
 from app.services.documents.upload import upload_documents
+from app.services.rag.cache import invalidate_kb_caches
 
 router = APIRouter(
     prefix="/knowledge-bases/{kb_id}/documents",
@@ -99,13 +100,16 @@ async def restore_document_route(
     await require_kb_access(
         kb_id=kb_id, action=KbAction.write, current_user=current_user, db=db
     )
-    return await _restore(
+    result = await _restore(
         db,
         kb_id,
         doc_id,
         actor_user_id=current_user.id,
         ip=get_client_ip(request),
     )
+    # P1-12：恢复文档后缓存失效，避免 TTL 窗口内检索仍缺该文档
+    await invalidate_kb_caches(kb_id)
+    return result
 
 
 @router.delete("/{doc_id}/permanent", status_code=204)
@@ -124,6 +128,7 @@ async def permanently_delete_document_route(
         kb_id=kb_id, action=KbAction.write, current_user=current_user, db=db
     )
     await _perma_delete(db, kb_id, doc_id)
+    await invalidate_kb_caches(kb_id)
 
 
 @router.get("/{doc_id}", response_model=DocumentResponse)
@@ -163,9 +168,8 @@ async def post_documents(
         ip=get_client_ip(request),
         visibility=visibility,
     )
-    # 文档上传后清空该 KB 的检索缓存
-    from app.services.rag.cache import clear_query_cache
-    await clear_query_cache(kb_id=kb_id)
+    # 文档上传后失效该 KB 的检索与 LLM 响应缓存（P1-12）
+    await invalidate_kb_caches(kb_id)
     return DocumentUploadResponse(documents=docs)
 
 
@@ -180,6 +184,8 @@ async def delete_document_route(
     await delete_document(
         db, current_user, kb_id, doc_id, ip=get_client_ip(request)
     )
+    # P1-12：软删后检索/LLM 缓存必须失效，否则 TTL 窗口内仍命中旧 chunk
+    await invalidate_kb_caches(kb_id)
 
 
 @router.post("/{doc_id}/retry", response_model=DocumentResponse)
@@ -254,6 +260,11 @@ async def update_document_visibility(
     await db.flush()
     # A3 写端点纪律（P0-08）：visibility 变更此前只 flush 不 commit，session 关闭回滚 → 永不生效。
     await db.commit()
+    # P1-12：可见性变更影响 member 可见范围，失效该 KB 全部缓存
+    await invalidate_kb_caches(kb_id)
+    # 顺带修复存量 greenlet 问题：commit 后 updated_at 过期，需显式 refresh 再序列化
+    # （此前该成功路径 500，tests/test_document_visibility.py 因此被 skip）
+    await db.refresh(doc)
     return DocumentResponse.model_validate(doc)
 
 

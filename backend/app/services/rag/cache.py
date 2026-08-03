@@ -54,7 +54,7 @@ def _effective_max_size() -> int:
     return settings.query_cache_max_size
 
 
-def _cache_key(kb_id: UUID, query: str) -> str:
+def _cache_key(kb_id: UUID, query: str, hide_admin_only: bool = False) -> str:
     # 带上 rewrite / clause-route / rerank 策略，避免开/关后命中错误缓存
     from app.services.rag.planner import (
         effective_query_rewrite_policy,
@@ -66,13 +66,19 @@ def _cache_key(kb_id: UUID, query: str) -> str:
     cr = "1" if settings.clause_route_enabled else "0"
     pol = effective_rerank_policy()
     rr = {"off": "off", "always": "always", "conditional": "cond"}.get(pol, pol)
-    raw = f"{kb_id}|{query.strip().lower()}|rw={rw}|cr={cr}|rr={rr}"
-    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    raw = (
+        f"{kb_id}|{query.strip().lower()}|rw={rw}|cr={cr}|rr={rr}"
+        f"|ho={1 if hide_admin_only else 0}"
+    )
+    # 键带可搜索前缀 q:{kb_id}:，供 clear_query_cache(kb_id) 精确前缀失效（P1-12）
+    return f"q:{kb_id}:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
-async def get_query_cache(kb_id: UUID, query: str) -> list | None:
+async def get_query_cache(
+    kb_id: UUID, query: str, hide_admin_only: bool = False
+) -> list | None:
     """返回缓存的检索结果，过期或未命中返回 None。"""
-    key = _cache_key(kb_id, query)
+    key = _cache_key(kb_id, query, hide_admin_only=hide_admin_only)
 
     if _get_backend() == "redis":
         try:
@@ -100,9 +106,11 @@ async def get_query_cache(kb_id: UUID, query: str) -> list | None:
     return chunks
 
 
-async def set_query_cache(kb_id: UUID, query: str, chunks: list) -> None:
+async def set_query_cache(
+    kb_id: UUID, query: str, chunks: list, hide_admin_only: bool = False
+) -> None:
     """写入查询缓存。"""
-    key = _cache_key(kb_id, query)
+    key = _cache_key(kb_id, query, hide_admin_only=hide_admin_only)
 
     if _get_backend() == "redis":
         try:
@@ -128,10 +136,9 @@ async def clear_query_cache(kb_id: UUID | None = None) -> int:
             from app.core.redis import get_redis
             r = await get_redis()
             if kb_id:
-                pattern = hashlib.sha256(f"{kb_id}|".encode("utf-8")).hexdigest()[:10]
-                keys = await r.keys(f"*{pattern}*")
+                keys = await r.keys(f"q:{kb_id}:*")
             else:
-                keys = await r.keys("*")
+                keys = await r.keys("q:*")
             if keys:
                 await r.delete(*keys)
                 cleared = len(keys)
@@ -141,8 +148,8 @@ async def clear_query_cache(kb_id: UUID | None = None) -> int:
             logger.warning("Redis 清空失败: %s", e)
 
     if kb_id:
-        prefix = str(kb_id)[:8]
-        keys = [k for k in _cache if prefix in k]
+        prefix = f"q:{kb_id}:"
+        keys = [k for k in _cache if k.startswith(prefix)]
         for k in keys:
             del _cache[k]
         cleared = len(keys)
@@ -151,6 +158,21 @@ async def clear_query_cache(kb_id: UUID | None = None) -> int:
         _cache.clear()
     logger.info("Memory 缓存清空: %d 条", cleared)
     return cleared
+
+
+async def invalidate_kb_caches(kb_id: UUID) -> tuple[int, int]:
+    """文档/可见性变更后失效该 KB 的查询 chunk 缓存与 LLM 响应缓存（P1-12 接线点）。
+
+    返回 (query_cleared, llm_cleared) 条数。两条缓存都依赖 kb 内容与可见性，
+    文档增删/恢复/可见性变更后必须同时失效，否则 TTL 窗口内会命中旧 chunk / 旧回答。
+    """
+    query_cleared = await clear_query_cache(kb_id=kb_id)
+    llm_cleared = await llm_response_cache.clear(kb_id=str(kb_id))
+    logger.info(
+        "invalidate_kb_caches kb_id=%s query=%d llm=%d",
+        kb_id, query_cleared, llm_cleared,
+    )
+    return query_cleared, llm_cleared
 
 
 # ── 开关 ──
@@ -212,22 +234,28 @@ class AsyncLLMResponseCache:
         kb_id: str | None,
         workspace: str,
         messages: list[dict[str, str]],
+        user_id: str | None = None,
     ) -> str:
         prefix = kb_id or f"ws:{workspace}"
-        raw = f"{prefix}|{json.dumps(messages, ensure_ascii=False, sort_keys=True)}"
-        return f"llm:{hashlib.sha256(raw.encode('utf-8')).hexdigest()}"
+        # P1-13：键必须含 user 维度，不同用户相同问题不共享 LLM 响应缓存
+        raw = (
+            f"{prefix}|u={user_id or '-'}|"
+            f"{json.dumps(messages, ensure_ascii=False, sort_keys=True)}"
+        )
+        return f"llm:{prefix}:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
     async def get(
         self,
         kb_id: str | None,
         workspace: str,
         messages: list[dict[str, str]],
+        user_id: str | None = None,
     ) -> dict | None:
         """返回 {content, citations, confidence} 或 None。"""
         ttl = settings.llm_response_cache_ttl_seconds
         if ttl <= 0:
             return None
-        key = self._cache_key(kb_id, workspace, messages)
+        key = self._cache_key(kb_id, workspace, messages, user_id=user_id)
 
         if self._backend() == "redis":
             try:
@@ -260,12 +288,13 @@ class AsyncLLMResponseCache:
         workspace: str,
         messages: list[dict[str, str]],
         payload: dict,
+        user_id: str | None = None,
     ) -> None:
         """写入 LLM 响应缓存。payload = {content, citations, confidence}。"""
         ttl = settings.llm_response_cache_ttl_seconds
         if ttl <= 0:
             return
-        key = self._cache_key(kb_id, workspace, messages)
+        key = self._cache_key(kb_id, workspace, messages, user_id=user_id)
 
         if self._backend() == "redis":
             try:
@@ -288,7 +317,7 @@ class AsyncLLMResponseCache:
             try:
                 from app.core.redis import get_redis
                 r = await get_redis()
-                prefix = f"llm:{kb_id[:8]}" if kb_id else "llm:"
+                prefix = f"llm:{kb_id}:" if kb_id else "llm:"
                 keys = await r.keys(f"{prefix}*")
                 if keys:
                     await r.delete(*keys)
@@ -299,8 +328,8 @@ class AsyncLLMResponseCache:
                 return 0
 
         if kb_id:
-            prefix = kb_id[:8]
-            keys = [k for k in self._memory if prefix in k]
+            prefix = f"llm:{kb_id}:"
+            keys = [k for k in self._memory if k.startswith(prefix)]
             for k in keys:
                 del self._memory[k]
             cleared = len(keys)

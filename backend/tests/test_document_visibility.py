@@ -34,7 +34,6 @@ async def test_document_visibility_default_is_everyone(
     assert doc["visibility"] == "everyone"
 
 
-@pytest.mark.skip(reason="PATCH visibility endpoint has async greenlet issue")
 @pytest.mark.asyncio
 async def test_admin_can_set_admin_only_visibility(
     client: AsyncClient,
