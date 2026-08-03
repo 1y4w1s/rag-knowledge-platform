@@ -43,7 +43,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install 'pytest>=8.3,<9' 'pytest-asyncio>=0.24,<0.25' httpx python-docx openpyxl python-pptx reportlab python-jose resend ruff pytest-mock
+          pip install 'pytest>=8.3,<9' 'pytest-asyncio>=0.24,<0.25' httpx python-docx openpyxl python-pptx reportlab python-jose resend ruff==0.15.22 pytest-mock
 
       - name: Full test collection gate (0 errors)
         run: |
@@ -52,7 +52,6 @@ jobs:
       - name: Lint with ruff
         run: |
           ruff check . --output-format=github
-        continue-on-error: true
 
       - name: Apply migrations
         run: |
@@ -251,11 +250,10 @@ jobs:
           cache: "pip"
 
       - name: Install ruff
-        run: pip install ruff
+        run: pip install ruff==0.15.22
 
       - name: Lint backend
         run: ruff check backend/ --output-format=github
-        continue-on-error: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
