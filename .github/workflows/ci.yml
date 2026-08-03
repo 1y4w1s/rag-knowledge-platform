@@ -125,6 +125,8 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    env:
+      JWT_SECRET: ${{ secrets.JWT_SECRET || '1362b8353e8306574369454872b0fb2a' }}
 
     steps:
       - uses: actions/checkout@v4
