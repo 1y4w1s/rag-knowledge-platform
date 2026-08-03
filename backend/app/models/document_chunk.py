@@ -29,6 +29,12 @@ class DocumentChunk(Base):
             postgresql_ops={"content": "gin_trgm_ops"},
         ),
         Index(
+            "ix_document_chunks_embedding_hnsw",
+            "embedding",
+            postgresql_using="hnsw",
+            postgresql_ops={"embedding": "vector_cosine_ops"},
+        ),
+        Index(
             "ix_document_chunks_embedding_en_hnsw",
             "embedding_en",
             postgresql_using="hnsw",
