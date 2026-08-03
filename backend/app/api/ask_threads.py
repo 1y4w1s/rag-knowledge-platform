@@ -76,6 +76,14 @@ from app.services.workspace.scope import WorkspaceScope, resolve_workspace
 router = APIRouter(prefix="/ask/threads", tags=["ask"])
 
 
+def _agent_member_flag(current_user: CurrentUser) -> bool:
+    """H1/M6：Agent 工具链 member 标志（enterprise Member → hide_admin_only）。"""
+    return (
+        current_user.account_type.value == "enterprise"
+        and current_user.org_role == "member"
+    )
+
+
 async def _resolve_ask_scope(
     db: AsyncSession,
     current_user: CurrentUser,
@@ -270,9 +278,12 @@ async def post_ask_thread_chat(
                 message=body.message,
                 thread_id=thread_id,
                 workspace=scope,
-                tool_scope=build_workspace_tool_scope(org_scope),
+                tool_scope=build_workspace_tool_scope(
+                    org_scope, member=_agent_member_flag(current_user)
+                ),
                 planner=create_document_write_planner(body.message),
                 org_scope=org_scope,
+                current_user=current_user,
                 can_adopt=True,
                 save_turn=save_workspace_chat_turn,
                 save_kwargs={
@@ -290,9 +301,12 @@ async def post_ask_thread_chat(
                 message=body.message,
                 thread_id=thread_id,
                 workspace=scope,
-                tool_scope=build_workspace_tool_scope(org_scope),
+                tool_scope=build_workspace_tool_scope(
+                    org_scope, member=_agent_member_flag(current_user)
+                ),
                 planner=create_edit_tool_planner(body.message),
                 org_scope=org_scope,
+                current_user=current_user,
                 workspace_mode=True,
                 can_adopt=can_adopt_ws,
                 save_turn=save_workspace_chat_turn,
@@ -312,8 +326,11 @@ async def post_ask_thread_chat(
                 message=body.message,
                 department_id=department_id,
                 thread_id=thread_id,
-                tool_scope=build_workspace_tool_scope(org_scope),
+                tool_scope=build_workspace_tool_scope(
+                    org_scope, member=_agent_member_flag(current_user)
+                ),
                 planner=create_tool_planner(body.message),
+                current_user=current_user,
             )
         else:
             # B 路径自动识别（fast 模式 · 仅 Admin/Owner）：命中写意图 → 文档操作/编辑流，
@@ -326,9 +343,12 @@ async def post_ask_thread_chat(
                     message=body.message,
                     thread_id=thread_id,
                     workspace=scope,
-                    tool_scope=build_workspace_tool_scope(org_scope),
+                    tool_scope=build_workspace_tool_scope(
+                        org_scope, member=_agent_member_flag(current_user)
+                    ),
                     planner=create_document_write_planner(body.message),
                     org_scope=org_scope,
+                    current_user=current_user,
                     can_adopt=True,
                     double_confirm=True,
                     save_turn=save_workspace_chat_turn,
@@ -347,9 +367,12 @@ async def post_ask_thread_chat(
                     message=body.message,
                     thread_id=thread_id,
                     workspace=scope,
-                    tool_scope=build_workspace_tool_scope(org_scope),
+                    tool_scope=build_workspace_tool_scope(
+                        org_scope, member=_agent_member_flag(current_user)
+                    ),
                     planner=create_edit_tool_planner(body.message),
                     org_scope=org_scope,
+                    current_user=current_user,
                     workspace_mode=True,
                     can_adopt=can_adopt_ws,
                     save_turn=save_workspace_chat_turn,

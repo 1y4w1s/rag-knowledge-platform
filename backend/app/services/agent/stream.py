@@ -10,6 +10,7 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.deps import CurrentUser
 from app.models.chat_thread import ChatThread
 from app.models.enums import AgentRunStatus, MessageStatus, ThreadKind
 from app.services.agent.finalize import prepare_agent_generation, resolve_run_status
@@ -387,6 +388,7 @@ async def _stream_agent_core(
     tool_scope: AgentToolScope,
     planner: ToolPlanner,
     org_scope: OrgScope | None,
+    current_user: CurrentUser | None = None,
     workspace_mode: bool,
     thread: ChatThread,
     user_message_id: UUID,
@@ -422,6 +424,7 @@ async def _stream_agent_core(
             tool_scope=tool_scope,
             planner=planner,
             org_scope=org_scope,
+            current_user=current_user,
             hooks=hooks,
         )
 
@@ -536,6 +539,7 @@ async def stream_agent_kb_events(
     tool_scope: AgentToolScope,
     planner: ToolPlanner,
     org_scope: OrgScope | None = None,
+    current_user: CurrentUser | None = None,
 ) -> AsyncIterator[str]:
     """库内精准模式 SSE（G3-E9 · semantic_search 默认 kb；A2 DWC 预提交 + 兜底）。"""
     thread = await resolve_thread_for_message(
@@ -571,6 +575,7 @@ async def stream_agent_kb_events(
         tool_scope=tool_scope,
         planner=planner,
         org_scope=org_scope,
+        current_user=current_user,
         workspace_mode=False,
         thread=thread,
         user_message_id=user_message_id,
@@ -597,6 +602,7 @@ async def stream_agent_workspace_events(
     thread_id: UUID,
     tool_scope: AgentToolScope,
     planner: ToolPlanner,
+    current_user: CurrentUser | None = None,
 ) -> AsyncIterator[str]:
     """工作区精准模式 SSE（跨库 tool · workspace citation；A2 DWC 预提交 + 兜底）。"""
     department_key = normalize_workspace_department_key(department_id)
@@ -641,6 +647,7 @@ async def stream_agent_workspace_events(
         tool_scope=tool_scope,
         planner=planner,
         org_scope=org_scope,
+        current_user=current_user,
         workspace_mode=True,
         thread=thread,
         user_message_id=user_message_id,
@@ -672,6 +679,8 @@ def _edit_refusal_message(
         return "目标资料库不可见或无访问权限，未能生成 FAQ 草稿。请确认资料库后重试。"
     if reason is GenerateFaqDraftFailure.invalid_filename:
         return "草稿文件名格式不正确（须以 .md 结尾），未能生成 FAQ 草稿。"
+    if reason is GenerateFaqDraftFailure.quota_exceeded:
+        return "今日或本对话的 FAQ 草稿生成次数已达上限，请稍后再试。"
     return summary or "未能生成 FAQ 草稿。"
 
 
@@ -818,6 +827,7 @@ async def stream_agent_edit_events(
     tool_scope: AgentToolScope,
     planner: ToolPlanner,
     org_scope: OrgScope | None = None,
+    current_user: CurrentUser | None = None,
     workspace_mode: bool = False,
     can_adopt: bool = False,
     save_turn: SaveTurnFn,
@@ -875,6 +885,7 @@ async def stream_agent_edit_events(
             tool_scope=tool_scope,
             planner=planner,
             org_scope=org_scope,
+            current_user=current_user,
             hooks=hooks,
             mode=AgentRunMode.edit,
         )
@@ -948,6 +959,7 @@ async def stream_agent_kb_edit_events(
     planner: ToolPlanner,
     org_scope: OrgScope | None = None,
     can_adopt: bool = False,
+    current_user: CurrentUser | None = None,
 ) -> AsyncIterator[str]:
     """G4-2.3 / 2.4 · 库内编辑模式 SSE（H4-2-B · 默认目标库 = 路径 kb）。
 
@@ -969,6 +981,7 @@ async def stream_agent_kb_edit_events(
         tool_scope=tool_scope,
         planner=planner,
         org_scope=org_scope,
+        current_user=current_user,
         workspace_mode=False,
         can_adopt=can_adopt,
         save_turn=save_chat_turn,
@@ -1184,6 +1197,7 @@ async def stream_agent_document_write_events(
             tool_scope=tool_scope,
             planner=planner,
             org_scope=org_scope,
+            current_user=current_user,
             hooks=hooks,
             mode=AgentRunMode.document_write,
         )

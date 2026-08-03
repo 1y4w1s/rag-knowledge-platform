@@ -18,10 +18,12 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass
 from enum import Enum
+from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.models.agent_approval import AgentApproval
 from app.models.document_chunk import DocumentChunk
 from app.models.enums import ApprovalKind, ApprovalStatus
@@ -35,6 +37,8 @@ from app.services.audit.log import write_audit_log
 
 NO_BASIS_SUMMARY = "库内无足够依据，未生成 FAQ 草稿"
 BAD_FILENAME_SUMMARY = "filename 须以 .md 结尾"
+THREAD_QUOTA_SUMMARY = "本对话的 FAQ 草稿生成已达上限"
+DAILY_QUOTA_SUMMARY = "今日 FAQ 草稿生成已达上限，请明天再试"
 
 
 class GenerateFaqDraftFailure(str, Enum):
@@ -47,6 +51,7 @@ class GenerateFaqDraftFailure(str, Enum):
     kb_not_visible = "kb_not_visible"  # G4-E10：目标库越权 / 不可见
     invalid_filename = "invalid_filename"  # 文件名非 .md 后缀
     no_source = "no_source"  # G4-E11：无命中依据 / 依据片段不可读
+    quota_exceeded = "quota_exceeded"  # M17：Member 生成配额用尽
 
 
 @dataclass(frozen=True, slots=True)
@@ -140,7 +145,18 @@ async def run_generate_faq_draft(
             summary="FAQ 草稿已存在（幂等返回）",
         )
 
-    # 6) 组装草稿（全文存 payload_json；出参仅摘要）
+    # 6) M17 配额闸：member 每 thread pending 上限 + 每日创建上限（0=关闭）。
+    #    幂等命中优先（同 run+filename 重复返回既有卡，不耗配额）。
+    if tool_scope.member:
+        quota_denial = await _check_member_quota(
+            db,
+            user_id=user_id,
+            thread_id=thread_id,
+        )
+        if quota_denial is not None:
+            return quota_denial
+
+    # 7) 组装草稿（全文存 payload_json；出参仅摘要）
     draft = _compose_faq_draft(title=title, filename=filename, chunks=chunks)
 
     approval = AgentApproval(
@@ -200,6 +216,58 @@ async def _fetch_chunks(
     return list(result.scalars().all())
 
 
+async def _check_member_quota(
+    db: AsyncSession,
+    *,
+    user_id: uuid.UUID,
+    thread_id: uuid.UUID,
+) -> GenerateFaqDraftToolResult | None:
+    """M17：Member 生成配额（每 thread pending / 每日创建）。超限返回拒答。"""
+    thread_quota = settings.agent_member_faq_thread_quota
+    if thread_quota > 0:
+        pending = await db.scalar(
+            select(func.count())
+            .select_from(AgentApproval)
+            .where(
+                AgentApproval.user_id == user_id,
+                AgentApproval.thread_id == thread_id,
+                AgentApproval.kind == ApprovalKind.adopt_faq,
+                AgentApproval.status == ApprovalStatus.pending,
+            )
+        )
+        if int(pending or 0) >= thread_quota:
+            return GenerateFaqDraftToolResult(
+                ok=False,
+                data=None,
+                summary=THREAD_QUOTA_SUMMARY,
+                reason=GenerateFaqDraftFailure.quota_exceeded,
+            )
+
+    daily_quota = settings.agent_member_faq_daily_quota
+    if daily_quota > 0:
+        start_of_day = datetime.now(timezone.utc).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        created_today = await db.scalar(
+            select(func.count())
+            .select_from(AgentApproval)
+            .where(
+                AgentApproval.user_id == user_id,
+                AgentApproval.kind == ApprovalKind.adopt_faq,
+                AgentApproval.created_at >= start_of_day,
+            )
+        )
+        if int(created_today or 0) >= daily_quota:
+            return GenerateFaqDraftToolResult(
+                ok=False,
+                data=None,
+                summary=DAILY_QUOTA_SUMMARY,
+                reason=GenerateFaqDraftFailure.quota_exceeded,
+            )
+
+    return None
+
+
 def _compose_faq_draft(
     *,
     title: str | None,
@@ -225,7 +293,9 @@ def _compose_faq_draft(
 
 __all__ = [
     "BAD_FILENAME_SUMMARY",
+    "DAILY_QUOTA_SUMMARY",
     "NO_BASIS_SUMMARY",
+    "THREAD_QUOTA_SUMMARY",
     "GenerateFaqDraftFailure",
     "GenerateFaqDraftOutput",
     "GenerateFaqDraftToolResult",

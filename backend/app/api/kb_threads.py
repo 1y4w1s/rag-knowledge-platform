@@ -78,6 +78,14 @@ router = APIRouter(
 )
 
 
+def _agent_member_flag(current_user: CurrentUser) -> bool:
+    """H1/M6：Agent 工具链 member 标志（enterprise Member → hide_admin_only）。"""
+    return (
+        current_user.account_type.value == "enterprise"
+        and current_user.org_role == "member"
+    )
+
+
 def _thread_response(thread) -> ChatThreadResponse:
     return ChatThreadResponse.model_validate(thread)
 
@@ -274,9 +282,14 @@ async def post_kb_thread_chat(
                 message=body.message,
                 thread_id=thread_id,
                 workspace=workspace_scope_for_kb(kb, user_id=current_user.id),
-                tool_scope=build_kb_tool_scope(kb_id, visible_kb_ids),
+                tool_scope=build_kb_tool_scope(
+                    kb_id,
+                    visible_kb_ids,
+                    member=_agent_member_flag(current_user),
+                ),
                 planner=create_document_write_planner(body.message, default_kb_id=kb_id),
                 org_scope=org_scope,
+                current_user=current_user,
                 can_adopt=True,
                 save_turn=save_chat_turn,
                 save_kwargs={"kb_id": kb_id, "thread_id": thread_id},
@@ -290,9 +303,14 @@ async def post_kb_thread_chat(
                 message=body.message,
                 thread_id=thread_id,
                 workspace=workspace_scope_for_kb(kb, user_id=current_user.id),
-                tool_scope=build_kb_tool_scope(kb_id, visible_kb_ids),
+                tool_scope=build_kb_tool_scope(
+                    kb_id,
+                    visible_kb_ids,
+                    member=_agent_member_flag(current_user),
+                ),
                 planner=create_edit_tool_planner(body.message, default_kb_id=kb_id),
                 org_scope=org_scope,
+                current_user=current_user,
                 can_adopt=can_adopt_kb,
             )
         elif body.mode == AgentMode.thorough:
@@ -303,9 +321,14 @@ async def post_kb_thread_chat(
                 message=body.message,
                 thread_id=thread_id,
                 workspace=workspace_scope_for_kb(kb, user_id=current_user.id),
-                tool_scope=build_kb_tool_scope(kb_id, visible_kb_ids),
+                tool_scope=build_kb_tool_scope(
+                    kb_id,
+                    visible_kb_ids,
+                    member=_agent_member_flag(current_user),
+                ),
                 planner=create_tool_planner(body.message, default_kb_id=kb_id),
                 org_scope=org_scope,
+                current_user=current_user,
             )
         else:
             # B 路径自动识别（fast 模式 · 仅库管理员）：命中写意图 → 文档操作/编辑流，
@@ -321,11 +344,16 @@ async def post_kb_thread_chat(
                     message=body.message,
                     thread_id=thread_id,
                     workspace=workspace_scope_for_kb(kb, user_id=current_user.id),
-                    tool_scope=build_kb_tool_scope(kb_id, visible_kb_ids),
+                    tool_scope=build_kb_tool_scope(
+                        kb_id,
+                        visible_kb_ids,
+                        member=_agent_member_flag(current_user),
+                    ),
                     planner=create_document_write_planner(
                         body.message, default_kb_id=kb_id
                     ),
                     org_scope=org_scope,
+                    current_user=current_user,
                     can_adopt=True,
                     double_confirm=True,
                     save_turn=save_chat_turn,
@@ -340,11 +368,16 @@ async def post_kb_thread_chat(
                     message=body.message,
                     thread_id=thread_id,
                     workspace=workspace_scope_for_kb(kb, user_id=current_user.id),
-                    tool_scope=build_kb_tool_scope(kb_id, visible_kb_ids),
+                    tool_scope=build_kb_tool_scope(
+                        kb_id,
+                        visible_kb_ids,
+                        member=_agent_member_flag(current_user),
+                    ),
                     planner=create_edit_tool_planner(
                         body.message, default_kb_id=kb_id
                     ),
                     org_scope=org_scope,
+                    current_user=current_user,
                     can_adopt=can_adopt_kb,
                 )
             else:

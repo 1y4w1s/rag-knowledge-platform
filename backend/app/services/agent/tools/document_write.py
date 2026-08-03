@@ -22,10 +22,13 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.agent_approval import AgentApproval
+from app.models.agent_run import AgentRun
+from app.models.chat_thread import ChatThread
 from app.models.document import Document
 from app.models.enums import ApprovalKind, ApprovalStatus, DocumentStatus
 from app.models.knowledge_base import KnowledgeBase
 from app.core.deps import CurrentUser, KbAction, require_kb_access
+from app.core.exceptions import ForbiddenError, ServiceError
 from app.services.agent.tools.scope import AgentToolScope, ToolDenial
 from app.services.audit.agent import audit_agent_approval_created, safe_audit
 
@@ -36,6 +39,46 @@ class DocumentWriteFailure(str, Enum):
     kb_not_visible = "kb_not_visible"  # 目标库越权 / 不可见
     doc_not_found = "doc_not_found"  # 文档不存在 / 非目标状态
     bad_request = "bad_request"
+    write_forbidden = "write_forbidden"  # L10：commit 分支写权限纵深防御拒绝
+
+
+async def require_thread_owner(
+    db: AsyncSession,
+    *,
+    thread_id: uuid.UUID,
+    current_user: CurrentUser,
+) -> None:
+    """M10（P1-27）：submit/clarify 的 thread 归属校验（服务层）。
+
+    thread_id/run_id 由客户端任意传入。若不校验归属，拥有 kb 写权限的用户
+    可在**他人会话 thread** 上注入审批卡（需猜 UUID），跨用户数据污染。
+    thread 不存在与越权统一 403（fail-closed，不泄露 thread 存在性）。
+    """
+    thread = await db.get(ChatThread, thread_id)
+    if thread is None or thread.user_id != current_user.id:
+        raise ForbiddenError(detail="对话不存在或无权限")
+
+
+async def require_run_owner(
+    db: AsyncSession,
+    *,
+    run_id: uuid.UUID,
+    thread_id: uuid.UUID,
+    current_user: CurrentUser,
+) -> None:
+    """M10（P1-27）：submit 的 run 归属校验（服务层）。
+
+    run_id 与 thread_id 同由客户端传入。run 必须属于 current_user 且挂在同一
+    thread（run.thread_id == thread_id），否则 403——杜绝跨用户 run 引用 /
+    run-thread 错配把审批卡挂到他人 run 上（与 require_thread_owner 同构）。
+    """
+    run = await db.get(AgentRun, run_id)
+    if (
+        run is None
+        or run.user_id != current_user.id
+        or run.thread_id != thread_id
+    ):
+        raise ForbiddenError(detail="对话不存在或无权限")
 
 
 @dataclass(frozen=True, slots=True)
@@ -134,9 +177,10 @@ async def run_delete_document(
     document_id: uuid.UUID,
     run_id: uuid.UUID,
     thread_id: uuid.UUID,
-    user_id: uuid.UUID,
+    current_user: CurrentUser,
     commit: bool = False,
 ) -> DocumentWriteToolResult:
+    """删除文档提案 / 待审（G5 · L10 commit 分支纵深防御写权限）。"""
     resolved = tool_scope.resolve_target_kb_for_edit(kb_id)
     if isinstance(resolved, ToolDenial):
         return DocumentWriteToolResult(
@@ -182,6 +226,9 @@ async def run_delete_document(
         return DocumentWriteToolResult(
             ok=True, summary=f"提案：删除《{doc.filename}》", proposal=proposal
         )
+    write_denial = await _require_write_access(db, resolved, current_user)
+    if write_denial is not None:
+        return write_denial
     return await _create_document_write_approval(
         db,
         kind=ApprovalKind.delete_document,
@@ -189,7 +236,7 @@ async def run_delete_document(
         doc=doc,
         thread_id=thread_id,
         run_id=run_id,
-        user_id=user_id,
+        user_id=current_user.id,
         proposal=proposal,
     )
 
@@ -202,9 +249,10 @@ async def run_restore_document(
     document_id: uuid.UUID,
     run_id: uuid.UUID,
     thread_id: uuid.UUID,
-    user_id: uuid.UUID,
+    current_user: CurrentUser,
     commit: bool = False,
 ) -> DocumentWriteToolResult:
+    """恢复文档提案 / 待审（G5 · L10 commit 分支纵深防御写权限）。"""
     resolved = tool_scope.resolve_target_kb_for_edit(kb_id)
     if isinstance(resolved, ToolDenial):
         return DocumentWriteToolResult(
@@ -259,6 +307,9 @@ async def run_restore_document(
         return DocumentWriteToolResult(
             ok=True, summary=f"提案：恢复《{doc.filename}》", proposal=proposal
         )
+    write_denial = await _require_write_access(db, resolved, current_user)
+    if write_denial is not None:
+        return write_denial
     return await _create_document_write_approval(
         db,
         kind=ApprovalKind.restore_document,
@@ -266,9 +317,31 @@ async def run_restore_document(
         doc=doc,
         thread_id=thread_id,
         run_id=run_id,
-        user_id=user_id,
+        user_id=current_user.id,
         proposal=proposal,
     )
+
+
+async def _require_write_access(
+    db: AsyncSession,
+    kb_id: uuid.UUID,
+    current_user: CurrentUser,
+) -> DocumentWriteToolResult | None:
+    """L10 纵深防御：commit 分支内强制 kb 写权限（Member 硬闯 → 拒绝，不冒泡异常）。"""
+    try:
+        await require_kb_access(
+            kb_id=kb_id,
+            action=KbAction.write,
+            current_user=current_user,
+            db=db,
+        )
+    except ServiceError:
+        return DocumentWriteToolResult(
+            ok=False,
+            summary="权限不足",
+            reason=DocumentWriteFailure.write_forbidden,
+        )
+    return None
 
 
 async def submit_document_write(
@@ -285,12 +358,25 @@ async def submit_document_write(
 
     与 run_*_document(commit=True) 同路径，但额外强制 kb 写权限
     （require_kb_access(write) → 仅 Admin/Owner），并据 operation 取目标文档
-    的正确状态（delete 需 active / restore 需回收站）。
+    的正确状态（delete 需 active / restore 需回收站）；thread 归属校验
+    （M10：thread 必须属于 current_user，防他人会话 thread 上注入审批卡）。
     """
     if operation not in ("delete", "restore"):
         return DocumentWriteToolResult(
             ok=False, summary="不支持的操作", reason=DocumentWriteFailure.bad_request
         )
+
+    # M10（P1-27）：thread 归属校验（客户端可传任意 thread_id → 防跨用户注入）。
+    await require_thread_owner(
+        db, thread_id=thread_id, current_user=current_user
+    )
+    # M10（P1-27）：run 归属校验——run 须属于当前用户且挂在同一 thread。
+    await require_run_owner(
+        db,
+        run_id=run_id,
+        thread_id=thread_id,
+        current_user=current_user,
+    )
 
     # 写权限二次校验（Member 硬闯 → 403）：与 resolve 同守卫。
     await require_kb_access(
@@ -384,6 +470,8 @@ __all__ = [
     "DocumentWriteFailure",
     "DocumentWriteProposal",
     "DocumentWriteToolResult",
+    "require_run_owner",
+    "require_thread_owner",
     "run_delete_document",
     "run_restore_document",
     "submit_document_write",

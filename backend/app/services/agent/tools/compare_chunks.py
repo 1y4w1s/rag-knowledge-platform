@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.document_chunk import DocumentChunk
 from app.models.document import Document
+from app.models.enums import DocumentVisibility
 from app.services.agent.tools.scope import AgentToolScope
 
 MAX_COMPARE_CHUNKS = 8
@@ -67,11 +68,18 @@ async def run_compare_chunks(
             ok=False, data=None, summary="no valid chunk_id provided"
         )
 
+    # M8：visible_kb_ids=None 时不再 `.in_(None)`（语义不定）；clause 帮助函数
+    # None → 不追加 WHERE（= 全部可见）。M7：member 过滤 admin_only 文档。
     stmt = (
         select(DocumentChunk)
+        .join(Document, DocumentChunk.document_id == Document.id)
         .where(DocumentChunk.id.in_(uuids))
-        .where(DocumentChunk.kb_id.in_(tool_scope.visible_kb_ids))
     )
+    visible_clause = tool_scope.kb_visibility_clause(DocumentChunk.kb_id)
+    if visible_clause is not None:
+        stmt = stmt.where(visible_clause)
+    if tool_scope.hide_admin_only:
+        stmt = stmt.where(Document.visibility != DocumentVisibility.admin_only)
     rows = (await db.execute(stmt)).scalars().all()
 
     if not rows:
@@ -92,7 +100,7 @@ async def run_compare_chunks(
             page_number=r.page_number,
             section_title=r.section_title,
             heading_path=r.heading_path,
-            content=r.parent_content or r.content,
+            content=r.content,
             kb_id=r.kb_id,
         )
         for r in rows

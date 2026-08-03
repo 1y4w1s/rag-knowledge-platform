@@ -333,7 +333,7 @@ async def test_proposal_tool_delete_dry(client: AsyncClient, org_iso) -> None:
             document_id=doc_id,
             run_id=uuid.uuid4(),
             thread_id=uuid.uuid4(),
-            user_id=org_iso.owner.id,
+            current_user=org_iso.owner,
             commit=False,
         )
     assert result.ok
@@ -367,7 +367,7 @@ async def test_proposal_tool_delete_processing_conflict(
             document_id=doc_id,
             run_id=uuid.uuid4(),
             thread_id=uuid.uuid4(),
-            user_id=org_iso.owner.id,
+            current_user=org_iso.owner,
             commit=False,
         )
     assert result.ok

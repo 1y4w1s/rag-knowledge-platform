@@ -32,15 +32,38 @@ class KbScope:
 
 @dataclass(frozen=True, slots=True)
 class AgentToolScope:
-    """注入每个 tool 的运行时上下文（JWT + workspace/department 解析结果）。"""
+    """注入每个 tool 的运行时上下文（JWT + workspace/department 解析结果）。
+
+    ``member=True`` 表示当前用户为企业 Member（hide_admin_only=True）：检索/搜索/
+    摘录/比对全链过滤 ``Document.visibility == admin_only``（M6/M7）。
+    """
 
     visible_kb_ids: frozenset[UUID] | None = None
     default_kb_id: UUID | None = None
+    member: bool = False
+
+    @property
+    def hide_admin_only(self) -> bool:
+        """member == hide_admin_only（与 API 层口径一致：enterprise member）。"""
+        return self.member
 
     def is_kb_visible(self, kb_id: UUID) -> bool:
         if self.visible_kb_ids is None:
             return True
         return kb_id in self.visible_kb_ids
+
+    def kb_visibility_clause(self, column):
+        """SQL 侧 kb 可见性子句（M8 归一）。
+
+        - ``visible_kb_ids is None`` → None（调用方**不**追加 WHERE = 全部可见）；
+        - 否则返回 ``column.in_(visible_kb_ids) | false()``（与 fts_recall 同构，
+          避免 ``.in_(None)`` 语义不定）。
+        """
+        if self.visible_kb_ids is None:
+            return None
+        from sqlalchemy import false
+
+        return column.in_(self.visible_kb_ids) | false()
 
     def require_kb_visible(self, kb_id: UUID) -> ToolDenial | None:
         """单库校验；不可见返回 ToolDenial。"""

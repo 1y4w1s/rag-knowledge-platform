@@ -47,18 +47,33 @@ __all__ = [
 ]
 
 
-def build_workspace_tool_scope(org_scope: OrgScope | None) -> AgentToolScope:
+def build_workspace_tool_scope(
+    org_scope: OrgScope | None,
+    *,
+    member: bool = False,
+) -> AgentToolScope:
+    """工作区 Agent 工具 scope；member=True → hide_admin_only 全链过滤（M6）。"""
     if org_scope is not None:
-        return AgentToolScope(visible_kb_ids=org_scope.visible_kb_ids)
-    return AgentToolScope(visible_kb_ids=None)
+        return AgentToolScope(
+            visible_kb_ids=org_scope.visible_kb_ids,
+            member=member,
+        )
+    return AgentToolScope(visible_kb_ids=None, member=member)
 
 
 def build_kb_tool_scope(
     kb_id: UUID,
     visible_kb_ids: frozenset[UUID] | None,
+    *,
+    member: bool = False,
 ) -> AgentToolScope:
+    """库内 Agent 工具 scope；member=True → hide_admin_only 全链过滤（M6）。"""
     visible = visible_kb_ids if visible_kb_ids is not None else frozenset({kb_id})
-    return AgentToolScope(visible_kb_ids=visible, default_kb_id=kb_id)
+    return AgentToolScope(
+        visible_kb_ids=visible,
+        default_kb_id=kb_id,
+        member=member,
+    )
 
 
 def workspace_scope_for_kb(kb: KnowledgeBase, *, user_id: UUID) -> WorkspaceScope:

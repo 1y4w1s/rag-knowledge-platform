@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
+from app.models.enums import DocumentVisibility
 from app.models.knowledge_base import KnowledgeBase
 from app.services.agent.tools.scope import AgentToolScope, FORBIDDEN_KB_SUMMARY
 from app.services.rag.retrieval import _excerpt
@@ -67,6 +68,16 @@ async def run_get_chunk_excerpt(
 
     doc = await db.get(Document, chunk.document_id)
     if doc is None or doc.kb_id != chunk.kb_id:
+        return GetChunkExcerptToolResult(
+            ok=False,
+            data=None,
+            summary=NOT_FOUND_SUMMARY,
+        )
+    # M7：member 对 admin_only 文档按「不存在」语义拒答（不泄露存在性）。
+    if (
+        tool_scope.hide_admin_only
+        and doc.visibility == DocumentVisibility.admin_only
+    ):
         return GetChunkExcerptToolResult(
             ok=False,
             data=None,

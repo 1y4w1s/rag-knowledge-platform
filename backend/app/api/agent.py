@@ -38,6 +38,7 @@ from app.services.agent.approvals import (
 from app.services.agent.dispatch import build_kb_tool_scope
 from app.services.agent.tools.document_write import (
     _proposal_to_dict,
+    require_thread_owner,
     run_delete_document,
     run_restore_document,
     submit_document_write,
@@ -203,6 +204,11 @@ async def clarify_document_write(
     """
     if body.operation not in ("delete", "restore"):
         raise ValidationError(detail="不支持的操作")
+    # M10（P1-27）：thread 归属校验——thread 必须属于当前用户，否则 403
+    # （防在他人会话 thread 上注入/污染审批上下文；thread 不存在统一 403）。
+    await require_thread_owner(
+        db, thread_id=body.thread_id, current_user=current_user
+    )
     doc = await db.get(Document, body.document_id)
     if doc is None:
         raise HTTPException(
@@ -212,7 +218,14 @@ async def clarify_document_write(
     await require_kb_access(
         kb_id=doc.kb_id, action=KbAction.write, current_user=current_user, db=db
     )
-    tool_scope = build_kb_tool_scope(doc.kb_id, None)
+    tool_scope = build_kb_tool_scope(
+        doc.kb_id,
+        None,
+        member=(
+            current_user.account_type.value == "enterprise"
+            and current_user.org_role == "member"
+        ),
+    )
     run_id = uuid.uuid4()
     if body.operation == "delete":
         res = await run_delete_document(
@@ -222,7 +235,7 @@ async def clarify_document_write(
             document_id=doc.id,
             run_id=run_id,
             thread_id=body.thread_id,
-            user_id=current_user.id,
+            current_user=current_user,
             commit=False,
         )
     else:
@@ -233,7 +246,7 @@ async def clarify_document_write(
             document_id=doc.id,
             run_id=run_id,
             thread_id=body.thread_id,
-            user_id=current_user.id,
+            current_user=current_user,
             commit=False,
         )
     if not res.ok or res.proposal is None:

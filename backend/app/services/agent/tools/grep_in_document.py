@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.document_chunk import DocumentChunk
 from app.models.document import Document
+from app.models.enums import DocumentVisibility
 from app.services.agent.tools.scope import AgentToolScope
 
 DEFAULT_CONTEXT_LINES = 2
@@ -60,7 +61,17 @@ async def run_grep_in_document(
     ctx = max(1, min(context_lines or DEFAULT_CONTEXT_LINES, MAX_CONTEXT_LINES))
 
     doc = await db.get(Document, document_id)
-    if doc is None or doc.kb_id not in tool_scope.visible_kb_ids:
+    # M8：visible_kb_ids=None（个人 workspace）时不可用 `not in None`（TypeError）；
+    # 统一走 scope 防御校验（None = 全部可见）。
+    if doc is None or tool_scope.require_kb_visible(doc.kb_id) is not None:
+        return GrepInDocumentToolResult(
+            ok=False, data=None, summary="document not found or no access"
+        )
+    # M7：member 对 admin_only 文档按「无访问」语义拒答。
+    if (
+        tool_scope.hide_admin_only
+        and doc.visibility == DocumentVisibility.admin_only
+    ):
         return GrepInDocumentToolResult(
             ok=False, data=None, summary="document not found or no access"
         )
@@ -70,11 +81,10 @@ async def run_grep_in_document(
         .where(DocumentChunk.document_id == document_id)
         .where(
             func.lower(DocumentChunk.content).contains(pattern.lower())
-            | func.lower(DocumentChunk.parent_content).contains(pattern.lower())
             | func.lower(DocumentChunk.heading_path).contains(pattern.lower())
         )
         .limit(GREP_MAX_MATCHES)
-        .order_by(DocumentChunk.page_number, DocumentChunk.seq_order)
+        .order_by(DocumentChunk.page_number, DocumentChunk.chunk_index)
     )
     rows = (await db.execute(stmt)).scalars().all()
 
@@ -89,7 +99,7 @@ async def run_grep_in_document(
         GrepMatch(
             chunk_id=r.id,
             doc_name=doc.filename,
-            content=(r.parent_content or r.content)[:500],
+            content=r.content[:500],
             page_number=r.page_number,
             section_title=r.section_title,
         )

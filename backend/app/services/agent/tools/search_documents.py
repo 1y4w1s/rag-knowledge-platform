@@ -15,6 +15,7 @@ from app.services.search.documents import (
     search_documents_by_filename,
     validate_search_query,
 )
+from app.services.agent.tools.scope import AgentToolScope
 from app.services.workspace.scope import WorkspaceScope
 
 SearchMode = Literal["filename", "content"]
@@ -78,10 +79,11 @@ async def run_search_documents(
     *,
     query: str,
     org_scope: OrgScope | None = None,
+    tool_scope: AgentToolScope | None = None,
     mode: str | None = None,
     limit: int | None = None,
 ) -> SearchDocumentsToolResult:
-    """跨库文档搜索 · scope 由请求上下文注入（G3-1.4 · EW-E1）。"""
+    """跨库文档搜索 · scope 由请求上下文注入（G3-1.4 · EW-E1 · M6 hide_admin_only）。"""
     try:
         validated_query = validate_search_query(query)
     except ValueError as exc:
@@ -93,6 +95,7 @@ async def run_search_documents(
 
     effective_mode = normalize_mode(mode)
     effective_limit = normalize_limit(limit)
+    effective_tool_scope = tool_scope or AgentToolScope()
 
     if effective_mode == "content":
         response = await search_documents_by_content(
@@ -101,6 +104,7 @@ async def run_search_documents(
             validated_query,
             effective_limit,
             org_scope=org_scope,
+            hide_admin_only=effective_tool_scope.hide_admin_only,
         )
     else:
         response = await search_documents_by_filename(
@@ -109,6 +113,7 @@ async def run_search_documents(
             validated_query,
             effective_limit,
             org_scope=org_scope,
+            hide_admin_only=effective_tool_scope.hide_admin_only,
         )
 
     items = _map_items(response.items)

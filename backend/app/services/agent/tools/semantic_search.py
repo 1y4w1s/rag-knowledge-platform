@@ -99,6 +99,7 @@ async def _retrieve_single_kb(
         query=query,
         top_k=top_k,
         visible_kb_ids=tool_scope.visible_kb_ids,
+        hide_admin_only=tool_scope.hide_admin_only,
         context=None,
     )
 
@@ -156,6 +157,7 @@ async def _retrieve_scoped(
                 scope=workspace,
                 org_scope=narrowed,
                 top_k=top_k,
+                hide_admin_only=tool_scope.hide_admin_only,
             )
         return await _retrieve_multi_kb_personal(
             db,
@@ -171,6 +173,7 @@ async def _retrieve_scoped(
         scope=workspace,
         org_scope=org_scope,
         top_k=top_k,
+        hide_admin_only=tool_scope.hide_admin_only,
     )
 
 

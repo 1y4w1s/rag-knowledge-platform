@@ -12,6 +12,7 @@ from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.deps import CurrentUser
 from app.core.retry import async_retry
 from app.models.agent_run import AgentRun
 from app.models.agent_step import AgentStep
@@ -138,6 +139,7 @@ async def _dispatch_tool(
     workspace: WorkspaceScope,
     tool_scope: AgentToolScope,
     org_scope: OrgScope | None,
+    current_user: CurrentUser | None,
     tool_name: AgentToolName,
     args: dict[str, Any],
     run_id: UUID,
@@ -174,6 +176,7 @@ async def _dispatch_tool(
             workspace,
             query=str(args.get("query", "")),
             org_scope=org_scope,
+            tool_scope=tool_scope,
             mode=args.get("mode"),
             limit=args.get("limit"),
         )
@@ -221,6 +224,9 @@ async def _dispatch_tool(
         )
         return result.ok, result.summary, result
     elif tool_name == AgentToolName.delete_document:
+        if current_user is None:
+            # L10 fail-closed：无用户上下文时拒绝写 tool（不建审批）。
+            return False, FORBIDDEN_KB_SUMMARY, None
         kb_id = _as_uuid_or_none(args.get("kb_id"))
         document_id = _as_uuid_or_none(args.get("document_id"))
         if kb_id is None or document_id is None:
@@ -232,11 +238,14 @@ async def _dispatch_tool(
             document_id=document_id,
             run_id=run_id,
             thread_id=thread_id,
-            user_id=user_id,
+            current_user=current_user,
             commit=bool(args.get("commit", False)),
         )
         return result.ok, result.summary, result
     elif tool_name == AgentToolName.restore_document:
+        if current_user is None:
+            # L10 fail-closed：无用户上下文时拒绝写 tool（不建审批）。
+            return False, FORBIDDEN_KB_SUMMARY, None
         kb_id = _as_uuid_or_none(args.get("kb_id"))
         document_id = _as_uuid_or_none(args.get("document_id"))
         if kb_id is None or document_id is None:
@@ -248,7 +257,7 @@ async def _dispatch_tool(
             document_id=document_id,
             run_id=run_id,
             thread_id=thread_id,
-            user_id=user_id,
+            current_user=current_user,
             commit=bool(args.get("commit", False)),
         )
         return result.ok, result.summary, result
@@ -272,6 +281,7 @@ async def _execute_step(
     workspace: WorkspaceScope,
     tool_scope: AgentToolScope,
     org_scope: OrgScope | None,
+    current_user: CurrentUser | None,
     tool_name: str,
     args: dict[str, Any],
     run_id: UUID,
@@ -291,6 +301,7 @@ async def _execute_step(
         workspace=workspace,
         tool_scope=tool_scope,
         org_scope=org_scope,
+        current_user=current_user,
         tool_name=parsed,
         args=args,
         run_id=run_id,
@@ -365,6 +376,7 @@ async def run_react_loop(
     tool_scope: AgentToolScope,
     planner: ToolPlanner,
     org_scope: OrgScope | None = None,
+    current_user: CurrentUser | None = None,
     hooks: ToolRuntimeHooks | None = None,
     max_steps: int = DEFAULT_MAX_STEPS,
     timeout_seconds: float = DEFAULT_RUN_TIMEOUT_SECONDS,
@@ -405,6 +417,7 @@ async def run_react_loop(
             tool_scope=tool_scope,
             planner=planner,
             org_scope=org_scope,
+            current_user=current_user,
             effective_hooks=effective_hooks,
             run=run,
             max_steps=max_steps,
@@ -474,6 +487,7 @@ async def _run_react_loop_until_outcome(
     tool_scope: AgentToolScope,
     planner: ToolPlanner,
     org_scope: OrgScope | None,
+    current_user: CurrentUser | None,
     effective_hooks: ToolRuntimeHooks,
     run: AgentRun,
     max_steps: int,
@@ -563,6 +577,7 @@ async def _run_react_loop_until_outcome(
             workspace=workspace,
             tool_scope=tool_scope,
             org_scope=org_scope,
+            current_user=current_user,
             tool_name=plan.tool_name,
             args=plan.args,
             run_id=run.id,
@@ -650,7 +665,8 @@ async def _run_react_loop_until_outcome(
                         if p and p.tool_name in ("semantic_search", "search_documents"):
                             _ok2, _s2, _l2, _d2 = await _execute_step(
                                 db, workspace=workspace, tool_scope=tool_scope,
-                                org_scope=org_scope, tool_name=p.tool_name, args=p.args,
+                                org_scope=org_scope, current_user=current_user,
+                                tool_name=p.tool_name, args=p.args,
                                 run_id=run.id, thread_id=thread_id, user_id=user_id,
                             )
                             if _ok2 and _d2:
