@@ -14,7 +14,7 @@ groups:
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: P1
+            datasourceUid: loki
             model:
               expr: 'sum(count_over_time({service="ruige-api"} |= "status=5" [5m])) / sum(count_over_time({service="ruige-api"}[5m])) * 100'
               interval: 60s
@@ -40,7 +40,7 @@ groups:
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: P1
+            datasourceUid: loki
             model:
               expr: 'quantile_over_time(0.95, {service="ruige-api"} | regexp "duration_ms=(?P<duration>\\d+)" | unwrap duration [5m])'
               interval: 60s
@@ -66,7 +66,7 @@ groups:
             relativeTimeRange:
               from: 300
               to: 0
-            datasourceUid: P1
+            datasourceUid: loki
             model:
               expr: 'sum(count_over_time({service="ruige-api"} |= "ingestion failed" [5m])) / sum(count_over_time({service="ruige-api"} |= "ingestion" [5m])) * 100'
               interval: 60s
