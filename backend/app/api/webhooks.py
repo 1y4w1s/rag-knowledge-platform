@@ -9,7 +9,6 @@ from fastapi.responses import Response
 from pydantic import AnyHttpUrl, BaseModel, Field, field_validator
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from urllib.parse import urlparse
 
 from app.core.database import get_db
 from app.core.deps import CurrentUser, KbAction, get_current_user, require_kb_access
@@ -17,34 +16,17 @@ from app.models.webhook import Webhook
 from app.core.config import settings
 from app.services.audit.log import write_audit_log
 from app.services.webhook.security import encrypt_secret
+from app.services.webhook.ssrf import reject_ssrf_target
 from datetime import datetime
-
-# 禁止的 SSRF 目标：内网/回环地址和云元数据
-_FORBIDDEN_HOSTS = frozenset({
-    "169.254.169.254", "metadata.google.internal", "100.100.100.200",
-    "localhost", "127.0.0.1", "0.0.0.0",
-    "[::1]", "[0:0:0:0:0:0:0:1]",
-})
 
 
 def _reject_ssrf_target(url: str) -> str:
-    """校验 webhook URL 不指向内网/回环/元数据地址，且仅允许 HTTPS。"""
-    parsed = urlparse(url)
-    if parsed.scheme != "https":
-        raise ValueError("Webhook URL 仅支持 HTTPS")
-    host = parsed.hostname or ""
-    if host.lower() in _FORBIDDEN_HOSTS:
-        raise ValueError("Webhook URL 不能指向内网或云元数据地址")
-    if host.startswith("10.") or host.startswith("172.16.") or host.startswith("192.168."):
-        raise ValueError("Webhook URL 不能指向内网地址")
-    # P3：可选域名白名单（非空时启用）
-    if settings.webhook_allowed_domains:
-        allowed = any(
-            host == d or host.endswith("." + d)
-            for d in settings.webhook_allowed_domains
-        )
-        if not allowed:
-            raise ValueError("Webhook URL 域名不在白名单内")
+    """校验 webhook URL 不指向内网/回环/链路本地/云元数据地址（全地址族），且仅允许 HTTPS。"""
+    reject_ssrf_target(
+        url,
+        allowed_schemes=frozenset({"https"}),
+        allowed_domains=frozenset(settings.webhook_allowed_domains),
+    )
     return url
 
 

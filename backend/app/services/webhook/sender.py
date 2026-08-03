@@ -11,28 +11,14 @@ from uuid import UUID
 import httpx
 
 from app.services.webhook.security import decrypt_secret
-from urllib.parse import urlparse
+from app.services.webhook.ssrf import reject_ssrf_target
 
 logger = logging.getLogger(__name__)
 
-# 禁止的 SSRF 目标（与 api/webhooks.py 同步）
-_FORBIDDEN_HOSTS = frozenset({
-    "169.254.169.254", "metadata.google.internal", "100.100.100.200",
-    "localhost", "127.0.0.1", "0.0.0.0",
-    "[::1]", "[0:0:0:0:0:0:0:1]",
-})
-
 
 def _reject_ssrf_target(url: str) -> None:
-    """校验 URL 不指向内网/回环/元数据地址。"""
-    parsed = urlparse(url)
-    host = parsed.hostname or ""
-    if host.lower() in _FORBIDDEN_HOSTS:
-        raise ValueError(f"禁止的 webhook 目标: {host}")
-    if host.startswith("10.") or host.startswith("172.16.") or host.startswith("192.168."):
-        raise ValueError("webhook 目标不能为内网地址")
-    if parsed.scheme not in ("https", "http"):
-        raise ValueError("webhook 仅支持 HTTP/HTTPS")
+    """校验 URL 不指向内网/回环/链路本地/云元数据地址（全地址族）。"""
+    reject_ssrf_target(url)
 
 
 def _sign_payload(payload: bytes, secret: str) -> str:
