@@ -72,6 +72,10 @@ async def get_document_preview(
     if doc is None or doc.kb_id != kb_id:
         raise NotFoundError("文档不存在")
 
+    # 软删文档视为不存在（与 get_document / citation resolve 的 deleted_at 语义一致）
+    if doc.deleted_at is not None:
+        raise NotFoundError("文档不存在")
+
     if (
         doc.visibility == DocumentVisibility.admin_only
         and current_user.account_type.value == AccountType.enterprise

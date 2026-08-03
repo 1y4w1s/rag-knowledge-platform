@@ -1,10 +1,12 @@
-"""可靠性测试 — 仅测 chat_llm 模块（绕过 conftest + metrics_registry 导入链）。
+"""可靠性测试 — 仅测 chat_llm 模块（不依赖 DB / LLM 外部服务）。
 
 用法：
   cd backend
-  python -m pytest tests/test_chat_reliability_standalone.py -x -v
+  python tests/test_chat_reliability_standalone.py              # 直接运行（自动注入 mock metrics_registry）
+  python -m pytest tests/test_chat_reliability_standalone.py -x -v  # pytest 模式（走 conftest）
 
-这不会通过 conftest.py 加载，所以用 pytest 跑时需加 --no-header 或直接 python 执行。
+注意：mock metrics_registry 只允许在 __main__ 里注入。放在模块顶层会污染
+sys.modules，导致全量收集时 3 个 metrics 测试 ImportError（CI collect 门禁会红）。
 """
 from __future__ import annotations
 
@@ -16,13 +18,6 @@ from collections.abc import AsyncIterator
 _BACKEND_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), ".."))
 if _BACKEND_DIR not in sys.path:
     sys.path.insert(0, _BACKEND_DIR)
-
-# ── 先 mock metrics_registry，避免其导入 Document 模型 ────────────────
-import types
-_mock_metrics = types.ModuleType("app.services.observability.metrics_registry")
-_mock_metrics.inc_llm_success = lambda: None
-_mock_metrics.inc_llm_failure = lambda: None
-sys.modules["app.services.observability.metrics_registry"] = _mock_metrics
 
 from app.core.config import settings
 from app.services.rag import chat_llm
@@ -287,6 +282,15 @@ tests = [
 ]
 
 if __name__ == "__main__":
+    # 仅直接运行时注入 mock metrics_registry（绕过真实模块的 Document 模型导入链）。
+    # 禁止上移到模块顶层：会污染 sys.modules，使 pytest 全量收集时 3 个 metrics 测试 ImportError。
+    import types
+
+    _mock_metrics = types.ModuleType("app.services.observability.metrics_registry")
+    _mock_metrics.inc_llm_success = lambda: None
+    _mock_metrics.inc_llm_failure = lambda: None
+    sys.modules["app.services.observability.metrics_registry"] = _mock_metrics
+
     passed = 0
     failed = 0
     for name, fn in tests:

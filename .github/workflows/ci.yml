@@ -45,6 +45,10 @@ jobs:
           pip install -r requirements.txt
           pip install 'pytest>=8.3,<9' 'pytest-asyncio>=0.24,<0.25' httpx python-docx openpyxl python-pptx reportlab python-jose resend ruff pytest-mock
 
+      - name: Full test collection gate (0 errors)
+        run: |
+          python -m pytest --collect-only -q
+
       - name: Lint with ruff
         run: |
           ruff check . --output-format=github
@@ -69,7 +73,6 @@ jobs:
       - name: Run chat + streaming tests
         run: |
           python -m pytest tests/test_chat.py tests/test_r4_4_streaming.py tests/test_citation_resolve.py -v --tb=short
-        continue-on-error: true
 
   # D gate (masterplan 0.2): model/migration drift fails CI
   alembic-check:
