@@ -13,6 +13,7 @@ import time
 from collections import OrderedDict
 from typing import Sequence
 
+import httpx  # noqa: F401  # 测试经 embedder.httpx 打补丁注入 5xx，勿删
 
 from app.core.config import settings
 from app.core.http_client import get_tongyi_client
