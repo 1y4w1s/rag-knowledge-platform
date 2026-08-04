@@ -121,18 +121,6 @@ _GATE_IDS = {f"GQ-{i}" for i in range(1, 13)}
 GATE_CASES = [c for c in GOLDEN_QA_CASES if c.case_id in _GATE_IDS]
 
 
-# G3 门禁固化：GQ-30/GQ-77 为已知 cross_reference 复合题检索 miss（min_match=2 跨章节），
-# 实验 N 确认既有缺陷、非本窗引入；待检索优化窗（composite recall 增强）修复后移除 xfail。
-_XFAIL_CROSS_REF = {"GQ-30", "GQ-77"}
-
-
-def _xfail_known_issue(case) -> None:
-    """对已知缺陷题打 xfail 标记（门禁固化：其余失败必须阻断 CI）。"""
-    if case.case_id in _XFAIL_CROSS_REF:
-        import pytest
-        pytest.xfail(f"{case.case_id} 已知 cross_reference 复合题 miss（min_match=2 跨章节），待检索优化窗")
-
-
 @pytest.mark.parametrize("case", GOLDEN_QA_CASES, ids=lambda c: c.case_id)
 @pytest.mark.asyncio
 async def test_golden_qa_hit_at_3(
@@ -143,7 +131,6 @@ async def test_golden_qa_hit_at_3(
     tmp_path: Path,
 ) -> None:
     """每道 golden QA 题：入库黄金文档 → 检索 → 验证 Top-3 命中（默认 RERANK_POLICY=off）。"""
-    _xfail_known_issue(case)
     await _assert_golden_case(
         client, register_and_login, upload_dir, case, tmp_path,
     )
