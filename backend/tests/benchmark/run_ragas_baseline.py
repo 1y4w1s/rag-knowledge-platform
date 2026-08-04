@@ -26,6 +26,7 @@ import argparse
 import asyncio
 import json
 import logging
+import math
 import os
 import sys
 import time
@@ -252,6 +253,7 @@ async def run_full_evaluation(
     all_faithfulness: list[float] = []
     all_correctness: list[float] = []
     all_latencies: list[float] = []
+    case_records: list[dict] = []
     skipped = 0
 
     async with SessionLocal() as db:
@@ -303,17 +305,29 @@ async def run_full_evaluation(
 
             all_faithfulness.append(gscore.faithfulness)
             all_correctness.append(gscore.correctness)
+            case_records.append({
+                "case_id": q.case_id,
+                "query": q.query,
+                "faithfulness": None if (gscore.faithfulness is None or math.isnan(gscore.faithfulness)) else round(float(gscore.faithfulness), 4),
+                "correctness": None if (gscore.correctness is None or math.isnan(gscore.correctness)) else round(float(gscore.correctness), 4),
+                "answer_len": len(answer),
+                "citation_count": len(citations),
+            })
             # hallucination_rate 未在 GenerationScore 中定义，跳过
 
             if (idx + 1) % 5 == 0:
+                scorable = [f for f in all_faithfulness if f is not None and not math.isnan(f)]
                 logger.info("进度: %d/%d (faithfulness=%.2f%%)",
                             idx + 1, len(queries),
-                            (sum(all_faithfulness) / len(all_faithfulness)) * 100)
+                            (sum(scorable) / len(scorable) * 100) if scorable else float("nan"))
 
     # 汇总
-    n = len(all_faithfulness)
-    avg_faithfulness = sum(all_faithfulness) / n if n > 0 else 0.0
-    avg_correctness = sum(all_correctness) / n if n > 0 else 0.0
+    scorable_f = [f for f in all_faithfulness if f is not None and not math.isnan(f)]
+    scorable_c = [c for c in all_correctness if c is not None and not math.isnan(c)]
+    n = len(scorable_f)
+    avg_faithfulness = sum(scorable_f) / n if n > 0 else 0.0
+    avg_correctness = sum(scorable_c) / len(scorable_c) if scorable_c else 0.0
+    scored_na = len(all_faithfulness) - n
 
     # 构造报告（模拟 DatasetReport 格式供 ReportGenerator 消费）
     from tests.benchmark.schemas import GenerationMetrics, DatasetReport
@@ -321,7 +335,7 @@ async def run_full_evaluation(
     gen_metrics = GenerationMetrics(
         faithfulness=avg_faithfulness,
         correctness=avg_correctness,
-        total=n,
+        total=len(all_faithfulness),
     )
     report = DatasetReport(
         dataset_name="golden_qa",
@@ -342,9 +356,25 @@ async def run_full_evaluation(
     paths = report_gen.export_all(filename)
     report_path = paths.get("json", paths.get("_", BENCHMARK_DIR / f"{filename}.json"))
 
+    # 补充逐题明细（run_ragas_baseline 原始导出只有聚合，NaN 会污染均值，无法审计）
+    detail_path = Path(output_dir) / f"{filename}_detail.json"
+    with open(detail_path, "w", encoding="utf-8") as f:
+        json.dump({
+            "dataset": "golden_qa",
+            "kb_id": str(kb_id),
+            "total_queries": total_questions,
+            "non_rejection": len(all_faithfulness),
+            "scorable": n,
+            "scored_na": scored_na,
+            "avg_faithfulness": round(avg_faithfulness, 4),
+            "avg_correctness": round(avg_correctness, 4),
+            "results": case_records,
+        }, f, ensure_ascii=False, indent=2)
+    logger.info("逐题明细已保存: %s", detail_path)
+
     logger.info(
-        "RAGAS 生成基线完成: %d 题有效, faithfulness=%.2f%%, correctness=%.2f%%",
-        n, avg_faithfulness * 100, avg_correctness * 100,
+        "RAGAS 生成基线完成: %d 题有效（%d 题 NaN 剔除）, faithfulness=%.2f%%, correctness=%.2f%%",
+        n, scored_na, avg_faithfulness * 100, avg_correctness * 100,
     )
 
     metrics = {
