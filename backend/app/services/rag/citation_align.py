@@ -45,7 +45,13 @@ def align_chunks_to_answer(
     *,
     strip_prefix: str | None = None,
 ) -> list[RetrievedChunk]:
-    """按正文标记裁剪 chunk；无合法标记则返回原列表（keep-all）。"""
+    """按正文标记裁剪 chunk；无合法标记则返回原列表（keep-all）。
+
+    编号映射与 build_messages 一致（similarity 升序，H1）：
+    LLM 看到的 [片段N] 是 build_messages 排序后的编号，此处必须按同一
+    排序解析，否则相似度顺序与检索顺序不同时引用会错位（GQ-47 实测：
+    4.1 被 LLM 正确标为片段2，原序解析却映射到 6.3）。
+    """
     if not chunks:
         return []
     body = _body_for_align(answer, strip_prefix)
@@ -53,7 +59,8 @@ def align_chunks_to_answer(
     valid = [i for i in indices if 1 <= i <= len(chunks)]
     if not valid:
         return list(chunks)
-    return [chunks[i - 1] for i in valid]
+    sorted_chunks = sorted(chunks, key=lambda c: c.similarity, reverse=False)
+    return [sorted_chunks[i - 1] for i in valid]
 
 
 def align_citations_to_answer(

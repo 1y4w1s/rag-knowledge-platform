@@ -14,7 +14,7 @@ from app.services.rag.executor import chunk_to_citation
 from app.services.rag.types import RetrievedChunk
 
 
-def _chunk(content: str = "内容") -> RetrievedChunk:
+def _chunk(content: str = "内容", similarity: float = 0.9) -> RetrievedChunk:
     return RetrievedChunk(
         kb_id=uuid.uuid4(),
         chunk_id=uuid.uuid4(),
@@ -24,7 +24,7 @@ def _chunk(content: str = "内容") -> RetrievedChunk:
         page_number=1,
         section_title="§1",
         heading_path=None,
-        similarity=0.9,
+        similarity=similarity,
     )
 
 
@@ -67,6 +67,24 @@ def test_align_marker_order_not_pool_order() -> None:
     chunks = [_chunk("a"), _chunk("b"), _chunk("c")]
     aligned = align_chunks_to_answer("先[片段3]后[片段1]", chunks)
     assert [c.content for c in aligned] == ["c", "a"]
+
+
+def test_align_uses_build_messages_similarity_order() -> None:
+    """H1：编号映射与 build_messages 一致（similarity 升序）。
+
+    相似度顺序 ≠ 检索顺序时，[片段N] 必须按 build_messages 的排序解析，
+    否则 LLM 正确标注的编号会被错位映射（GQ-47 实测：4.1 → 片段2 被映射到 6.3）。
+    """
+    chunks = [
+        _chunk(content="9.3 绩效", similarity=0.9),
+        _chunk(content="4.1 培训", similarity=0.5),
+        _chunk(content="5.1 离职通知期", similarity=0.54),
+    ]
+    # build_messages 排序：0.5 → 片段1，0.54 → 片段2，0.9 → 片段3
+    aligned = align_chunks_to_answer(
+        "培训费用按比例退还[片段1]；离职需支付代通知金[片段2]。", chunks
+    )
+    assert [c.content for c in aligned] == ["4.1 培训", "5.1 离职通知期"]
 
 
 def test_align_citations_to_answer_payload() -> None:

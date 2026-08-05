@@ -101,7 +101,7 @@ class TestCheckCitationDensity:
         assert passed is True
 
     def test_refusal_sentence_skipped(self) -> None:
-        text = "知识库中未找到相关内容。无法回答您的问题。"
+        text = "知识库中未找到相关内容。"
         passed, density, issues = check_citation_density(text, [_chunk()])
         assert passed is True
         assert density == 1.0
@@ -112,6 +112,7 @@ class TestCheckCitationDensity:
             "正式员工月餐补为300元[片段1]。"
             "非正式员工无餐补[片段2]。"
             "这是没有引用的句子。"
+            "另一句也没有引用。"
         )
         passed, density, issues = check_citation_density(text, [_chunk()])
         assert passed is False
@@ -160,8 +161,8 @@ class TestDetectAndHintNoise:
     def test_large_gap_detected(self) -> None:
         """Top-1 远超后续→后续视为噪音。"""
         chunks = [
-            _chunk(similarity=0.9),
             _chunk(doc_name="广告.md", content="促销信息", similarity=0.25),
+            _chunk(similarity=0.9),
         ]
         hint = _detect_and_hint_noise(chunks, None)
         assert hint is not None

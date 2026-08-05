@@ -5,6 +5,7 @@ from uuid import uuid4
 import pytest
 
 from app.core.config import settings
+from app.services.rag.diversity import apply_kb_diversity
 from app.services.rag.generation import (
     NO_CONTEXT_REPLY,
     NO_CONTEXT_REPLY_EN,
@@ -15,6 +16,7 @@ from app.services.rag.relevance import (
     filter_relevant_chunks,
     has_relevant_context,
     query_overlaps_chunk,
+    related_sections,
     should_refuse_answer,
 )
 from app.services.rag.types import RetrievedChunk
@@ -26,6 +28,7 @@ def _chunk(
     section_title: str | None = None,
     similarity: float = 0.1,
     kb_id=None,
+    heading_path: str | None = None,
 ) -> RetrievedChunk:
     kid = kb_id if kb_id is not None else uuid4()
     return RetrievedChunk(
@@ -36,7 +39,7 @@ def _chunk(
         content=content,
         page_number=None,
         section_title=section_title,
-        heading_path=None,
+        heading_path=heading_path,
         similarity=similarity,
     )
 
@@ -164,3 +167,103 @@ def test_rejection_rate_high_similarity_without_overlap_still_refused() -> None:
     filtered_high = filter_relevant_chunks([high], "公司上市计划是什么？")
     assert filtered_high == [], "≥0.9 无重叠应被过滤（AC-4）"
     assert should_refuse_answer(filtered_high, "公司上市计划是什么？") is True
+
+
+# ── M5 检索侧候选谓词收窄：条件灰色带 + 停用词扩充 ──────────────────────
+
+
+def test_conditional_grey_keeps_wide_band_without_anchor() -> None:
+    """GQ-47 类纯语义查询（无词面锚点）：灰色带保持 0.45 宽带，sim 0.5 保留。"""
+    chunk = _chunk(content="培训费用按比例退还。", similarity=0.5)
+    assert filter_relevant_chunks([chunk], "什么情况下要赔公司钱？") == [chunk]
+    assert has_relevant_context([chunk], "什么情况下要赔公司钱？") is True
+
+
+def test_conditional_grey_tightens_with_anchor() -> None:
+    """单章题类（有词面锚点）：条件灰色带收紧，sim 0.5 无词面重叠噪声被过滤。"""
+    anchor = _chunk(
+        content="员工年满一年后可享受年假10天。",
+        section_title="1.1 年假",
+        similarity=0.8,
+    )
+    noise = _chunk(
+        content="节日礼金按节日发放。",
+        section_title="8.2 节日福利",
+        similarity=0.5,
+    )
+    result = filter_relevant_chunks([noise, anchor], "员工年假有几天？")
+    assert anchor in result
+    assert noise not in result
+
+
+def test_stopword_employee_no_longer_hits_heading_path() -> None:
+    """GQ-20 式「员工」heading_path 撞词：停用词后 9.4 申诉流程不再词面命中。"""
+    chunk = _chunk(
+        content="对考核结果有异议的员工，可在结果公布后 7 个工作日内向人力资源部提交书面申诉。",
+        section_title="9.4 申诉流程",
+        similarity=0.6205,
+        heading_path="员工手册 v2.0>第九章 绩效考核>9.4 申诉流程",
+    )
+    assert not query_overlaps_chunk("正式员工离职需要提前多久通知？", chunk)
+
+
+def test_gq17_noise_reduced_to_2() -> None:
+    """GQ-17 类单章题：停用词 + 条件灰色带 → 候选锁定 2（4.1 + 8.1），1.1 噪声被过滤。"""
+    chunks = [
+        _chunk(
+            content="员工每年可参加不超过 5 天的外部培训，培训费用由公司承担。培训后需在公司服务满一年，否则按比例退还培训费用。",
+            section_title="4.1 培训",
+            similarity=0.7978,
+        ),
+        _chunk(
+            content="员工年满一年后可享受年假10天。年假须提前两周申请，由直属主管审批后方可休假。",
+            section_title="1.1 年假",
+            similarity=0.5971,
+        ),
+        _chunk(
+            content="正式员工每年享受一次免费体检，标准为每人 800 元。入职满半年即可参加当年体检。",
+            section_title="8.1 年度体检",
+            similarity=0.5617,
+        ),
+    ]
+    query = "员工每年可以参加几天外部培训？"
+    assert related_sections(chunks, query) == {"4.1 培训", "8.1 年度体检"}
+    assert {c.section_title for c in filter_relevant_chunks(chunks, query)} == {
+        "4.1 培训",
+        "8.1 年度体检",
+    }
+
+
+def test_gq47_related_kept_8() -> None:
+    """GQ-47 类纯语义查询（无锚点）：条件灰色带不收紧，候选保持 8，4.1+5.1 均在。"""
+    chunks = [
+        _chunk(section_title="4.1 培训", content="培训费用按比例退还。", similarity=0.4991),
+        _chunk(section_title="6.3 办公用品采购", content="办公用品按预算采购。", similarity=0.5044),
+        _chunk(section_title="8.3 补充医疗", content="补充医疗报销比例。", similarity=0.4825),
+        _chunk(section_title="5.2 竞业限制", content="竞业限制补偿按月发放。", similarity=0.5054),
+        _chunk(section_title="7.3 设备管理", content="设备报废需审批。", similarity=0.5092),
+        _chunk(section_title="5.1 离职通知期", content="离职未提前通知需支付代通知金。", similarity=0.5596),
+        _chunk(section_title="2.1 年终奖", content="年终奖按在职时间折算。", similarity=0.5502),
+        _chunk(section_title="6.4 报销时限", content="报销需在时限内提交。", similarity=0.5485),
+    ]
+    query = "什么情况下要赔公司钱？"
+    related = related_sections(chunks, query)
+    assert len(related) == 8
+    assert {"4.1 培训", "5.1 离职通知期"} <= related
+    assert len(filter_relevant_chunks(chunks, query)) == 8
+
+
+def test_diversity_stopword_regression() -> None:
+    """停用词后仅「员工」撞词不再计入 diversity gate（workspace 路径回归）。"""
+    kb_a = uuid4()
+    kb_b = uuid4()
+    query = "正式员工每年参加几天培训？"
+    chunks = [
+        _chunk(kb_id=kb_a, content=f"员工考勤补充 A{i}")
+        for i in range(4)
+    ] + [
+        _chunk(kb_id=kb_b, content="培训计划 B0"),
+    ]
+    result = apply_kb_diversity(chunks, query, top_k=5)
+    # gate 仅库 B 有词面命中（「培训」）；库 A 的「员工」已是停用词 → 不触发多库强制
+    assert result == chunks

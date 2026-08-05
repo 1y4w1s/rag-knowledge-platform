@@ -7,8 +7,10 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import time
+from pathlib import Path
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +18,7 @@ from sqlalchemy import select, or_
 
 from app.core.config import settings
 from app.core.degradation import (
+    DegradationLevel,
     assess_degradation,
     degradation_requires_embed,
     degradation_requires_rerank,
@@ -526,8 +529,15 @@ async def retrieve_chunks(
 
     result = reranked[:top_k]
     adaptive_k = adaptive_top_k(result, query)
-    # 兼容旧行为：policy=off 时仍可自适应截断；仅 always/conditional 跳过精排时不截
-    if (did_rerank or effective_rerank_policy() == "off") and adaptive_k < len(result):
+    # 方案 B：composite 复合题跳过 adaptive 截断，保底 top_k=8 全量送生成
+    # （GQ-77 根因：39 字查询 adaptive_k=3 截掉子查询前置的第 4 位命中章节，
+    #  又因 used_multi 跳过 expand 救回 → 送生成上下文缺章）。
+    # 非复合题维持旧行为：policy=off 时仍可自适应截断；always/conditional 跳过精排时不截
+    if (
+        not used_composite
+        and (did_rerank or effective_rerank_policy() == "off")
+        and adaptive_k < len(result)
+    ):
         result = result[:adaptive_k]
 
     # 已走 A1 多 query 时不叠低置信度 expand / decompose（避免双重 LLM）
@@ -958,13 +968,58 @@ def _build_candidates(fused, merged, parent_contents, kb_id, chunk_kb):
     return candidates
 
 
+def _resolve_static_variant_rules_path() -> Path:
+    raw = settings.static_variant_rules_path
+    path = Path(raw)
+    if path.is_absolute():
+        return path
+    return Path(__file__).resolve().parents[3] / path
+
+
+_STATIC_VARIANT_RULES_CACHE: dict | None = None
+_STATIC_VARIANT_RULES_CACHE_AT: float = 0.0
+_STATIC_VARIANT_RULES_CACHE_TTL: float = 60.0
+
+
+def _load_static_variant_rules() -> dict:
+    global _STATIC_VARIANT_RULES_CACHE, _STATIC_VARIANT_RULES_CACHE_AT
+    now = time.monotonic()
+    if _STATIC_VARIANT_RULES_CACHE is not None and now - _STATIC_VARIANT_RULES_CACHE_AT < _STATIC_VARIANT_RULES_CACHE_TTL:
+        return _STATIC_VARIANT_RULES_CACHE
+    try:
+        rules = json.loads(_resolve_static_variant_rules_path().read_text(encoding="utf-8"))
+    except Exception:
+        logger.warning("static variant rules load failed; fallback to empty rules", exc_info=True)
+        rules = {"rules": []}
+    _STATIC_VARIANT_RULES_CACHE = rules
+    _STATIC_VARIANT_RULES_CACHE_AT = now
+    return rules
+
+
+def static_query_variants(query: str) -> list[str]:
+    """Return deterministic variants for a query hit by static rules."""
+    normalized = (query or "").lower().strip()
+    if not normalized:
+        return []
+    variants: list[str] = []
+    for rule in _load_static_variant_rules().get("rules", []):
+        if any(keyword.lower() in normalized for keyword in rule.get("keywords", [])):
+            for variant in rule.get("variants", []):
+                if variant and variant not in variants:
+                    variants.append(variant)
+    return variants
+
+
 async def _expand_if_low_confidence(db, result, query, kb_id, visible_kb_ids, hide_admin_only, top_k):
     """低置信度时 expand_queries 多路召回补偿。"""
     if not result or max(c.similarity for c in result) >= 0.6:
         return result
     try:
-        from app.services.rag.generation import expand_queries
-        expanded = await expand_queries(query)
+        if assess_degradation() >= DegradationLevel.LLM_DOWN:
+            expanded = [query] + static_query_variants(query)
+        else:
+            from app.services.rag.generation import expand_queries
+            expanded = await expand_queries(query)
         if len(expanded) <= 1:
             return result
         seen_ids = {c.chunk_id for c in result}

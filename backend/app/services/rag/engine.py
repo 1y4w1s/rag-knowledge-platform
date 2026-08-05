@@ -25,10 +25,12 @@ from app.services.rag.generation import (
     SYSTEM_PROMPT,
     build_messages,
     check_citation_density,
+    check_citation_section_coverage,
     compress_history,
     no_context_reply_for,
     stream_deepseek_tokens,
 )
+from app.services.rag.generation import SECTION_MISSING_ISSUE_TEMPLATE
 from app.services.rag.multi_turn import prepare_multi_turn_query
 from app.services.rag.persistence import save_chat_turn
 from app.services.rag.relevance import filter_relevant_chunks
@@ -296,16 +298,34 @@ class ChatEngine:
             density_passed, density, issues = check_citation_density(
                 body_for_density, self.chunks
             )
+            missing_sections: list[str] = []
             if density_passed:
-                break
+                # 第2层叠加：章节覆盖校验（GQ-47 类隐性跨章题，相关章节 ≥2 才启用）
+                coverage_passed, missing_sections = check_citation_section_coverage(
+                    body_for_density, self.chunks, self.retrieval_query,
+                )
+                if coverage_passed:
+                    break
+                density_passed = False  # 标记需重生成，复用下方 REGENERATE 分支
 
             # 重生成——用 REGENERATE_PROMPT 增压约束
             from app.services.rag.generation import REGENERATE_PROMPT
 
-            issues_text = "\n".join(f"- 「{s[:60]}」" for s in issues[:5])
+            density_issue_lines = [f"- 「{s[:60]}」" for s in issues[:5]]
+            section_issue_lines = [
+                SECTION_MISSING_ISSUE_TEMPLATE.format(section=s)
+                for s in missing_sections
+            ]
+            issues_text = "\n".join(density_issue_lines + section_issue_lines)
+            # H1/H2：重生成上下文与 build_messages 同排序（similarity 升序）
+            # 且全量覆盖候选相关章节（上限 llm_top_k=8，与首次生成一致）
             chunks_text = "\n---\n".join(
                 f"[片段{i+1}] {c.parent_content or c.content}"
-                for i, c in enumerate(self.chunks[:5])
+                for i, c in enumerate(
+                    sorted(self.chunks, key=lambda c: c.similarity, reverse=False)[
+                        : settings.llm_top_k
+                    ]
+                )
             )
 
             regen_messages = [
@@ -319,7 +339,11 @@ class ChatEngine:
 
             # 发送重生成事件（前端可展示"正在补充引用…"）
             yield {"event": "regenerating", "data": {
-                "reason": f"引用密度不足（{density:.0%}），正在重新生成…",
+                "reason": (
+                    f"引用未覆盖全部相关章节（{len(missing_sections)} 章），正在重新生成…"
+                    if missing_sections
+                    else f"引用密度不足（{density:.0%}），正在重新生成…"
+                ),
             }}
 
             # 清空已收集内容，重新流式

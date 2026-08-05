@@ -188,6 +188,122 @@ async def test_golden_gate_hit_at_3_conditional_multi_query_mock(
     )
 
 
+def _single_expect_case(expect: dict) -> GoldenQACase:
+    """把单个 expects 条目包成 GoldenQACase，复用 chunk_matches 逐 expect 判定。"""
+    return GoldenQACase(
+        case_id="expect-probe", query="", source="md",
+        expects=(expect,), min_match=1,
+    )
+
+
+@pytest.mark.asyncio
+async def test_golden_gq77_multiseg_context_top8(
+    client: AsyncClient,
+    register_and_login,
+    upload_dir,
+) -> None:
+    """方案 B：GQ-77 复合题 Top-8（送生成上下文）须同时含 3.1 加班与 9.3 绩效。
+
+    复用 chunk_matches 逐 expect 判定，防「已召回但被 adaptive 截断」回归
+    （真向量口径由 tmp/diag_gq77_gq47.py 验收，CI mock 口径为本测试）。
+    """
+    case = next(c for c in GOLDEN_QA_CASES if c.case_id == "GQ-77")
+    headers, user = await register_and_login(prefix="gq77top8")
+    kb = await _create_kb(client, headers, user)
+    kb_id = uuid.UUID(kb["id"])
+    await _ingest_fixture(
+        kb_id=kb_id, user_id=user["id"],
+        source=GOLDEN_MD, file_type="md", upload_dir=upload_dir,
+    )
+
+    async with SessionLocal() as db:
+        chunks = await retrieve_chunks(
+            db, kb_id=kb_id, query=case.query, top_k=8,
+        )
+    assert chunks, "GQ-77 Top-8 检索无结果"
+
+    top8 = chunks[:8]
+    missing = [
+        e.get("section_title") or e.get("content_contains")
+        for e in case.expects
+        if not any(chunk_matches(_single_expect_case(e), c) for c in top8)
+    ]
+    assert not missing, (
+        f"GQ-77 Top-8 缺少期望章节 {missing}；"
+        f"Top-8={[(c.section_title, c.content[:40]) for c in top8]}"
+    )
+
+
+@pytest.mark.asyncio
+async def test_composite_skip_adaptive_truncation(
+    client: AsyncClient,
+    register_and_login,
+    upload_dir,
+) -> None:
+    """方案 B：composite 路径跳过 adaptive_top_k 截断（保底 top_k=8 送生成）。
+
+    GQ-77 查询 39 字 → adaptive_top_k 固定返回 3；used_composite 时不截断。
+    改动前该断言失败（len==3），改动后 len==8。
+    """
+    from app.services.rag.planner import adaptive_top_k
+
+    case = next(c for c in GOLDEN_QA_CASES if c.case_id == "GQ-77")
+    headers, user = await register_and_login(prefix="gq77skip")
+    kb = await _create_kb(client, headers, user)
+    kb_id = uuid.UUID(kb["id"])
+    await _ingest_fixture(
+        kb_id=kb_id, user_id=user["id"],
+        source=GOLDEN_MD, file_type="md", upload_dir=upload_dir,
+    )
+
+    async with SessionLocal() as db:
+        chunks = await retrieve_chunks(
+            db, kb_id=kb_id, query=case.query, top_k=8,
+        )
+    assert chunks, "GQ-77 composite 检索无结果"
+    adaptive_k = adaptive_top_k(chunks, case.query)
+    assert len(chunks) > adaptive_k, (
+        f"composite 路径仍被 adaptive_top_k={adaptive_k} 截断（len={len(chunks)}）"
+    )
+
+
+@pytest.mark.asyncio
+async def test_golden_gq47_multiseg_context_top8(
+    client: AsyncClient,
+    register_and_login,
+    upload_dir,
+) -> None:
+    """GQ-47 隐性跨章题：Top-8（送生成上下文）须含 4.1 培训。
+
+    复用 chunk_matches 逐 expect 判定。CI mock 嵌入无法复现 5.1 离职通知期
+    进 Top-8（词面无重叠且 mock 相似度低于灰色带；真向量路径靠条款路由 +
+    expand 救回 rank 6）——5.1 的「章节在上下文」锁定由真向量 diag
+    （tmp/diag_gq77_gq47.py，已实测 4.1 rank 1 + 5.1 rank 6）验收；
+    本测试锁 mock 可复现的 4.1，防其检索退化。
+    """
+    case = next(c for c in GOLDEN_QA_CASES if c.case_id == "GQ-47")
+    headers, user = await register_and_login(prefix="gq47top8")
+    kb = await _create_kb(client, headers, user)
+    kb_id = uuid.UUID(kb["id"])
+    await _ingest_fixture(
+        kb_id=kb_id, user_id=user["id"],
+        source=GOLDEN_MD, file_type="md", upload_dir=upload_dir,
+    )
+
+    async with SessionLocal() as db:
+        chunks = await retrieve_chunks(
+            db, kb_id=kb_id, query=case.query, top_k=8,
+        )
+    assert chunks, "GQ-47 Top-8 检索无结果"
+
+    top8 = chunks[:8]
+    expect_4_1 = next(e for e in case.expects if e.get("section_title") == "4.1 培训")
+    assert any(chunk_matches(_single_expect_case(expect_4_1), c) for c in top8), (
+        f"GQ-47 Top-8 缺少 4.1 培训；"
+        f"Top-8={[(c.section_title, c.content[:40]) for c in top8]}"
+    )
+
+
 async def _assert_golden_case(
     client: AsyncClient,
     register_and_login,

@@ -73,6 +73,11 @@ class Settings(BaseSettings):
     relevance_similarity_fallback: float = 0.45
     # 灰色带语义兜底上限（AC-4）：无词面重叠但 sim ≥ 此值视为高相似假阳性，仍丢弃
     relevance_high_sim_reject: float = 0.9
+    # M5 条件灰色带：查询有词面锚点时灰色带下限收紧到该值（初值 0.63，M5.4 定档）；
+    # 无锚点（GQ-47 类纯语义查询）保持 relevance_similarity_fallback 宽带
+    relevance_grey_anchor_lo: float = 0.63
+    # M5.3: static deterministic variants injected when LLM is degraded
+    static_variant_rules_path: str = "app/services/rag/static_variant_rules.json"
     rrf_k: int = 60
     rrf_vector_weight: float = 1.0   # 实测：1.5 反而降 0.72pp，维持 1.0
     rrf_fts_weight: float = 1.5     # A4 扫参：1.2→1.5，Enterprise Hit@3 +1（同环境）

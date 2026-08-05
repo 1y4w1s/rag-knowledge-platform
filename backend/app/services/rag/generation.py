@@ -12,6 +12,12 @@ from app.core.config import settings
 from app.services.rag.chat_llm import stream_deepseek_tokens
 from app.services.rag.confidence_reply import AnswerConfidence
 from app.services.rag.redact import scrub_llm_context
+from app.services.rag.relevance import (
+    has_lexical_anchor,
+    is_grey_candidate,
+    query_overlaps_chunk,
+    related_sections,
+)
 from app.services.rag.types import RetrievedChunk
 
 SYSTEM_PROMPT = """你是睿阁助手，严格依据【检索片段】中的信息回答【用户问题】。
@@ -126,9 +132,102 @@ def check_citation_density(
     return passed, density, issues
 
 
+# ── 第2层：章节覆盖校验（GQ-47 类隐性跨章题）───────────────────────────
+
+SECTION_MISSING_ISSUE_TEMPLATE = "未引用相关章节「{section}」。"
+
+# 缺章清单两段式：灰色带中「无词面命中」章节按 sim / 检索顺序各取 Top-K。
+# K=2 容忍单一信号排序抖动 ±1；GQ-47 实测 4.1（sim 最低/rank 1）与
+# 5.1（sim 最高/rank 6）排序相反，sim/rank 双信号并集互相兜底。
+GREY_FORCE_TOP_K = 2
+
+
+def _two_stage_missing_sections(
+    related: set[str],
+    overlap_sections: set[str],
+    grey_only: list[RetrievedChunk],
+    cited: set[str],
+) -> list[str]:
+    """两段式缺章清单：词面命中 ∪ 灰色带 sim Top-K ∪ 灰色带 rank Top-K（并集）。
+
+    设计动机（GQ-47 实测）：期望章节 4.1（sim 最低、rank 1）与
+    5.1（sim 最高、rank 6）排序相反，单一 Top-N 截断必丢其一；
+    sim/rank 双信号并集互相兜底，Top-K=2 容忍单一信号排序抖动 ±1。
+    """
+    forced = set(overlap_sections)
+    by_sim = sorted(grey_only, key=lambda c: c.similarity, reverse=True)
+    forced.update(c.section_title for c in by_sim[:GREY_FORCE_TOP_K])
+    forced.update(c.section_title for c in grey_only[:GREY_FORCE_TOP_K])
+    return sorted(forced - cited)
+
+
+def _cited_sections(text: str, chunks: list[RetrievedChunk]) -> set[str]:
+    """解析回答中的 [片段N] 并按 build_messages 相同排序映射回 section_title。
+
+    排序规则必须与 build_messages 一致（similarity 升序，最高分在末尾），
+    否则编号错位会导致误判「已引/缺引」（隐患 H1）。
+    """
+    sorted_chunks = sorted(chunks, key=lambda c: c.similarity, reverse=False)
+    cited: set[str] = set()
+    for m in CITATION_REGEX.finditer(text):
+        number = int(m.group()[3:-1])  # "[片段N]" -> N
+        if 1 <= number <= len(sorted_chunks):
+            section = sorted_chunks[number - 1].section_title
+            if section:
+                cited.add(section)
+    return cited
+
+
+def check_citation_section_coverage(
+    text: str,
+    chunks: list[RetrievedChunk],
+    query: str,
+) -> tuple[bool, list[str]]:
+    """生成侧引用完整性校验：相关章节 ≥2 时，回答必须覆盖缺章清单。
+
+    判定口径（与 filter_relevant_chunks 同一来源共享谓词，防口径漂移）：
+    - 相关章节 = related_sections（词面重叠 ∪ 条件灰色带；有锚点 → 收紧
+      relevance_grey_anchor_lo，无锚点 → relevance_similarity_fallback 宽带）
+      的 chunk 的 section_title 去重；
+    - 相关章节 < 2 → 直接通过（单章题不误触发）；
+    - 缺章清单（两段式收窄，GQ-47 M3 决策）：词面命中章节（强信号全收）
+      ∪ 灰色带中无词面命中章节按 similarity 降序 Top-K ∪ 同集合按检索返回
+      顺序 Top-K（K = GREY_FORCE_TOP_K），再去掉已引用章节；
+    - 已引用章节：解析 text 中的 [片段N]，按 build_messages 相同排序映射回
+      section_title。
+
+    返回:
+        passed: True = 无缺引章节（或无需校验）；
+        missing_sections: 缺引章节清单（section_title，按章节号字典序，
+        两段式收窄后仍可能不含全部相关章节，仅要求覆盖强信号 Top-K）。
+    """
+    if not chunks or not text:
+        return True, []
+
+    related = related_sections(chunks, query)
+    if len(related) < 2:
+        return True, []
+
+    has_anchor = has_lexical_anchor(chunks, query)
+    overlap_sections = {
+        c.section_title
+        for c in chunks
+        if c.section_title and query_overlaps_chunk(query, c)
+    }
+    grey_only = [
+        c
+        for c in chunks
+        if c.section_title
+        and is_grey_candidate(c, query, has_anchor=has_anchor)
+    ]
+    cited = _cited_sections(text, chunks)
+    missing = _two_stage_missing_sections(related, overlap_sections, grey_only, cited)
+    return (not missing), missing
+
+
 # ── 第2层：低引用密度时的增压 Prompt（重生成用）─────────────────────
 
-REGENERATE_PROMPT = """你之前的回答引用密度不足。你的回答中本应给每个断言句标注来源【片段N】，但以下句子缺少引用：
+REGENERATE_PROMPT = """你之前的回答引用不完整（引用密度不足，或未覆盖全部相关章节）。你的回答中本应给每个断言句标注来源[片段N]，但存在以下问题：
 
 {issues_text}
 
