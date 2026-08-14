@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     upload_dir: str = "./uploads"
     upload_max_bytes: int = 20 * 1024 * 1024
+    # M8-I3：OOXML zip 解压前压缩炸弹防护（docx/xlsx/pptx；≤0 关闭该防护）
+    zip_max_uncompressed_bytes: int = 1 * 1024**3      # 解压后总大小上限（1 GiB）
+    zip_max_compression_ratio: float = 200.0           # 解压后总大小 / 压缩后总大小上限
     # NW-25：单库 uploads 账面上限（文档含 trash + 版本）；0=关闭总闸
     kb_quota_max_bytes: int = 10 * 1024**3
     deepseek_api_key: str = ""
@@ -52,6 +55,7 @@ class Settings(BaseSettings):
     embedding_model: str = "bge-small-zh-v1.5"   # 与 embedding_dim=512 对齐（bge-large 为 1024 维）
     embedding_dim: int = 512
     bge_model_path: str = "/app/models/bge-large-zh-v1.5"  # 仅 embedding_dim=1024 分支使用
+    bge_en_model: str = ""  # 空=默认 BAAI/bge-small-en-v1.5（P1-11 方案 B）
     re_embed_token: str = ""
     # H2 orphan 扫描：宽限期 / 单次真删上限 / internal token（空=禁用）
     orphan_grace_hours: float = 24.0
@@ -73,9 +77,9 @@ class Settings(BaseSettings):
     relevance_similarity_fallback: float = 0.45
     # 灰色带语义兜底上限（AC-4）：无词面重叠但 sim ≥ 此值视为高相似假阳性，仍丢弃
     relevance_high_sim_reject: float = 0.9
-    # M5 条件灰色带：查询有词面锚点时灰色带下限收紧到该值（初值 0.63，M5.4 定档）；
+    # M5 条件灰色带：查询有词面锚点时灰色带下限收紧到该值（M5.4 定档 0.65）；
     # 无锚点（GQ-47 类纯语义查询）保持 relevance_similarity_fallback 宽带
-    relevance_grey_anchor_lo: float = 0.63
+    relevance_grey_anchor_lo: float = 0.65
     # M5.3: static deterministic variants injected when LLM is degraded
     static_variant_rules_path: str = "app/services/rag/static_variant_rules.json"
     rrf_k: int = 60
@@ -99,8 +103,8 @@ class Settings(BaseSettings):
     chunk_max_chars: int = 1200  # 单 chunk 最大字符数，入库时生效；环境变量 CHUNK_MAX_CHARS
     # NW-27：citation.excerpt 脱敏（先 mask 后截断）；关=仅截断旧行为
     citation_redact_enabled: bool = True
-    # NW-34：送模【检索片段】scrub（复用 mask_pii）；默认关；仍算出境 ≠ NW-33
-    llm_context_redact_enabled: bool = False
+    # NW-34：送模【检索片段】scrub（复用 mask_pii）；P2-R16 默认开；仍算出境 ≠ NW-33
+    llm_context_redact_enabled: bool = True
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_user: str = ""
@@ -113,6 +117,8 @@ class Settings(BaseSettings):
     # ── Webhook 安全（Phase 3 SSRF 加固）────────────────────────────
     # Webhook 域名白名单（空列表=不限制）；支持主域名及 *.domain 子域名匹配
     webhook_allowed_domains: list[str] = []
+    # P1-S2：webhook secret 的 at-rest 加密密钥（独立专用，禁止与 JWT/LLM 等混用）
+    webhook_encryption_secret: str = ""
 
     # ── 运行环境 ────────────────────────────────────────────────────
     environment: str = "development"  # development | production
@@ -162,11 +168,18 @@ class Settings(BaseSettings):
     rate_limit_enabled: bool = True
     rate_limit_max_requests: int = 100
     rate_limit_window_seconds: int = 60
-    # C1 收口：限流后端（memory|redis）；RATE_LIMIT_BACKEND env 仍可覆盖（测试/部署）
-    rate_limit_backend: str = "memory"
+    # C1 收口：限流后端（memory|redis），默认 redis（多副本计数）；
+    # RATE_LIMIT_BACKEND env 仍可覆盖（测试/部署显式 memory）
+    rate_limit_backend: str = "redis"
     # P0-05 XFF 信任链：可信反代跳数。0=API 直连（忽略 X-Forwarded-For，防伪造）；
     # 1=单跳 nginx（docker-compose 生产默认）；多跳按实际代理层数配置。
     trusted_proxy_count: int = 0
+
+    # ── 邀请码安全（P2-P3）──────────────────────────────────────────
+    # 随机后缀位数（默认 8，防枚举；配置低于 8 时按 8 生效）
+    invite_code_random_length: int = 8
+    # 默认过期小时数：发码未传 expires_at 时生效；0=管理员显式选择永不过期
+    invite_code_default_expire_hours: int = 168
 
     # ── 检索配置 ────────────────────────────────────────────────────
     vector_recall_k: int = 30       # 向量召回 Top-N（2026-07-18 从 20 调升到 30）
@@ -215,11 +228,59 @@ class Settings(BaseSettings):
 
     # ── E3 Agentic Memory ─────────────────────────────────────────
     agent_memory_enabled: bool = True
+    # T5 Agent Memory Governance
+    agent_memory_suppress_seconds: int = 604800
+    agent_memory_churn_threshold: int = 3
+    agent_memory_churn_window_seconds: int = 86400
+    agent_memory_rule_confidence: float = 0.7
+    agent_memory_lang_cjk_ratio: float = 0.6
+    agent_memory_depth_min_searches: int = 2
+
+    # ── T6 W2 Working Memory（滑动窗口）────────────────────────────
+    agent_memory_window_max_messages: int = 12   # 消息数预算（= 6 轮）；0=禁用消息数裁剪
+    agent_memory_window_max_rounds: int = 6      # 轮数别名：max_messages / 2（文档/校验用）
+    agent_memory_window_token_budget: int = 22400  # token 预算（64k × 35%，与 generation.py 口径一致）；0=禁用 token 裁剪
+    agent_memory_window_min_keep: int = 2        # 至少保留最近消息数（防止双预算把最新一轮也裁掉）
+    agent_memory_window_summary_prefix: str = "wm_summary"  # 摘要占位 key 前缀
+    agent_memory_window_summary_max: int = 3     # 单次最多产出的摘要占位条数
+
+    # ── T6 W3 Importance Tiering（重要性评分与分层）──────────────────
+    agent_memory_importance_promote_threshold: float = 0.7    # long_term → working 促升阈值（score >= 该值）
+    agent_memory_importance_demote_threshold: float = 0.35   # working → long_term 促降阈值（score < 该值）；必须 < promote
+    agent_memory_importance_source_weight: float = 0.30      # source 优先级因子权重
+    agent_memory_importance_recency_weight: float = 0.25     # 最近使用因子权重
+    agent_memory_importance_frequency_weight: float = 0.20   # 频次因子权重（confidence 代理）
+    agent_memory_importance_feedback_weight: float = 0.15    # 用户反馈因子权重
+    agent_memory_importance_governance_weight: float = 0.10  # 治理状态因子权重
+    agent_memory_importance_recency_half_life_days: float = 14.0  # 最近使用半衰期（天）
+    agent_memory_importance_feedback_penalty: float = 0.4    # suppressed / conflicted 的反馈因子值
+    agent_memory_importance_churn_penalty: float = 0.5       # churn_count >= 阈值时的治理因子值
+    # ── T6 W4 Memory Summary（结构化摘要）──────────────────────────
+    agent_memory_summary_max_field_chars: int = 120   # 单个字符串字段最大字符数；超长截断并追加标记
+    agent_memory_summary_max_items: int = 20          # 单列表最大保留条目数；超出追加标记
+    agent_memory_summary_max_depth: int = 3           # 嵌套 dict/list 最大深度；超出整棵子树替换为标记
+    agent_memory_summary_max_total_chars: int = 800   # 摘要 JSON 序列化最大字符数；超限按 §4.2 规则再压缩
+    agent_memory_summary_truncation_marker: str = "..."  # 截断标记（ASCII，避免编码/序列化差异）
 
     # ── E4 External Tools ─────────────────────────────────────────
     external_tools_enabled: bool = False
     search_api_key: str = ""  # C1 收口：web_search 第三方凭据（原 SEARCH_API_KEY env 兼容）
     agent_max_external_calls_per_conversation: int = 3
+
+    # ── G1 Tool Failure Replan ───────────────────────────────────
+    agent_max_tool_replans: int = 2  # 工具失败提示重规划上限；0=关闭（保留现状）
+
+    # ── G2 Agent Tool Guard（工具级熔断 / 限流 / token 估算）──────────────
+    agent_tool_breaker_overrides: dict[str, dict[str, int | float]] = {
+        "web_search": {"failure_threshold": 2, "recovery_timeout": 15},
+    }
+    agent_tool_max_calls_per_run_override: dict[str, int] = {}
+    agent_tool_window_rate_limit_enabled: bool = True
+    agent_tool_window_rate_limit: dict[str, dict[str, int]] = {
+        "web_search": {"max": 60, "window_seconds": 3600},
+    }
+    # G2-usage: real provider usage collection master switch
+    llm_usage_collection_enabled: bool = True
 
     # ── B2 Agent 生命周期清扫（P1-03）────────────────────────────
     # running run 超过该时长视为 crash/断线残留，清扫器强制 failed

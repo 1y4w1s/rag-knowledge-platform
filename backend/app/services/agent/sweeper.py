@@ -15,7 +15,7 @@ import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import select, update
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -73,12 +73,23 @@ async def scan_stale_agent_runs(
     now: datetime | None = None,
     stale_minutes: float | None = None,
 ) -> list[AgentRun]:
-    """查出 running 且超过 deadline 的 run（crash/断线残留）。"""
+    """查出 running 且超过 deadline 的 run（crash/断线残留）。
+
+    P2-A7：按「最后活动时间」判超时而非创建时间——最后 step 的开始时间即最后
+    活动信号；无 step 时回退到 run 创建时间，避免合法长对话被误杀。
+    """
     now = _ensure_aware(now or datetime.now(timezone.utc))
+    last_step_at = (
+        select(func.max(AgentStep.created_at))
+        .where(AgentStep.run_id == AgentRun.id)
+        .correlate(AgentRun)
+        .scalar_subquery()
+    )
     result = await db.execute(
         select(AgentRun).where(
             AgentRun.status == AgentRunStatus.running,
-            AgentRun.created_at < _run_cutoff(now, stale_minutes),
+            func.coalesce(last_step_at, AgentRun.created_at)
+            < _run_cutoff(now, stale_minutes),
         )
     )
     return list(result.scalars().all())

@@ -42,6 +42,8 @@ from app.models.enums import (
 )
 from app.models.knowledge_base import KnowledgeBase
 from app.services.agent.adopt import (
+    _MAX_ADOPT_FILENAME_PROBES,
+    _resolve_adopt_filename,
     adopt_draft_to_kb,
     bind_adopt_background_tasks,
     unbind_adopt_background_tasks,
@@ -229,6 +231,7 @@ async def test_g4_e16_unit_same_name_auto_v2(
             kb = await db.get(KnowledgeBase, org_iso.public_kb_id)
             doc_id = await adopt_draft_to_kb(db, approval, kb)
             await db.commit()
+        await bt()
     finally:
         unbind_adopt_background_tasks(token)
 
@@ -237,6 +240,57 @@ async def test_g4_e16_unit_same_name_auto_v2(
         assert doc.filename == "unit-faq_v2.md"
         # 原文件仍在，新文件以 _v2 落盘
         assert Path(doc.storage_path).is_file()
+
+
+async def test_g4_p2a4_unit_filename_probe_bounded_with_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P2-A4：同名档位全被占用时，_vN 探测有上限，兜底返回合法文件名而不死循环。"""
+    probes = 0
+
+    async def _all_filenames_taken(db, *, kb_id, name) -> bool:
+        nonlocal probes
+        probes += 1
+        return True
+
+    monkeypatch.setattr(
+        "app.services.agent.adopt._filename_exists", _all_filenames_taken
+    )
+    resolved = await _resolve_adopt_filename(
+        db=None,
+        kb_id=uuid.uuid4(),
+        filename="unit-faq.md",
+    )
+    assert probes == _MAX_ADOPT_FILENAME_PROBES + 1  # 初始同名检查 + _vN 探测上限
+    assert resolved.endswith(".md")
+    assert resolved.startswith("unit-faq-")
+    assert len(resolved) == len("unit-faq-") + 8 + len(".md")
+
+
+@pytest.mark.asyncio
+async def test_g4_p2a6_unit_filename_separators_sanitized(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P2-A6：adopt 对历史审批里的路径文件名跨平台净化，不把分隔符写进元数据。"""
+
+    async def _not_taken(db, *, kb_id, name) -> bool:
+        return False
+
+    monkeypatch.setattr(
+        "app.services.agent.adopt._filename_exists", _not_taken
+    )
+    for raw, expected in [
+        ("..\\..\\evil.md", "evil.md"),
+        ("../../evil.md", "evil.md"),
+        ("docs/faq.md", "faq.md"),
+        ("docs\\faq.md", "faq.md"),
+    ]:
+        resolved = await _resolve_adopt_filename(
+            db=None,
+            kb_id=uuid.uuid4(),
+            filename=raw,
+        )
+        assert resolved == expected
 
 
 # --------------------------------------------------------------------------- #
@@ -326,3 +380,40 @@ async def test_g4_e16_http_same_name_auto_v2(
     async with SessionLocal() as db:
         doc = await db.get(Document, did)
         assert doc.filename == "faq-draft_v2.md"
+
+
+async def test_g4_p2a6_http_path_filename_sanitized(
+    client: AsyncClient,
+    org_iso,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """P2-A6 · HTTP：历史 pending 带路径分隔符 → 采纳后文档文件名净化。"""
+    monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
+    monkeypatch.setattr(
+        "app.services.ingestion.enqueue.process_document_ingestion",
+        (lambda doc_id: None),
+    )
+
+    approval_id = await _insert_approval(
+        kb_id=org_iso.public_kb_id,
+        user_id=org_iso.owner.id,
+        filename="..\\..\\evil.md",
+    )
+    headers = await _login(client, org_iso.owner)
+
+    resp = await client.post(
+        APPROVE_URL.format(approval_id=approval_id),
+        headers=headers,
+        json={"action": "adopt"},
+    )
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["filename"] == "evil.md"
+    did = UUID(resp.json()["document_id"])
+
+    async with SessionLocal() as db:
+        doc = await db.get(Document, did)
+        assert doc is not None
+        assert doc.filename == "evil.md"
+        p = Path(doc.storage_path)
+        assert p.is_file()

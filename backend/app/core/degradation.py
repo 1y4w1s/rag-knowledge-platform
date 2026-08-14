@@ -12,6 +12,7 @@ import dataclasses
 import logging
 import time
 from enum import IntEnum
+from typing import Literal
 
 from app.core.config import settings
 from app.core.retry import CircuitBreaker, get_breaker
@@ -237,8 +238,26 @@ def degradation_label(level: DegradationLevel) -> str:
     return labels.get(level, "未知降级")
 
 
-def degradation_message(level: DegradationLevel) -> str:
-    """返回面向用户的降级说明文本。"""
+LLM_DOWN_MESSAGE_EN = (
+    "The AI answer service is temporarily unavailable. "
+    "The most relevant document passages are shown below for your reference. "
+    "Please try again later for a full answer."
+)
+
+
+def degradation_message(
+    level: DegradationLevel,
+    *,
+    language: Literal["zh", "en"] = "zh",
+) -> str:
+    """返回面向用户的降级说明文本。
+
+    LLM_DOWN 是唯一用户可见消费点，支持英文文案；其余等级暂无英文
+    消费点，不预埋英文，language="en" 时统一回退中文。
+    """
+    if language == "en" and level == DegradationLevel.LLM_DOWN:
+        return LLM_DOWN_MESSAGE_EN
+
     messages = {
         DegradationLevel.NORMAL: "",
         DegradationLevel.LLM_DOWN: (

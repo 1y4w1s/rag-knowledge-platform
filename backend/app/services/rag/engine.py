@@ -11,8 +11,11 @@ from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
+from app.core.degradation import assess_degradation, degradation_requires_llm
 from app.core.latency import get_tracker
 from app.services.observability.metrics_registry import inc_chat_answer
+from app.services.rag.chat_llm import has_available_chat_provider_key
+from app.services.rag.degraded_answer import stream_degraded_fragment_reply
 from app.services.rag.dedup import dedup_and_compress
 from app.services.rag.citation_align import align_citations_to_answer
 from app.services.rag.confidence_reply import (
@@ -40,7 +43,7 @@ from app.services.rag.retrieval import (
     retrieve_workspace_chunks,
     workspace_chunk_to_citation,
 )
-from app.services.rag.safety_filter import output_safety_check
+from app.services.rag.safety_filter import input_safety_check, output_safety_check
 from app.services.rag.cache import llm_response_cache
 
 logger = logging.getLogger(__name__)
@@ -179,19 +182,50 @@ class ChatEngine:
             retrieval_duration_ms=self._retrieval_ms(),
         )
 
-    async def _emit_refusal(self) -> AsyncIterator[dict]:
-        """无依据拒答：无 citation · 固定话术 · 落库 · done 契约。"""
+    async def _emit_refusal(self, block_reply: str | None = None) -> AsyncIterator[dict]:
+        """无依据/安全拦截拒答：无 citation · 固定话术 · 落库 · done 契约。"""
         from app.services.rag.generation import stream_no_context_reply
 
         self.citations = []
         parts: list[str] = []
-        async for text in stream_no_context_reply(self.message):
-            if text:
-                parts.append(text)
-                yield {"event": "token", "data": {"text": text}}
+        if block_reply is None:
+            async for text in stream_no_context_reply(self.message):
+                if text:
+                    parts.append(text)
+                    yield {"event": "token", "data": {"text": text}}
+        else:
+            parts.append(block_reply)
+            yield {"event": "token", "data": {"text": block_reply}}
         full = "".join(parts) or no_context_reply_for(self.message)
         message_id = await self._save(full, [])
         done: dict = {"citations": []}
+        if message_id is not None:
+            done["message_id"] = str(message_id)
+        yield {"event": "done", "data": done}
+
+    async def _emit_degraded_reply(self) -> AsyncIterator[dict]:
+        """L1 降级：返回原文片段 + 降级说明，不调 LLM、不写 LLM 缓存。"""
+        parts: list[str] = []
+        async for text in stream_degraded_fragment_reply(self.message, self.chunks):
+            if text:
+                parts.append(text)
+                self.collected_text += text
+                yield {"event": "token", "data": {"text": text}}
+
+        content = "".join(parts)
+        safe_out, _ = output_safety_check(content)
+        if not safe_out:
+            yield {"event": "error", "data": {"detail": "回答被安全策略拦截"}}
+            return
+
+        fn = workspace_chunk_to_citation if self._is_workspace() else chunk_to_citation
+        self.citations = align_citations_to_answer(
+            content,
+            self.chunks,
+            to_citation=fn,
+        )
+        message_id = await self._save(content, self.citations)
+        done: dict = {"citations": self.citations}
         if message_id is not None:
             done["message_id"] = str(message_id)
         yield {"event": "done", "data": done}
@@ -210,6 +244,16 @@ class ChatEngine:
         self.citations = self._make_citations()
         for c in self.citations:
             yield {"event": "citation", "data": c}
+
+        # L1：LLM 全挂或未配置任何 chat provider key 时，
+        # 在 compress/build_messages 之前切换确定性降级回答
+        if (
+            not degradation_requires_llm(assess_degradation())
+            or not has_available_chat_provider_key()
+        ):
+            async for event in self._emit_degraded_reply():
+                yield event
+            return
 
         compressed = await compress_history(self.history) if self.history else None
         messages = build_messages(
@@ -246,11 +290,22 @@ class ChatEngine:
             token_parts.append("\n\n")
             yield {"event": "token", "data": {"text": disclaimer + "\n\n"}}
 
-        async for text in stream_deepseek_tokens(messages):
-            if text:
-                token_parts.append(text)
-                self.collected_text += text
-                yield {"event": "token", "data": {"text": text}}
+        try:
+            async for text in stream_deepseek_tokens(messages):
+                if text:
+                    token_parts.append(text)
+                    self.collected_text += text
+                    yield {"event": "token", "data": {"text": text}}
+        except Exception as exc:
+            # L1 异常兜底：provider 双失败把熔断器打开后的竞态窗口切到降级流
+            logger.warning(
+                "module=rag_degradation operation=llm_all_down mode=fast error=%s",
+                exc,
+            )
+            self.collected_text = ""
+            async for event in self._emit_degraded_reply():
+                yield event
+            return
 
         content = "".join(token_parts)
         safe_out, _ = output_safety_check(content)
@@ -278,6 +333,18 @@ class ChatEngine:
                     else corrected
                 )
                 yield {"event": "correction", "data": {"text": content}}
+            elif not verified:
+                # M9-P2-1（P2-04）：verify 失败且无纠正稿 → fail-closed，
+                # 不保留未验证正文，按 R4-2 拒答口径替换并清空引用
+                content = no_context_reply_for(self.message)
+                self.citations = []
+                yield {"event": "correction", "data": {"text": content}}
+                message_id = await self._save(content, [])
+                done = {"citations": []}
+                if message_id is not None:
+                    done["message_id"] = str(message_id)
+                yield {"event": "done", "data": done}
+                return
 
         # ── 第2层：引用密度校验 + 低密度重生成（上限 = citation_density_regenerate_limit）─────
         density_passed = True
@@ -393,9 +460,16 @@ class ChatEngine:
         yield {"event": "done", "data": done}
 
     async def stream(self) -> AsyncIterator[dict]:
-        """主入口：载历史 → 检索 → 生成 → 落库。"""
+        """主入口：加载历史 → 输入安全检查 → 检索 → 生成 → 落库。"""
         self._t0 = time.perf_counter()
         await self._load_history()
+
+        safe, block_reply = input_safety_check(self.retrieval_query)
+        if not safe:
+            async for event in self._emit_refusal(block_reply):
+                yield event
+            return
+
         await self._retrieve()
         get_tracker("retrieval.retrieval_e2e").record(float(self._retrieval_ms()))
         async for event in self._generate():

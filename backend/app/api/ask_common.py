@@ -9,7 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.deps import CurrentUser
 from app.models.enums import OrgRole
 from app.models.knowledge_base import KnowledgeBase
-from app.services.org.scope import OrgScope, _is_company_admin
+from app.schemas.chat import HistoryCitationPayload
+from app.services.org.scope import OrgScope, _is_company_admin, resolve_org_scope
 from app.services.rag.citations import is_kb_visible_in_org_scope
 from app.services.workspace.scope import WorkspaceKind, WorkspaceScope
 
@@ -80,3 +81,81 @@ async def citation_visible_in_scope(
     return await is_kb_visible_in_org_scope(
         db, current_user, kb, department_id=department_id
     )
+
+
+async def citations_visible_in_scope_batch(
+    db: AsyncSession,
+    current_user: CurrentUser,
+    _payloads: list[HistoryCitationPayload],
+    raws: list[dict],
+    *,
+    scope: WorkspaceScope,
+    department_id: str | None,
+) -> list[bool]:
+    """P2-R4：批量判断工作区引用可见性，一次加载 KB 且最多解析一次 OrgScope。"""
+    if not raws:
+        return []
+
+    invalid = object()
+    keys: list[UUID | object | None] = []
+    kb_ids: set[UUID] = set()
+    for raw in raws:
+        kb_id_raw = raw.get("kb_id")
+        if kb_id_raw is None:
+            keys.append(None)
+            continue
+        try:
+            kb_id = UUID(str(kb_id_raw))
+        except ValueError:
+            keys.append(invalid)
+            continue
+        keys.append(kb_id)
+        kb_ids.add(kb_id)
+
+    kbs: dict[UUID, KnowledgeBase] = {}
+    if kb_ids:
+        kbs = {
+            kb.id: kb
+            for kb in (
+                await db.scalars(
+                    select(KnowledgeBase).where(KnowledgeBase.id.in_(kb_ids))
+                )
+            ).all()
+        }
+
+    org_scope: OrgScope | None = None
+    if scope.kind == WorkspaceKind.organization and not _is_company_admin(
+        current_user
+    ):
+        needs_scope = any(
+            kb.owner_org_id is not None and kb.owner_user_id is None
+            for kb in kbs.values()
+        )
+        if needs_scope:
+            org_scope = await resolve_org_scope(
+                db, current_user, department_id=department_id
+            )
+
+    visible: list[bool] = []
+    for key in keys:
+        if key is None:
+            visible.append(True)
+            continue
+        if key is invalid:
+            visible.append(False)
+            continue
+        kb = kbs.get(key)
+        if kb is None:
+            visible.append(False)
+            continue
+        if scope.kind == WorkspaceKind.personal:
+            visible.append(kb.owner_user_id == current_user.id)
+            continue
+        if kb.owner_org_id is None or kb.owner_user_id is not None:
+            visible.append(True)
+            continue
+        if _is_company_admin(current_user):
+            visible.append(True)
+            continue
+        visible.append(org_scope.is_kb_visible(kb.id) if org_scope else False)
+    return visible

@@ -9,6 +9,7 @@ import hashlib
 import json
 import logging
 import math
+import threading
 import time
 from collections import OrderedDict
 from typing import Sequence
@@ -94,6 +95,14 @@ def current_embedding_model() -> str:
     return settings.embedding_model or DEFAULT_EMBEDDING_MODEL
 
 
+DEFAULT_BGE_EN_MODEL = "BAAI/bge-small-en-v1.5"
+
+
+def current_bge_en_model() -> str:
+    """EN 嵌入模型单一常量点：换模型只改这里（P1-11 方案 B）。"""
+    return settings.bge_en_model or DEFAULT_BGE_EN_MODEL
+
+
 def embedding_input_text(heading_path: str | None, content: str) -> str:
     if heading_path:
         return f"[{heading_path}]\n{content}"
@@ -150,7 +159,9 @@ def _validate_vectors(
 
 # ── 响应一致性校验 ──────────────────────────────────────────────────
 
-_response_checksums: dict[str, str] = {}
+# 一致性校验只需保留近期输入，避免 worker 长期运行内存只增不减（P2-I4）
+_RESPONSE_CHECKSUM_MAX_SIZE = _CACHE_MAX_SIZE
+_response_checksums: OrderedDict[str, str] = OrderedDict()
 
 
 def _check_response_consistency(texts: Sequence[str], response: dict) -> None:
@@ -169,6 +180,10 @@ def _check_response_consistency(texts: Sequence[str], response: dict) -> None:
             input_key, prev, resp_hash,
         )
     _response_checksums[input_key] = resp_hash
+    # LRU：命中/新写都移到末尾，超限淘汰最久未用
+    _response_checksums.move_to_end(input_key)
+    if len(_response_checksums) > _RESPONSE_CHECKSUM_MAX_SIZE:
+        _response_checksums.popitem(last=False)
 
 
 async def _embed_tongyi(texts: Sequence[str]) -> list[list[float]]:
@@ -214,41 +229,73 @@ async def _embed_tongyi(texts: Sequence[str]) -> list[list[float]]:
     return _validate_vectors(all_vectors, label="tongyi_embed")
 
 
-async def _embed_bge(texts: Sequence[str]) -> list[list[float]]:
-    """进程内调用 BGE（fastembed ONNX Runtime 或 sentence-transformers）。"""
-    dim = settings.embedding_dim
-    if dim == 1024:
-        # bge-large-zh-v1.5 via sentence-transformers
-        from sentence_transformers import SentenceTransformer
+# BGE 模型惰性加载 + 推理统一放工作线程，避免阻塞事件循环（P1-34）；
+# 锁保证并发请求下只初始化一次，且同一模型串行推理，避免模型线程安全问题。
+_BGE_MODEL_LOCKS: dict[str, threading.Lock] = {
+    "st": threading.Lock(),
+    "fastembed_zh": threading.Lock(),
+    "fastembed_en": threading.Lock(),
+}
+
+
+def _embed_fastembed_blocking(model, texts: list[str]) -> list[list[float]]:
+    """fastembed.embed 返回 generator，必须在线程内消费完再回传。"""
+    return [
+        v.tolist() if hasattr(v, "tolist") else list(v)
+        for v in model.embed(texts)
+    ]
+
+
+def _embed_bge_large_blocking(texts: list[str]) -> list[list[float]]:
+    """bge-large-zh-v1.5 via sentence-transformers；加载与推理都在工作线程。"""
+    from sentence_transformers import SentenceTransformer
+
+    with _BGE_MODEL_LOCKS["st"]:
         if not hasattr(_embed_bge, "_st_model"):
             _embed_bge._st_model = SentenceTransformer(
                 settings.bge_model_path or "/app/models/bge-large-zh-v1.5"
             )
-        model = _embed_bge._st_model
-        all_vectors = model.encode(list(texts), normalize_embeddings=True).tolist()
-    else:
-        # bge-small-zh-v1.5 via fastembed (512 dim)
-        from fastembed import TextEmbedding
+        return _embed_bge._st_model.encode(texts, normalize_embeddings=True).tolist()
+
+
+def _embed_bge_small_blocking(texts: list[str]) -> list[list[float]]:
+    """bge-small-zh-v1.5 via fastembed (512 dim)；加载与推理都在工作线程。"""
+    from fastembed import TextEmbedding
+
+    with _BGE_MODEL_LOCKS["fastembed_zh"]:
         if not hasattr(_embed_bge, "_model"):
             _embed_bge._model = TextEmbedding(
                 model_name="BAAI/bge-small-zh-v1.5",
                 providers=["CPUExecutionProvider"],
             )
-        model = _embed_bge._model
-        all_vectors = [v.tolist() if hasattr(v, 'tolist') else list(v) for v in model.embed(list(texts))]
+        return _embed_fastembed_blocking(_embed_bge._model, texts)
+
+
+def _embed_bge_en_blocking(texts: list[str]) -> list[list[float]]:
+    """bge-small-en-v1.5 via fastembed (384 dim)；加载与推理都在工作线程。"""
+    from fastembed import TextEmbedding
+
+    with _BGE_MODEL_LOCKS["fastembed_en"]:
+        if not hasattr(_embed_bge_en, "_model"):
+            _embed_bge_en._model = TextEmbedding(
+                model_name=current_bge_en_model(),
+                providers=["CPUExecutionProvider"],
+            )
+        return _embed_fastembed_blocking(_embed_bge_en._model, texts)
+
+
+async def _embed_bge(texts: Sequence[str]) -> list[list[float]]:
+    """进程内调用 BGE（fastembed ONNX Runtime 或 sentence-transformers），推理不阻塞事件循环。"""
+    if settings.embedding_dim == 1024:
+        all_vectors = await asyncio.to_thread(_embed_bge_large_blocking, list(texts))
+    else:
+        all_vectors = await asyncio.to_thread(_embed_bge_small_blocking, list(texts))
     return _validate_vectors(all_vectors, label="bge_embed")
 
 
 async def _embed_bge_en(texts: Sequence[str]) -> list[list[float]]:
-    """bge-small-en-v1.5 via fastembed (384 dim)。"""
-    from fastembed import TextEmbedding
-    if not hasattr(_embed_bge_en, "_model"):
-        _embed_bge_en._model = TextEmbedding(
-            model_name="BAAI/bge-small-en-v1.5",
-            providers=["CPUExecutionProvider"],
-        )
-    model = _embed_bge_en._model
-    all_vectors = [v.tolist() if hasattr(v, 'tolist') else list(v) for v in model.embed(list(texts))]
+    """bge-small-en-v1.5 via fastembed (384 dim)，推理不阻塞事件循环。"""
+    all_vectors = await asyncio.to_thread(_embed_bge_en_blocking, list(texts))
     return _validate_vectors(all_vectors, label="bge_en_embed", expected_dim=384)
 
 

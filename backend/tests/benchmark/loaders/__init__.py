@@ -37,9 +37,6 @@ def list_datasets() -> list[str]:
 # 导入子模块以触发注册
 from tests.benchmark.loaders import crag  # noqa: F401, E402
 from tests.benchmark.loaders import liverag  # noqa: F401, E402
-from tests.benchmark.loaders import rageval  # noqa: F401, E402
-from tests.benchmark.loaders import ragbench  # noqa: F401, E402
-from tests.benchmark.loaders import mirage  # noqa: F401, E402
 from tests.benchmark.loaders import enterprise  # noqa: F401, E402
 from tests.benchmark.loaders import beir  # noqa: F401, E402
 from tests.benchmark.loaders import golden_qa  # noqa: F401, E402

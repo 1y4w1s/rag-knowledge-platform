@@ -35,7 +35,7 @@ from app.services.audit.agent import (
 )
 
 NO_BASIS_SUMMARY = "库内无足够依据，未生成 FAQ 草稿"
-BAD_FILENAME_SUMMARY = "filename 须以 .md 结尾"
+BAD_FILENAME_SUMMARY = "filename 须为不含路径分隔符的 .md 文件名"
 THREAD_QUOTA_SUMMARY = "本对话的 FAQ 草稿生成已达上限"
 DAILY_QUOTA_SUMMARY = "今日 FAQ 草稿生成已达上限，请明天再试"
 
@@ -92,8 +92,9 @@ async def run_generate_faq_draft(
             reason=GenerateFaqDraftFailure.kb_not_visible,
         )
 
-    # 2) 文件名须 .md 后缀（G4-1.2 入参校验）
-    if not str(filename).endswith(".md"):
+    # 2) 文件名须为普通 .md 文件名（G4-1.2 入参校验；P2-A6：路径分隔符不得进元数据）
+    name = str(filename)
+    if not name.endswith(".md") or "/" in name or "\\" in name:
         return GenerateFaqDraftToolResult(
             ok=False,
             data=None,

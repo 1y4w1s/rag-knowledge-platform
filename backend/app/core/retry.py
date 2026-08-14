@@ -20,6 +20,7 @@ from app.core.config import settings
 logger = logging.getLogger(__name__)
 
 R = TypeVar("R")
+T = TypeVar("T")
 
 # ── 重试策略 ──────────────────────────────────────────────────────────
 
@@ -139,12 +140,12 @@ class _StreamInterrupted(Exception):
 
 
 async def retry_stream(
-    stream_factory: Callable[[], AsyncIterator[str]],
+    stream_factory: Callable[[], AsyncIterator[T]],
     max_retries: int = 2,
     base_delay: float = 1.0,
     max_delay: float = 10.0,
     breaker_name: str | None = None,
-) -> AsyncIterator[str]:
+) -> AsyncIterator[T]:
     """流式重连包装器：连接中断时自动重连。
 
     适用于 LLM streaming 等 SSE 场景。

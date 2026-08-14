@@ -111,6 +111,7 @@ async def test_deepseek_provider_hits_deepseek_url(
     assert call["url"] == "https://api.deepseek.com/chat/completions"
     assert call["headers"]["Authorization"] == "Bearer sk-ds"
     assert call["json"]["model"] == "deepseek-chat"
+    assert call["json"]["temperature"] == chat_llm.CHAT_TEMPERATURE
 
 
 @pytest.mark.asyncio
@@ -136,6 +137,7 @@ async def test_tongyi_provider_hits_dashscope_compatible(
     assert call["headers"]["Authorization"] == "Bearer sk-ty"
     assert call["json"]["model"] == "qwen-plus"
     assert call["json"]["stream"] is True
+    assert call["json"]["temperature"] == chat_llm.CHAT_TEMPERATURE
 
 
 @pytest.mark.asyncio

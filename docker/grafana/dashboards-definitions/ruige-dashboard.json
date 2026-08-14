@@ -3,7 +3,7 @@
   "__requires": [],
   "title": "睿阁 — 运维监控",
   "uid": "ruige-ops",
-  "version": 1,
+  "version": 2,
   "timezone": "browser",
   "editable": true,
   "refresh": "30s",
@@ -156,6 +156,55 @@
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "fixed", "fixedColor": "orange" }
+        }
+      }
+    },
+    {
+      "title": "EN 覆盖度",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 22 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "max(ruige_embedding_en_coverage)",
+          "legendFormat": "EN 覆盖度"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "color": { "mode": "palette-classic" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "orange", "value": 0.99 },
+              { "color": "green", "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "EN 覆盖缺口",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 22 },
+      "datasource": "Prometheus",
+      "targets": [
+        {
+          "expr": "max(ruige_embedding_en_chunks)",
+          "legendFormat": "已嵌 EN"
+        },
+        {
+          "expr": "max(ruige_searchable_chunks)",
+          "legendFormat": "可检索总数"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" }
         }
       }
     }

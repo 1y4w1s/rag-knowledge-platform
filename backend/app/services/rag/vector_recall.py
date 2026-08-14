@@ -11,6 +11,7 @@ from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
 from app.models.enums import DocumentVisibility
 from app.models.knowledge_base import KnowledgeBase
+from app.services.ingestion.embedder import current_bge_en_model, current_embedding_model
 from app.services.rag.types import _RecallRow
 
 
@@ -19,6 +20,13 @@ def _embedding_column(embedding_col: str | None) -> InstrumentedAttribute:
     if embedding_col == "embedding_en":
         return DocumentChunk.embedding_en
     return DocumentChunk.embedding
+
+
+def _embedding_model_clause(embedding_col: str | None):
+    """主向量列按当前嵌入模型过滤；EN 列按当前 bge_en 模型过滤（P1-11 方案 B）。"""
+    if embedding_col == "embedding_en":
+        return DocumentChunk.embedding_en_model == current_bge_en_model()
+    return DocumentChunk.embedding_model == current_embedding_model()
 
 
 def _visible_kb_clause(visible_kb_ids: frozenset | None):
@@ -64,6 +72,7 @@ async def _vector_recall_kb(
     embedding_col: str | None = None,
 ) -> list[_RecallRow]:
     col = _embedding_column(embedding_col)
+    model_clause = _embedding_model_clause(embedding_col)
     distance = col.cosine_distance(query_vec).label("distance")
     stmt = (
         select(DocumentChunk, Document.filename, distance)
@@ -72,6 +81,8 @@ async def _vector_recall_kb(
         .where(col.is_not(None))
         .where(DocumentChunk.chunk_kind != "parent")
     )
+    if model_clause is not None:
+        stmt = stmt.where(model_clause)
     if hide_admin_only:
         stmt = stmt.where(Document.visibility != DocumentVisibility.admin_only)
     stmt = stmt.where(Document.deleted_at.is_(None))
@@ -100,6 +111,7 @@ async def _vector_recall_workspace(
 ) -> list[_RecallRow]:
     from app.core.scope_utils import kb_scope_clause
     col = _embedding_column(embedding_col)
+    model_clause = _embedding_model_clause(embedding_col)
     distance = col.cosine_distance(query_vec).label("distance")
     scope_clause = kb_scope_clause(scope, org_scope)
     stmt = (
@@ -110,6 +122,8 @@ async def _vector_recall_workspace(
         .where(col.is_not(None))
         .where(DocumentChunk.chunk_kind != "parent")
     )
+    if model_clause is not None:
+        stmt = stmt.where(model_clause)
     if hide_admin_only:
         stmt = stmt.where(Document.visibility != DocumentVisibility.admin_only)
     stmt = stmt.where(Document.deleted_at.is_(None))

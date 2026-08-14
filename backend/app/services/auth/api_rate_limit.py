@@ -21,7 +21,10 @@ from app.services.auth.rate_limit_store import (
     redis_sliding_allow,
     wall_now,
 )
-from app.services.observability.metrics_registry import inc_rate_limit_rejected
+from app.services.observability.metrics_registry import (
+    inc_rate_limit_backend_fallback,
+    inc_rate_limit_rejected,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -220,6 +223,7 @@ async def enforce_api_rate_limit(
             raise
         except Exception as e:
             logger.warning("Redis 限流失败，回退 memory: %s", e)
+            inc_rate_limit_backend_fallback("api")
 
     # Memory：沿用 monotonic，单进程内自洽
     ts_mem = now if now is not None else monotonic()

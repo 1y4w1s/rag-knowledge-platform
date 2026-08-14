@@ -435,6 +435,9 @@ async def get_kb_thread_messages(
         current_user=current_user,
     )
 
+    if not kb_visible:
+        raise ForbiddenError(detail="无权访问该资料库")
+
     rows = await list_chat_messages(
         db,
         kb_id=kb_id,
@@ -442,8 +445,6 @@ async def get_kb_thread_messages(
         limit=limit,
         thread_id=thread_id,
     )
-    if not kb_visible and not rows:
-        raise ForbiddenError(detail="无权访问该资料库")
 
     async def _kb_visible(
         _payload: HistoryCitationPayload, _raw: dict

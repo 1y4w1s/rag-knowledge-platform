@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import ipaddress
+from typing import Iterable
 from urllib.parse import urlparse
 
 # 域名/主机名黑名单（继承既有实现）：IP 类目标统一交由 ipaddress 层判定
@@ -76,3 +77,12 @@ def reject_ssrf_target(
         host == d or host.endswith("." + d) for d in allowed_domains
     ):
         raise ValueError("Webhook URL 域名不在白名单内")
+
+
+def reject_ssrf_resolved_ips(ips: Iterable[str]) -> None:
+    """校验域名解析出的 IP 列表，任一命中内网/回环/链路本地/保留/云元数据即拒绝。"""
+    for ip_str in ips:
+        if _is_forbidden_ip(ip_str):
+            raise ValueError(
+                "Webhook URL 域名解析出的 IP 不能指向内网/回环/链路本地或云元数据地址"
+            )

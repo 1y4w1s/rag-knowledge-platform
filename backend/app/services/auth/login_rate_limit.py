@@ -24,7 +24,10 @@ from app.services.auth.rate_limit_store import (
     redis_zcard_in_window,
     wall_now,
 )
-from app.services.observability.metrics_registry import inc_rate_limit_rejected
+from app.services.observability.metrics_registry import (
+    inc_rate_limit_backend_fallback,
+    inc_rate_limit_rejected,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +49,12 @@ _ip_failures: dict[str, list[float]] = defaultdict(list)
 _strikes: dict[str, int] = defaultdict(int)
 _strike_times: dict[str, float] = {}
 _forgot_password_calls: dict[str, list[float]] = defaultdict(list)
+
+
+def _log_redis_fallback(*, operation: str, error: Exception) -> None:
+    """Redis 降级统一入口：结构化 warning + login 降级计数。"""
+    logger.warning("Redis 登录限流降级，回退 memory: module=login operation=%s error=%s", operation, error)
+    inc_rate_limit_backend_fallback("login")
 
 
 def _rate_limit_key(ip: str | None, identifier: str) -> str:
@@ -118,7 +127,7 @@ async def is_login_rate_limited(
             )
             return n >= MAX_FAILURES
         except Exception as e:
-            logger.warning("Redis 登录限流读取失败，回退 memory: %s", e)
+            _log_redis_fallback(operation="read_failures", error=e)
 
     ts = now if now is not None else monotonic()
     return len(_prune(_rate_limit_key(ip, identifier), now=ts)) >= MAX_FAILURES
@@ -139,7 +148,7 @@ async def is_ip_login_rate_limited(
             )
             return n >= MAX_IP_FAILURES
         except Exception as e:
-            logger.warning("Redis IP 登录限流读取失败，回退 memory: %s", e)
+            _log_redis_fallback(operation="read_ip_failures", error=e)
 
     ts = now if now is not None else monotonic()
     return len(_ip_prune(ip or "unknown", now=ts)) >= MAX_IP_FAILURES
@@ -166,7 +175,7 @@ async def record_login_failure(
             )
             return
         except Exception as e:
-            logger.warning("Redis 登录失败写入失败，回退 memory: %s", e)
+            _log_redis_fallback(operation="write_failures", error=e)
 
     ts = now if now is not None else monotonic()
     key = _rate_limit_key(ip, identifier)
@@ -199,7 +208,7 @@ async def lockout_remaining(key: str, *, now: float | None = None) -> int:
                 return 0
             return int(remaining)
         except Exception as e:
-            logger.warning("Redis strike 读取失败，回退 memory: %s", e)
+            _log_redis_fallback(operation="read_strike", error=e)
 
     ts = now if now is not None else monotonic()
     return _lockout_remaining_memory(key, now=ts)
@@ -219,7 +228,7 @@ async def record_lockout_strike(key: str, *, now: float | None = None) -> None:
             )
             return
         except Exception as e:
-            logger.warning("Redis strike 写入失败，回退 memory: %s", e)
+            _log_redis_fallback(operation="write_strike", error=e)
 
     ts = now if now is not None else monotonic()
     _strikes[key] += 1
@@ -250,7 +259,7 @@ async def enforce_forgot_password_rate_limit(
         except RateLimitError:
             raise
         except Exception as e:
-            logger.warning("Redis 忘记密码限流失败，回退 memory: %s", e)
+            _log_redis_fallback(operation="forgot_password", error=e)
 
     ts = now if now is not None else monotonic()
     window_start = ts - FORGOT_PASSWORD_WINDOW
@@ -273,7 +282,7 @@ async def clear_login_failures(ip: str | None, identifier: str) -> None:
             )
             # IP 桶故意不清：防换号爆破仍受 IP 窗约束
         except Exception as e:
-            logger.warning("Redis 登录计数清除失败，回退 memory: %s", e)
+            _log_redis_fallback(operation="clear_failures", error=e)
 
     _failures.pop(key, None)
     _strikes.pop(key, None)

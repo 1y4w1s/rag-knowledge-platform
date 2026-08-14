@@ -273,6 +273,19 @@ async def transfer_organization_ownership(
     target_membership.is_owner = True
     target_membership.role = OrgRole.admin
 
+    await write_audit_log(
+        db,
+        action="org.ownership_transfer",
+        actor_user_id=acting_owner_id,
+        resource_type="organization",
+        resource_id=org_id,
+        metadata={
+            "prev_owner_user_id": str(acting_owner_id),
+            "new_owner_user_id": str(target_user_id),
+            "prev_owner_email": owner_membership.user.email,
+            "new_owner_email": target_membership.user.email,
+        },
+    )
     await db.commit()
     await db.refresh(owner_membership)
     await db.refresh(target_membership)

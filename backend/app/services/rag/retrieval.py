@@ -575,11 +575,12 @@ async def retrieve_chunks(
                                     len(query),
                                     result[0].similarity if result[0].similarity else 0)
 
-    # 写缓存（仅缓存 KB 级检索结果）
-    if query_cache_enabled():
-        await set_query_cache(kb_id, query, result, hide_admin_only=hide_admin_only)
     # D1 GraphRAG：实体匹配召回（低权重 0.3，不参与 rerank/adaptive_k）
     result = await graph_entity_recall(db, kb_id, query, result, context=context)
+
+    # 写缓存（仅缓存 KB 级检索结果；图谱结果一并入库，冷/热缓存一致，P0-1）
+    if query_cache_enabled():
+        await set_query_cache(kb_id, query, result, hide_admin_only=hide_admin_only)
     return result
 
 
@@ -688,7 +689,7 @@ async def retrieve_workspace_chunks(
         )
         if fused:
             _parent = await load_parent_contents(db, [row.chunk for row in merged.values()])
-            _cand = _build_candidates(fused, merged, _parent, None, None)
+            _cand = _build_candidates(fused, merged, _parent, None, chunk_kb=True)
             logger.info("strategy=simple_ws query_len=%d top_k=%d", len(query), len(_cand[:top_k]))
             return _cand[:top_k]
         strategy = RetrievalStrategy.medium
@@ -813,8 +814,8 @@ async def graph_entity_recall(
 ) -> list[RetrievedChunk]:
     """通过词法匹配实体名，召回关联 chunk，追加到 result 末尾。
 
-    插在写缓存之后、return 之前，不参与 rerank / adaptive_k 等步骤。
-    图谱召回的结果不进缓存。
+    插在写缓存之前、return 之前，不参与 rerank / adaptive_k 等步骤。
+    图谱召回的结果随 result 一并写入查询缓存（P0-1：缓存命中不再丢图谱）。
     """
     if not settings.graph_recall_enabled:
         return result

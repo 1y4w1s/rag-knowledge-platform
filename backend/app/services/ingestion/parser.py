@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import logging
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from pathlib import Path
 
+from app.core.exceptions import ValidationError
+from app.services.documents.magic import assert_zip_archive_safe
 from app.services.ingestion.parser_pdf import (
     _merge_cross_page_blocks,  # noqa: F401  # 向后兼容再导出（tests/test_chunker.py 依赖）
     detect_scanned_pdf,
@@ -241,17 +243,22 @@ def parse_docx(path: Path) -> list[ParsedBlock]:
     return blocks
 
 
-def _rows_to_markdown_table(rows: list[tuple]) -> list[str]:
-    """Convert a 2D array of values to pipe-markdown table lines."""
-    if not rows:
-        return []
+def _rows_to_markdown_table(rows: Iterable[tuple]) -> list[str] | None:
+    """Convert a 2D iterable of values to pipe-markdown table lines."""
+    it = iter(rows)
+    first = next(it, None)
+    if first is None or all(cell is None for cell in first):
+        # read_only 模式未消费完的 sheet 迭代器会干扰后续 sheet，这里必须排空
+        for _ in it:
+            pass
+        return None
     lines: list[str] = []
     # Header row
-    lines.append("| " + " | ".join(str(c or "") for c in rows[0]) + " |")
+    lines.append("| " + " | ".join(str(c or "") for c in first) + " |")
     # Separator
-    lines.append("| " + " | ".join("---" for _ in rows[0]) + " |")
+    lines.append("| " + " | ".join("---" for _ in first) + " |")
     # Data rows
-    for row in rows[1:]:
+    for row in it:
         lines.append("| " + " | ".join(str(c or "") for c in row) + " |")
     return lines
 
@@ -264,10 +271,9 @@ def parse_xlsx(path: Path) -> list[ParsedBlock]:
     blocks: list[ParsedBlock] = []
     for sheet_name in wb.sheetnames:
         ws = wb[sheet_name]
-        rows = list(ws.iter_rows(values_only=True))
-        if not rows or all(cell is None for cell in rows[0]):
+        md_lines = _rows_to_markdown_table(ws.iter_rows(values_only=True))
+        if md_lines is None:
             continue
-        md_lines = _rows_to_markdown_table(rows)
         blocks.append(
             ParsedBlock(
                 content="\n".join(md_lines),
@@ -340,9 +346,23 @@ def parse_document(
     }
     expected_magic = _MAGIC_SIGNATURES.get(ext)
     if expected_magic is not None:
-        header = path.read_bytes()[:4]
+        # P2-I1：仅读文件头 4 字节校验魔数，避免把整个大文件读进内存
+        with path.open("rb") as f:
+            header = f.read(4)
         if not header.startswith(expected_magic):
             raise ValueError(f"文件格式不匹配：扩展名为 .{ext} 但内容格式不符")
+
+    if ext in ("docx", "xlsx", "pptx"):
+        try:
+            assert_zip_archive_safe(path)
+        except ValidationError as exc:
+            logger.warning(
+                "zip bomb rejected: file=%s error_code=%s reason=%s",
+                path,
+                (exc.extra or {}).get("error_code"),
+                (exc.extra or {}).get("reason"),
+            )
+            raise ValueError(exc.detail) from exc
 
     if ext == "pdf":
         if detect_scanned_pdf(path):

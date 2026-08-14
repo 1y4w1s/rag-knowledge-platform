@@ -288,6 +288,7 @@ if __name__ == "__main__":
     _mock_metrics = types.ModuleType("app.services.observability.metrics_registry")
     _mock_metrics.inc_llm_success = lambda: None
     _mock_metrics.inc_llm_failure = lambda: None
+    _mock_metrics.inc_llm_chat_usage = lambda provider, usage: None
     sys.modules["app.services.observability.metrics_registry"] = _mock_metrics
 
     passed = 0

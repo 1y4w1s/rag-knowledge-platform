@@ -5,6 +5,7 @@
 from __future__ import annotations
 
 import logging
+import math
 import os
 import warnings
 
@@ -128,16 +129,23 @@ class RagasRetrievalScorer:
         ground_truth = expect.answer or expect.content_contains
         if not ground_truth:
             logger.warning("RagasRetrievalScorer: 缺少 ground truth，返回默认分")
-            return RetrievalScore()
+            return RetrievalScore(match_details=[{"error": "missing_ground_truth"}])
         chunks_text = [c.content for c in chunks[:top_k] if c.content]
         if not chunks_text:
-            return RetrievalScore()
+            return RetrievalScore(match_details=[{"error": "empty_chunks"}])
         try:
             llm = _get_llm()
             scores = self._single_evaluate(query, chunks_text, ground_truth, llm)
         except Exception as e:
             logger.warning("RAGAS retrieval evaluate 失败: %s", e)
-            return RetrievalScore()
+            return RetrievalScore(
+                match_details=[{"error": "judge_exception", "detail": str(e)[:200]}]
+            )
+        if not all(math.isfinite(v) for v in scores.values()):
+            logger.warning("RAGAS retrieval evaluate 返回非有限分: %s", scores)
+            return RetrievalScore(
+                match_details=[{"error": "judge_non_finite", "detail": str(scores)[:200]}]
+            )
         return RetrievalScore(
             precision_at_k=scores.get("context_precision", 0.0),
             recall_at_k=scores.get("context_recall", 0.0),

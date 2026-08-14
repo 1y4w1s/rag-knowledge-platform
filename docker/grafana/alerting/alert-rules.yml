@@ -79,3 +79,39 @@ groups:
           description: "当前 Ingestion 失败占比 {{ $values.A.Value }}%"
         labels:
           severity: critical
+
+  - name: "睿阁 EN 覆盖度"
+    folder: "睿阁告警"
+    interval: 60s
+    rules:
+      - uid: ruige_embedding_en_coverage_incomplete
+        title: "EN 覆盖度未满（有可检索 chunk）"
+        condition: "B"
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 900
+              to: 0
+            datasourceUid: prometheus
+            model:
+              expr: 'max(ruige_embedding_en_coverage) < 1 and max(ruige_searchable_chunks) > 0'
+              interval: 60s
+              refId: A
+          - refId: B
+            datasourceUid: __expr__
+            type: reduce
+            expression: A
+            reducer: last
+            model:
+              expression: A
+              type: reduce
+              refId: B
+              reducer: last
+        noDataState: NoData
+        execErrState: Error
+        for: 15m
+        annotations:
+          summary: "EN 列覆盖度未满（searchable_chunks > 0 且 coverage < 1）"
+          description: "当前覆盖度 {{ $values.A.Value }}；请核对 ruige_embedding_en_chunks / ruige_searchable_chunks 缺口与 GET /api/v1/internal/re-embed/status，禁止直接切 bge_en 或触发全库重嵌入。"
+        labels:
+          severity: warning

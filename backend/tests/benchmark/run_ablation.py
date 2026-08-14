@@ -78,22 +78,27 @@ def run_variant(dataset: str, variant: str, quick: bool = False) -> Path | None:
     safe_ds = dataset.replace("/", "_")
 
     if dataset == "golden_qa":
-        # golden_qa 不走 run_benchmark（未注册），走专用脚本
-        # ⚠️ run_golden_full 无 argparse，--sample 不生效
-        cmd = ["python", "-m", "tests.benchmark.tests.run_golden_full"]
+        # golden_qa：B1 HyDE 正式消融（25 道低分题 x 3 轮中位数）
+        cmd = [
+            sys.executable, "-m", "tests.benchmark.tests.run_hyde_ablation",
+            "--variant", variant, "--rounds", "3", "--sample", "low-score",
+        ]
+        # 与既往 Hit@3 评测一致：HyDE 消融不需要图谱实体，跳过可省一次入库期 LLM 调用
+        env["SKIP_ENTITY_EXTRACT"] = "1"
         logger.info("运行 variant=%s dataset=%s cmd=%s", variant, dataset, " ".join(cmd))
-        result = subprocess.run(cmd, env=env, capture_output=True, text=True)
+        result = subprocess.run(
+            cmd, env=env, capture_output=True, text=True,
+            encoding="utf-8", errors="replace",
+        )
         if result.returncode != 0:
             logger.error("variant=%s 失败: %s", variant, result.stderr[:200])
             return None
-        # 拷贝结果
-        # golden_qa 输出位置在 tests/benchmark_results/ 下
-        src = Path(__file__).resolve().parent / ".." / "benchmark_results" / "golden_qa_full.json"
+        src = Path(__file__).resolve().parent / ".." / "benchmark_results" / f"hyde_ablation_{variant}.json"
         src = src.resolve()
         if not src.exists():
             logger.warning("variant=%s 结果文件未找到: %s", variant, src)
             return None
-        dst = RESULTS_DIR / f"golden_qa_full_{variant}_{ts}.json"
+        dst = RESULTS_DIR / f"golden_qa_hyde_{variant}_{ts}.json"
         shutil.copy2(src, dst)
         logger.info("variant=%s 结果已保存: %s", variant, dst)
         return dst
@@ -101,13 +106,16 @@ def run_variant(dataset: str, variant: str, quick: bool = False) -> Path | None:
     # 其它 dataset 走 run_benchmark
     sample_args = ["--sample", "20"] if quick else []
     cmd = [
-        "python", "-m", "tests.benchmark.run_benchmark",
+        sys.executable, "-m", "tests.benchmark.run_benchmark",
         "--datasets", dataset,
         "--scorer", "default",
         "--top-k", "3",
     ] + sample_args
     logger.info("运行 variant=%s dataset=%s cmd=%s", variant, dataset, " ".join(cmd))
-    result = subprocess.run(cmd, env=env, capture_output=True, text=True)
+    result = subprocess.run(
+        cmd, env=env, capture_output=True, text=True,
+        encoding="utf-8", errors="replace",
+    )
     if result.returncode != 0:
         logger.error("variant=%s 失败: %s", variant, result.stderr[:200])
         return None
@@ -136,8 +144,75 @@ def _read_hit_at_3(path: Path) -> float | None:
         return None
 
 
+def _load_json(path: Path) -> dict:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _generate_golden_hyde_report(results: dict[str, Path | None], elapsed: float) -> str | None:
+    """生成 B1 HyDE 正式消融报告（Golden QA · 3 轮中位数口径）。"""
+    datas: dict[str, dict] = {}
+    for variant, path in results.items():
+        if path and path.exists():
+            try:
+                data = _load_json(path)
+                if "faithfulness_median" in data.get("summary", {}):
+                    datas[variant] = data
+            except Exception:
+                continue
+    if not datas:
+        return None
+
+    lines = [
+        "# B1 HyDE 消融报告 — Golden QA 25 道低分题 x 3 轮中位数",
+        "",
+        f"> 生成时间：{time.strftime('%Y-%m-%d %H:%M:%S')} · 运行耗时 {elapsed:.0f}s",
+        "",
+        "| 变体 | Hit@3 | MRR | Faithfulness 中位数 | Faithfulness 均值 | 中位数<=0.5 题数 |",
+        "|------|-------|-----|---------------------|-------------------|------------------|",
+    ]
+    for variant in ("off", "hyde"):
+        data = datas.get(variant)
+        if not data:
+            lines.append(f"| {variant} | — | — | — | — | — |")
+            continue
+        s = data["summary"]
+        lines.append(
+            f"| {variant} | {s['hit_at_3']:.1%} | {s['mrr']:.4f} | "
+            f"{s['faithfulness_median']} | {s['faithfulness_mean']} | {s['low_score_median_count']} |"
+        )
+
+    if "off" in datas and "hyde" in datas:
+        off_by = {q["case_id"]: q for q in datas["off"]["questions"]}
+        on_by = {q["case_id"]: q for q in datas["hyde"]["questions"]}
+        lines += ["", "## 25 道低分题变化（on/off 中位数）", "",
+                  "| case_id | 根因 | OFF | ON | Δ |", "|---------|------|-----|----|----|"]
+        for case_id in datas["off"].get("low_score_ids", []):
+            off_q = off_by.get(case_id)
+            on_q = on_by.get(case_id)
+            if not off_q or not on_q:
+                continue
+            off_m = off_q["faithfulness_median"]
+            on_m = on_q["faithfulness_median"]
+            criterion = off_q.get("low_score_criterion", {})
+            delta = "" if off_m is None or on_m is None else f"{on_m - off_m:+.4f}"
+            lines.append(
+                f"| {case_id} | {criterion.get('root_cause', '')} | "
+                f"{off_m} | {on_m} | {delta} |"
+            )
+
+    lines += ["", "## 明细（每题 answer / citations / 低分判据）", ""]
+    for variant, path in results.items():
+        if path and path.exists():
+            lines.append(f"- `{variant}`：{path}")
+    return "\n".join(lines)
+
+
 def generate_report(results: dict[str, Path | None], elapsed: float) -> str:
     """生成 MD 格式消融报告。"""
+    hyde_report = _generate_golden_hyde_report(results, elapsed)
+    if hyde_report is not None:
+        return hyde_report
+
     lines = [
         f"# 消融报告 — {time.strftime('%Y-%m-%d %H:%M:%S')}",
         "",

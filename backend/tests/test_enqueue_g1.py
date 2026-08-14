@@ -33,16 +33,76 @@ async def test_enqueue_eager_uses_background_tasks(monkeypatch: pytest.MonkeyPat
 
 
 @pytest.mark.asyncio
-async def test_enqueue_eager_without_bt_skips(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_enqueue_eager_without_bt_runs_synchronously(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P2-I5：eager 无 BT 不再只打日志，同步执行避免文档永远停在 queued。"""
     monkeypatch.setattr(settings, "celery_task_always_eager_local", True)
-    called = {"delay": False}
+    recorded: list = []
+    delay_called = {"delay": False}
+
+    async def _spy(doc_id) -> None:
+        recorded.append(doc_id)
 
     def _delay(_doc_id: str):
-        called["delay"] = True
+        delay_called["delay"] = True
 
+    monkeypatch.setattr(enqueue_mod, "process_document_ingestion", _spy)
     monkeypatch.setattr(enqueue_mod.ingest_document_task, "delay", _delay)
-    await enqueue_mod.enqueue_document_ingestion(uuid4(), None)
-    assert called["delay"] is False
+    doc_id = uuid4()
+    await enqueue_mod.enqueue_document_ingestion(doc_id, None)
+    assert recorded == [doc_id]
+    assert delay_called["delay"] is False
+
+
+@pytest.mark.asyncio
+async def test_enqueue_eager_without_bt_advances_document_status(
+    client,
+    register_and_login,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """P2-I5：eager 无 BT 同步执行后，文档状态不再停留在 queued。"""
+    monkeypatch.setattr(settings, "celery_task_always_eager_local", True)
+    monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
+
+    async def _complete(doc_id: UUID) -> None:
+        async with SessionLocal() as db:
+            doc = await db.get(Document, doc_id)
+            assert doc is not None
+            doc.status = DocumentStatus.completed
+            await db.commit()
+
+    monkeypatch.setattr(enqueue_mod, "process_document_ingestion", _complete)
+
+    headers, user = await register_and_login(prefix="g1-eager")
+    kb = await create_test_kb(client, headers, user, name="G1 eager no BT")
+    doc_id = uuid4()
+    storage = Path(tmp_path) / "g1-eager.md"
+    storage.write_text("x", encoding="utf-8")
+
+    async with SessionLocal() as db:
+        db.add(
+            Document(
+                id=doc_id,
+                kb_id=UUID(str(kb["id"])),
+                filename="g1-eager.md",
+                file_type="md",
+                file_size=1,
+                content_sha256="b" * 64,
+                storage_path=str(storage),
+                status=DocumentStatus.queued,
+                uploaded_by=UUID(str(user["id"])),
+            )
+        )
+        await db.commit()
+
+    await enqueue_mod.enqueue_document_ingestion(doc_id, None)
+
+    async with SessionLocal() as db:
+        doc = await db.get(Document, doc_id)
+        assert doc is not None
+        assert doc.status == DocumentStatus.completed
 
 
 @pytest.mark.asyncio

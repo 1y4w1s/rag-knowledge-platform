@@ -16,13 +16,14 @@ from app.core.degradation import (
 )
 from app.core.redis import get_redis
 from app.core.retry import get_breaker
+from app.services.agent.tools.guard import ensure_agent_tool_breakers
 from app.services.ingestion.embed_health import probe_embed_readiness
 
 router = APIRouter(tags=["health"])
 
 logger = logging.getLogger(__name__)
 
-BREAKER_NAMES = (
+SERVICE_BREAKER_NAMES = (
     "deepseek_llm",
     "tongyi_llm",
     "bge_rerank",
@@ -30,6 +31,21 @@ BREAKER_NAMES = (
     "bge_embed",
     "tongyi_embed",
 )
+
+
+def _all_breaker_names() -> tuple[str, ...]:
+    return SERVICE_BREAKER_NAMES + tuple(sorted(ensure_agent_tool_breakers()))
+
+
+def _breaker_statuses() -> dict[str, dict]:
+    statuses: dict[str, dict] = {}
+    for name in _all_breaker_names():
+        try:
+            cb = get_breaker(name)
+            statuses[name] = cb.status()
+        except Exception:
+            statuses[name] = {"state": "unknown", "failures": -1}
+    return statuses
 
 
 async def _check_redis() -> bool:
@@ -49,13 +65,7 @@ async def health() -> dict:
     deg_level = assess_degradation()
     events = get_degradation_events(limit=10)
 
-    breakers: dict[str, dict] = {}
-    for name in BREAKER_NAMES:
-        try:
-            cb = get_breaker(name)
-            breakers[name] = cb.status()
-        except Exception:
-            breakers[name] = {"state": "unknown", "failures": -1}
+    breakers = _breaker_statuses()
 
     payload: dict = {
         "status": "ok" if db_ok and redis_ok and deg_level == DegradationLevel.NORMAL else "degraded",
@@ -83,10 +93,17 @@ async def health_live() -> dict:
 
 @router.get("/health/ready")
 async def health_ready() -> dict:
-    """Readiness 探针：数据库 + API Key 是否就绪。"""
+    """Readiness 探针：数据库 + 当前 chat provider 的 API Key 是否就绪。"""
     db_ok = await check_database()
     from app.core.config import settings
-    keys_ok = bool(settings.deepseek_api_key) and bool(settings.tongyi_api_key)
+    from app.services.rag.chat_llm import resolve_chat_provider
+
+    provider = resolve_chat_provider()
+    keys_ok = (
+        bool(settings.tongyi_api_key)
+        if provider == "tongyi"
+        else bool(settings.deepseek_api_key)
+    )
     ready = db_ok and keys_ok
     return {
         "status": "ok" if ready else "degraded",
@@ -154,6 +171,7 @@ async def health_detailed() -> dict:
         "embed": await probe_embed_readiness(),
         "chat": {"provider": resolve_chat_provider()},
         "maintenance": get_maintenance_status(),
+        "breakers": _breaker_statuses(),
     }
 
 

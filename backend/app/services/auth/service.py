@@ -115,11 +115,13 @@ async def register_user(
         )
     )
     if existing:
-        conflict = "邮箱" if existing.email == normalized_email else "用户名"
-        logger.info("register conflict: %s=%s reason=%s_already_exists", conflict, normalized_email if conflict == "邮箱" else normalized_username, conflict)
-        if existing.email == normalized_email:
-            raise ConflictError("该邮箱已注册")
-        raise ConflictError("该用户名已被使用")
+        # P2-S3 防枚举：冲突响应不区分邮箱/用户名，避免暴露注册邮箱是否存在。
+        logger.info(
+            "register conflict: email=%s username=%s reason=email_or_username_exists",
+            normalized_email,
+            normalized_username,
+        )
+        raise ConflictError("该邮箱或用户名已被使用")
 
     user = User(
         id=uuid.uuid4(),

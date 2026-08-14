@@ -1,12 +1,18 @@
 """W5+-2 · 邀请码 validate / register member / admin 发码。"""
 
+from datetime import datetime, timedelta, timezone
+
 import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
 
 from app.core.database import SessionLocal
 from app.models.user import User
-from app.services.organization.invites import INVITE_INVALID_MSG, revoke_organization_invite_code
+from app.services.organization.invites import (
+    INVITE_CODE_PATTERN,
+    INVITE_INVALID_MSG,
+    revoke_organization_invite_code,
+)
 from tests.conftest import unique_email, unique_username
 
 
@@ -158,3 +164,75 @@ async def test_admin_create_invite_requires_admin(
         json={},
     )
     assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_admin_invite_code_has_long_random_suffix(
+    client: AsyncClient,
+    register_and_login,
+) -> None:
+    """P2-P3：邀请码随机后缀默认 ≥8 位，防枚举空间不足。"""
+    headers, _admin = await register_and_login(
+        prefix="invite-len",
+        account_type="enterprise",
+        org_name="长码团队",
+    )
+    resp = await client.post(
+        "/api/v1/organization/invites",
+        headers=headers,
+        json={},
+    )
+    assert resp.status_code == 201
+    code = resp.json()["code"]
+    assert code.startswith("ZHIAN-")
+    suffix = code[len("ZHIAN-"):]
+    assert len(suffix) >= 8
+    assert INVITE_CODE_PATTERN.fullmatch(code) is not None
+
+
+@pytest.mark.asyncio
+async def test_invite_default_expires_in_future(
+    client: AsyncClient,
+    register_and_login,
+) -> None:
+    """P2-P3：不传 expires_at 时不再永不过期，默认 168 小时后过期。"""
+    headers, _admin = await register_and_login(
+        prefix="invite-expiry",
+        account_type="enterprise",
+        org_name="过期团队",
+    )
+    resp = await client.post(
+        "/api/v1/organization/invites",
+        headers=headers,
+        json={},
+    )
+    assert resp.status_code == 201
+    expires_at = resp.json()["expires_at"]
+    assert expires_at is not None
+
+    expires = datetime.fromisoformat(expires_at)
+    now = datetime.now(timezone.utc)
+    assert expires > now
+    assert expires < now + timedelta(hours=170)
+
+
+@pytest.mark.asyncio
+async def test_invite_explicit_expires_at_respected(
+    client: AsyncClient,
+    register_and_login,
+) -> None:
+    """P2-P3：显式传 expires_at 时按传入值落库，不被默认值覆盖。"""
+    headers, _admin = await register_and_login(
+        prefix="invite-explicit-expiry",
+        account_type="enterprise",
+        org_name="显式过期团队",
+    )
+    expected = datetime.now(timezone.utc) + timedelta(hours=1)
+    resp = await client.post(
+        "/api/v1/organization/invites",
+        headers=headers,
+        json={"expires_at": expected.isoformat()},
+    )
+    assert resp.status_code == 201
+    returned = datetime.fromisoformat(resp.json()["expires_at"])
+    assert abs((returned - expected).total_seconds()) < 60

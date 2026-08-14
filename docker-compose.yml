@@ -9,7 +9,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ruige
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env (T6-DC-1)}
       POSTGRES_DB: ruige
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -59,7 +59,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:-changeme}@postgres:5432/ruige
+      DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env (T6-DC-1)}@postgres:5432/ruige
       LOKI_URL: http://loki:3100
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
       RAG_RATE_LIMIT_MODE: bypass
@@ -113,7 +113,7 @@ services:
     env_file:
       - .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:-changeme}@postgres:5432/ruige
+      DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env (T6-DC-1)}@postgres:5432/ruige
     depends_on:
       postgres:
         condition: service_healthy

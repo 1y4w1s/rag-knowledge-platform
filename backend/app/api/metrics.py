@@ -23,22 +23,33 @@ from app.core.degradation import (
     get_degradation_events,
 )
 from app.core.retry import get_breaker
+from app.services.agent.tools.guard import ensure_agent_tool_breakers
 from app.services.observability.metrics_registry import (
+    agent_llm_planner_calls_counter_lines,
+    agent_llm_planner_usage_counter_lines,
+    agent_llm_planner_tokens_counter_lines,
+    agent_tool_calls_counter_lines,
+    agent_tool_latency_gauge_lines,
+    agent_tool_window_rejected_counter_lines,
     backlog_gauge_lines,
     cache_hit_counter_lines,
     chat_answers_counter_lines,
     chats_total,
     documents_backlog_counts,
+    embedding_en_coverage_gauge_lines,
     inc_chat_answer,
     inc_chats_total,
     inc_llm_failure,
     inc_llm_success,
     latency_gauge_lines,
+    llm_chat_usage_counter_lines,
     llm_failure_count,
     llm_success_count,
+    rate_limit_backend_fallback_counter_lines,
     rate_limit_rejected_counter_lines,
     uptime_seconds,
 )
+from app.services.ingestion.re_embed import count_embedding_en_coverage
 
 router = APIRouter(tags=["metrics"])
 
@@ -66,6 +77,15 @@ def require_metrics_token(request: Request) -> None:
 
 
 _METRICS_MEDIA = "text/plain; version=0.0.4; charset=utf-8"
+
+SERVICE_BREAKER_NAMES = (
+    "deepseek_llm",
+    "tongyi_llm",
+    "bge_rerank",
+    "tongyi_rerank",
+    "bge_embed",
+    "tongyi_embed",
+)
 
 
 def _label(key: str, value: str) -> str:
@@ -102,6 +122,24 @@ async def metrics() -> Response:
     lines.extend(rate_limit_rejected_counter_lines())
     lines.append("")
 
+    lines.extend(rate_limit_backend_fallback_counter_lines())
+    lines.append("")
+
+    lines.extend(agent_tool_calls_counter_lines())
+    lines.append("")
+    lines.extend(agent_tool_latency_gauge_lines())
+    lines.append("")
+    lines.extend(agent_tool_window_rejected_counter_lines())
+    lines.append("")
+    lines.extend(agent_llm_planner_calls_counter_lines())
+    lines.append("")
+    lines.extend(agent_llm_planner_tokens_counter_lines())
+    lines.append("")
+    lines.extend(agent_llm_planner_usage_counter_lines())
+    lines.append("")
+    lines.extend(llm_chat_usage_counter_lines())
+    lines.append("")
+
     # Celery 队列长度（死信 / 待处理）
     try:
         from app.core.redis import get_redis as _redis
@@ -123,6 +161,13 @@ async def metrics() -> Response:
     lines.extend(backlog_gauge_lines(backlog))
     lines.append("")
 
+    try:
+        en_coverage = await count_embedding_en_coverage()
+    except Exception:
+        en_coverage = {}
+    lines.extend(embedding_en_coverage_gauge_lines(en_coverage))
+    lines.append("")
+
     level = assess_degradation()
     duration = current_degradation_duration()
     lines.append("# HELP ruige_degradation_level Current degradation level (0-4)")
@@ -137,15 +182,10 @@ async def metrics() -> Response:
 
     lines.append("# HELP ruige_circuit_breaker_info Circuit breaker per service")
     lines.append("# TYPE ruige_circuit_breaker_info gauge")
-    for name in (
-        "deepseek_llm",
-        "tongyi_llm",
-        "bge_rerank",
-        "tongyi_rerank",
-        "bge_embed",
-        "tongyi_embed",
-        "agent_tool_dispatch",
-    ):
+    breaker_names = SERVICE_BREAKER_NAMES + tuple(
+        sorted(ensure_agent_tool_breakers())
+    )
+    for name in breaker_names:
         try:
             cb = get_breaker(name)
             st = cb.status()

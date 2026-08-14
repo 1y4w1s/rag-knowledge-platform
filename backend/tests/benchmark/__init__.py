@@ -16,9 +16,6 @@
       __init__.py    # 加载器注册表
       crag.py        # CRAG 数据集加载器
       liverag.py     # LiveRAG 数据集加载器
-      rageval.py     # RAGEval 数据集加载器
-      ragbench.py    # RAGBench 数据集加载器
-      mirage.py      # MIRAGE 数据集加载器
       enterprise.py  # EnterpriseRAG-Bench 数据集加载器
     runner.py        # BenchmarkRunner
     report.py        # ReportGenerator

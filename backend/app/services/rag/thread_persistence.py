@@ -22,20 +22,43 @@ except ImportError:
     _get_redis = None
 
 
+def _thread_to_cache_payload(thread: ChatThread) -> dict[str, object]:
+    """thread → 可 JSON 序列化的缓存载荷（时间统一 isoformat）。"""
+    return {
+        "id": str(thread.id),
+        "thread_kind": thread.thread_kind.value,
+        "title": thread.title,
+        "status": thread.status.value if thread.status else None,
+        "created_at": thread.created_at.isoformat() if thread.created_at else None,
+        "updated_at": thread.updated_at.isoformat() if thread.updated_at else None,
+        "last_message_at": thread.last_message_at.isoformat() if thread.last_message_at else None,
+    }
+
+
+def _thread_from_cache_payload(item: dict[str, object]) -> ChatThread:
+    """缓存载荷 → ChatThread（thread_kind/status 还原枚举，时间还原 datetime）。"""
+    return ChatThread(
+        id=UUID(str(item["id"])),
+        thread_kind=ThreadKind(str(item["thread_kind"])),
+        title=str(item["title"]),
+        status=ThreadStatus(str(item["status"])),
+        created_at=datetime.fromisoformat(str(item["created_at"])),
+        updated_at=datetime.fromisoformat(str(item["updated_at"])),
+        last_message_at=(
+            datetime.fromisoformat(str(item["last_message_at"]))
+            if item.get("last_message_at")
+            else None
+        ),
+    )
+
+
 async def _cache_thread_list(key: str, threads: list[ChatThread]) -> None:
     """将 thread 列表写入 Redis 缓存（静默失败）。"""
     if _get_redis is None:
         return
     try:
         redis = await _get_redis()
-        data = [{
-            "id": str(t.id),
-            "title": t.title,
-            "status": t.status.value if t.status else None,
-            "created_at": t.created_at.isoformat() if t.created_at else None,
-            "updated_at": t.updated_at.isoformat() if t.updated_at else None,
-            "last_message_at": t.last_message_at.isoformat() if t.last_message_at else None,
-        } for t in threads]
+        data = [_thread_to_cache_payload(t) for t in threads]
         import json
         await redis.setex(key, _THREAD_LIST_CACHE_TTL, json.dumps(data))
     except Exception:
@@ -53,8 +76,7 @@ async def _load_cached_threads(key: str) -> list[ChatThread] | None:
             return None
         import json
         data = json.loads(raw)
-        from app.models.chat_thread import ChatThread as CT
-        return [CT(**{k: v for k, v in item.items() if k != "last_message_at"}) for item in data]
+        return [_thread_from_cache_payload(item) for item in data]
     except Exception:
         return None
 

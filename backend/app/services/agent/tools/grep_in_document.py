@@ -21,6 +21,35 @@ from app.services.agent.tools.scope import AgentToolScope
 DEFAULT_CONTEXT_LINES = 2
 MAX_CONTEXT_LINES = 5
 GREP_MAX_MATCHES = 10
+MAX_PATTERN_LEN = 200
+MAX_EXCERPT_CHARS = 500
+
+
+def _normalize_context_lines(raw: int | None) -> int:
+    """契约 NW-29 §4.6：context_lines ∈ [1, MAX_CONTEXT_LINES]，缺省 2。"""
+    if raw is None:
+        return DEFAULT_CONTEXT_LINES
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return DEFAULT_CONTEXT_LINES
+    return min(max(value, 1), MAX_CONTEXT_LINES)
+
+
+def _build_match_excerpt(content: str, pattern: str, context_lines: int) -> str:
+    """命中行 ± context_lines 的行窗口；heading-only 命中取正文开头同尺寸窗口。"""
+    lines = content.splitlines() or [""]
+    needle = pattern.lower()
+    hit_index = next(
+        (i for i, line in enumerate(lines) if needle in line.lower()), None
+    )
+    if hit_index is None:
+        start, end = 0, min(len(lines), context_lines * 2 + 1)
+    else:
+        start = max(0, hit_index - context_lines)
+        end = min(len(lines), hit_index + context_lines + 1)
+    excerpt = "\n".join(lines[start:end])
+    return excerpt[:MAX_EXCERPT_CHARS]
 
 
 @dataclass(frozen=True, slots=True)
@@ -57,6 +86,13 @@ async def run_grep_in_document(
         return GrepInDocumentToolResult(
             ok=False, data=None, summary="search pattern must not be empty"
         )
+    if len(pattern) > MAX_PATTERN_LEN:
+        return GrepInDocumentToolResult(
+            ok=False,
+            data=None,
+            summary=f"search pattern too long (max {MAX_PATTERN_LEN} chars)",
+        )
+    context_lines = _normalize_context_lines(context_lines)
 
     doc = await db.get(Document, document_id)
     # M8：visible_kb_ids=None（个人 workspace）时不可用 `not in None`（TypeError）；
@@ -97,7 +133,7 @@ async def run_grep_in_document(
         GrepMatch(
             chunk_id=r.id,
             doc_name=doc.filename,
-            content=r.content[:500],
+            content=_build_match_excerpt(r.content, pattern, context_lines),
             page_number=r.page_number,
             section_title=r.section_title,
         )

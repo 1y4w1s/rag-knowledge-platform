@@ -16,6 +16,7 @@ from app.api.ask_common import (
     assert_has_visible_knowledge_bases,
     assert_team_business_allowed,
     citation_visible_in_scope,
+    citations_visible_in_scope_batch,
 )
 from app.core.database import get_db
 from app.core.request_ip import get_client_ip
@@ -448,11 +449,25 @@ async def get_ask_thread_messages(
             department_id=department_id,
         )
 
+    async def _citation_kb_visible_batch(
+        payloads: list[HistoryCitationPayload],
+        raws: list[dict],
+    ) -> list[bool]:
+        return await citations_visible_in_scope_batch(
+            db,
+            current_user,
+            payloads,
+            raws,
+            scope=scope,
+            department_id=department_id,
+        )
+
     messages = await build_chat_message_list(
         db,
         rows,
         current_user=current_user,
         kb_visible_fn=_citation_kb_visible,
+        kb_visible_batch_fn=_citation_kb_visible_batch,
         department_id=department_id,
         include_approval=True,
     )

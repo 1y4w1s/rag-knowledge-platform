@@ -7,8 +7,10 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import event
 
 from app.core.database import SessionLocal
+from app.core.database import engine
 from app.models.chat_feedback import ChatFeedback
 from app.models.chat_message import ChatMessage
 from app.models.chat_thread import ChatThread
@@ -212,3 +214,124 @@ async def test_export_kb_filter_and_missing_query(
     assert len(only_b) == 1
     assert only_b[0].query is None
     assert only_b[0].answer == "无问句的回答"
+
+
+@pytest.mark.asyncio
+async def test_export_batches_query_lookup_and_aligns_latest_round(
+    client: AsyncClient,
+    register_and_login,
+) -> None:
+    """同 thread 多轮反馈各自对齐前一条问句，且不逐条查库（N+1 回归）。"""
+    headers, user = await register_and_login(prefix="i3-batch")
+    kb = await create_test_kb(client, headers, user, name="I3 Batch KB")
+    kb_id = uuid.UUID(kb["id"])
+    user_id = uuid.UUID(user["id"])
+
+    thread_id = uuid.uuid4()
+    t0 = datetime.now(timezone.utc)
+    async with SessionLocal() as db:
+        db.add(
+            ChatThread(
+                id=thread_id,
+                thread_kind=ThreadKind.knowledge_base,
+                kb_id=kb_id,
+                user_id=user_id,
+                title="multi-round export",
+            )
+        )
+        await db.flush()
+        first_user = ChatMessage(
+            id=uuid.uuid4(),
+            thread_kind=ThreadKind.knowledge_base,
+            kb_id=kb_id,
+            user_id=user_id,
+            thread_id=thread_id,
+            role=MessageRole.user,
+            content="第一轮问句",
+            created_at=t0,
+        )
+        first_asst = ChatMessage(
+            id=uuid.uuid4(),
+            thread_kind=ThreadKind.knowledge_base,
+            kb_id=kb_id,
+            user_id=user_id,
+            thread_id=thread_id,
+            role=MessageRole.assistant,
+            content="第一轮回答",
+            created_at=t0 + timedelta(seconds=1),
+        )
+        second_user = ChatMessage(
+            id=uuid.uuid4(),
+            thread_kind=ThreadKind.knowledge_base,
+            kb_id=kb_id,
+            user_id=user_id,
+            thread_id=thread_id,
+            role=MessageRole.user,
+            content="第二轮问句",
+            created_at=t0 + timedelta(seconds=2),
+        )
+        second_asst = ChatMessage(
+            id=uuid.uuid4(),
+            thread_kind=ThreadKind.knowledge_base,
+            kb_id=kb_id,
+            user_id=user_id,
+            thread_id=thread_id,
+            role=MessageRole.assistant,
+            content="第二轮回答",
+            created_at=t0 + timedelta(seconds=3),
+        )
+        db.add_all([first_user, first_asst, second_user, second_asst])
+        await db.flush()
+        fb1 = ChatFeedback(
+            id=uuid.uuid4(),
+            message_id=first_asst.id,
+            user_id=user_id,
+            rating=0,
+        )
+        fb2 = ChatFeedback(
+            id=uuid.uuid4(),
+            message_id=second_asst.id,
+            user_id=user_id,
+            rating=0,
+        )
+        db.add_all([fb1, fb2])
+        # 第二轮之后的新问句：不应被当成第二轮回答的前置问句
+        db.add(
+            ChatMessage(
+                id=uuid.uuid4(),
+                thread_kind=ThreadKind.knowledge_base,
+                kb_id=kb_id,
+                user_id=user_id,
+                thread_id=thread_id,
+                role=MessageRole.user,
+                content="第二轮之后的新问句",
+                created_at=t0 + timedelta(seconds=4),
+            )
+        )
+        await db.commit()
+
+    executed = 0
+
+    def _count_execute(
+        _conn,
+        _cursor,
+        _statement,
+        _parameters,
+        _context,
+        _executemany,
+    ) -> None:
+        nonlocal executed
+        executed += 1
+
+    event.listen(engine.sync_engine, "before_cursor_execute", _count_execute)
+    try:
+        async with SessionLocal() as db:
+            candidates = await list_thumbs_down_candidates(db, kb_id=kb_id)
+    finally:
+        event.remove(engine.sync_engine, "before_cursor_execute", _count_execute)
+
+    assert len(candidates) == 2
+    by_feedback = {c.feedback_id: c for c in candidates}
+    assert by_feedback[fb1.id].query == "第一轮问句"
+    assert by_feedback[fb2.id].query == "第二轮问句"
+    assert executed <= 2

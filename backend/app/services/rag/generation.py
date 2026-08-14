@@ -276,6 +276,9 @@ async def compress_history(history: list[dict[str, str]]) -> str | None:
     """压缩 6 轮以上的历史为摘要。失败或 ≤6 轮时返回 None。"""
     if len(history) <= MAX_ROUNDS_BEFORE_COMPRESS * 2:
         return None
+    # 无 LLM key 时 stream_chat_tokens 会输出兜底文案，不能当真摘要。
+    if not (settings.deepseek_api_key or settings.tongyi_api_key):
+        return None
 
     compress_count = len(history) - KEEP_RECENT_ROUNDS * 2
     older = history[:compress_count]
@@ -314,6 +317,9 @@ async def rewrite_query(query: str) -> str | None:
     """Retry helper: rewrite query when initial retrieval is empty. Returns None on empty/failure."""
     if not query.strip():
         return None
+    # 无 LLM key 时兜底文案不是改写结果，直接返回 None 走原查询重试。
+    if not (settings.deepseek_api_key or settings.tongyi_api_key):
+        return None
     prompt = REWRITE_PROMPT.format(query=query)
     try:
         parts: list[str] = []
@@ -344,6 +350,9 @@ CONTEXTUALIZE_PROMPT = """你是一个对话助手，负责将多轮对话中的
 async def contextualize_query(query: str, history: list[dict[str, str]]) -> str:
     """多轮对话中将最新问题改写为独立检索查询。失败或无历史时返回原问题。"""
     if not history or not query.strip():
+        return query
+    # 无 LLM key 时兜底文案不是独立查询，直接返回原问题。
+    if not (settings.deepseek_api_key or settings.tongyi_api_key):
         return query
 
     lines = []
@@ -378,6 +387,15 @@ MULTI_QUERY_PROMPT = """你是一个检索扩展助手。请将用户的问题�
 3 个查询："""
 
 
+# LLM 多行输出偶尔自带列表编号/项目符号；只剥行首标记，保留句尾数字（"版本3" 不能被削成 "版本"）
+_LIST_PREFIX_RE = re.compile(r"^\s*(?:\d+[、)）．]\s*|\d+\.(?!\d)\s*|[-\*•]\s*)")
+
+
+def _clean_query_line(line: str) -> str:
+    """去掉 LLM 输出行首的列表编号，不影响句尾数字。"""
+    return _LIST_PREFIX_RE.sub("", line.strip().strip('"').strip("'")).strip()
+
+
 async def expand_queries(query: str) -> list[str]:
     """将问题扩展为 3 个不同表述的检索查询，用于多路召回。失败时返回 [query]。"""
     if not query.strip():
@@ -393,7 +411,7 @@ async def expand_queries(query: str) -> list[str]:
         async for token in stream_deepseek_tokens([{"role": "user", "content": prompt}]):
             parts.append(token)
         text = "".join(parts).strip()
-        queries = [q.strip().strip('"').strip("'").strip("- ").strip("123") for q in text.split("\n") if q.strip()]
+        queries = [_clean_query_line(q) for q in text.split("\n") if q.strip()]
         queries = [q for q in queries if len(q) > 3][:3]
         if not queries:
             return [query]
@@ -462,7 +480,7 @@ async def decompose_query(query: str) -> list[str]:
             parts.append(token)
         text = "".join(parts).strip()
         sub_queries = [
-            q.strip().strip('"').strip("'").strip("- ").strip("123. ")
+            _clean_query_line(q)
             for q in text.split("\n")
             if q.strip() and len(q.strip()) > 3
         ]
@@ -716,6 +734,9 @@ async def verify_answer(
     # 拒答不验证
     if _is_rejection_answer(answer):
         return True, None
+    # 无 LLM key 时兜底文案不是验证结果；无法验证时按通过处理。
+    if not (settings.deepseek_api_key or settings.tongyi_api_key):
+        return True, None
 
     # 使用最多 max_chunks 个 chunks
     chunks_text = "\n---\n".join(
@@ -758,6 +779,9 @@ async def _correct_answer(
     max_chunks: int = 5,
 ) -> str | None:
     """根据验证失败的问题生成纠正后的回答。返回新的回答文本，失败时返回 None。"""
+    # 无 LLM key 时兜底文案不是纠正结果。
+    if not (settings.deepseek_api_key or settings.tongyi_api_key):
+        return None
     chunks_text = "\n---\n".join(
         f"[{i+1}] {scrub_llm_context(c.parent_content or c.content)}"
         for i, c in enumerate(chunks[:max_chunks])

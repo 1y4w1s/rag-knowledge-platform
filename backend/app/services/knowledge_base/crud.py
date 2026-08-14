@@ -161,6 +161,16 @@ async def create_knowledge_base(
         )
 
     db.add(kb)
+    await db.flush()
+    await write_audit_log(
+        db,
+        action="kb.create",
+        actor_user_id=current_user.id,
+        resource_type="kb",
+        resource_id=kb.id,
+        kb_id=kb.id,
+        metadata={"name": name, "scope": scope.kind.value},
+    )
     await db.commit()
     await db.refresh(kb)
     logger.info(
@@ -226,6 +236,15 @@ async def update_knowledge_base(
     if body.description is not None:
         kb.description = body.description.strip() if body.description else None
 
+    await write_audit_log(
+        db,
+        action="kb.update",
+        actor_user_id=current_user.id,
+        resource_type="kb",
+        resource_id=kb_id,
+        kb_id=kb_id,
+        metadata={"name": kb.name, "description": kb.description},
+    )
     await db.commit()
     await db.refresh(kb)
     stats = await _kb_document_stats_for_kb(db, kb)

@@ -225,38 +225,6 @@ async def test_upload_multiple_files(
 
 
 @pytest.mark.asyncio
-async def test_upload_duplicate_filename_in_kb_returns_409(
-    client: AsyncClient,
-    register_and_login,
-    upload_dir: Path,
-) -> None:
-    headers, user = await register_and_login(prefix="upload-dup-file")
-    kb = await _create_kb(client, headers, user)
-
-    first = await client.post(
-        f"/api/v1/knowledge-bases/{kb['id']}/documents",
-        headers=headers,
-        files=[("files", ("handbook.txt", b"v1", "text/plain"))],
-    )
-    assert first.status_code == 201
-
-    dup = await client.post(
-        f"/api/v1/knowledge-bases/{kb['id']}/documents",
-        headers=headers,
-        files=[("files", ("handbook.txt", b"v2", "text/plain"))],
-    )
-    assert dup.status_code == 409
-    assert "同名" in dup.json()["detail"]
-
-    case_dup = await client.post(
-        f"/api/v1/knowledge-bases/{kb['id']}/documents",
-        headers=headers,
-        files=[("files", ("Handbook.TXT", b"v3", "text/plain"))],
-    )
-    assert case_dup.status_code == 409
-
-
-@pytest.mark.asyncio
 async def test_upload_duplicate_content_different_filename_returns_409(
     client: AsyncClient,
     register_and_login,

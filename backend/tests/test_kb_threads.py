@@ -1,4 +1,4 @@
-"""G2-1.3：库内 /knowledge-bases/{id}/threads CRUD + thread chat SSE · T-kb-thread-1～6。"""
+"""G2-1.3：库内 /knowledge-bases/{id}/threads CRUD + thread chat SSE · T-kb-thread-1～8。"""
 
 from __future__ import annotations
 
@@ -7,11 +7,20 @@ from pathlib import Path
 
 import pytest
 from httpx import AsyncClient
+from sqlalchemy import delete
 
 from app.core.config import settings
 from app.core.database import SessionLocal
+from app.models.enums import GranteeType, GrantPermission
+from app.models.kb_unit_grant import KbUnitGrant
+from app.models.user import User
 from app.services.rag.persistence import save_kb_chat_turn
 from tests.conftest import create_test_kb as _create_kb
+from tests.fixtures.org_isolation import (
+    OrgIsolationFixture,
+    _login_user,
+    _seed_kb_document_with_ids,
+)
 from tests.test_chat import GOLDEN_MD, _ingest_fixture, _parse_sse_events
 
 
@@ -395,3 +404,76 @@ async def test_t_kb_thread_7_first_message_autotitles_empty_thread(
     assert list_status == 200
     thread = next(item for item in listed["threads"] if item["id"] == thread_id)
     assert thread["title"] == question
+
+
+@pytest.mark.asyncio
+async def test_t_kb_thread_8_thread_messages_hidden_after_grant_revoked(
+    client: AsyncClient,
+    org_iso: OrgIsolationFixture,
+) -> None:
+    """P1-P3：撤 grant 后知识库不可见，thread 历史消息返回 403，正文与引用均不返回。"""
+    async with SessionLocal() as db:
+        db.add(
+            KbUnitGrant(
+                kb_id=org_iso.mkt_kb_id,
+                grantee_type=GranteeType.org_unit,
+                grantee_id=org_iso.rd_id,
+                permission=GrantPermission.read,
+            )
+        )
+        await db.commit()
+
+        rd_user = await db.get(User, org_iso.rd_member.id)
+        assert rd_user is not None
+        headers, _ = await _login_user(client, rd_user.email, "Test123!@")
+
+    create_status, created = await _create_kb_thread(
+        client, headers, str(org_iso.mkt_kb_id), title="撤权前会话"
+    )
+    assert create_status == 201
+    thread_id = created["id"]
+
+    async with SessionLocal() as db:
+        doc_id, chunk_id = await _seed_kb_document_with_ids(
+            db,
+            kb_id=org_iso.mkt_kb_id,
+            uploaded_by=org_iso.mkt_member.id,
+            filename="thread-history-grant.txt",
+            content="thread 历史 grant 引用",
+        )
+        await save_kb_chat_turn(
+            db,
+            kb_id=org_iso.mkt_kb_id,
+            user_id=org_iso.rd_member.id,
+            user_content="可见时的提问",
+            assistant_content="可见时的回答",
+            citations=[
+                {
+                    "chunk_id": str(chunk_id),
+                    "document_id": str(doc_id),
+                    "doc_name": "thread-history-grant.txt",
+                    "page": None,
+                    "section_title": None,
+                    "excerpt": "thread 历史 grant 引用",
+                }
+            ],
+            thread_id=uuid.UUID(thread_id),
+        )
+        await db.commit()
+
+    visible_status, visible_body = await _get_kb_thread_messages(
+        client, headers, str(org_iso.mkt_kb_id), thread_id
+    )
+    assert visible_status == 200
+    assert visible_body["messages"]
+
+    async with SessionLocal() as db:
+        await db.execute(
+            delete(KbUnitGrant).where(KbUnitGrant.kb_id == org_iso.mkt_kb_id)
+        )
+        await db.commit()
+
+    revoked_status, _ = await _get_kb_thread_messages(
+        client, headers, str(org_iso.mkt_kb_id), thread_id
+    )
+    assert revoked_status == 403

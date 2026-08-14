@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { Network } from "vis-network";
 import { DataSet } from "vis-data";
 import { useWorkspace } from "@/lib/workspace-context";
+import { apiGet } from "@/lib/api-client";
 
 interface GraphNode {
   id: string;
@@ -56,11 +57,7 @@ export function KbGraphPage() {
     setLoading(true);
     setError(null);
 
-    fetch(`/api/v1/knowledge-bases/${id}/graph?workspace=${workspace}`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return res.json() as Promise<GraphData>;
-      })
+    apiGet<GraphData>(`/api/v1/knowledge-bases/${id}/graph?workspace=${workspace}`)
       .then((data) => {
         setGraphData(data);
         setLoading(false);
@@ -88,7 +85,7 @@ export function KbGraphPage() {
 
     const edges = new DataSet(
       graphData.edges.map((e) => ({
-        id: `${e.source}->${e.target}`,
+        id: `${e.source}->${e.target}->${e.label}`,
         from: e.source,
         to: e.target,
         label: e.label,

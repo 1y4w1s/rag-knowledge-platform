@@ -14,6 +14,8 @@ MAINTENANCE_TASKS = [
     "trash_purge",
     "stale_scan",
     "chat_retention",
+    "dedup_documents",
+    "reindex_pgvector",
 ]
 
 

@@ -2,11 +2,12 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.deps import CurrentUser, get_current_user
+from app.core.request_ip import get_client_ip
 from app.schemas.settings import (
     AccountSettingsResponse,
     ChangePasswordRequest,
@@ -23,6 +24,7 @@ from app.services.account.settings import (
     leave_team,
     update_profile,
 )
+from app.services.auth.api_rate_limit import ApiRateLimitKind, enforce_api_rate_limit
 
 router = APIRouter(prefix="/settings", tags=["settings"])
 
@@ -52,9 +54,14 @@ async def patch_account_password(
 @router.post("/account/join-team", response_model=JoinTeamResponse)
 async def post_account_join_team(
     body: JoinTeamRequest,
+    request: Request,
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db)],
 ) -> JoinTeamResponse:
+    # P2-P3 加入接口防枚举：复用注册匿名流 register 桶（同 IP 10 次/小时）
+    await enforce_api_rate_limit(
+        ApiRateLimitKind.register, ip=get_client_ip(request),
+    )
     return await join_team_with_invite(
         db,
         current_user,

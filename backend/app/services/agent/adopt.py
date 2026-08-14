@@ -63,9 +63,14 @@ def _markdown_from_approval(approval: AgentApproval) -> str:
     return str(payload.get("markdown", "") or "")
 
 
+def _plain_basename(name: str) -> str:
+    """跨平台取文件名末段：/ 与 \ 均视为路径分隔符（P2-A6 净化兜底）。"""
+    return name.replace("\\", "/").rsplit("/", 1)[-1].strip()
+
+
 async def _filename_exists(db: AsyncSession, *, kb_id: UUID, name: str) -> bool:
     """同一资料库内文件名是否已存在（忽略大小写，复用 upload 同名判定口径）。"""
-    safe = Path(name).name.strip()
+    safe = _plain_basename(name)
     if not safe:
         return False
     existing = await db.scalar(
@@ -76,14 +81,21 @@ async def _filename_exists(db: AsyncSession, *, kb_id: UUID, name: str) -> bool:
     return existing is not None
 
 
+# P2-A4：同名 _vN 档位探测上限，防止同名文档极多时无限循环。
+_MAX_ADOPT_FILENAME_PROBES = 100
+
+
 async def _resolve_adopt_filename(
     db: AsyncSession, *, kb_id: UUID, filename: str
 ) -> str:
     """H4-6-A：同名自动 ``_v2`` / ``_v3``…，不 409。
 
     文件名强制 ``.md`` 后缀（``generate_faq_draft`` 已校验，此处兜底）。
-    从 ``_v2`` 起递增探测，直到命中空闲名（与现网「同名去重」口径一致，仅策略不同）。
+    先取纯文件名（P2-A6：历史 pending 可能带路径分隔符，统一净化）。
+    从 ``_v2`` 起递增探测，最多 ``_MAX_ADOPT_FILENAME_PROBES`` 次；档位全被占用时
+    返回带随机短尾的合法文件名（P2-A4 有界兜底）。
     """
+    filename = _plain_basename(filename) or "faq-draft.md"
     path = Path(filename)
     stem = path.stem or "faq-draft"
     suffix = path.suffix.lower() or ".md"
@@ -93,11 +105,12 @@ async def _resolve_adopt_filename(
     if not await _filename_exists(db, kb_id=kb_id, name=base):
         return base
     n = 2
-    while True:
+    for _ in range(_MAX_ADOPT_FILENAME_PROBES):
         candidate = f"{stem}_v{n}{suffix}"
         if not await _filename_exists(db, kb_id=kb_id, name=candidate):
             return candidate
         n += 1
+    return f"{stem}-{uuid.uuid4().hex[:8]}{suffix}"
 
 
 async def adopt_draft_to_kb(

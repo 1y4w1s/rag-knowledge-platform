@@ -1,239 +1,45 @@
-# 睿阁（Ruige）— 企业级知识库 RAG 平台
+<h1 align="center">睿阁（Ruige）</h1>
+<p align="center">
+  <strong>企业级知识库 RAG 平台：从文档到答案，可溯源、可审计、可运营。</strong>
+  <br />
+  <em>多格式入库 · Hybrid 检索 · 引用溯源对话 · 企业权限与审计</em>
+</p>
 
-> **从文档到答案，可溯源、可审计、可运营。**  
-> 不是 ChatPDF 的平替，而是企业知识管理的基础设施。
+<p align="center">
+  <a href="#快速开始"><img src="https://img.shields.io/badge/快速开始-10B981?style=flat" alt="快速开始" /></a>
+  <a href="https://github.com/1y4w1s/rag-knowledge-platform/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/1y4w1s/rag-knowledge-platform/ci.yml" alt="CI" /></a>
+</p>
 
-```
-文档 → 结构入库 → Hybrid 检索 → 溯源对话 → 审计闭环
-```
+> 睿阁不是 ChatPDF 的平替，而是企业知识管理的基础设施：每个回答都附带文档名、章节位置和原文片段，无依据时明确拒答，不做黑盒问答。
 
 ---
 
-## 为什么做睿阁
-
-企业知识管理面临一个结构性矛盾：**文档越管越多，找到答案越来越难。**
-
-传统方案各走极端：
-- **NAS / Wiki** — 存得住，找不着。全文检索靠关键词，同义/近义查询全部漏掉
-- **ChatPDF / 通用 RAG** — 问得出，不可信。黑盒回答无溯源，企业无法审计"AI 说了什么、依据是什么"
-- **纯向量检索** — 语义好，精度差。精确匹配（合同编号、金额、人名）一塌糊涂
-
-**睿阁的选择**：不做最强 AI，做**最可用的企业 RAG**。
+## 功能特性
 
 | 能力 | 说明 |
 |------|------|
-| 多格式入库 | PDF / DOCX / PPTX / XLSX / Markdown / TXT（扫描 PDF 可走 OCR）→ 结构优先切片 → 向量 + FTS 混合索引 |
-| 溯源对话 | 每个回答附带文档名、位置、原文片段，支持逐条引用查验 |
-| 企业权限 | Owner / Admin / Member 三级 + 部门树 + 资料库级别隔离 |
-| 审计合规 | 50+ 种操作审计事件，Admin 可查询 / 导出 |
-| 可部署 | Docker Compose 一键部署，内网 HTTP，非 root 容器，健康检查三板斧 |
-| 可观测 | Prometheus 指标 + OpenTelemetry 追踪 + 熔断器 |
-
----
-
-## 架构总览
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        浏览器 (React SPA)                    │
-│  登录 · 概览 · 资料库 · 对话 · 预览 · 管理 · 组织          │
-└─────────────────────────┬───────────────────────────────────┘
-                          │ HTTP (REST + SSE)
-┌─────────────────────────▼───────────────────────────────────┐
-│                    FastAPI (Python 3.11)                     │
-│  路由层 → 业务层 → 数据层                                   │
-│  JWT 认证 · RBAC 权限 · 限流 · 审计日志 · 熔断器           │
-└────┬──────────────┬──────────────┬──────────────────────────┘
-     │              │              │
-┌────▼──────┐ ┌────▼──────┐ ┌────▼──────────────────┐
-│ PostgreSQL │ │   Redis   │ │  文件存储 (Docker volume)│
-│ + pgvector │ │ 限流/队列 │ │  PDF · Office · MD · TXT │
-│ + FTS      │ │           │ │                        │
-└────────────┘ └───────────┘ └────────────────────────┘
-     │
-┌────▼─────────────────────────────────────────────────────────┐
-│  Celery Worker (异步入库)                                    │
-│  解析 → 切片 → 嵌入 → 入库 → Webhook 通知                   │
-└──────────────────────────────────────────────────────────────┘
-```
-
-**三层分离**：
-- **API 进程**：处理实时对话、搜索、管理操作，无阻塞任务
-- **Worker 进程**：消费入库队列，大文件解析 / OCR / 嵌入异步执行
-- **DB + 向量**：PostgreSQL/pgvector 统一存储元数据、全文索引、向量嵌入
-
----
-
-## 核心设计决策
-
-### 1. 切片：结构优先，而非固定窗口
-
-固定长度滑动窗口是 RAG 最常见的坑——打断段落、混合主题、丢失上下文。
-
-```
-朴素切片 (500 字滑动):      结构化切片 (heading_path 感知):
-┌──────────────────┐        ┌──────────────────┐
-│ 第一章 考勤制度    │        │ 第一章 考勤制度    │ ← 完整段落
-│ 1.1 工作时间      │        │ 1.1 工作时间      │
-│ 1.2 迟到处理 ...  │        │ 1.2 迟到处理      │
-├──────────────────┤        ├──────────────────┤
-│ 1.2 迟到处理(续)  │ ← 打断  │ 第二章 薪酬福利    │ ← 完整段落
-│ 第二章 薪酬福利    │        │ 2.1 薪资结构      │
-└──────────────────┘        └──────────────────┘
-```
-
-每个 chunk 携带 `heading_path` 元数据链（如 `员工手册>第一章 考勤>1.2 迟到`），检索时可精准定位章节路径，前端渲染时展开层级面包屑。
-
-### 2. 混合检索：向量 + FTS，RRF 融合
-
-| 场景 | 向量检索 | 全文检索 | 融合后 |
-|------|---------|---------|--------|
-| 同义查询（"薪资" → "薪酬福利"） | ✅ | ❌ | ✅ |
-| 精确匹配（合同编号 "CT-2024-001"） | ❌ | ✅ | ✅ |
-| 中英混合 | ✅ | ⚠️ | ✅ |
-| 数字/金额/日期 | ⚠️ | ✅ | ✅ |
-
-权重调优：`w_v=1.0, w_f=1.2`（全文略高，因为企业文档中精确匹配场景更关键）。
-
-### 3. 嵌入选型：BGE-small-zh，不要 GPU
-
-做过完整消融：
-
-**嵌入选型消融**（golden_qa 109 题）：
-
-| 模型 | 维度 | 推理方式 | Hit@3 | P50 |
-|------|------|----------|-------|-----|
-| 通义 text-embedding-v3 | 1536 | API（阿里云） | 86% | 1,817ms |
-| **BGE-small-zh** | **512** | **ONNX CPU** | **86%** | **395ms** |
-| BGE-large-zh | 1024 | PyTorch CPU | 86% | 4,897ms |
-
-三者检索质量完全一致。BGE-small-zh 比通义快 4.6 倍、零外部依赖、无需 GPU。
-
-**检索链路消融**（golden_qa 89 题非拒答，BGE-small-zh）：
-
-| 配置 | Hit@1 | Hit@3 | Hit@5 | MRR | 耗时 |
-|------|-------|-------|-------|-----|------|
-| ① Baseline（纯向量） | 0.888 | 1.000 | 1.000 | 0.944 | 15s |
-| ② +FTS（向量+FTS 拼接） | 0.888 | 1.000 | 1.000 | 0.944 | 14s |
-| ③ +RRF（RRF 融合） | 0.888 | 1.000 | 1.000 | 0.944 | 15s |
-| ④ +Rerank（always） | **0.921** | **1.000** | **1.000** | **0.961** | 50s |
-| ⑤ +Multi-turn | N/A¹ | N/A¹ | N/A¹ | N/A¹ | — |
-| ⑥ Full（生产配置）² | ~0.915 | ~1.000 | ~1.000 | ~0.958 | ~20s |
-
-> ¹ 多轮改写需多轮对话数据集验证，未在单轮 golden_qa 上评测。
-> ² Full = RRF + 条件 Rerank（仅在排序歧义时触发），延迟为条件均值。
-
-**边际提升分析**：
-
-| 优化步骤 | 边际 Hit@1 ↑ | Hit@3 | 延迟代价 |
-|---------|-------------|-------|---------|
-| Baseline → +FTS | 持平 | 持平 | ✅ 几乎免费 |
-| +FTS → +RRF | 持平 | 持平 | ✅ 几乎免费 |
-| +RRF → +Rerank | **+3.3pp** | 持平 | ⚠ +35ms/query（always）→ +5ms（conditional） |
-
-**结论**：golden_qa 在当前 BGE 嵌入上 Hit@3 已饱和。Rerank 是唯一有可测收益的优化（Hit@1 +3.3pp），生产上以条件模式控制延迟增量。更显著的对比预计在 enterprise_qa（含 6 份跨领域文档）上出现。
-
-### 4. LLM 选型：DeepSeek + 通义双备
-
-- **主链路**：DeepSeek Chat（性价比高，中文能力强）
-- **备用**：阿里云通义千问（国内合规，API 兼容）
-- **Key 仅服务端**：前端不接触任何 LLM / Embedding 密钥
-- **熔断器**：连续失败达到阈值（默认 5 次）后开路，并按 provider 链切换备用
-
-### 5. 多轮对话：Query 改写 + 引用对齐
-
-```
-用户："v3.0 支持哪些格式？"
-系统："PDF、DOCX、Markdown、TXT [片段2]。"
-用户："那 v2.4 呢？"
-  → contextualize_query("那 v2.4 呢？", [历史]) → "v2.4 版本支持哪些文档格式？"
-  → 检索 → 回答
-```
-
-引用对齐：流式生成时 LLM 输出 `[片段N]`，终态按正文实际出现的标记裁剪。不会出现「引用了片段5但只给了3个片段」的幻觉。
-
----
-
-## 企业级能力
-
-### 权限模型
-
-```
-账号类型 → 个人版 / 企业版
-企业版角色 → Company Admin（全组织） / Unit Admin（本部门） / Member（只读+对话）
-资料库隔离 → kb_id 注入所有查询，Member 写操作统一 403
-部门树     → grant 传播：父部门库 → 子部门可见
-```
-
-### 安全架构
-
-| 层 | 措施 |
-|----|------|
-| 传输 | 内网 HTTP（TLS 由客户反代负责）|
-| 认证 | JWT 24h + 密码强度 ≥8+大写+小写+数字+特殊字符 |
-| 限流 | 登录 3/5min · Chat 30/min · Upload 10/min（Redis 或 Memory 后端）|
-| 输入 | magic 字节校验（防伪装上传）+ 安全敏感词过滤 |
-| 输出 | PII 脱敏（手机/身份证/邮箱）· 拒绝服务自验证 |
-| 审计 | 50+ 操作事件 · Admin 列表/筛选/CSV 导出 · 永久留存（NW-51） |
-
-### 运维可观测
-
-```
-/health          → {status, database, redis, degradation}
-/health/detailed → {database, redis, embed, ocr, latency, disk, chat}
-/health/ready    → {status, database}   (K8s readiness probe)
-/metrics         → 手写 Prometheus 指标：延迟分位、拒答计数、积压队列
-```
-
-熔断器（6 个独立熔断器）：`deepseek_llm` / `tongyi_llm` / `bge_embed` / `bge_rerank` / `tongyi_embed` / `tongyi_rerank`
-
----
-
-## 性能基准
-
-> 注意：以下延迟数据来自本机 Docker 栈实测（2026-07-22），一次采样，非长期统计。
-> Hit@3 分数除延迟列标注外均来自 CI 环境（mock 嵌入 + mock LLM），不直接代表生产表现。
-
-### 检索延迟（一次采样）
-
-| 指标 | P50 | P95 | SLO |
-|------|-----|-----|-----|
-| 检索端到端 | 930ms | 1,500ms | ≤ 2,500ms |
-| 对话 TTFT (thorough) | 956ms | 982ms | ≤ 5,000ms |
-
-### 检索质量（CI 门禁数据，非生产）
-
-| 测试集 | 题数 | Hit@3 | 嵌入方式 | 说明 |
-|--------|------|-------|---------|------|
-| Golden QA（中文企业，L1-L4 分层） | 12 | 12/12 ✅ | mock | CI 门禁：R5-2 golden gate，修改检索/入库必过 |
-| Enterprise QA（异质企业文档） | 108 | ~25%/54% | mock | 6 份异构企业文档；54% 为修复 test 断言后的诚实基线，25% 为修复前 |
-| CRAG English（英文 Wikipedia） | 100 | 26% | 真实 bge-small-en | 外部英文评测集，仅作参考 |
-
-建议：生产验收须用真实嵌入 + 真实 LLM 抽测，不能只看 CI 绿。
-
-### 代码与质量
-
-| 指标 | 值 |
-|------|----|
-| 后端业务 Python | ≈ 3.4 万行（不含 tests / venv / 本地模型） |
-| 前端源码 | ≈ 3.0 万行（TS/TSX/CSS，不含测试） |
-| 测试 | ≈ 250 个用例 · 151 个 `test_*.py` 文件（以 `pytest --collect-only` 为准） |
-| CI 门禁 | Ruff + pytest A 层 + Hit@3 Golden Gate（**12** 题） |
-| 混沌测试 | 容器断连脚本 (PG/Redis/Celery 停服验证) |
+| 多格式入库 | PDF / DOCX / PPTX / XLSX / Markdown / TXT；扫描 PDF 走 OCR；按 `heading_path` 结构化切片，保留章节路径，`max_chars=1200` |
+| Hybrid 检索 | pgvector（ivfflat，512 维）与 PostgreSQL FTS（tsquery）经 RRF 融合，权重 `w_v=1.0 / w_f=1.5`（2026-08-09 全矩阵扫参定档） |
+| 引用溯源对话 | SSE 流式生成，终态按正文裁剪引用，杜绝「引用了片段但未给出」的幻觉；三级置信度 normal / low / refuse，无依据明确拒答 |
+| 企业权限与审计 | 个人版 / 企业版，Owner / Admin / Member 与部门树；`kb_id` 注入所有查询，Member 写操作统一 403；50+ 审计事件可查询、可导出 |
+| Agent 子系统 | 确定性 ThoroughReadPlanner（simple / standard / complex，1-3 步工具链）；12 个工具，写操作走审批，长期记忆 |
+| 可观测与部署 | `/health` 三件套、手写 Prometheus 指标、OpenTelemetry 追踪、6 个熔断器与 L0-L4 显式降级；Docker Compose 内网 HTTP，非 root 容器 |
 
 ---
 
 ## 快速开始
 
-> 只要 API 本机联调：`docker compose up -d` → `http://localhost:8000/health`。  
-> **要打开产品九页**：用生产覆盖层（含 nginx `web`），入口是 **80**，不是 8000。
+### 前置条件
+
+- Docker 与 Docker Compose
+- 至少一个 LLM Key（DeepSeek 或通义）；嵌入默认走本地 BGE ONNX，无需 Key
+
+### 克隆并配置
 
 ```bash
-# 1. 克隆
 git clone https://github.com/1y4w1s/rag-knowledge-platform.git
 cd rag-knowledge-platform
 
-# 2. 配置环境变量（创建 .env；数据库等其余变量 compose 已提供默认值）
 cat > .env <<'EOF'
 JWT_SECRET=replace-with-a-long-random-string
 CHAT_PROVIDER=deepseek
@@ -241,63 +47,138 @@ DEEPSEEK_API_KEY=sk-xxx            # 对话主链路（必填之一）
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-chat
 TONGYI_API_KEY=                    # 备用 LLM + 嵌入（可选）
-EMBEDDING_PROVIDER=tongyi
-EMBEDDING_MODEL=text-embedding-v2
+EMBEDDING_PROVIDER=bge             # bge=本地 ONNX（默认，零云依赖）；tongyi=云 API 备选
+# EMBEDDING_MODEL=text-embedding-v2 # 仅 EMBEDDING_PROVIDER=tongyi 时使用
 EOF
-
-# 3. 启动（API + Worker + 前端 web）
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-
-# 4. 验证
-curl http://localhost:8000/health
-# 期望 database 为 ok（字段以实际响应为准）
-
-# 5. 打开前端
-# 浏览器访问 http://localhost/   （web:80 → 静态页 + /api 反代）
 ```
 
-首次构建视机器而定（常需数分钟）。监控扩展：`docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d`。
+### 启动
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+```
+
+首次构建视机器而定，通常需要数分钟。API 服务监听 `8000`，前端入口为 `80`。
+
+### 验证
+
+```bash
+curl http://localhost:8000/health
+```
+
+期望返回 `database: ok`（字段以实际响应为准）。浏览器访问 `http://localhost/` 打开完整前端。
 
 ---
 
-## 技术取舍
+## 使用方法
 
-原则不是「功能永远关着」，而是：**默认走低成本主路径；用可观测信号决定何时加贵一步**（评测门禁不绿则不加）。
+### 浏览器工作流
 
-### 基础设施（偏硬约束）
+1. 打开 `http://localhost/` 并登录（企业版支持邀请码注册）。
+2. 创建资料库，上传 PDF / Office / Markdown / TXT 文档。
+3. 等待入库完成（Worker 异步解析、切片、嵌入）。
+4. 发起对话，核对回答中的文档名、章节位置与原文片段；无依据时系统会明确拒答。
 
-| 取舍 | 现状 | 何时重新审视 |
-|------|------|----------------|
-| 向量索引 | ivfflat | chunk 规模到数万级、召回明显掉点 → 评估 HNSW |
-| 缓存 | LRU TTL≈3600s | 文档高频更新导致「改完仍旧答案」→ 主动失效或缩短 TTL |
-| TLS | 内网 HTTP | 公网暴露 → 客户侧反代 HTTPS（本仓不做公网 TLS） |
-| 会话 | JWT 24h + localStorage | 安全审计强制 Cookie/CSRF 时再开（Research 已有，Implement 触发制） |
+### 健康检查
 
-### 检索增强（默认关开关 ≠ 放弃效果）
+```bash
+curl http://localhost:8000/health
+curl http://localhost:8000/health/detailed
+```
 
-A2 真路径评测表明：对企业异构题集 **全程默认开 BGE rerank** 会打散大量本已在 Top-3 的题（RRF Hit@3 高、开 rerank 后跌）。因此默认 `RERANK_ENABLED=false`，但正确方向是 **条件介入**，而不是永久不用：
+`/health` 返回 database / redis / degradation 状态；`/health/detailed` 覆盖 embed、ocr、latency、disk、chat 等细项。
 
-| 能力 | 默认 | 介入思路（控成本） | 验收门槛 |
-|------|------|-------------------|----------|
-| **Rerank** | 关 | 仅在「值得精排」时开：如 thorough 模式、Top 分差过小、诊断为 RANK_4_20（针在 4～20 名）、短列表歧义高；fast 路径可继续纯 RRF | 同池诊断：`diagnose_enterprise_rank.py --rerank`；Golden 12/12 不掉；企业题 Hit@3 不劣于关 |
-| **多查询 / 改写** | `query_rewrite_enabled=False` | 多轮已有 contextualize；单轮仅在 miss_pool / 短问指代不清时扩展，避免每问×N 倍检索 | 延迟预算内；Hit@3 有增益或持平 |
-| **OCR** | 能力已落地（Format-F4）；镜像是否带 Paddle/poppler 看部署 | 扫描件 / 无文字层 PDF 才走 OCR；文字层 PDF 走版式降噪，不付 OCR 成本 | `/health/detailed.ocr` 可读；失败文案可区分「未安装 / 未启用 / 缺 poppler」 |
+### 对话接口
 
-一句话：**贵能力按「题型 × 模式 × 分数信号」触发；用评测证明「加钱买到了排序」，再扩默认面。**
+对话走 SSE 流式：`POST /api/v1/knowledge-bases/{kb_id}/threads/{thread_id}/chat`，响应以流式事件返回引用与正文。核心接口见下方 API 章节。
 
 ---
 
-## 技术栈
+## 架构
 
-| 层 | 技术 | 选型理由 |
-|----|------|---------|
-| 后端框架 | FastAPI (Python 3.11) | 异步原生 · Pydantic 集成 · 自动 OpenAPI |
-| 数据库 | PostgreSQL 16 + pgvector | 关系+向量+全文索引同实例，零 ETL |
-| 异步任务 | Celery + Redis | 成熟稳定，入库队列不丢消息 |
-| 向量嵌入 | BGE-small-zh (ONNX CPU) | 零外部依赖 · 无需 GPU · 延迟 395ms P50 |
-| LLM | DeepSeek + 通义千问 | 性价比高 · 双备熔断 |
-| 前端 | React + Vite + Tailwind | 轻量 · 设计 token 可控 · 无全局状态库 |
-| 部署 | Docker Compose | 单机足够 · 非 root 容器 · 健康检查 |
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'fontSize': '14px'}}}%%
+graph TD
+    A[浏览器<br/>React SPA] -->|HTTP REST + SSE| B[FastAPI<br/>Python 3.11]
+    B --> C[JWT 认证 · RBAC · 限流 · 审计]
+    B --> D[RAG 链路<br/>RRF 检索 → 生成 → 引用对齐]
+    B --> E[Agent 链路<br/>Planner → 工具 → 审批 → 记忆]
+    D --> F[(PostgreSQL 16<br/>pgvector + FTS)]
+    D --> G[(Redis<br/>限流 / 队列)]
+    E --> F
+    B --> H[Celery Worker<br/>解析 → 切片 → 嵌入 → 入库]
+    H --> F
+    B --> I[LLM / Embedding<br/>DeepSeek · 通义 · BGE]
+
+    classDef client fill:#3B82F6,stroke:#2563EB,color:#fff,stroke-width:2px
+    classDef service fill:#10B981,stroke:#059669,color:#fff,stroke-width:2px
+    classDef auth fill:#F97316,stroke:#EA580C,color:#fff,stroke-width:2px
+    classDef data fill:#8B5CF6,stroke:#7C3AED,color:#fff,stroke-width:2px
+    classDef external fill:#F43F5E,stroke:#E11D48,color:#fff,stroke-width:2px
+
+    class A client
+    class B service
+    class C auth
+    class D,E service
+    class F,G data
+    class H service
+    class I external
+```
+
+系统按进程分三层：
+
+- **API 进程**：处理实时对话、搜索与管理操作，不执行阻塞任务。
+- **Worker 进程**：消费入库队列，大文件解析、OCR、嵌入异步执行。
+- **DB + 向量**：PostgreSQL 16 / pgvector 统一存储元数据、全文索引与向量嵌入，Redis 承担限流与队列。
+
+LLM / Embedding Key 仅存于服务端，前端不接触任何密钥。
+
+---
+
+## 核心设计决策
+
+| 决策 | 现状 | 依据 |
+|------|------|------|
+| 切片 | 结构优先：按 `heading_path` 保留章节路径，而非固定长度窗口 | 固定窗口会打断段落、混合主题、丢失上下文 |
+| 检索融合 | RRF 融合向量 + FTS，`w_f=1.5` | 2026-08-09 全矩阵扫参定档；企业文档精确匹配场景更关键 |
+| 精排 | BGE reranker 默认关，仅排序歧义时条件触发 | 全量开 rerank 会打散已在 Top-3 的题，Hit@3 不升反跌 |
+| 嵌入 | BGE-small-zh（ONNX CPU，512 维，P50 395ms） | 与通义 text-embedding-v3 同分（86%），快 4.6 倍且零云依赖 |
+| 拒答 | 三级置信度 normal / low / refuse | 无依据必须拒答，禁止编造 |
+| 多轮 | contextualize 改写 + 换题门闩（bigram Jaccard） | 同 thread 换主题自动清历史，避免跨题污染 |
+
+贵能力按「题型 × 模式 × 分数信号」触发，用评测门禁证明收益后再扩默认面。
+
+---
+
+## 配置
+
+| 变量 | 说明 | 默认 |
+|------|------|------|
+| `POSTGRES_PASSWORD` | PostgreSQL 密码；compose 必填，缺失即 fail-fast | 无 |
+| `JWT_SECRET` | 会话签名密钥 | 无 |
+| `CHAT_PROVIDER` | 主 LLM：`deepseek` / `tongyi` | `deepseek` |
+| `DEEPSEEK_API_KEY` | 主链路 Key | 空 |
+| `DEEPSEEK_BASE_URL` / `DEEPSEEK_MODEL` | 主链路地址与模型 | `api.deepseek.com` / `deepseek-chat` |
+| `TONGYI_API_KEY` | 备用 LLM + 嵌入 | 空 |
+| `EMBEDDING_PROVIDER` | `bge`（本地 ONNX）/ `tongyi` | `bge` |
+| `GRAFANA_PASSWORD` | 监控登录密码（生产建议 ≥32 位随机字符） | 无 |
+
+本地 `.env` 不入库；`scripts/init-secrets.ps1` 可在部署前校验密钥是否仍为占位符、权限是否受限。
+
+---
+
+## API（核心接口）
+
+| Method | Path | 说明 |
+|--------|------|------|
+| GET | `/health` | 健康检查（database / redis / degradation） |
+| POST | `/api/v1/auth/login` | 登录获取 JWT |
+| POST | `/api/v1/knowledge-bases` | 创建资料库 |
+| POST | `/api/v1/knowledge-bases/{kb_id}/documents` | 上传文档（multipart） |
+| POST | `/api/v1/knowledge-bases/{kb_id}/threads` | 创建对话线程 |
+| POST | `/api/v1/knowledge-bases/{kb_id}/threads/{thread_id}/chat` | 溯源对话（SSE 流式） |
+| GET | `/api/v1/admin/audit-logs` | 审计日志（Admin，支持 CSV 导出） |
+| GET | `/metrics` | Prometheus 指标（需 metrics token） |
 
 ---
 
@@ -307,41 +188,78 @@ A2 真路径评测表明：对企业异构题集 **全程默认开 BGE rerank** 
 backend/
 ├── app/
 │   ├── api/            # 路由层（≤200 行/文件）
-│   ├── services/       # 业务层（认证·入库·检索·对话·审计·组织）
+│   ├── services/       # 业务层（认证 · 入库 · 检索 · 对话 · 审计 · 组织）
 │   ├── models/         # SQLAlchemy ORM 模型
 │   ├── schemas/        # Pydantic 请求/响应
-│   └── core/           # 配置·DB·Redis·安全·熔断·可观测
+│   └── core/           # 配置 · DB · Redis · 安全 · 熔断 · 可观测
 └── tests/              # pytest（A 层门禁 + golden / 场景拆分）
 
 frontend/
 └── src/
     ├── pages/          # 页面组件
     ├── components/     # 业务组件（按域分目录）
-    └── lib/            # API 客户端·Hooks·Context
+    └── lib/            # API 客户端 · Hooks · Context
 ```
+
+---
+
+## 技术栈
+
+| 层 | 技术 | 用途 |
+|----|------|------|
+| 后端 | FastAPI（Python 3.11）+ SQLAlchemy（async） | API 与数据访问 |
+| 数据库 | PostgreSQL 16 + pgvector | 关系、向量、全文索引同实例 |
+| 异步 | Celery + Redis | 入库队列，解析 / OCR / 嵌入异步执行 |
+| 嵌入 | BGE-small-zh（ONNX CPU） | 零云依赖，512 维，P50 395ms |
+| LLM | DeepSeek + 通义千问 | 双备熔断，Key 仅服务端 |
+| 前端 | React 19 + Vite + TypeScript + Tailwind | 19 个页面，全懒加载 |
+| 部署 | Docker Compose + Nginx | 非 root 容器，健康检查三板斧 |
+| 可观测 | Prometheus + OpenTelemetry | 手写指标、追踪、告警 |
 
 ---
 
 ## 评测与质量门禁
 
-```
-Golden 门禁（12 题，CI Hit@3 必须 12/12）
-    → 企业 / CRAG 等更大题集：诊断与回归，不作 PR 硬红灯（除非另开 job）
-    → 生产抽测: 真实嵌入 + 真实 LLM
-    → 👎 人工审题: 导出候选 → 人工判断 → 可手工扩 golden（禁止脚本直写门禁）
-```
+| 测试集 | 题数 | Hit@3 | 说明 |
+|--------|------|-------|------|
+| Golden QA 硬门禁 | 12 | 12/12 | CI 强制，修改检索 / 入库必过 |
+| Golden QA 全量 | 110（测试展开 135 passed + 0 xfailed） | 通过 | GQ-1 ~ GQ-110，只上不下 |
+| Enterprise QA | 90 | 60%（CI mock）/ 71.1%（8/9 真向量 n=90） | CI 门禁基线 / 对外观测 |
+| Advanced QA | 14 | 14/14 | 8/4 CI |
+| CRAG English | 100 | 26% | 外部英文参考集，仅作参考 |
+
+延迟数据来自本机 Docker 栈实测（2026-07-22，单次采样）：检索端到端 P50 930ms / P95 1500ms（SLO ≤2500ms）；对话 TTFT P50 956ms / P95 982ms（SLO ≤5000ms）。
+
+规模（2026-08-10 实测）：后端业务 Python ≈3.3 万行（32,805 行，不含 tests）；前端源码 ≈2.9 万行（28,919 行）；后端测试 219 个 `test_*.py` 文件。CI 门禁含 Ruff、pytest A 层、Hit@3 Golden Gate、`alembic check` 与 config wiring。
+
+---
+
+## 部署
+
+### Docker Compose
 
 ```bash
-# 检索向评测入口
-python scripts/run_benchmark.py --dataset all --mode retrieval
+# API + Worker + 前端 web
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+
+# 监控扩展（Prometheus + Grafana）
+docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
 ```
+
+默认面向内网 HTTP 部署，TLS 由客户侧反代负责；`/health` 返回 `database: ok` 视为部署就绪。CI 配置见 `.github/workflows/`（`ci.yml` / `benchmark.yml` / `regression.yml`）。
+
+---
+
+## 贡献
+
+1. Fork 仓库并创建特性分支（`git checkout -b feat/xxx`）。
+2. 提交使用 Conventional Commits（`feat:` / `fix:` / `test:` / `docs:`）。
+3. 推送分支并提交 Pull Request。
+
+详细流程见 [CONTRIBUTING.md](CONTRIBUTING.md)。改动检索、入库、模型或权限时，CI 的 Hit@3 Golden Gate 与 `alembic check` 会作为门禁把关。
 
 ---
 
 ## 许可证
 
 本项目采用 MIT License。
-
----
-
-*从文档到答案，每一行都可追溯。*

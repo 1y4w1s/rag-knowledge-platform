@@ -26,14 +26,17 @@ def ingest_document_task(self, doc_id: str) -> dict:
         doc_id: Document.id 的字符串形式（UUID）。
 
     Returns:
-        {"status": "completed", "doc_id": doc_id}
-        或 {"status": "failed", "doc_id": doc_id, "error": "..."}
+        {"status": "completed" | "failed" | "skipped", "doc_id": doc_id}
     """
     logger.info("ingestion task started: doc_id=%s attempt=%d", doc_id, self.request.retries)
     try:
-        anyio.run(process_document_ingestion, UUID(doc_id))
-        logger.info("ingestion task completed: doc_id=%s", doc_id)
-        return {"status": "completed", "doc_id": doc_id}
+        outcome = anyio.run(process_document_ingestion, UUID(doc_id))
+        logger.info(
+            "ingestion task finished: doc_id=%s outcome=%s",
+            doc_id,
+            outcome.value,
+        )
+        return {"status": outcome.value, "doc_id": doc_id}
     except Exception:
         logger.exception("ingestion task failed: doc_id=%s", doc_id)
         raise  # Celery 根据 autoretry_for 自动重试

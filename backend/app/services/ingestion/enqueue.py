@@ -47,16 +47,18 @@ async def enqueue_document_ingestion(
 ) -> None:
     """按开关入队 ``process_document_ingestion``。
 
-    - eager（默认）：须有 ``BackgroundTasks``，否则只打日志、不入队（A-bt）。
+    - eager（默认）：有 BT 时后台执行；无 BT 时同步执行兜底，避免文档永远停在 queued（P2-I5）。
     - 非 eager：有 BT 时延后 delay（便于 adopt 在 commit 前调用）；无 BT 则立即 delay。
     - delay 抛错 → 文档 queued→failed（F-log）。
     """
     if settings.celery_task_always_eager_local:
         if background_tasks is None:
             logger.warning(
-                "ingestion enqueue skipped: eager mode requires BackgroundTasks doc_id=%s",
+                "ingestion enqueue fallback: eager mode without BackgroundTasks, "
+                "running synchronously doc_id=%s",
                 document_id,
             )
+            await process_document_ingestion(document_id)
             return
         background_tasks.add_task(process_document_ingestion, document_id)
         return

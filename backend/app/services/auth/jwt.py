@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime, timedelta
 from typing import Any
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import jwt
 
@@ -25,6 +25,8 @@ def create_access_token(
     payload: dict[str, Any] = {
         "sub": str(user_id),
         "account_type": account_type.value,
+        # P2-S2：每枚 access token 带唯一 jti，为按枚吊销提供 ID
+        "jti": uuid4().hex,
         "iat": now,
         "exp": now + timedelta(hours=settings.access_token_expire_hours),
     }

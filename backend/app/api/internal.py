@@ -1,23 +1,33 @@
 ﻿"""运维内部路由：全库重嵌（R2-4）+ orphan 扫描（H2）。
 
-F2（authz-security-survey R1）：纳入 JWT 鉴权 + 静态令牌双因子。
-- 全局中间件默认拒绝 → /api/v1/internal/* 不再匿名可达，须持合法 JWT（操作可归因）。
-- 路由级保留静态令牌（X-Re-Embed-Token / X-Orphan-Scan-Token）作授权第二因子。
-- orphan-scan 真删需 confirm=true 二次确认（R1 防误删他租户活动文件护栏），并写审计。
+F2（authz-security-survey R1）：JWT 鉴权 + 静态令牌双因子；orphan-scan 真删需 confirm=true。
 """
 
 import hmac
-from typing import Annotated
+from typing import Annotated, Literal
+from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Header, Query, Request
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.core.config import settings
 from app.core.database import SessionLocal, get_db
 from app.core.deps import CurrentUser, get_current_user
-from app.core.exceptions import BadRequestError, ForbiddenError, NotFoundError
+from app.core.exceptions import (
+    BadRequestError,
+    ForbiddenError,
+    NotFoundError,
+    ValidationError,
+)
 from app.services.audit.log import write_audit_log
-from app.services.ingestion.re_embed import count_stale_chunks, re_embed_all_chunks
+from app.services.ingestion.embedder import current_bge_en_model
+from app.services.ingestion.re_embed import (
+    count_en_gap_chunks,
+    count_embedding_en_coverage,
+    count_stale_chunks,
+    re_embed_all_chunks,
+    re_embed_en_gap_chunks,
+)
 from app.services.storage.orphan_scan import (
     apply_orphans,
     load_owner_index,
@@ -26,6 +36,13 @@ from app.services.storage.orphan_scan import (
 )
 
 router = APIRouter(prefix="/internal", tags=["internal"])
+
+
+class ReEmbedRequest(BaseModel):
+    """POST /re-embed 可选范围：缺省为全库 stale 重嵌；en_gap 按 kb 补嵌偏英缺口。"""
+
+    kb_id: UUID | None = None
+    mode: Literal["stale", "en_gap"] = "stale"
 
 
 def _check_static_token(provided: str | None, expected: str | None, label: str) -> None:
@@ -57,37 +74,81 @@ async def post_re_embed(
     background_tasks: BackgroundTasks,
     operator: Annotated[CurrentUser, Depends(require_re_embed_operator)],
     db: Annotated[AsyncSession, Depends(get_db)],
+    body: ReEmbedRequest | None = None,
 ) -> dict[str, object]:
-    """触发后台全库重嵌（须 JWT + RE_EMBED_TOKEN）。"""
-    stale = await count_stale_chunks()
-    background_tasks.add_task(re_embed_all_chunks)
+    """触发后台重嵌；en_gap 按 kb 补嵌偏英缺口（须 JWT + RE_EMBED_TOKEN）。"""
+    kb_id = body.kb_id if body is not None else None
+    mode = body.mode if body is not None else "stale"
+    if mode == "en_gap":
+        if kb_id is None:
+            raise ValidationError(detail="en_gap 模式必须指定 kb_id")
+        en_model = current_bge_en_model()
+        en_gap = await count_en_gap_chunks(kb_id=kb_id)
+        background_tasks.add_task(re_embed_en_gap_chunks, kb_id=kb_id)
+        await write_audit_log(
+            db,
+            action="re_embed_trigger",
+            actor_user_id=operator.id,
+            resource_type="system",
+            kb_id=kb_id,
+            metadata={
+                "mode": "en_gap",
+                "en_gap_chunks": en_gap,
+                "en_model": en_model,
+                "kb_id": str(kb_id),
+            },
+        )
+        await db.commit()
+        return {
+            "status": "started",
+            "en_gap_chunks": en_gap,
+            "en_model": en_model,
+            "operator": str(operator.id),
+            "kb_id": str(kb_id),
+        }
+    stale = await count_stale_chunks(kb_id=kb_id)
+    background_tasks.add_task(re_embed_all_chunks, kb_id=kb_id)
     await write_audit_log(
         db,
         action="re_embed_trigger",
         actor_user_id=operator.id,
         resource_type="system",
-        metadata={"stale_chunks": stale, "embedding_model": settings.embedding_model},
+        kb_id=kb_id,
+        metadata={
+            "stale_chunks": stale,
+            "embedding_model": settings.embedding_model,
+            "kb_id": str(kb_id) if kb_id else None,
+        },
     )
+    await db.commit()
     return {
         "status": "started",
         "stale_chunks": stale,
         "embedding_model": settings.embedding_model,
         "operator": str(operator.id),
+        "kb_id": str(kb_id) if kb_id else None,
     }
 
 
 @router.get("/re-embed/status")
 async def get_re_embed_status(
     operator: Annotated[CurrentUser, Depends(require_re_embed_operator)],
+    kb_id: Annotated[UUID | None, Query()] = None,
 ) -> dict[str, object]:
-    """查询待重嵌 chunk 数量（不启动任务）。"""
-    stale = await count_stale_chunks()
-    return {
+    """查询重嵌进度与 EN 列覆盖度，可按 kb_id 限定（不启动任务）。"""
+    stale = await count_stale_chunks(kb_id=kb_id)
+    en_coverage = await count_embedding_en_coverage(kb_id=kb_id)
+    body: dict[str, object] = {
         "stale_chunks": stale,
+        **en_coverage,
         "embedding_model": settings.embedding_model,
         "provider": settings.embedding_provider,
         "operator": str(operator.id),
+        "kb_id": str(kb_id) if kb_id else None,
     }
+    if kb_id is not None:
+        body["en_gap_chunks"] = await count_en_gap_chunks(kb_id=kb_id)
+    return body
 
 
 @router.post("/orphan-scan")
@@ -98,10 +159,7 @@ async def post_orphan_scan(
     dry_run: Annotated[bool, Query()] = True,
     confirm: Annotated[bool, Query()] = False,
 ) -> dict[str, object]:
-    """扫描 upload_dir 无主文件；默认干跑。须 JWT + ORPHAN_SCAN_TOKEN。
-
-    dry_run=False 执行物理删除时，必须 confirm=true 作为二次确认（R1 防误删护栏）。
-    """
+    """扫描 upload_dir 无主文件；默认干跑，真删需 confirm=true（JWT + ORPHAN_SCAN_TOKEN）。"""
     if not dry_run and not confirm:
         raise BadRequestError(detail="执行删除需显式 confirm=true")
 
@@ -117,7 +175,6 @@ async def post_orphan_scan(
             dry_run=dry_run,
             max_delete=settings.orphan_max_delete,
         )
-
     if not dry_run:
         client_ip = request.client.host if request.client else None
         await write_audit_log(

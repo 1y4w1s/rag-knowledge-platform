@@ -1,7 +1,12 @@
-# 睿阁 — 监控栈（Grafana + Loki）
+# 睿阁 — 监控栈（Grafana + Loki + Prometheus + Tempo）
 # 用法：docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
 # 验收：http://localhost:3000  →  Grafana（admin/admin）
 #       http://localhost:3100/ready  →  Loki ready
+#       http://localhost:9090/-/ready → Prometheus ready（scrape api:8000/metrics）
+
+configs:
+  metrics_token:
+    content: ${METRICS_BEARER_TOKEN:-}
 
 services:
   loki:
@@ -26,6 +31,38 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: ruige-prometheus
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9090:9090"
+    environment:
+      METRICS_BEARER_TOKEN: ${METRICS_BEARER_TOKEN:-}
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    configs:
+      - source: metrics_token
+        target: /run/secrets/metrics_token
+        uid: "65534"
+        gid: "65534"
+        mode: 0440
+    depends_on:
+      api:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--tries=1", "-O-", "http://localhost:9090/-/healthy"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   grafana:
     image: grafana/grafana:11.1.0
     container_name: ruige-grafana
@@ -34,7 +71,7 @@ services:
       - "127.0.0.1:3001:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD must be set in .env (T6-DC-2)}
       GF_INSTALL_PLUGINS: ""
       GF_AUTH_ANONYMOUS_ENABLED: "false"
     volumes:
@@ -85,3 +122,4 @@ volumes:
   loki_data:
   grafana_data:
   tempo_data:
+  prometheus_data:

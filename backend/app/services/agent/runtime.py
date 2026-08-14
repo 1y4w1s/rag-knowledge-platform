@@ -29,6 +29,7 @@ from app.services.audit.agent import (
     audit_agent_run_started,
     audit_agent_tool_denied,
     audit_agent_tool_executed,
+    audit_agent_tool_replanned,
 )
 from app.services.agent.runs import (
     DEFAULT_MAX_STEPS,
@@ -53,19 +54,43 @@ from app.services.agent.tools import (
     run_search_documents,
     run_semantic_search,
 )
+from app.services.agent.tools.guard import (
+    AGENT_TOOL_BREAKER_TOOL_NAMES,
+    EXTERNAL_TOOL_NAMES,
+    allow_tool_window,
+    ensure_agent_tool_breakers,
+    resolve_tool_run_limit,
+    tool_breaker_name,
+)
 from app.services.agent.tools.scope import FORBIDDEN_KB_SUMMARY, AgentToolScope
+from app.services.agent.tool_fallback import (
+    ToolFallbackPlan,
+    classify_tool_failure,
+    find_equivalent_tool,
+    materialize_fallback_step,
+    should_replan,
+)
 from app.services.agent.types import (
     AgentBudgetEvent,
     AgentRunOutcome,
     AgentStepRecord,
+    StepExecution,
     ToolCallPlan,
+    ToolFailure,
+    ToolFailureKind,
     ToolResultEvent,
     ToolStartEvent,
 )
 from app.services.org.scope import OrgScope
+from app.services.observability.metrics_registry import (
+    inc_agent_tool_call,
+    record_agent_tool_latency,
+)
 from app.services.workspace.scope import WorkspaceScope
 
 DEFAULT_RUN_TIMEOUT_SECONDS = 120
+_TOOL_EXECUTION_FAILED_SUMMARY = "工具执行失败，已尝试自动恢复"
+MAX_FROZEN_TOOL_SKIPS = 3
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +103,17 @@ def _as_uuid_or_none(value: object) -> UUID | None:
 
 def _as_uuid(value: object) -> UUID:
     return UUID(str(value))
+
+
+def _json_safe_args(value: Any) -> Any:
+    """AgentStep.args_json 为 JSONB：替换计划中的 UUID 需转为字符串。"""
+    if isinstance(value, UUID):
+        return str(value)
+    if isinstance(value, list):
+        return [_json_safe_args(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _json_safe_args(item) for key, item in value.items()}
+    return value
 
 
 class ToolPlanner(Protocol):
@@ -171,6 +207,12 @@ async def _dispatch_tool(
             top_k=args.get("top_k"),
         )
     elif tool_name == ReadOnlyToolName.search_documents:
+        raw_kb_ids = args.get("kb_ids")
+        kb_ids = (
+            [UUID(str(item)) for item in raw_kb_ids]
+            if raw_kb_ids
+            else None
+        )
         result = await run_search_documents(
             db,
             workspace,
@@ -179,6 +221,7 @@ async def _dispatch_tool(
             tool_scope=tool_scope,
             mode=args.get("mode"),
             limit=args.get("limit"),
+            kb_ids=kb_ids,
         )
     elif tool_name == ReadOnlyToolName.get_chunk_excerpt:
         chunk_id = args.get("chunk_id")
@@ -262,6 +305,9 @@ async def _dispatch_tool(
         )
         return result.ok, result.summary, result
     elif tool_name == AgentToolName.web_search:
+        # P2-A3 防御纵深：总开关除 planner 提示词层过滤外，runtime 分发层再拦一道。
+        if not settings.external_tools_enabled:
+            return False, "web_search 已关闭（EXTERNAL_TOOLS_ENABLED=false）", None
         from app.services.agent.tools.web_search import web_search as _ws
         result = await _ws(query=args.get("query", ""), num_results=args.get("num_results", 5))
         return result.ok, result.summary, result.data
@@ -273,6 +319,22 @@ async def _dispatch_tool(
         return False, f"unknown or disallowed tool: {tool_name.value}", None
 
     return result.ok, result.summary, result.data
+
+
+def _record_tool_metric(tool_name: str, execution: StepExecution) -> None:
+    """_execute_step 全路径统一计数与延迟指标。"""
+    if execution.failure is not None and execution.failure.breaker_open:
+        status = "breaker_open"
+    elif execution.ok:
+        status = "ok"
+    else:
+        status = "failed"
+    inc_agent_tool_call(
+        tool_name,
+        status,
+        external=tool_name in EXTERNAL_TOOL_NAMES,
+    )
+    record_agent_tool_latency(tool_name, float(execution.latency_ms))
 
 
 async def _execute_step(
@@ -287,32 +349,89 @@ async def _execute_step(
     run_id: UUID,
     thread_id: UUID,
     user_id: UUID,
-) -> tuple[bool, str, int, Any]:
+) -> StepExecution:
     t0 = time.perf_counter()
     try:
         parsed = parse_agent_tool(tool_name)
     except UnknownToolError as exc:
         latency_ms = int((time.perf_counter() - t0) * 1000)
-        return False, str(exc), latency_ms, None
+        failure = classify_tool_failure(
+            tool_name=tool_name,
+            ok=False,
+            summary=str(exc),
+            data=None,
+        )
+        execution = StepExecution(
+            ok=False,
+            summary=str(exc),
+            latency_ms=latency_ms,
+            data=None,
+            failure=failure,
+        )
+        _record_tool_metric(tool_name, execution)
+        return execution
 
-    ok, summary, data = await async_retry(
-        _dispatch_tool,
-        db,
-        workspace=workspace,
-        tool_scope=tool_scope,
-        org_scope=org_scope,
-        current_user=current_user,
-        tool_name=parsed,
-        args=args,
-        run_id=run_id,
-        thread_id=thread_id,
-        user_id=user_id,
-        max_retries=settings.retry_max_attempts,
-        base_delay=settings.retry_base_delay,
-        breaker_name="agent_tool_dispatch",
+    breaker_name = (
+        tool_breaker_name(parsed.value)
+        if parsed.value in AGENT_TOOL_BREAKER_TOOL_NAMES
+        else None
     )
+    try:
+        ok, summary, data = await async_retry(
+            _dispatch_tool,
+            db,
+            workspace=workspace,
+            tool_scope=tool_scope,
+            org_scope=org_scope,
+            current_user=current_user,
+            tool_name=parsed,
+            args=args,
+            run_id=run_id,
+            thread_id=thread_id,
+            user_id=user_id,
+            max_retries=settings.retry_max_attempts,
+            base_delay=settings.retry_base_delay,
+            breaker_name=breaker_name,
+        )
+    except Exception as exc:
+        latency_ms = int((time.perf_counter() - t0) * 1000)
+        failure = classify_tool_failure(
+            tool_name=tool_name,
+            ok=False,
+            summary=_TOOL_EXECUTION_FAILED_SUMMARY,
+            data=None,
+            exception=exc,
+        )
+        logger.warning(
+            "tool infra failure: tool=%s error=%s",
+            tool_name,
+            exc,
+        )
+        execution = StepExecution(
+            ok=False,
+            summary=_TOOL_EXECUTION_FAILED_SUMMARY,
+            latency_ms=latency_ms,
+            data=None,
+            failure=failure,
+        )
+        _record_tool_metric(tool_name, execution)
+        return execution
     latency_ms = int((time.perf_counter() - t0) * 1000)
-    return ok, summary, latency_ms, data
+    failure = classify_tool_failure(
+        tool_name=tool_name,
+        ok=ok,
+        summary=summary,
+        data=data,
+    )
+    execution = StepExecution(
+        ok=ok,
+        summary=summary,
+        latency_ms=latency_ms,
+        data=data,
+        failure=failure,
+    )
+    _record_tool_metric(tool_name, execution)
+    return execution
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -338,7 +457,8 @@ def _detect_reflection_signal(
     from app.services.rag.confidence_reply import LOW_CONFIDENCE_SIM_CEILING
 
     # A：召回不足
-    if last_step.tool_name in ("semantic_search", "search_documents"):
+    # search_documents 返回 SearchDocumentsOutput（无 score），不做 low_recall 判定
+    if last_step.tool_name == "semantic_search":
         output = last_step.data
         hits = output.hits if output else ()
         if not hits or all(h.score < LOW_CONFIDENCE_SIM_CEILING for h in hits):
@@ -359,7 +479,7 @@ def _detect_low_confidence(records: list[AgentStepRecord]) -> bool:
 
     all_scores: list[float] = []
     for step in records:
-        if step.tool_name in ("semantic_search", "search_documents"):
+        if step.tool_name == "semantic_search":
             out = step.data
             if out and out.hits:
                 all_scores.extend(h.score for h in out.hits)
@@ -501,14 +621,24 @@ async def _run_react_loop_until_outcome(
     deadline = time.monotonic() + timeout_seconds
     reflection_count = 0
     memory_ctx = ""
-    external_calls = 0
+    tool_run_counts: dict[str, int] = {}
+    search_successes = 0
+    fallback_queue: list[ToolFallbackPlan] = []
+    replan_count = 0
+    tool_fallback_count = 0
+    # W3 接入 settings.agent_max_tool_replans 前保持默认 2；0 表示关闭重规划。
+    replan_limit = getattr(settings, "agent_max_tool_replans", 2)
 
     # E3：加载记忆注入 planner（仅 LLMPlanner 路径，受 ablation 开关控制）
     if isinstance(planner, LLMPlanner) and settings.agent_memory_enabled:
         memories = await load_active_memories(db, user_id)
         memory_ctx = format_memory_context(memories)
-        if memory_ctx:
-            planner._memory_context = memory_ctx
+        planner._memory_context = memory_ctx
+
+    # W2：先预注册工具 breaker，确保 web_search 的 2/15 override 在惰性创建前生效。
+    ensure_agent_tool_breakers()
+    frozen_tools: set[str] = set()
+    frozen_skips = 0
 
     while steps_used < max_steps:
         if time.monotonic() >= deadline:
@@ -516,15 +646,37 @@ async def _run_react_loop_until_outcome(
             break
 
         step_index = steps_used + 1
-        plan = await planner.next_tool_call(
-            query=query,
-            step_index=step_index,
-            steps_used=steps_used,
-            max_steps=max_steps,
-            prior_steps=tuple(records),
-        )
-        if plan is None:
-            break
+        current_source: str | None = None
+        if fallback_queue:
+            fallback_plan = fallback_queue.pop(0)
+            materialized = materialize_fallback_step(
+                fallback_plan, tuple(records)
+            )
+            if materialized is None:
+                continue
+            current_source = fallback_plan.source
+            plan = ToolCallPlan(
+                tool_name=materialized.tool_name,
+                args=_json_safe_args(materialized.args),
+            )
+        else:
+            plan = await planner.next_tool_call(
+                query=query,
+                step_index=step_index,
+                steps_used=steps_used,
+                max_steps=max_steps,
+                prior_steps=tuple(records),
+            )
+            if plan is None:
+                break
+
+        if plan.tool_name in frozen_tools:
+            logger.warning("工具 %s 已熔断冻结，本轮跳过", plan.tool_name)
+            if current_source is None:
+                frozen_skips += 1
+                if frozen_skips >= MAX_FROZEN_TOOL_SKIPS:
+                    break
+            continue
 
         args_summary = build_args_summary(plan.tool_name, plan.args)
         await effective_hooks.on_tool_start(
@@ -540,12 +692,53 @@ async def _run_react_loop_until_outcome(
             args_json=plan.args,
         )
 
-        # E4：外部工具统一计数门禁（每轮 ≤AGENT_MAX_EXTERNAL_CALLS 次；sql_query 已下线）
-        _is_external = plan.tool_name == AgentToolName.web_search.value
-        if _is_external and external_calls >= settings.agent_max_external_calls_per_conversation:
-            logger.warning("外部工具已达上限（≤%d 次/轮），跳过 %s",
-                           settings.agent_max_external_calls_per_conversation, plan.tool_name)
-            ok, summary, latency_ms, data = False, "外部工具调用已达上限", 0, None
+        # G2 W3：每轮 tool_run_counts 泛化 + web_search 窗口限流（拒绝 = disabled + 等价替换）
+        _is_external = plan.tool_name in EXTERNAL_TOOL_NAMES
+        run_limit = resolve_tool_run_limit(plan.tool_name)
+        limited_summary: str | None = None
+        limited_reason: str | None = None
+
+        if run_limit is not None and tool_run_counts.get(plan.tool_name, 0) >= run_limit:
+            limited_summary = "工具调用已达本轮上限"
+            limited_reason = "tool_run_limit"
+        elif _is_external and settings.external_tools_enabled:
+            if not await allow_tool_window(plan.tool_name):
+                limited_summary = "工具已达全局窗口限流上限"
+                limited_reason = "tool_window_limit"
+
+        if limited_summary is None:
+            tool_run_counts[plan.tool_name] = (
+                tool_run_counts.get(plan.tool_name, 0) + 1
+            )
+            execution = await _execute_step(
+                db,
+                workspace=workspace,
+                tool_scope=tool_scope,
+                org_scope=org_scope,
+                current_user=current_user,
+                tool_name=plan.tool_name,
+                args=plan.args,
+                run_id=run.id,
+                thread_id=thread_id,
+                user_id=user_id,
+            )
+            ok = execution.ok
+            summary = execution.summary
+            latency_ms = execution.latency_ms
+            data = execution.data
+            failure = execution.failure
+        else:
+            inc_agent_tool_call(plan.tool_name, "limited", external=_is_external)
+            limited_failure = ToolFailure(
+                kind=ToolFailureKind.disabled,
+                tool_name=plan.tool_name,
+                summary=limited_summary,
+            )
+            ok = False
+            summary = limited_summary
+            latency_ms = 0
+            data = None
+            failure = limited_failure
             db_step = None
             steps_used = step_index
             step_capped = steps_used >= max_steps
@@ -556,34 +749,40 @@ async def _run_react_loop_until_outcome(
                 actor_user_id=user_id,
                 run_id=run.id,
                 tool=plan.tool_name,
-                reason="external_tool_limit",
+                reason=limited_reason,
             )
             await update_agent_run_steps_used(
                 db, run_id=run.id, user_id=user_id, steps_used=steps_used,
             )
-            record = AgentStepRecord(step_index=step_index, tool_name=plan.tool_name, args=plan.args,
-                                      ok=False, summary=summary, latency_ms=0, data=None)
+            record = AgentStepRecord(
+                step_index=step_index,
+                tool_name=plan.tool_name,
+                args=plan.args,
+                ok=False,
+                summary=summary,
+                latency_ms=0,
+                data=None,
+            )
             records.append(record)
-            await effective_hooks.on_agent_budget(AgentBudgetEvent(steps_used=steps_used, max_steps=max_steps, capped=step_capped))
+            await effective_hooks.on_agent_budget(
+                AgentBudgetEvent(
+                    steps_used=steps_used,
+                    max_steps=max_steps,
+                    capped=step_capped,
+                )
+            )
             if step_capped:
                 break
+            equivalent = find_equivalent_tool(
+                limited_failure,
+                record,
+                remaining_steps=max_steps - steps_used,
+                default_kb_id=getattr(planner, "default_kb_id", None),
+            )
+            if equivalent:
+                fallback_queue.extend(equivalent)
+                tool_fallback_count += len(equivalent)
             continue
-
-        if _is_external:
-            external_calls += 1
-
-        ok, summary, latency_ms, data = await _execute_step(
-            db,
-            workspace=workspace,
-            tool_scope=tool_scope,
-            org_scope=org_scope,
-            current_user=current_user,
-            tool_name=plan.tool_name,
-            args=plan.args,
-            run_id=run.id,
-            thread_id=thread_id,
-            user_id=user_id,
-        )
 
         steps_used = step_index
         step_capped = steps_used >= max_steps
@@ -636,8 +835,15 @@ async def _run_react_loop_until_outcome(
         )
         records.append(record)
 
+        if ok and plan.tool_name in ("semantic_search", "search_documents"):
+            search_successes += 1
+
         # ── E2 迭代反思（仅 LLMPlanner 路径）──
-        if isinstance(planner, LLMPlanner) and reflection_count < settings.agent_max_reflections:
+        if (
+            isinstance(planner, LLMPlanner)
+            and failure is None
+            and reflection_count < settings.agent_max_reflections
+        ):
             signal = _detect_reflection_signal(record, query, reflection_count)
             if signal == "low_recall" and ok:
                 from app.services.rag.generation import rewrite_query
@@ -659,18 +865,118 @@ async def _run_react_loop_until_outcome(
                     from app.services.agent.planners import LLMPlannerFactory
                     all_hits = []
                     for sq in sub_queries[:3]:
-                        sub = LLMPlannerFactory.create(sq, default_kb_id=getattr(planner, "default_kb_id", None), memory_context=memory_ctx or "")
-                        p = await sub.next_tool_call(query=sq, step_index=1, steps_used=0,
-                                                      max_steps=max_steps, prior_steps=())
-                        if p and p.tool_name in ("semantic_search", "search_documents"):
-                            _ok2, _s2, _l2, _d2 = await _execute_step(
-                                db, workspace=workspace, tool_scope=tool_scope,
-                                org_scope=org_scope, current_user=current_user,
-                                tool_name=p.tool_name, args=p.args,
-                                run_id=run.id, thread_id=thread_id, user_id=user_id,
+                        if steps_used >= max_steps:
+                            capped = True
+                            break
+                        sub = LLMPlannerFactory.create(
+                            sq,
+                            default_kb_id=getattr(planner, "default_kb_id", None),
+                            memory_context=memory_ctx or "",
+                        )
+                        p = await sub.next_tool_call(
+                            query=sq, step_index=1, steps_used=0,
+                            max_steps=max_steps, prior_steps=(),
+                        )
+                        if p is None or p.tool_name not in (
+                            "semantic_search", "search_documents",
+                        ):
+                            continue
+                        sub_step_index = steps_used + 1
+                        await effective_hooks.on_tool_start(
+                            ToolStartEvent(
+                                step=sub_step_index,
+                                tool=p.tool_name,
+                                args_summary=build_args_summary(p.tool_name, p.args),
                             )
-                            if _ok2 and _d2:
-                                all_hits.append(_d2)
+                        )
+                        db_sub = await create_agent_step(
+                            db,
+                            run_id=run.id,
+                            user_id=user_id,
+                            step_index=sub_step_index,
+                            tool_name=p.tool_name,
+                            args_json=p.args,
+                        )
+                        sub_execution = await _execute_step(
+                            db, workspace=workspace, tool_scope=tool_scope,
+                            org_scope=org_scope, current_user=current_user,
+                            tool_name=p.tool_name, args=p.args,
+                            run_id=run.id, thread_id=thread_id, user_id=user_id,
+                        )
+                        _ok2 = sub_execution.ok
+                        _s2 = sub_execution.summary
+                        _l2 = sub_execution.latency_ms
+                        _d2 = sub_execution.data
+                        steps_used = sub_step_index
+                        sub_capped = steps_used >= max_steps
+                        if sub_capped:
+                            capped = True
+                        if db_sub is not None:
+                            await finish_agent_step(
+                                db,
+                                step_id=db_sub.id,
+                                user_id=user_id,
+                                ok=_ok2,
+                                result_summary=_s2,
+                                latency_ms=_l2,
+                            )
+                        await audit_agent_tool_executed(
+                            db,
+                            actor_user_id=user_id,
+                            run_id=run.id,
+                            step=sub_step_index,
+                            tool=p.tool_name,
+                            ok=_ok2,
+                            latency_ms=_l2,
+                        )
+                        if not _ok2 and _s2 == FORBIDDEN_KB_SUMMARY:
+                            await audit_agent_tool_denied(
+                                db,
+                                actor_user_id=user_id,
+                                run_id=run.id,
+                                tool=p.tool_name,
+                            )
+                        await update_agent_run_steps_used(
+                            db,
+                            run_id=run.id,
+                            user_id=user_id,
+                            steps_used=steps_used,
+                        )
+                        records.append(
+                            AgentStepRecord(
+                                step_index=sub_step_index,
+                                tool_name=p.tool_name,
+                                args=p.args,
+                                ok=_ok2,
+                                summary=_s2,
+                                latency_ms=_l2,
+                                step_id=db_sub.id if db_sub is not None else None,
+                                data=_d2,
+                            )
+                        )
+                        if _ok2 and _d2:
+                            all_hits.append(_d2)
+                        if _ok2 and p.tool_name in ("semantic_search", "search_documents"):
+                            search_successes += 1
+                        await effective_hooks.on_tool_result(
+                            ToolResultEvent(
+                                step=sub_step_index,
+                                tool=p.tool_name,
+                                ok=_ok2,
+                                summary=_s2,
+                                latency_ms=_l2,
+                                capped=sub_capped,
+                            )
+                        )
+                        await effective_hooks.on_agent_budget(
+                            AgentBudgetEvent(
+                                steps_used=steps_used,
+                                max_steps=max_steps,
+                                capped=sub_capped,
+                            )
+                        )
+                        if sub_capped:
+                            break
                     reflection_count += 1
                     await _safe_audit(audit_agent_reflection(
                         db, actor_user_id=user_id, run_id=run.id,
@@ -682,7 +988,13 @@ async def _run_react_loop_until_outcome(
             db, user_id, query,
             kb_id=getattr(planner, "default_kb_id", None),
             tool_name=plan.tool_name, tool_data=data,
+            mode=run.mode, search_successes=search_successes,
         ))
+
+        # 反思子步骤计入预算后，若已触顶则本轮同步按 capped 收尾
+        step_capped = steps_used >= max_steps
+        if step_capped:
+            capped = True
 
         await effective_hooks.on_tool_result(
             ToolResultEvent(
@@ -705,6 +1017,61 @@ async def _run_react_loop_until_outcome(
         if step_capped:
             break
 
+        if failure is not None and failure.breaker_open:
+            frozen_tools.add(plan.tool_name)
+
+        if (
+            failure is not None
+            and current_source != "equivalent"
+            and failure.kind
+            in (ToolFailureKind.infra, ToolFailureKind.disabled)
+        ):
+            equivalent = find_equivalent_tool(
+                failure,
+                record,
+                remaining_steps=max_steps - steps_used,
+                default_kb_id=getattr(planner, "default_kb_id", None),
+            )
+            if equivalent:
+                fallback_queue.extend(equivalent)
+                tool_fallback_count += len(equivalent)
+                continue
+
+        if (
+            failure is not None
+            and should_replan(failure)
+            and replan_count < replan_limit
+            and hasattr(planner, "replan_after_failure")
+        ):
+            replan_count += 1
+            replanned = await planner.replan_after_failure(
+                query=query,
+                step_index=step_index,
+                steps_used=steps_used,
+                max_steps=max_steps,
+                prior_steps=tuple(records),
+                failure=failure,
+            )
+            if replanned is not None:
+                await _safe_audit(audit_agent_tool_replanned(
+                    db,
+                    actor_user_id=user_id,
+                    run_id=run.id,
+                    step=step_index,
+                    tool=plan.tool_name,
+                    kind=failure.kind.value,
+                    fallback_tool=replanned.tool_name,
+                    replan_count=replan_count,
+                ))
+                fallback_queue.append(
+                    ToolFallbackPlan(
+                        replanned.tool_name,
+                        replanned.args,
+                        "replan",
+                    )
+                )
+                continue
+
     outcome = AgentRunOutcome(
         run_id=run.id,
         steps_used=steps_used,
@@ -714,5 +1081,7 @@ async def _run_react_loop_until_outcome(
         steps=tuple(records),
         # E2 信号 B：低置信度标记（循环外，outcome 构造时判定）
         low_confidence=_detect_low_confidence(records),
+        tool_fallback_count=tool_fallback_count,
+        tool_replanned=replan_count,
     )
     return outcome

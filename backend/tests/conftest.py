@@ -1,5 +1,6 @@
 """pytest 共享 fixture（Wave 1.1+：DB 测试 + 认证辅助）。"""
 
+import os
 import uuid
 from collections.abc import Awaitable, Callable
 
@@ -25,9 +26,13 @@ del _arl
 # 全局限流 100 req/min/IP（必须在 import app.main 前完成，故这几处导入后置）
 from app.core.config import settings as _settings  # noqa: E402
 _settings.rate_limit_enabled = False
+_settings.webhook_encryption_secret = "test-only-webhook-encryption-key-0123456789abcdef"
 settings = _settings  # for fixtures that reference conftest.settings
 del _settings
 from app.core.database import engine  # noqa: E402
+# M8-S 测试基线：settings 已按代码默认 redis 实例化，这里在导入 app.main 前把 env
+# 兜底为 memory，避免无 Redis 环境把默认 Redis 串扰进限流/降级断言。
+os.environ.setdefault("RATE_LIMIT_BACKEND", "memory")
 from app.main import app  # noqa: E402
 
 # 注册 tests/fixtures/*.py 中的共享 fixture（如 org_iso）
@@ -192,6 +197,7 @@ async def db_session():
 # 以 by-name 绑定 enforce_api_rate_limit 的 API 模块（conftest import 时均已绑定 noop）
 _API_RATE_LIMIT_BOUND_MODULES = (
     "app.api.auth",
+    "app.api.settings",
     "app.api.chat",
     "app.api.documents",
     "app.api.ask",

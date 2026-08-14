@@ -4,7 +4,7 @@
 运行内容:
 1. Full gate retrieval (110 题 mock 嵌入)
 2. Full gate generation (子集, 真实 DeepSeek)
-3. 公共基准 (CRAG 子集)
+3. 公共基准 (CRAG 子集由 CI nightly workflow 另行承担)
 4. 对比上次报告
 """
 
@@ -48,7 +48,7 @@ async def run_nightly() -> dict:
 
     # 这里假设已有 kb_id 通过环境变量或参数传入
     from app.core.config import settings
-    kb_id = settings.nightly_kb_id
+    kb_id = getattr(settings, "nightly_kb_id", None)
     if not kb_id:
         logger.warning("未配置 nightly_kb_id，跳过检索评测")
     else:

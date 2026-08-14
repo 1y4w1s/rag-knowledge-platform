@@ -83,11 +83,11 @@ async def test_citation_resolve_after_grant_revoked_returns_inaccessible(
     assert body["doc_name"] is None
 
 
-async def test_get_messages_after_grant_revoked_marks_citations_inaccessible(
+async def test_get_messages_after_grant_revoked_returns_403(
     client: AsyncClient,
     org_iso: OrgIsolationFixture,
 ) -> None:
-    """ORG-1.7：撤 grant 后仍可读自己的历史消息，citation 带 source_inaccessible。"""
+    """ORG-1.7 / P1-P3：撤 grant 后知识库不可见，kb 内历史消息返回 403，正文与引用均不返回。"""
     async with SessionLocal() as db:
         db.add(
             KbUnitGrant(
@@ -134,12 +134,7 @@ async def test_get_messages_after_grant_revoked_marks_citations_inaccessible(
         f"/api/v1/knowledge-bases/{org_iso.mkt_kb_id}/messages",
         headers=headers,
     )
-    assert messages_resp.status_code == 200
-    messages = messages_resp.json()["messages"]
-    assert len(messages) == 2
-    assistant = next(m for m in messages if m["role"] == "assistant")
-    assert assistant["citations"]
-    assert assistant["citations"][0]["source_status"] == "source_inaccessible"
+    assert messages_resp.status_code == 403
 
 
 async def test_get_messages_invisible_kb_without_history_returns_403(

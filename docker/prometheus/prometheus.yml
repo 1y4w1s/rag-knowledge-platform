@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: ruige-api
+    metrics_path: /metrics
+    scheme: http
+    static_configs:
+      - targets: ["api:8000"]
+    authorization:
+      type: Bearer
+      credentials_file: /run/secrets/metrics_token

@@ -331,6 +331,43 @@ async def test_org_member_excludes_sibling_department_chunks(
 
 
 @pytest.mark.asyncio
+async def test_workspace_simple_citation_keeps_real_kb_id(
+    org_iso: OrgIsolationFixture,
+    rerank_mock: None,
+) -> None:
+    """workspace simple 策略命中须带真实 kb_id，引用片段不得出现字符串 'None'。"""
+    async with SessionLocal() as db:
+        await _seed_chunk(
+            db,
+            kb_id=org_iso.rd_kb_id,
+            uploaded_by=org_iso.rd_member.id,
+            filename="rd-simple.txt",
+            content="年假 10 天 研发部",
+        )
+        await db.commit()
+
+        org_scope = await resolve_org_scope(db, org_iso.rd_member)
+        scope = WorkspaceScope(
+            kind=WorkspaceKind.organization,
+            user_id=org_iso.rd_member.id,
+            org_id=org_iso.org_id,
+        )
+        hits = await retrieve_workspace_chunks(
+            db,
+            query="年假",
+            scope=scope,
+            org_scope=org_scope,
+        )
+
+    assert hits
+    assert all(h.kb_id == org_iso.rd_kb_id for h in hits)
+    for hit in hits:
+        citation = workspace_chunk_to_citation(hit)
+        assert citation["kb_id"] == str(org_iso.rd_kb_id)
+        assert citation["kb_id"] != "None"
+
+
+@pytest.mark.asyncio
 async def test_workspace_diversity_two_kbs_same_topic(
     org_iso: OrgIsolationFixture,
     rerank_mock: None,

@@ -11,9 +11,11 @@
 from __future__ import annotations
 
 import os
-from unittest.mock import AsyncMock, patch
+import logging
+from unittest.mock import AsyncMock, Mock, patch
 
 
+from app.core.config import settings
 from app.services.agent.tools.sql_query import QueryResult, sql_query
 from app.services.agent.tools.web_search import web_search
 
@@ -47,14 +49,56 @@ class TestWebSearch:
         assert result.data[0]["title"] == "T1"
 
     @patch("httpx.AsyncClient.get")
+    async def test_success_parses_organic_results(self, mock_async_get: AsyncMock) -> None:
+        """#2b：真实请求成功路径 → data 解析 organic_results。"""
+        resp = Mock()
+        resp.raise_for_status.return_value = None
+        resp.json.return_value = {
+            "organic_results": [
+                {"title": "T1", "link": "https://t1", "snippet": "s1"},
+                {"title": "T2", "link": "https://t2", "snippet": "s2"},
+            ]
+        }
+        mock_async_get.return_value = resp
+
+        with patch.object(settings, "search_api_key", "test-key"):
+            result = await web_search(query="test", num_results=2)
+        assert result.ok
+        assert result.data == [
+            {"title": "T1", "url": "https://t1", "snippet": "s1"},
+            {"title": "T2", "url": "https://t2", "snippet": "s2"},
+        ]
+        assert "找到 2 条结果" in result.summary
+
+    @patch("httpx.AsyncClient.get")
     async def test_network_failure(self, mock_async_get: AsyncMock) -> None:
         """#3：网络失败 → ok=False，含"失败"提示。"""
         mock_async_get.side_effect = ConnectionError("network down")
 
-        with patch.dict(os.environ, {"SEARCH_API_KEY": "dummy"}):
+        with patch.object(settings, "search_api_key", "dummy"):
             result = await web_search(query="test")
         assert not result.ok
         assert "失败" in result.summary
+
+    @patch("httpx.AsyncClient.get")
+    async def test_exception_hides_api_key(self, mock_async_get: AsyncMock, caplog) -> None:
+        """#3b：异常消息含 API Key / 完整 URL 时，返回与日志均不得透出。"""
+        secret = "sk-test-secret-123456"
+        mock_async_get.side_effect = RuntimeError(
+            f"request failed: https://serpapi.com/search?engine=google&q=x&api_key={secret}"
+        )
+
+        with (
+            patch.object(settings, "search_api_key", secret),
+            caplog.at_level(logging.WARNING, logger="app.services.agent.tools.web_search"),
+        ):
+            result = await web_search(query="test")
+        assert not result.ok
+        assert "失败" in result.summary
+        assert secret not in result.summary
+        assert "serpapi.com/search?api_key=" not in result.summary
+        assert secret not in caplog.text
+        assert "serpapi.com/search?api_key=" not in caplog.text
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -134,12 +178,16 @@ class TestDispatchReturn:
         from app.services.agent.runtime import _dispatch_tool
         from app.services.agent.tools.registry import AgentToolName
 
-        with patch.dict(os.environ, {"SEARCH_API_KEY": ""}):
+        with (
+            patch.object(settings, "external_tools_enabled", True),
+            patch.dict(os.environ, {"SEARCH_API_KEY": ""}),
+        ):
             ok, summary, data = await _dispatch_tool(
                 None,
                 workspace=None,
                 tool_scope=None,
                 org_scope=None,
+                current_user=None,
                 tool_name=AgentToolName.web_search,
                 args={"query": "test", "num_results": 1},
                 run_id=None,
@@ -150,6 +198,43 @@ class TestDispatchReturn:
         assert isinstance(summary, str)
         # 失败时 data 应为 None（result.data 在 WebSearchResult(ok=False) 中为 []，但在 dispatch 中我们返回 result.data
         # 注意：dispatch 返回 result.data，失败时是 []（空列表）
+
+    async def test_dispatch_web_search_disabled_when_config_off(self) -> None:
+        """P2-A3：总开关关闭时 runtime 分发层拦截 web_search，不触网。"""
+        from app.services.agent.runtime import _dispatch_tool
+        from app.services.agent.tools.registry import AgentToolName
+        from app.services.agent.tools.web_search import WebSearchResult
+
+        with (
+            patch.object(settings, "external_tools_enabled", False),
+            patch(
+                "app.services.agent.tools.web_search.web_search",
+                new=AsyncMock(
+                    return_value=WebSearchResult(
+                        ok=True,
+                        data=[{"title": "T", "url": "https://t", "snippet": "s"}],
+                        summary="ok",
+                    )
+                ),
+            ) as mock_ws,
+        ):
+            ok, summary, data = await _dispatch_tool(
+                None,
+                workspace=None,
+                tool_scope=None,
+                org_scope=None,
+                current_user=None,
+                tool_name=AgentToolName.web_search,
+                args={"query": "test", "num_results": 1},
+                run_id=None,
+                thread_id=None,
+                user_id=None,
+            )
+        assert ok is False
+        assert "web_search" in summary
+        assert "关闭" in summary
+        assert data is None
+        mock_ws.assert_not_awaited()
 
     async def test_dispatch_sql_query_denied(self) -> None:
         """dispatch sql_query → (False, "无权限", None)，触发 tool_denied 审计。"""
@@ -163,6 +248,7 @@ class TestDispatchReturn:
                 workspace=None,
                 tool_scope=None,
                 org_scope=None,
+                current_user=None,
                 tool_name=AgentToolName.sql_query,
                 args={"sql": "SELECT 1"},
                 run_id=None,
@@ -254,24 +340,35 @@ class TestPlannerFilter:
 class TestGateCodePresence:
     """#17-18：通过代码审查验证门禁逻辑。"""
 
-    def test_external_calls_variable_exists(self) -> None:
-        """#17：runtime.py 中 external_calls 变量存在。"""
+    def test_tool_run_counts_variable_exists(self) -> None:
+        """#17：runtime.py 中每轮计数已泛化为 tool_run_counts。"""
         import inspect
+        import re
         from app.services.agent import runtime as runtime_mod
 
         source = inspect.getsource(runtime_mod)
-        assert "external_calls" in source
+        assert "tool_run_counts" in source
+        assert re.search(r"\bexternal_calls\b", source) is None
         assert "web_search_count" not in source
 
     def test_external_gate_covers_web_search_only(self) -> None:
-        """runtime.py 外部计数门禁仅覆盖 web_search（sql_query 已下线）。"""
+        """#18：外部窗口限流仅对 EXTERNAL_TOOL_NAMES 启用（sql_query 已下线）。"""
         import inspect
         from app.services.agent import runtime as runtime_mod
+        from app.services.agent.tools.guard import (
+            EXTERNAL_TOOL_NAMES,
+            allow_tool_window,
+            resolve_tool_run_limit,
+        )
 
         source = inspect.getsource(runtime_mod)
-        assert "外部工具统一计数门禁" in source
-        assert "plan.tool_name == AgentToolName.web_search.value" in source
-        # sql_query 不再参与外部计数门禁（dispatch 层直接拒绝）
+        assert "EXTERNAL_TOOL_NAMES" in source
+        assert "allow_tool_window" in source
+        assert "resolve_tool_run_limit" in source
+        assert EXTERNAL_TOOL_NAMES == {"web_search"}
+        assert callable(allow_tool_window)
+        assert callable(resolve_tool_run_limit)
+        # sql_query 不再参与外部窗口限流（dispatch 层直接拒绝）
         assert "AgentToolName.sql_query.value" not in source
 
     def test_sql_query_dispatch_denied_in_runtime(self) -> None:

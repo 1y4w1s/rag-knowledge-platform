@@ -59,6 +59,12 @@ def _last_sentence(text: str, max_chars: int) -> str:
 
 
 
+def _hard_cut(text: str, size: int) -> list[str]:
+    """把单段文本按 size 字符硬切；每片 ≤ size，拼接回原文。"""
+    return [text[i:i + size] for i in range(0, len(text), size)]
+
+
+
 def _split_long_text(
 
     text: str,
@@ -69,7 +75,7 @@ def _split_long_text(
 
     max_chars: int,
 
-) -> list[ParsedBlock]:
+) -> tuple[list[ParsedBlock], bool]:
 
     if len(text) <= max_chars:
 
@@ -89,7 +95,7 @@ def _split_long_text(
 
             )
 
-        ]
+        ], False
 
 
 
@@ -101,10 +107,34 @@ def _split_long_text(
     parts: list[ParsedBlock] = []
 
     current = ""
-
+    hard_cut_used = False
 
 
     for sentence in sentences:
+        if len(sentence) > max_chars:
+            if current:
+                parts.append(
+                    ParsedBlock(
+                        content=current.strip(),
+                        page_number=meta.page_number,
+                        section_title=meta.section_title,
+                        heading_path=meta.heading_path,
+                        block_kind=meta.block_kind,
+                    )
+                )
+                current = ""
+            hard_cut_used = True
+            parts.extend(
+                ParsedBlock(
+                    content=piece,
+                    page_number=meta.page_number,
+                    section_title=meta.section_title,
+                    heading_path=meta.heading_path,
+                    block_kind=meta.block_kind,
+                )
+                for piece in _hard_cut(sentence, max_chars)
+            )
+            continue
 
         if len(current) + len(sentence) <= soft_max:
 
@@ -156,7 +186,7 @@ def _split_long_text(
 
         )
 
-    return parts
+    return parts, hard_cut_used
 
 
 
@@ -168,12 +198,12 @@ def _leaf_chunks_for_prose(
 
     cfg: IngestionConfig,
 
-) -> list[ChunkDraft]:
+) -> tuple[list[ChunkDraft], bool]:
 
     """对同节 prose 块执行 P0 切片（不含 parent 行）。"""
 
     expanded: list[ParsedBlock] = []
-
+    hard_cut_used = False
 
 
     for block in blocks:
@@ -185,12 +215,9 @@ def _leaf_chunks_for_prose(
             continue
 
         if len(text) > cfg.max_chars:
-
-            expanded.extend(
-
-                _split_long_text(text, meta=block, max_chars=cfg.max_chars)
-
-            )
+            parts, used = _split_long_text(text, meta=block, max_chars=cfg.max_chars)
+            hard_cut_used = hard_cut_used or used
+            expanded.extend(parts)
 
         else:
 
@@ -284,7 +311,7 @@ def _leaf_chunks_for_prose(
 
 
 
-    return chunks
+    return chunks, hard_cut_used
 
 
 
@@ -298,9 +325,9 @@ def _chunk_prose_section(
 
 ) -> list[ChunkDraft]:
 
-    children = _leaf_chunks_for_prose(blocks, cfg)
+    children, hard_cut_used = _leaf_chunks_for_prose(blocks, cfg)
 
-    if len(children) <= 1:
+    if len(children) <= 1 or hard_cut_used:
 
         return children
 

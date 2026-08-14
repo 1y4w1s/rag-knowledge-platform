@@ -80,7 +80,7 @@ async def create_webhook(
 
     wh = Webhook(
         kb_id=kb_id,
-        url=body.url,
+        url=str(body.url),
         secret=encrypt_secret(body.secret),
         events=body.events,
         created_by=current_user.id,
@@ -96,7 +96,11 @@ async def create_webhook(
         resource_type="webhook",
         resource_id=wh.id,
         kb_id=kb_id,
-        metadata={"url": str(wh.url), "events": wh.events},
+        metadata={
+            "url": str(wh.url),
+            "events": wh.events,
+            "secret_encryption": "webhook_encryption_secret",
+        },
     )
     await db.commit()
 

@@ -86,8 +86,11 @@ class TestGenerateHypotheticalDocument:
     @patch("app.services.rag.hyde.complete_chat", new_callable=AsyncMock)
     async def test_normal_generation(self, mock_complete):
         """正常调用 complete_chat 返回假设文档。"""
+        from app.core.config import settings
+
         mock_complete.return_value = "睿阁是一款企业级知识库管理平台，支持文档管理、智能问答和引用溯源。"
-        result = await generate_hypothetical_document("睿阁是什么？")
+        with patch.object(settings, "deepseek_api_key", "sk-test"):
+            result = await generate_hypothetical_document("睿阁是什么？")
         assert result is not None
         assert "睿阁" in result
         assert len(result) > 10
@@ -123,5 +126,17 @@ class TestGenerateHypotheticalDocument:
         import app.services.rag.hyde as hyde_mod
         hyde_mod._HYDE_ENABLED = None
         result = await generate_hypothetical_document("测试查询")
+        assert result is None
+        mock_complete.assert_not_called()
+
+    @patch("app.services.rag.hyde.complete_chat", new_callable=AsyncMock)
+    async def test_no_api_key_returns_none(self, mock_complete):
+        """P2-R9：无 LLM key 时直接返回 None，不把兜底文案当真假设文档。"""
+        from app.core.config import settings
+
+        with patch.object(settings, "deepseek_api_key", ""), patch.object(
+            settings, "tongyi_api_key", ""
+        ):
+            result = await generate_hypothetical_document("睿阁是什么？")
         assert result is None
         mock_complete.assert_not_called()

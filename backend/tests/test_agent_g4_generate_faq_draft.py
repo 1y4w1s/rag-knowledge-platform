@@ -53,6 +53,7 @@ def _mock_db_for_success(kb_id: uuid.UUID, chunk: DocumentChunk) -> AsyncSession
     """db.execute → [chunk]；db.get(KB) → kb；db.add/flush 被记录。"""
     result = MagicMock()
     result.scalars.return_value.all.return_value = [chunk]
+    result.scalar_one_or_none.return_value = None
     kb = KnowledgeBase(id=kb_id, name="制度库", owner_user_id=uuid.uuid4())
 
     db: AsyncSession = AsyncMock(spec=AsyncSession)
@@ -113,6 +114,38 @@ async def test_generate_faq_draft_non_md_filename() -> None:
     assert result.data is None
     assert result.summary == BAD_FILENAME_SUMMARY
     assert result.reason == GenerateFaqDraftFailure.invalid_filename  # G4-1.3 拒答码
+    db.add.assert_not_called()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "filename",
+    ["..\\..\\evil.md", "../../evil.md", "docs/evil.md", "docs\\evil.md"],
+)
+async def test_generate_faq_draft_rejects_path_separators_p2_a6(
+    filename: str,
+) -> None:
+    """P2-A6：含路径分隔符的文件名不得进入审批元数据。"""
+    kb_id = uuid.uuid4()
+    chunk = _chunk(kb_id)
+    db = _mock_db_for_success(kb_id, chunk)
+    scope = _make_scope({kb_id})
+
+    result = await run_generate_faq_draft(
+        db,
+        scope,
+        kb_id=kb_id,
+        filename=filename,
+        run_id=uuid.uuid4(),
+        thread_id=uuid.uuid4(),
+        user_id=uuid.uuid4(),
+        source_chunk_ids=[chunk.id],
+    )
+
+    assert result.ok is False
+    assert result.data is None
+    assert result.summary == BAD_FILENAME_SUMMARY
+    assert result.reason == GenerateFaqDraftFailure.invalid_filename
     db.add.assert_not_called()
 
 

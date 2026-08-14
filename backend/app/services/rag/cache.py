@@ -17,9 +17,11 @@ import json
 import logging
 import time
 from collections import OrderedDict
+from typing import Any
 from uuid import UUID
 
 from app.core.config import settings
+from app.services.rag.types import RetrievedChunk
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +56,13 @@ def _effective_max_size() -> int:
     return settings.query_cache_max_size
 
 
+def _chunk_to_redis_dict(chunk: Any) -> dict[str, Any]:
+    """RetrievedChunk -> JSON 可序列化 dict（P0-2：Redis 后端真正可写）。"""
+    if not isinstance(chunk, RetrievedChunk):
+        raise TypeError(f"query cache chunks must be RetrievedChunk, got {type(chunk)!r}")
+    return chunk.to_dict()
+
+
 def _cache_key(kb_id: UUID, query: str, hide_admin_only: bool = False) -> str:
     # 带上 rewrite / clause-route / rerank 策略，避免开/关后命中错误缓存
     from app.services.rag.planner import (
@@ -66,9 +75,10 @@ def _cache_key(kb_id: UUID, query: str, hide_admin_only: bool = False) -> str:
     cr = "1" if settings.clause_route_enabled else "0"
     pol = effective_rerank_policy()
     rr = {"off": "off", "always": "always", "conditional": "cond"}.get(pol, pol)
+    gr = "1" if settings.graph_recall_enabled else "0"
     raw = (
         f"{kb_id}|{query.strip().lower()}|rw={rw}|cr={cr}|rr={rr}"
-        f"|ho={1 if hide_admin_only else 0}"
+        f"|ho={1 if hide_admin_only else 0}|gr={gr}"
     )
     # 键带可搜索前缀 q:{kb_id}:，供 clear_query_cache(kb_id) 精确前缀失效（P1-12）
     return f"q:{kb_id}:" + hashlib.sha256(raw.encode("utf-8")).hexdigest()
@@ -86,8 +96,9 @@ async def get_query_cache(
             r = await get_redis()
             data = await r.get(key)
             if data:
-                cached_at, chunks = json.loads(data)
+                cached_at, raw_chunks = json.loads(data)
                 if time.monotonic() - cached_at < _effective_ttl():
+                    chunks = [RetrievedChunk.from_dict(c) for c in raw_chunks]
                     _inc_cache_hit("query_chunks")
                     return chunks
         except Exception as e:
@@ -116,7 +127,7 @@ async def set_query_cache(
         try:
             from app.core.redis import get_redis
             r = await get_redis()
-            data = json.dumps([time.monotonic(), chunks])
+            data = json.dumps([time.monotonic(), [_chunk_to_redis_dict(c) for c in chunks]])
             await r.setex(key, _effective_ttl(), data)
             return
         except Exception as e:
@@ -136,9 +147,10 @@ async def clear_query_cache(kb_id: UUID | None = None) -> int:
             from app.core.redis import get_redis
             r = await get_redis()
             if kb_id:
-                keys = await r.keys(f"q:{kb_id}:*")
+                pattern = f"q:{kb_id}:*"
             else:
-                keys = await r.keys("q:*")
+                pattern = "q:*"
+            keys = [key async for key in r.scan_iter(match=pattern, count=500)]
             if keys:
                 await r.delete(*keys)
                 cleared = len(keys)
@@ -318,7 +330,7 @@ class AsyncLLMResponseCache:
                 from app.core.redis import get_redis
                 r = await get_redis()
                 prefix = f"llm:{kb_id}:" if kb_id else "llm:"
-                keys = await r.keys(f"{prefix}*")
+                keys = [key async for key in r.scan_iter(match=f"{prefix}*", count=500)]
                 if keys:
                     await r.delete(*keys)
                     cleared = len(keys)

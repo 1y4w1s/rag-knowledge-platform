@@ -14,11 +14,12 @@
 from __future__ import annotations
 
 import uuid
+import zlib
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.agent_approval import AgentApproval
@@ -115,6 +116,34 @@ def _proposal_to_dict(p: DocumentWriteProposal) -> dict[str, Any]:
     }
 
 
+def _approval_idempotency_lock_key(
+    run_id: uuid.UUID,
+    document_id: uuid.UUID,
+    kind: ApprovalKind,
+) -> int:
+    """P2-A5：删除/恢复审批幂等键的 advisory lock key。"""
+    return zlib.crc32(
+        f"document-write:{run_id}:{document_id}:{kind.value}".encode("utf-8")
+    )
+
+
+async def _lock_approval_idempotency(
+    db: AsyncSession,
+    *,
+    run_id: uuid.UUID,
+    document_id: uuid.UUID,
+    kind: ApprovalKind,
+) -> None:
+    """事务级 PG advisory lock：串行化「先查后建」，防并发双击重复 pending。
+
+    与 upload.py P2-I3 同构；无唯一约束时作为不引入迁移的兜底。
+    """
+    await db.execute(
+        text("SELECT pg_advisory_xact_lock(:lock_key)"),
+        {"lock_key": _approval_idempotency_lock_key(run_id, document_id, kind)},
+    )
+
+
 async def _create_document_write_approval(
     db: AsyncSession,
     *,
@@ -127,6 +156,12 @@ async def _create_document_write_approval(
     proposal: DocumentWriteProposal,
 ) -> DocumentWriteToolResult:
     """建 AgentApproval(pending) + 审计（不执行删除/恢复）。幂等。"""
+    await _lock_approval_idempotency(
+        db,
+        run_id=run_id,
+        document_id=doc.id,
+        kind=kind,
+    )
     existing = await db.scalar(
         select(AgentApproval).where(
             AgentApproval.run_id == run_id,

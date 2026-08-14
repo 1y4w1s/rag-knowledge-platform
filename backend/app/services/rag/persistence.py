@@ -8,6 +8,7 @@ from uuid import UUID
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import NotFoundError
 from app.models.chat_message import ChatMessage
 from app.models.chat_thread import ChatThread
 from app.models.enums import MessageRole, MessageStatus, ThreadKind
@@ -110,10 +111,10 @@ async def finalize_message(
     status: MessageStatus = MessageStatus.completed,
     retrieval_duration_ms: int | None = None,
 ) -> None:
-    """生成完成后更新消息内容、引用和状态。"""
+    """生成完成后更新消息内容、引用和状态；消息不存在时抛 404，避免调用方误以为存成功。"""
     msg = await db.get(ChatMessage, message_id)
     if msg is None:
-        return
+        raise NotFoundError("消息不存在")
     msg.content = content
     msg.citations = citations or []
     msg.status = status
@@ -354,8 +355,12 @@ async def search_chat_messages(
         .where(ChatMessage.user_id == user_id)
         .where(
             or_(
-                func.lower(ChatMessage.content).contains(query.lower()),
-                func.lower(ChatThread.title).contains(query.lower()),
+                func.lower(ChatMessage.content).contains(
+                    query.lower(), autoescape=True
+                ),
+                func.lower(ChatThread.title).contains(
+                    query.lower(), autoescape=True
+                ),
             )
         )
     )

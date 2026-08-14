@@ -12,7 +12,7 @@ import logging
 from uuid import UUID
 
 import httpx
-from sqlalchemy import select
+from sqlalchemy import select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -69,10 +69,7 @@ def _try_parse_json(raw: str) -> dict:
     return {"entities": [], "relations": []}
 
 
-def extract_entities_sync(
-    text: str,
-    supported_types: list[str] | None = None,
-) -> dict:
+def extract_entities_sync(text: str) -> dict:
     """同步调用 DeepSeek JSON mode，返回 {entities: [...], relations: [...]}。
 
     独立非流式助手，不经过 chat_llm.py 的 stream 路径。
@@ -155,7 +152,7 @@ async def extract_entities_for_document(db: AsyncSession, doc: Document) -> None
     # 2. 对每 chunk 抽取实体
     all_entities: list[dict] = []
     all_relations: list[dict] = []
-    chunk_entity_map: dict[UUID, list[str]] = {}
+    chunk_entity_map: dict[UUID, list[tuple[str, str]]] = {}
 
     for chunk in chunks:
         extracted = await asyncio.to_thread(extract_entities_sync, chunk.content)
@@ -164,94 +161,115 @@ async def extract_entities_for_document(db: AsyncSession, doc: Document) -> None
 
         if chunk_entities:
             all_entities.extend(chunk_entities)
-            chunk_entity_map[chunk.id] = [e["name"] for e in chunk_entities]
+            chunk_entity_map[chunk.id] = [
+                (e["name"], e["type"]) for e in chunk_entities
+            ]
         if chunk_relations:
             all_relations.extend(chunk_relations)
 
     if not all_entities and not all_relations:
         return
 
-    # 3. exact-match upsert 实体
-    unique_entities: dict[tuple[str, str], UUID] = {}
-    entity_name_to_id: dict[str, UUID] = {}
-
-    for ent in all_entities:
-        key = (ent["name"], ent["type"])
-        if key in unique_entities:
-            continue
+    # 3. exact-match upsert 实体（批量查库，避免逐实体 N+1）
+    unique_keys = list(dict.fromkeys((e["name"], e["type"]) for e in all_entities))
+    entity_key_to_id: dict[tuple[str, str], UUID] = {}
+    if unique_keys:
         existing = await db.execute(
-            select(Entity).where(
+            select(Entity.id, Entity.name, Entity.type).where(
                 Entity.kb_id == doc.kb_id,
-                Entity.name == ent["name"],
-                Entity.type == ent["type"],
+                tuple_(Entity.name, Entity.type).in_(unique_keys),
             )
         )
-        existing_entity = existing.scalar_one_or_none()
-        if existing_entity is not None:
-            unique_entities[key] = existing_entity.id
-            entity_name_to_id[ent["name"]] = existing_entity.id
-        else:
-            new_entity = Entity(
-                kb_id=doc.kb_id,
-                name=ent["name"],
-                type=ent["type"],
-            )
-            db.add(new_entity)
-            await db.flush()
-            unique_entities[key] = new_entity.id
-            entity_name_to_id[ent["name"]] = new_entity.id
+        entity_key_to_id = {
+            (name, type_): entity_id for entity_id, name, type_ in existing.all()
+        }
 
-    # 4. 写 entity_mentions
-    for chunk_id, entity_names in chunk_entity_map.items():
-        for ent_name in entity_names:
-            eid = entity_name_to_id.get(ent_name)
-            if eid is None:
-                continue
-            exists = await db.execute(
-                select(EntityMention).where(
-                    EntityMention.chunk_id == chunk_id,
-                    EntityMention.entity_id == eid,
+    new_entities: list[Entity] = []
+    for key in unique_keys:
+        if key not in entity_key_to_id:
+            new_entities.append(Entity(kb_id=doc.kb_id, name=key[0], type=key[1]))
+    if new_entities:
+        db.add_all(new_entities)
+        await db.flush()
+        for ent in new_entities:
+            entity_key_to_id[(ent.name, ent.type)] = ent.id
+
+    # 4. 写 entity_mentions（批量查库；同名不同型按 (name, type) 精确落位）
+    mention_pairs: set[tuple[UUID, UUID]] = set()
+    for chunk_id, entity_keys in chunk_entity_map.items():
+        for key in entity_keys:
+            eid = entity_key_to_id.get(key)
+            if eid is not None:
+                mention_pairs.add((chunk_id, eid))
+
+    existing_mentions: set[tuple[UUID, UUID]] = set()
+    if mention_pairs:
+        existing_rows = await db.execute(
+            select(EntityMention.chunk_id, EntityMention.entity_id).where(
+                tuple_(EntityMention.chunk_id, EntityMention.entity_id).in_(
+                    list(mention_pairs)
                 )
             )
-            if exists.scalar_one_or_none() is None:
-                mention = EntityMention(
-                    chunk_id=chunk_id,
-                    entity_id=eid,
-                )
-                db.add(mention)
+        )
+        existing_mentions = set(existing_rows.all())
 
-    # 5. 写 relations
+    new_mentions = [
+        EntityMention(chunk_id=chunk_id, entity_id=entity_id)
+        for chunk_id, entity_id in sorted(mention_pairs - existing_mentions)
+    ]
+    if new_mentions:
+        db.add_all(new_mentions)
+
+    # 5. 写 relations（批量查库；同名多类型时端点歧义，跳过并告警）
+    name_to_ids: dict[str, list[UUID]] = {}
+    for (name, _), entity_id in entity_key_to_id.items():
+        name_to_ids.setdefault(name, []).append(entity_id)
+
+    relation_keys: set[tuple[UUID, UUID, str]] = set()
     for rel in all_relations:
-        source_id = entity_name_to_id.get(rel["source"])
-        target_id = entity_name_to_id.get(rel["target"])
-        if source_id is None or target_id is None:
+        source_ids = name_to_ids.get(rel["source"], [])
+        target_ids = name_to_ids.get(rel["target"], [])
+        if len(source_ids) != 1 or len(target_ids) != 1:
             logger.warning(
-                "extract_entities_for_document: relation 引用未知实体 source=%s target=%s",
+                "extract_entities_for_document: relation 端点歧义或未知 source=%s target=%s",
                 rel.get("source"), rel.get("target"),
             )
             continue
-        exists = await db.execute(
-            select(Relation).where(
+        relation_keys.add((source_ids[0], target_ids[0], rel["type"]))
+
+    existing_relation_keys: set[tuple[UUID, UUID, str]] = set()
+    if relation_keys:
+        existing_rows = await db.execute(
+            select(Relation.source_id, Relation.target_id, Relation.relation_type).where(
                 Relation.kb_id == doc.kb_id,
-                Relation.source_id == source_id,
-                Relation.target_id == target_id,
-                Relation.relation_type == rel["type"],
+                tuple_(
+                    Relation.source_id,
+                    Relation.target_id,
+                    Relation.relation_type,
+                ).in_(list(relation_keys)),
             )
         )
-        if exists.scalar_one_or_none() is None:
-            relation = Relation(
-                kb_id=doc.kb_id,
-                source_id=source_id,
-                target_id=target_id,
-                relation_type=rel["type"],
-            )
-            db.add(relation)
+        existing_relation_keys = set(existing_rows.all())
+
+    new_relations = [
+        Relation(
+            kb_id=doc.kb_id,
+            source_id=source_id,
+            target_id=target_id,
+            relation_type=relation_type,
+        )
+        for source_id, target_id, relation_type in sorted(
+            relation_keys - existing_relation_keys
+        )
+    ]
+    if new_relations:
+        db.add_all(new_relations)
 
     await db.flush()
     logger.info(
         "extract_entities_for_document: doc=%s entities=%d mentions=%d relations=%d",
         doc.id,
-        len(unique_entities),
-        sum(len(v) for v in chunk_entity_map.values()),
-        len(all_relations),
+        len(unique_keys),
+        len(new_mentions),
+        len(new_relations),
     )

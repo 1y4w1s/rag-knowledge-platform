@@ -4,13 +4,19 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import threading
 import uuid
-from datetime import datetime, timezone
+from collections import deque
+from datetime import datetime, timedelta, timezone
+from enum import Enum
 from pathlib import Path
+from typing import Literal
 from uuid import UUID
 
 from sqlalchemy import delete, select, text
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.core.database import SessionLocal
 from app.models.document import Document
 from app.models.document_chunk import DocumentChunk
@@ -18,6 +24,7 @@ from app.models.enums import DocumentStatus
 from app.models.webhook import Webhook
 from app.services.ingestion.chunker import structure_chunk
 from app.services.ingestion.embedder import (
+    current_bge_en_model,
     current_embedding_model,
     embed_texts,
     embedding_input_text,
@@ -30,10 +37,101 @@ from app.services.rag.cjk import segment_cjk
 from app.services.rag.embed_route import REASON_EMBEDDING_EN_FAILED, is_mostly_english
 from app.services.rag.entity_extractor import extract_entities_for_document
 
+
+class _AsyncCapacityWaiter:
+    """等待容量闸的单个异步任务，记录其 event loop 与唤醒 future。"""
+
+    __slots__ = ("loop", "future", "granted")
+
+    def __init__(
+        self,
+        loop: asyncio.AbstractEventLoop,
+        future: asyncio.Future[None],
+    ) -> None:
+        self.loop = loop
+        self.future = future
+        self.granted = False
+
+
+class _AsyncCapacityLimiter:
+    """线程安全、与 event loop 无关的异步容量闸（进程内并发上限）。"""
+
+    def __init__(self, total_tokens: int) -> None:
+        if total_tokens < 1:
+            raise ValueError("total_tokens must be >= 1")
+        self._total_tokens = total_tokens
+        self._available = total_tokens
+        self._waiters: deque[_AsyncCapacityWaiter] = deque()
+        self._lock = threading.Lock()
+
+    @property
+    def total_tokens(self) -> int:
+        return self._total_tokens
+
+    async def acquire(self) -> None:
+        loop = asyncio.get_running_loop()
+        waiter = _AsyncCapacityWaiter(loop, loop.create_future())
+        with self._lock:
+            if self._available > 0:
+                self._available -= 1
+                return
+            self._waiters.append(waiter)
+        try:
+            await waiter.future
+        except asyncio.CancelledError:
+            with self._lock:
+                if waiter.granted:
+                    self._grant_next_locked()
+                else:
+                    self._waiters.remove(waiter)
+            raise
+
+    def release(self) -> None:
+        with self._lock:
+            self._grant_next_locked()
+
+    async def __aenter__(self) -> _AsyncCapacityLimiter:
+        await self.acquire()
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: object,
+        exc_val: object,
+        exc_tb: object,
+    ) -> bool:
+        self.release()
+        return False
+
+    def _grant_next_locked(self) -> None:
+        while self._waiters:
+            waiter = self._waiters.popleft()
+            waiter.granted = True
+            try:
+                waiter.loop.call_soon_threadsafe(waiter.future.set_result, None)
+            except RuntimeError:
+                # 等待者所在 loop 已关闭时，将 token 转给下一个等待者或归还计数。
+                continue
+            return
+        self._available += 1
+
+
 # 并发 ingestion 上限（防止 BackgroundTasks 无界堆积）
-_INGESTION_SEMAPHORE = asyncio.Semaphore(5)
+_INGESTION_SEMAPHORE = _AsyncCapacityLimiter(5)
 
 logger = logging.getLogger(__name__)
+
+
+class IngestionOutcome(str, Enum):
+    """pipeline 执行结果，供 Celery task 映射返回值。"""
+
+    completed = "completed"
+    failed = "failed"
+    skipped = "skipped"
+
+
+ClaimKind = Literal["claimed", "reclaimed", "skipped", "not_found"]
+
 
 _PASSTHROUGH_MESSAGES = frozenset(
     {
@@ -230,6 +328,10 @@ async def _write_chunks(
 
             embedding_en=embedding_en,
 
+            embedding_en_model=(
+                current_bge_en_model() if embedding_en is not None else None
+            ),
+
         )
 
             db.add(chunk)
@@ -279,47 +381,117 @@ async def _write_chunks(
     return len(drafts)
 
 
+async def _claim_document(
+    db: AsyncSession,
+    *,
+    document_id: UUID,
+    started_at: datetime,
+    stale_minutes: float,
+) -> tuple[Document | None, ClaimKind]:
+    """行锁原子认领：queued → claimed；processing 超龄 → reclaimed + 审计；其余跳过。"""
+    doc = await db.scalar(
+        select(Document)
+        .where(Document.id == document_id)
+        .with_for_update()
+    )
+    if doc is None:
+        return None, "not_found"
+    if doc.deleted_at is not None:
+        return doc, "skipped"
+
+    kind: ClaimKind
+    if doc.status == DocumentStatus.queued:
+        kind = "claimed"
+    elif doc.status == DocumentStatus.processing:
+        anchor = doc.processing_started_at
+        if anchor is None:
+            return doc, "skipped"
+        if anchor.tzinfo is None:
+            anchor = anchor.replace(tzinfo=timezone.utc)
+        if anchor < started_at - timedelta(minutes=stale_minutes):
+            kind = "reclaimed"
+            from app.services.audit.log import write_audit_log
+
+            await write_audit_log(
+                db,
+                action="ingestion.stale_reclaimed",
+                resource_type="document",
+                resource_id=doc.id,
+                kb_id=doc.kb_id,
+                metadata={
+                    "filename": doc.filename,
+                    "status_before": DocumentStatus.processing.value,
+                    "age_seconds": round(
+                        (started_at - anchor).total_seconds(), 1
+                    ),
+                    "clock_field": "processing_started_at",
+                },
+            )
+        else:
+            return doc, "skipped"
+    else:
+        return doc, "skipped"
+
+    doc.status = DocumentStatus.processing
+    doc.processing_started_at = started_at
+    doc.error_message = None
+    await db.commit()
+    return doc, kind
 
 
 
-async def process_document_ingestion(document_id: UUID) -> None:
 
-    """BackgroundTask 入口：完整入库管道。"""
+
+async def process_document_ingestion(document_id: UUID) -> IngestionOutcome:
+
+    """BackgroundTask 入口：完整入库管道，返回 outcome 供任务层映射。"""
     async with _INGESTION_SEMAPHORE:
         started_at = datetime.now(timezone.utc)
 
         async with SessionLocal() as db:
 
-            doc = await db.get(Document, document_id)
+            doc, claim_kind = await _claim_document(
+                db,
+                document_id=document_id,
+                started_at=started_at,
+                stale_minutes=settings.ingest_stale_processing_minutes,
+            )
 
             if doc is None:
 
                 logger.warning("ingestion: document %s not found", document_id)
 
-                return
+                return IngestionOutcome.skipped
 
+
+
+            if claim_kind == "skipped":
+                if doc.status == DocumentStatus.processing:
+                    logger.warning("ingestion: document %s already processing, skipped", document_id)
+                else:
+                    logger.info(
+                        "ingestion: document %s status=%s skipped",
+                        document_id,
+                        doc.status.value,
+                    )
+                return IngestionOutcome.skipped
+
+            if claim_kind == "reclaimed":
+                logger.info(
+                    "ingestion: document %s stale processing reclaimed, restart",
+                    document_id,
+                )
 
 
             storage_path = doc.storage_path
 
-            if doc.status == DocumentStatus.processing:
-                logger.warning("ingestion: document %s already processing, skipped", document_id)
-                return
-
-
             file_type = doc.file_type
 
-            doc.status = DocumentStatus.processing
-
-            doc.processing_started_at = started_at
-
-            doc.error_message = None
-
-            await db.commit()
-
-
-
+    webhook_error: str | None = None
     try:
+
+
+
         parser_mode: str | None = None
         path = Path(storage_path)
 
@@ -329,7 +501,6 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
 
 
-        from app.core.config import settings
         from app.services.ingestion.progress import (
             STAGE_CHUNKING,
             STAGE_EMBEDDING,
@@ -420,7 +591,9 @@ async def process_document_ingestion(document_id: UUID) -> None:
 
             if doc is None:
 
-                return
+                logger.warning("ingestion: document %s disappeared mid-processing", document_id)
+
+                return IngestionOutcome.skipped
 
 
 
@@ -466,22 +639,25 @@ async def process_document_ingestion(document_id: UUID) -> None:
             chunk_count,
             parser_mode or "default",
         )
+        return IngestionOutcome.completed
 
     except Exception as exc:
-            user_message = _user_facing_ingestion_error(exc, parser_mode=parser_mode)
-            fail_reason = _ingestion_failure_reason(exc, parser_mode=parser_mode)
-            logger.exception(
+        user_message = _user_facing_ingestion_error(exc, parser_mode=parser_mode)
+        fail_reason = _ingestion_failure_reason(exc, parser_mode=parser_mode)
+        logger.exception(
             "ingestion failed: document=%s ingestion.parser=%s reason=%s error=%s",
             document_id,
             parser_mode or "default",
             fail_reason or "unknown",
             user_message,
         )
-            await _mark_failed(document_id, user_message)
+        webhook_error = user_message
+        await _mark_failed(document_id, user_message)
 
-    webhook_error = user_message if "exc" in dir() else None
     if webhook_error:
         await _trigger_webhooks_on_failure(document_id, webhook_error)
+
+    return IngestionOutcome.failed
 
 
 async def _trigger_webhooks(
@@ -493,7 +669,7 @@ async def _trigger_webhooks(
 ) -> None:
     """Ingestion 完成后触发 kb_id 关联的 webhook。"""
     try:
-        from app.services.webhook.sender import send_webhook, build_webhook_payload
+        from app.services.webhook.sender import build_webhook_payload
 
         result = await db.execute(
             select(Webhook).where(
@@ -511,16 +687,65 @@ async def _trigger_webhooks(
                 status="completed",
                 chunk_count=chunk_count,
             )
-            await send_webhook(wh.url, wh.secret, "document.completed", payload)
+            await _send_webhook_fail_closed(
+                db,
+                wh,
+                "document.completed",
+                doc.kb_id,
+                payload,
+            )
     except Exception as exc:
         logger.warning("webhook trigger failed (non-blocking): %s", exc)
+
+
+async def _send_webhook_fail_closed(
+    db,
+    wh,
+    event: str,
+    kb_id,
+    payload: dict,
+) -> None:
+    """发送单个 webhook；密钥解密失败时拒绝发送并写审计，不阻断同批其他 webhook。"""
+    from app.services.audit.log import write_audit_log
+    from app.services.webhook.sender import WebhookSecretError, send_webhook
+
+    try:
+        await send_webhook(wh.url, wh.secret, event, payload)
+    except WebhookSecretError:
+        logger.error(
+            "webhook send blocked: webhook_id=%s url=%s event=%s reason=secret_decrypt_failed",
+            wh.id,
+            wh.url,
+            event,
+        )
+        try:
+            await write_audit_log(
+                db,
+                action="webhook.send_blocked",
+                actor_user_id=wh.created_by,
+                resource_type="webhook",
+                resource_id=wh.id,
+                kb_id=kb_id,
+                metadata={
+                    "reason": "secret_decrypt_failed",
+                    "url": wh.url,
+                    "event": event,
+                },
+            )
+            await db.commit()
+        except Exception as exc:
+            logger.warning(
+                "webhook blocked audit write failed: webhook_id=%s error=%s",
+                wh.id,
+                exc,
+            )
 
 
 async def _trigger_webhooks_on_failure(document_id: UUID, error_message: str) -> None:
     """Ingestion 失败后触发 webhook。"""
     try:
         from app.core.database import SessionLocal
-        from app.services.webhook.sender import send_webhook, build_webhook_payload
+        from app.services.webhook.sender import build_webhook_payload
 
         async with SessionLocal() as db:
             doc = await db.get(Document, document_id)
@@ -542,7 +767,13 @@ async def _trigger_webhooks_on_failure(document_id: UUID, error_message: str) ->
                     status="failed",
                     error=error_message,
                 )
-                await send_webhook(wh.url, wh.secret, "document.failed", payload)
+                await _send_webhook_fail_closed(
+                    db,
+                    wh,
+                    "document.failed",
+                    doc.kb_id,
+                    payload,
+                )
     except Exception as exc:
         logger.warning("webhook failure trigger failed (non-blocking): %s", exc)
 

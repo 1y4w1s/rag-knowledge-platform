@@ -3,7 +3,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import DateTime, Float, ForeignKey, Index, Integer, String, UniqueConstraint, text
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -14,6 +14,8 @@ class AgentMemory(Base):
     __tablename__ = "agent_memories"
     __table_args__ = (
         UniqueConstraint("user_id", "key", name="uq_user_memory_key"),
+        Index("ix_agent_memories_user_status", "user_id", "status"),
+        Index("ix_agent_memories_user_status_tier", "user_id", "status", "tier"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -39,3 +41,44 @@ class AgentMemory(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
     )
+    source: Mapped[str] = mapped_column(
+        String(16),
+        nullable=False,
+        default="rule_inference",
+        server_default="rule_inference",
+    )
+    last_observed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        default=lambda: datetime.now(timezone.utc),
+        server_default=text("now()"),
+    )
+    status: Mapped[str] = mapped_column(
+        String(16),
+        nullable=False,
+        default="active",
+        server_default="active",
+    )
+    suppress_until: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    churn_count: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0",
+    )
+    tier: Mapped[str] = mapped_column(
+        String(16),
+        nullable=False,
+        default="long_term",
+        server_default="long_term",
+    )
+    importance_score: Mapped[float] = mapped_column(
+        Float,
+        nullable=False,
+        default=0.5,
+        server_default="0.5",
+    )
+    summary: Mapped[dict | None] = mapped_column(JSONB, nullable=True)

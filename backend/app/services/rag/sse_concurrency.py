@@ -49,6 +49,12 @@ async def _acquire_memory_slot(user_id: UUID) -> bool:
         return True
 
 
+async def _decrement_redis_slot(redis, key: str) -> None:
+    count = await redis.decr(key)
+    if count <= 0:
+        await redis.delete(key)
+
+
 async def _acquire_redis_slot(user_id: UUID) -> bool:
     from app.core.redis import get_redis
 
@@ -59,6 +65,7 @@ async def _acquire_redis_slot(user_id: UUID) -> bool:
         await redis.expire(key, _slot_ttl_seconds())
     if count > ACTIVE_LIMIT:
         logger.warning("SSE 并发超限(redis): user=%s count=%d", user_id, count)
+        await _decrement_redis_slot(redis, key)  # 拒绝路径补偿，计数回到真实占用
         return False
     return True
 
@@ -78,10 +85,7 @@ async def _release_redis_slot(user_id: UUID) -> None:
     from app.core.redis import get_redis
 
     redis = await get_redis()
-    key = _slot_key(user_id)
-    count = await redis.decr(key)
-    if count <= 0:
-        await redis.delete(key)
+    await _decrement_redis_slot(redis, _slot_key(user_id))
 
 
 async def release_sse_slot(user_id: UUID) -> None:

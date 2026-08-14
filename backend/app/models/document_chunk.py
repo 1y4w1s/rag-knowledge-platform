@@ -78,6 +78,7 @@ class DocumentChunk(Base):
     embedding_en: Mapped[list[float] | None] = mapped_column(
         Vector(384), nullable=True
     )
+    embedding_en_model: Mapped[str | None] = mapped_column(String(64), nullable=True)
     content_tsv = mapped_column(TSVECTOR, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

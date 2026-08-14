@@ -37,7 +37,7 @@ def parse_args() -> argparse.Namespace:
         "--datasets",
         type=str,
         default="crag",
-        help="数据集名称，逗号分隔 (crag, liverag, rageval, ragbench, mirage, enterprise)",
+        help="数据集名称，逗号分隔 (crag, liverag, enterprise, beir/*)",
     )
     p.add_argument("--all", action="store_true", help="运行所有已注册数据集")
     p.add_argument(

@@ -102,6 +102,39 @@ async def audit_agent_tool_denied(
     )
 
 
+async def audit_agent_tool_replanned(
+    db: AsyncSession,
+    *,
+    actor_user_id: UUID,
+    run_id: UUID,
+    step: int,
+    tool: str,
+    kind: str,
+    fallback_tool: str,
+    replan_count: int,
+) -> None:
+    """LLM 提示重规划 → agent.tool_replanned。
+
+    metadata 仅含 run_id/step/tool/kind/fallback_tool/replan_count，
+    绝不含用户问题全文与异常原文。
+    """
+    await write_audit_log(
+        db,
+        action="agent.tool_replanned",
+        actor_user_id=actor_user_id,
+        resource_type="agent_run",
+        resource_id=run_id,
+        metadata={
+            "run_id": str(run_id),
+            "step": step,
+            "tool": tool,
+            "kind": kind,
+            "fallback_tool": fallback_tool,
+            "replan_count": replan_count,
+        },
+    )
+
+
 async def audit_agent_run_completed(
     db: AsyncSession,
     *,
@@ -340,6 +373,7 @@ async def audit_agent_memory_write(
     key: str,
     memory_type: str,
     confidence: float,
+    source: str = "rule_inference",
 ) -> None:
     """记忆写入审计事件 → agent.memory_write。
 
@@ -363,5 +397,108 @@ async def audit_agent_memory_write(
             "key": key,
             "memory_type": memory_type,
             "confidence_range": confidence_range,
+            "source": source,
+        },
+    )
+
+
+async def audit_agent_memory_conflict_resolved(
+    db: AsyncSession,
+    *,
+    actor_user_id: UUID,
+    memory_id: UUID,
+    key: str,
+    memory_type: str,
+    resolution: str,
+    superseded_memory_id: UUID,
+) -> None:
+    """跨 key 维度冲突清理 → agent.memory_conflict_resolved，metadata 不含 value 原文。"""
+    await write_audit_log(
+        db,
+        action="agent.memory_conflict_resolved",
+        actor_user_id=actor_user_id,
+        resource_type="agent_memory",
+        resource_id=memory_id,
+        metadata={
+            "memory_id": str(memory_id),
+            "key": key,
+            "memory_type": memory_type,
+            "resolution": resolution,
+            "superseded_memory_id": str(superseded_memory_id),
+        },
+    )
+
+
+async def audit_agent_memory_suppressed(
+    db: AsyncSession,
+    *,
+    actor_user_id: UUID,
+    memory_id: UUID,
+    key: str,
+    memory_type: str,
+    reason: str,
+) -> None:
+    """用户报告错误记忆 → agent.memory_suppressed，metadata 不含 value 原文。"""
+    await write_audit_log(
+        db,
+        action="agent.memory_suppressed",
+        actor_user_id=actor_user_id,
+        resource_type="agent_memory",
+        resource_id=memory_id,
+        metadata={
+            "memory_id": str(memory_id),
+            "key": key,
+            "memory_type": memory_type,
+            "reason": reason,
+        },
+    )
+
+
+async def audit_agent_memory_risk_detected(
+    db: AsyncSession,
+    *,
+    actor_user_id: UUID,
+    memory_id: UUID,
+    key: str,
+    memory_type: str,
+    signal: str,
+    churn_count: int,
+) -> None:
+    """churn 风险信号 → agent.memory_risk_detected，metadata 不含 value 原文。"""
+    await write_audit_log(
+        db,
+        action="agent.memory_risk_detected",
+        actor_user_id=actor_user_id,
+        resource_type="agent_memory",
+        resource_id=memory_id,
+        metadata={
+            "memory_id": str(memory_id),
+            "key": key,
+            "memory_type": memory_type,
+            "signal": signal,
+            "churn_count": churn_count,
+        },
+    )
+
+
+async def audit_agent_memory_deleted(
+    db: AsyncSession,
+    *,
+    actor_user_id: UUID,
+    memory_id: UUID,
+    key: str,
+    memory_type: str,
+) -> None:
+    """删除记忆 → agent.memory_deleted，metadata 不含 value 原文。"""
+    await write_audit_log(
+        db,
+        action="agent.memory_deleted",
+        actor_user_id=actor_user_id,
+        resource_type="agent_memory",
+        resource_id=memory_id,
+        metadata={
+            "memory_id": str(memory_id),
+            "key": key,
+            "memory_type": memory_type,
         },
     )

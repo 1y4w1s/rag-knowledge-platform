@@ -17,7 +17,9 @@ import uuid
 from datetime import datetime, timezone
 from uuid import UUID
 
+import pytest
 from httpx import AsyncClient
+from sqlalchemy import select
 
 from app.core.database import SessionLocal
 from app.models.agent_approval import AgentApproval
@@ -262,6 +264,99 @@ async def test_submit_member_forbidden(
         },
     )
     assert resp.status_code == 403, resp.text
+
+
+async def test_submit_double_click_returns_same_pending_approval(
+    client: AsyncClient, org_iso
+) -> None:
+    """P2-A5：同一确认连点两次 → 复用同一 pending 审批卡，只落一行。"""
+    doc_id = await _insert_doc(org_iso.public_kb_id, org_iso.owner.id)
+    thread_id, run_id = await _insert_thread_run(
+        org_iso.owner.id, org_iso.public_kb_id
+    )
+    headers = await _login(client, org_iso.owner)
+    payload = {
+        "thread_id": str(thread_id),
+        "kb_id": str(org_iso.public_kb_id),
+        "document_id": str(doc_id),
+        "operation": "delete",
+        "run_id": str(run_id),
+    }
+
+    first = await client.post(SUBMIT_URL, headers=headers, json=payload)
+    assert first.status_code == 200, first.text
+    second = await client.post(SUBMIT_URL, headers=headers, json=payload)
+    assert second.status_code == 200, second.text
+    assert first.json()["approval_id"] == second.json()["approval_id"]
+
+    async with SessionLocal() as db:
+        rows = (
+            await db.execute(
+                select(AgentApproval).where(
+                    AgentApproval.run_id == run_id,
+                    AgentApproval.document_id == doc_id,
+                    AgentApproval.kind == ApprovalKind.delete_document,
+                    AgentApproval.status == ApprovalStatus.pending,
+                )
+            )
+        ).scalars().all()
+        assert len(rows) == 1
+
+
+async def test_submit_concurrent_double_click_keeps_single_pending_approval(
+    client: AsyncClient,
+    org_iso,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P2-A5：并发双击同时越过初查 → advisory lock 兜底仍只生成一个 pending。"""
+    import asyncio
+
+    from app.services.agent.tools import document_write as document_write_mod
+
+    doc_id = await _insert_doc(org_iso.public_kb_id, org_iso.owner.id)
+    thread_id, run_id = await _insert_thread_run(
+        org_iso.owner.id, org_iso.public_kb_id
+    )
+    headers = await _login(client, org_iso.owner)
+    payload = {
+        "thread_id": str(thread_id),
+        "kb_id": str(org_iso.public_kb_id),
+        "document_id": str(doc_id),
+        "operation": "delete",
+        "run_id": str(run_id),
+    }
+
+    barrier = asyncio.Barrier(2)
+    original_lock = document_write_mod._lock_approval_idempotency
+
+    async def _gated_lock(*args, **kwargs) -> None:
+        await barrier.wait()
+        await original_lock(*args, **kwargs)
+
+    monkeypatch.setattr(
+        document_write_mod, "_lock_approval_idempotency", _gated_lock
+    )
+
+    async def _submit() -> dict:
+        resp = await client.post(SUBMIT_URL, headers=headers, json=payload)
+        assert resp.status_code == 200, resp.text
+        return resp.json()
+
+    first, second = await asyncio.gather(_submit(), _submit())
+    assert first["approval_id"] == second["approval_id"]
+
+    async with SessionLocal() as db:
+        rows = (
+            await db.execute(
+                select(AgentApproval).where(
+                    AgentApproval.run_id == run_id,
+                    AgentApproval.document_id == doc_id,
+                    AgentApproval.kind == ApprovalKind.delete_document,
+                    AgentApproval.status == ApprovalStatus.pending,
+                )
+            )
+        ).scalars().all()
+        assert len(rows) == 1
 
 
 # --------------------------------------------------------------------------- #

@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import logging
 import threading
 import time
@@ -22,6 +23,19 @@ from app.services.auth.password import hash_password, validate_password_strength
 logger = logging.getLogger(__name__)
 
 RESET_TOKEN_KEY_PREFIX = "password_reset:"
+
+# P2-S2：重置令牌使用域分隔派生密钥，不再与登录令牌共用 jwt_secret
+_RESET_TOKEN_KEY_DOMAIN = b"ruige:password-reset:v1"
+
+
+def _reset_token_secret() -> str:
+    """返回重置令牌专用签名密钥（从 jwt_secret 派生，域分隔防串用）。"""
+    return hmac.new(
+        settings.jwt_secret.encode("utf-8"),
+        _RESET_TOKEN_KEY_DOMAIN,
+        hashlib.sha256,
+    ).hexdigest()
+
 
 # M4：已消耗的密码重置 token（内存集合，定期清理过期项）
 _consumed_tokens: dict[str, float] = {}
@@ -68,7 +82,7 @@ def _is_token_consumed(token: str) -> bool:
 async def _mark_token_consumed_db(
     db: AsyncSession, user_id: uuid.UUID, token: str
 ) -> None:
-    """将 token 标记为已消耗（写入数据库，持久可靠）。"""
+    """将 token 标记为已消耗（写入数据库，由调用方在同一事务内提交）。"""
     from app.models.password_reset import PasswordResetToken
 
     token_hash = hashlib.sha256(token.encode()).hexdigest()
@@ -78,7 +92,6 @@ async def _mark_token_consumed_db(
         used_at=datetime.now(timezone.utc),
     )
     db.add(record)
-    await db.commit()
 
 
 async def _is_token_consumed_db(db: AsyncSession, token: str) -> bool:
@@ -100,14 +113,14 @@ def _generate_reset_token(user_id: uuid.UUID) -> str:
     )
     return jwt.encode(
         {"sub": str(user_id), "exp": expire, "type": "password_reset"},
-        settings.jwt_secret,
+        _reset_token_secret(),
         algorithm="HS256",
     )
 
 
 def _verify_reset_token(token: str) -> uuid.UUID | None:
     try:
-        payload = jwt.decode(token, settings.jwt_secret, algorithms=["HS256"])
+        payload = jwt.decode(token, _reset_token_secret(), algorithms=["HS256"])
         if payload.get("type") != "password_reset":
             return None
         return uuid.UUID(payload["sub"])
@@ -149,7 +162,9 @@ async def send_password_reset_email(
             """,
         )
     except Exception:
-        return "邮件发送失败，请稍后重试"
+        # P2-S4：SMTP 故障也返回统一口径，避免通过响应文案枚举邮箱
+        logger.warning("密码重置邮件发送失败，按统一口径响应: user_id=%s", user.id)
+        return "如果该邮箱已注册，您将收到密码重置邮件"
 
     return "如果该邮箱已注册，您将收到密码重置邮件"
 
@@ -165,19 +180,27 @@ async def reset_password(
     if user_id is None:
         raise ValidationError("重置链接无效或已过期")
 
-    if _is_token_consumed(token) or await _is_token_consumed_db(db, token):
-        raise ValidationError("重置链接已使用，请重新申请")
-
     validate_password_strength(new_password)
 
-    user = await db.get(User, user_id)
+    if _is_token_consumed(token):
+        raise ValidationError("重置链接已使用，请重新申请")
+
+    # P2-S4：行锁串行化同一用户的并发重置，避免“查已用→改密→写已用”竞态
+    result = await db.execute(
+        select(User).where(User.id == user_id).with_for_update()
+    )
+    user = result.scalar_one_or_none()
     if user is None:
         raise ValidationError("重置链接无效或已过期")
 
+    # 获取行锁后再次校验，并发败方在此看到胜方已提交的消耗记录
+    if await _is_token_consumed_db(db, token):
+        raise ValidationError("重置链接已使用，请重新申请")
+
     user.password_hash = hash_password(new_password)
+    await _mark_token_consumed_db(db, user_id, token)
     await db.commit()
     _mark_token_consumed(token, settings.forgot_password_token_expire_minutes * 60)
-    await _mark_token_consumed_db(db, user_id, token)
 
     from app.services.auth.token_revocation import revoke_user_tokens
     revoke_user_tokens(user_id)

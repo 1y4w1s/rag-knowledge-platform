@@ -51,6 +51,11 @@ async def test_metrics_exposition_skeleton(client: AsyncClient) -> None:
     assert "ruige_degradation_level" in body
     assert 'ruige_documents_backlog{status="queued"}' in body
     assert 'ruige_documents_backlog{status="processing"}' in body
+    assert "ruige_agent_tool_calls_total" in body
+    assert "ruige_agent_tool_latency_ms" in body
+    assert "ruige_agent_tool_window_rejected_total" in body
+    assert "ruige_agent_llm_planner_calls_total" in body
+    assert "ruige_agent_llm_planner_tokens_total" in body
 
 
 @pytest.mark.asyncio
@@ -108,6 +113,27 @@ async def test_metrics_backlog_gauge(client: AsyncClient) -> None:
     assert resp.status_code == 200
     assert 'ruige_documents_backlog{status="queued"} 3' in resp.text
     assert 'ruige_documents_backlog{status="processing"} 1' in resp.text
+
+
+@pytest.mark.asyncio
+async def test_metrics_embedding_en_coverage_matches_count(
+    client: AsyncClient,
+) -> None:
+    stats = {
+        "searchable_chunks": 12,
+        "embedding_en_chunks": 4,
+        "embedding_en_coverage": 1 / 3,
+    }
+    with patch(
+        "app.api.metrics.count_embedding_en_coverage",
+        new_callable=AsyncMock,
+        return_value=stats,
+    ):
+        resp = await client.get("/metrics")
+    assert resp.status_code == 200
+    assert f"ruige_embedding_en_coverage {stats['embedding_en_coverage']}" in resp.text
+    assert f"ruige_embedding_en_chunks {stats['embedding_en_chunks']}" in resp.text
+    assert f"ruige_searchable_chunks {stats['searchable_chunks']}" in resp.text
 
 
 @pytest.mark.asyncio

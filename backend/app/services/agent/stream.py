@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import AsyncIterator, Awaitable, Callable
 from functools import partial
 from typing import Any
@@ -10,6 +11,8 @@ from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
+from app.core.degradation import assess_degradation, degradation_requires_llm
 from app.core.deps import CurrentUser
 from app.models.chat_thread import ChatThread
 from app.models.enums import AgentRunStatus, MessageStatus, ThreadKind
@@ -26,6 +29,7 @@ from app.services.agent.dispatch import (
     create_tool_planner,
 )
 from app.services.agent.runtime import ToolPlanner, run_react_loop
+from app.services.agent.working_memory import build_windowed_prompt_history
 from app.models.agent_approval import AgentApproval
 from app.models.enums import AgentRunMode
 from app.services.agent.tools.generate_faq_draft import (
@@ -54,10 +58,11 @@ from app.services.rag.confidence_reply import (
     classify_answer_confidence,
     partial_answer_disclaimer_for,
 )
+from app.services.rag.chat_llm import has_available_chat_provider_key
+from app.services.rag.degraded_answer import stream_degraded_fragment_reply
 from app.services.rag.executor import chunk_to_citation, workspace_chunk_to_citation
 from app.services.rag.generation import (
     build_messages,
-    compress_history,
     stream_deepseek_tokens,
     stream_no_context_reply,
 )
@@ -73,6 +78,9 @@ from app.services.rag.turn_writer import (
     precommit_turn_shell,
 )
 from app.services.workspace.scope import WorkspaceScope
+
+
+logger = logging.getLogger(__name__)
 
 
 def _sse_event(event: str, data: dict) -> str:
@@ -289,32 +297,64 @@ async def _stream_generation_phase(
     else:
         gated = list(gen_plan.gated_chunks)
         confidence = classify_answer_confidence(gated, message)
-        if confidence is AnswerConfidence.low:
-            disclaimer = partial_answer_disclaimer_for(message)
-            token_parts.append(disclaimer)
-            token_parts.append("\n\n")
-            yield _sse_event("token", {"text": disclaimer + "\n\n"})
+        if (
+            not degradation_requires_llm(assess_degradation())
+            or not has_available_chat_provider_key()
+        ):
+            # L1：LLM 全挂 / 未配置任何 chat provider key 时
+            # 跳过历史窗口化/build_messages，直接返回原文片段
+            token_stream = stream_degraded_fragment_reply(message, gated)
+        else:
+            if confidence is AnswerConfidence.low:
+                disclaimer = partial_answer_disclaimer_for(message)
+                token_parts.append(disclaimer)
+                token_parts.append("\n\n")
+                yield _sse_event("token", {"text": disclaimer + "\n\n"})
 
-        compressed = await compress_history(history) if history else None
+            if history:
+                windowed = build_windowed_prompt_history(
+                    history,
+                    max_messages=settings.agent_memory_window_max_messages,
+                    token_budget=settings.agent_memory_window_token_budget,
+                    min_keep=settings.agent_memory_window_min_keep,
+                    summary_prefix=settings.agent_memory_window_summary_prefix,
+                    summary_max=settings.agent_memory_window_summary_max,
+                )
+                history = windowed.history
 
-        # E4：外部工具结果注入 prompt
-        enriched_message = message
-        if gen_plan.external_context:
-            enriched_message += f"\n\n{gen_plan.external_context}"
+            # E4：外部工具结果注入 prompt
+            enriched_message = message
+            if gen_plan.external_context:
+                enriched_message += f"\n\n{gen_plan.external_context}"
 
-        messages = build_messages(
-            enriched_message,
-            gated,
-            history=history,
-            compressed_summary=compressed,
-            answer_confidence=confidence,
+            messages = build_messages(
+                enriched_message,
+                gated,
+                history=history,
+                compressed_summary=None,
+                answer_confidence=confidence,
+            )
+            token_stream = stream_deepseek_tokens(messages)
+
+    try:
+        async for text in token_stream:
+            if text:
+                token_parts.append(text)
+                yield _sse_event("token", {"text": text})
+    except Exception as exc:
+        # L1 异常兜底：provider 双失败把熔断器打开后的竞争窗口切到降级流
+        if gen_plan.refusal:
+            raise
+        logger.warning(
+            "module=rag_degradation operation=llm_all_down mode=thorough error=%s",
+            exc,
         )
-        token_stream = stream_deepseek_tokens(messages)
-
-    async for text in token_stream:
-        if text:
-            token_parts.append(text)
-            yield _sse_event("token", {"text": text})
+        async for text in stream_degraded_fragment_reply(
+            message, list(gen_plan.gated_chunks)
+        ):
+            if text:
+                token_parts.append(text)
+                yield _sse_event("token", {"text": text})
 
     assistant_content = "".join(token_parts)
 

@@ -262,6 +262,10 @@ async def test_stream_agent_core_calls_fallback_audit() -> None:
             side_effect=_noop_gen,
         ),
         patch(
+            "app.services.agent.stream._finalize_agent_turn",
+            new_callable=AsyncMock,
+        ),
+        patch(
             "app.services.agent.stream.audit_llm_plan_fallback",
             new_callable=AsyncMock,
         ) as mock_fallback,
@@ -283,8 +287,10 @@ async def test_stream_agent_core_calls_fallback_audit() -> None:
                     planner=planner,
                     org_scope=None,
                     workspace_mode=True,
-                    save_turn=AsyncMock(return_value=uuid.uuid4()),
-                    save_kwargs={},
+                    thread=MagicMock(),
+                    user_message_id=uuid.uuid4(),
+                    assistant_message_id=uuid.uuid4(),
+                    common={},
                 )
             ]
 
@@ -358,6 +364,10 @@ async def test_stream_agent_core_calls_success_audit() -> None:
             side_effect=_noop_gen,
         ),
         patch(
+            "app.services.agent.stream._finalize_agent_turn",
+            new_callable=AsyncMock,
+        ),
+        patch(
             "app.services.agent.stream.audit_llm_plan_fallback",
             new_callable=AsyncMock,
         ) as mock_fallback,
@@ -379,8 +389,10 @@ async def test_stream_agent_core_calls_success_audit() -> None:
                     planner=planner,
                     org_scope=None,
                     workspace_mode=True,
-                    save_turn=AsyncMock(return_value=uuid.uuid4()),
-                    save_kwargs={},
+                    thread=MagicMock(),
+                    user_message_id=uuid.uuid4(),
+                    assistant_message_id=uuid.uuid4(),
+                    common={},
                 )
             ]
 

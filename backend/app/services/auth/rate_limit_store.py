@@ -39,17 +39,17 @@ return 1
 
 
 def get_rate_limit_backend() -> str:
-    """懒读限流后端（memory|redis）。
+    """懒读限流后端（memory|redis），代码默认 redis。
 
-    settings.rate_limit_backend 为唯一配置源；RATE_LIMIT_BACKEND env 显式设置时覆盖
-    （白名单：测试 monkeypatch env 覆盖，compose 部署也走 env）。
+    settings.rate_limit_backend（默认 redis）为唯一配置源；RATE_LIMIT_BACKEND env
+    显式设置时覆盖（白名单：测试 monkeypatch env 覆盖，compose 部署也走 env）。
     """
     global _BACKEND
     if _BACKEND is None:
         _BACKEND = (
             os.environ.get("RATE_LIMIT_BACKEND")
             or settings.rate_limit_backend
-        ).strip().lower() or "memory"
+        ).strip().lower() or "redis"
     return _BACKEND
 
 

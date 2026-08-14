@@ -163,6 +163,26 @@ def _check_production_guard() -> None:
             "❌ JWT_SECRET 长度不足 32 字符，请使用更长的密钥。"
             "\n   生产环境建议：openssl rand -hex 32"
         )
+    if settings.environment == "production":
+        from sqlalchemy.engine import make_url
+
+        if make_url(settings.database_url).password == "changeme":
+            raise RuntimeError(
+                "❌ DATABASE_URL 仍在使用默认密码 changeme，请改为强随机密码后重新启动。"
+                "\n   生产环境建议：openssl rand -hex 32"
+            )
+        webhook_key = settings.webhook_encryption_secret
+        if (
+            not webhook_key
+            or webhook_key in ("replace-with-a-long-random-string", "changeme")
+            or len(webhook_key) < 32
+            or webhook_key == settings.jwt_secret
+        ):
+            raise RuntimeError(
+                "❌ WEBHOOK_ENCRYPTION_SECRET 未配置、为默认值或与 JWT_SECRET 相同，"
+                "请配置独立的 32+ 字符随机密钥后重新启动。"
+                "\n   生产环境建议：openssl rand -hex 32"
+            )
     from app.services.rag.chat_llm import active_chat_api_key_configured, resolve_chat_provider
 
     if not active_chat_api_key_configured():

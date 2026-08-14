@@ -10,20 +10,24 @@
 """
 
 import re
+import threading
 import jieba
 
 # 单个 CJK 字符正则
 _CJK_CHAR = re.compile(r"[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff\u3040-\u30ff\uac00-\ud7af]")
 
-# jieba 初始化（首次调用加载词典）
+# jieba 初始化（首次调用加锁加载词典，避免多线程重复加载）
+_jieba_lock = threading.Lock()
 _jieba_initialized = False
 
 
 def _ensure_jieba() -> None:
     global _jieba_initialized
     if not _jieba_initialized:
-        jieba.initialize()
-        _jieba_initialized = True
+        with _jieba_lock:
+            if not _jieba_initialized:
+                jieba.initialize()
+                _jieba_initialized = True
 
 
 def segment_cjk(text: str) -> str:
@@ -57,4 +61,3 @@ def segment_cjk(text: str) -> str:
 
     result = " ".join(tokens)
     return result
-

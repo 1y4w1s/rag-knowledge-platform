@@ -13,7 +13,7 @@ cancel **绝不**写库 / 落 md / ``_v2`` / ingestion / 改源 PDF（G4-3.3 红
 from __future__ import annotations
 
 import uuid
-from typing import Annotated, Union
+from typing import Annotated, Any, Literal, Union
 from uuid import UUID
 
 from app.core.exceptions import ServiceError, ValidationError
@@ -323,6 +323,26 @@ class MemoryListResponse(BaseModel):
     memories: list[MemoryResponse]
 
 
+class MemoryActionResponse(BaseModel):
+    ok: bool = True
+
+
+class MemoryReportErrorRequest(BaseModel):
+    reason: Literal["wrong", "outdated", "irrelevant"]
+
+
+def _memory_response(m: Any) -> MemoryResponse:
+    """AgentMemory → MemoryResponse，value 非 dict 时降级为空对象。"""
+    return MemoryResponse(
+        id=m.id,
+        key=m.key,
+        memory_type=m.memory_type,
+        value=m.value if isinstance(m.value, dict) else {},
+        confidence=m.confidence,
+        last_accessed_at=m.last_accessed_at.isoformat() if m.last_accessed_at else "",
+    )
+
+
 @router.get("/memories", response_model=MemoryListResponse)
 async def list_memories(
     current_user: Annotated[CurrentUser, Depends(get_current_user)],
@@ -332,19 +352,43 @@ async def list_memories(
     from app.services.agent.memory import load_active_memories
 
     memories = await load_active_memories(db, current_user.id)
-    return MemoryListResponse(
-        memories=[
-            MemoryResponse(
-                id=m.id,
-                key=m.key,
-                memory_type=m.memory_type,
-                value=m.value if isinstance(m.value, dict) else {},
-                confidence=m.confidence,
-                last_accessed_at=m.last_accessed_at.isoformat() if m.last_accessed_at else "",
-            )
-            for m in memories
-        ]
+    return MemoryListResponse(memories=[_memory_response(m) for m in memories])
+
+
+@router.post(
+    "/memories/{memory_id}/report-error",
+    response_model=MemoryActionResponse,
+)
+async def report_memory_error(
+    memory_id: UUID,
+    body: MemoryReportErrorRequest,
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> MemoryActionResponse:
+    """用户报告错误记忆 → 抑制；不存在/他人统一 200 ok 防枚举。"""
+    from app.core.config import settings
+    from app.services.agent.memory_governance import suppress_memory
+
+    await suppress_memory(
+        db,
+        memory_id=memory_id,
+        actor_user_id=current_user.id,
+        reason=body.reason,
+        suppress_seconds=settings.agent_memory_suppress_seconds,
     )
+    return MemoryActionResponse(ok=True)
+
+
+@router.get("/memories/risky", response_model=MemoryListResponse)
+async def list_risky_memories(
+    current_user: Annotated[CurrentUser, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> MemoryListResponse:
+    """列出当前用户的 churn / conflicted / stale 风险记忆。"""
+    from app.services.agent.memory_governance import find_risky_memories
+
+    memories = await find_risky_memories(db, current_user.id)
+    return MemoryListResponse(memories=[_memory_response(m) for m in memories])
 
 
 @router.delete("/memories/{memory_id}", status_code=status.HTTP_200_OK)
@@ -367,4 +411,18 @@ async def delete_memory(
         return {"ok": True}
 
     await service_delete_memory(db, memory_id)
+    try:
+        from app.services.audit.agent import audit_agent_memory_deleted
+
+        async with SessionLocal() as audit_db:
+            await audit_agent_memory_deleted(
+                audit_db,
+                actor_user_id=current_user.id,
+                memory_id=memory.id,
+                key=memory.key,
+                memory_type=memory.memory_type,
+            )
+            await audit_db.commit()
+    except Exception:
+        pass
     return {"ok": True}

@@ -78,5 +78,6 @@ async def web_search(query: str, num_results: int = 5) -> WebSearchResult:
             summary=f"找到 {len(results)} 条结果",
         )
     except Exception as e:
-        logger.warning("web_search 失败: %s", e)
-        return WebSearchResult(ok=False, summary=f"web_search 失败: {e}")
+        # 异常消息可能携带含 api_key 的完整请求 URL，禁止透出。
+        logger.warning("web_search 失败（%s），已隐藏错误详情", type(e).__name__)
+        return WebSearchResult(ok=False, summary="web_search 失败，请稍后重试")

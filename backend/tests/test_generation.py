@@ -17,6 +17,7 @@ from app.services.rag.generation import (
     expand_queries,
     no_context_reply_for,
     rewrite_query,
+    verify_answer,
 )
 from app.services.rag.types import RetrievedChunk
 
@@ -286,6 +287,224 @@ def test_decompose_query_no_llm_key_returns_single(monkeypatch: pytest.MonkeyPat
     query = "请假超过3天需要谁审批？超过7天呢？"
     result = asyncio.run(decompose_query(query))
     assert result == [query]
+
+
+def test_clean_query_line_preserves_trailing_digits() -> None:
+    """P2-R8：只剥行首列表编号，句尾数字（版本3/2024年）必须原样保留。"""
+    from app.services.rag.generation import _clean_query_line
+
+    assert _clean_query_line("1. 功能版本 3") == "功能版本 3"
+    assert _clean_query_line("1.版本3") == "版本3"
+    assert _clean_query_line("2、功能版本 2") == "功能版本 2"
+    assert _clean_query_line("- 功能版本1") == "功能版本1"
+    assert _clean_query_line("标准版本3") == "标准版本3"
+    assert _clean_query_line("2024年营收") == "2024年营收"
+    assert _clean_query_line("1.0 版本") == "1.0 版本"
+
+
+def test_expand_queries_keeps_trailing_digit(monkeypatch: pytest.MonkeyPatch) -> None:
+    """P2-R8：expand 清理编号后，真问句结尾数字不能丢。"""
+    import asyncio
+
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "deepseek_api_key", "test-key")
+    monkeypatch.setattr(settings, "tongyi_api_key", "")
+
+    async def _fake_stream(*args: object, **kwargs: object) -> object:
+        yield "1. 功能版本 3\n2、功能版本 2\n- 功能版本1"
+
+    monkeypatch.setattr(
+        "app.services.rag.generation.stream_deepseek_tokens",
+        _fake_stream,
+    )
+
+    result = asyncio.run(expand_queries("版本"))
+    assert "功能版本 3" in result
+    assert "功能版本 2" in result
+    assert "功能版本1" in result
+
+
+def test_decompose_query_keeps_trailing_digit(monkeypatch: pytest.MonkeyPatch) -> None:
+    """P2-R8：decompose 清理编号后，真问句结尾数字不能丢。"""
+    import asyncio
+
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "deepseek_api_key", "test-key")
+    monkeypatch.setattr(settings, "tongyi_api_key", "")
+
+    async def _fake_stream(*args: object, **kwargs: object) -> object:
+        yield "1. 功能版本 3\n2. 请假 3"
+
+    monkeypatch.setattr(
+        "app.services.rag.generation.stream_deepseek_tokens",
+        _fake_stream,
+    )
+
+    result = asyncio.run(decompose_query("版本"))
+    assert "功能版本 3" in result
+    assert "请假 3" in result
+
+
+# --------------------------------------------------------------------------- #
+# P2-R9：无 LLM key 守卫
+# --------------------------------------------------------------------------- #
+
+
+def test_compress_history_no_llm_key_returns_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P2-R9：无 LLM key 时压缩不得把兜底文案当真摘要。"""
+    import asyncio
+
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "deepseek_api_key", "")
+    monkeypatch.setattr(settings, "tongyi_api_key", "")
+
+    called = False
+
+    async def _fake_stream(*args: object, **kwargs: object) -> object:
+        nonlocal called
+        called = True
+        yield "根据知识库内容回答"
+
+    monkeypatch.setattr(
+        "app.services.rag.generation.stream_deepseek_tokens",
+        _fake_stream,
+    )
+
+    result = asyncio.run(compress_history(_make_history(8)))
+    assert result is None
+    assert called is False
+
+
+def test_rewrite_query_no_llm_key_returns_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P2-R9：无 LLM key 时改写不得把兜底文案当真查询。"""
+    import asyncio
+
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "deepseek_api_key", "")
+    monkeypatch.setattr(settings, "tongyi_api_key", "")
+
+    called = False
+
+    async def _fake_stream(*args: object, **kwargs: object) -> object:
+        nonlocal called
+        called = True
+        yield "根据知识库内容回答"
+
+    monkeypatch.setattr(
+        "app.services.rag.generation.stream_deepseek_tokens",
+        _fake_stream,
+    )
+
+    result = asyncio.run(rewrite_query("年假几天？"))
+    assert result is None
+    assert called is False
+
+
+def test_contextualize_query_no_llm_key_returns_original(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P2-R9：无 LLM key 时多轮改写不得把兜底文案当真查询。"""
+    import asyncio
+
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "deepseek_api_key", "")
+    monkeypatch.setattr(settings, "tongyi_api_key", "")
+
+    called = False
+
+    async def _fake_stream(*args: object, **kwargs: object) -> object:
+        nonlocal called
+        called = True
+        yield "根据知识库内容回答"
+
+    monkeypatch.setattr(
+        "app.services.rag.generation.stream_deepseek_tokens",
+        _fake_stream,
+    )
+
+    query = "具体多少天？"
+    history = [
+        {"role": "user", "content": "年假有几天？"},
+        {"role": "assistant", "content": "10 天。"},
+    ]
+    result = asyncio.run(contextualize_query(query, history))
+    assert result == query
+    assert called is False
+
+
+def test_verify_answer_no_llm_key_passes_through(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P2-R9：无 LLM key 时验证不得把兜底文案当真校验结果。"""
+    import asyncio
+
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "deepseek_api_key", "")
+    monkeypatch.setattr(settings, "tongyi_api_key", "")
+
+    called = False
+
+    async def _fake_stream(*args: object, **kwargs: object) -> object:
+        nonlocal called
+        called = True
+        yield "根据知识库内容回答"
+
+    monkeypatch.setattr(
+        "app.services.rag.generation.stream_deepseek_tokens",
+        _fake_stream,
+    )
+
+    result = asyncio.run(
+        verify_answer("年假 10 天。", [_sample_chunk()], "年假几天？")
+    )
+    assert result == (True, None)
+    assert called is False
+
+
+def test_correct_answer_no_llm_key_returns_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """P2-R9：无 LLM key 时纠正不得把兜底文案当真纠正答案。"""
+    import asyncio
+
+    from app.core.config import settings
+    from app.services.rag.generation import _correct_answer
+
+    monkeypatch.setattr(settings, "deepseek_api_key", "")
+    monkeypatch.setattr(settings, "tongyi_api_key", "")
+
+    called = False
+
+    async def _fake_stream(*args: object, **kwargs: object) -> object:
+        nonlocal called
+        called = True
+        yield "根据知识库内容回答"
+
+    monkeypatch.setattr(
+        "app.services.rag.generation.stream_deepseek_tokens",
+        _fake_stream,
+    )
+
+    result = asyncio.run(
+        _correct_answer(
+            "错误回答",
+            [_sample_chunk()],
+            "年假几天？",
+            "回答包含不受检索片段支持的事实",
+        )
+    )
+    assert result is None
+    assert called is False
 
 
 def test_expand_multi_prompt_format() -> None:

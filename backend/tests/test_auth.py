@@ -103,6 +103,7 @@ async def test_register_duplicate_email(client: AsyncClient) -> None:
         json={**payload, "username": username_b},
     )
     assert second.status_code == 409
+    assert second.json()["detail"] == "该邮箱或用户名已被使用"
 
 
 @pytest.mark.asyncio
@@ -128,7 +129,46 @@ async def test_register_duplicate_username(client: AsyncClient) -> None:
         },
     )
     assert second.status_code == 409
-    assert "用户名" in second.json()["detail"]
+    assert second.json()["detail"] == "该邮箱或用户名已被使用"
+
+
+@pytest.mark.asyncio
+async def test_register_conflict_message_does_not_disclose_field(client: AsyncClient) -> None:
+    email = unique_email("enum")
+    username = unique_username("enum")
+    first = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": email,
+            "username": username,
+            "password": "Test123!@",
+            "account_type": "personal",
+        },
+    )
+    assert first.status_code == 201
+
+    duplicate_email = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": email,
+            "username": unique_username("enum-mail"),
+            "password": "Test123!@",
+            "account_type": "personal",
+        },
+    )
+    duplicate_username = await client.post(
+        "/api/v1/auth/register",
+        json={
+            "email": unique_email("enum-user"),
+            "username": username,
+            "password": "Test123!@",
+            "account_type": "personal",
+        },
+    )
+    assert duplicate_email.status_code == 409
+    assert duplicate_username.status_code == 409
+    assert duplicate_email.json()["detail"] == duplicate_username.json()["detail"]
+    assert duplicate_email.json()["detail"] == "该邮箱或用户名已被使用"
 
 
 @pytest.mark.asyncio

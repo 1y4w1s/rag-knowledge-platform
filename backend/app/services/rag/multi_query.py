@@ -6,6 +6,7 @@ conditional 见 planner.should_expand_queries）。本模块不引入通义嵌�
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from uuid import UUID
@@ -22,7 +23,7 @@ from app.services.rag.executor import merge_recall_rows
 from app.services.rag.fts_recall import fts_recall, _fts_recall_workspace
 from app.services.rag.confidence_reply import is_low_confidence
 from app.services.rag.rrf import reciprocal_rank_fusion
-from app.services.rag.types import _RecallRow
+from app.services.rag.types import RetrievedChunk, _RecallRow
 from app.services.rag.vector_recall import vector_recall, _vector_recall_workspace
 
 logger = logging.getLogger(__name__)
@@ -73,7 +74,9 @@ async def build_query_variants(
     try:
         from app.services.rag.generation import expand_queries
 
-        expanded = await expand_queries(q)
+        expanded = await asyncio.wait_for(
+            expand_queries(q), timeout=settings.llm_timeout_seconds
+        )
         return _dedupe_cap(expanded if expanded else [q], cap=cap)
     except Exception:
         logger.warning("expand_queries failed; fallback to single query", exc_info=True)
@@ -92,6 +95,34 @@ def _dedupe_cap(queries: list[str], *, cap: int) -> list[str]:
         if len(out) >= cap:
             break
     return out or queries[:1]
+
+
+def _recall_rows_to_confidence_chunks(
+    rows: list[_RecallRow],
+) -> list[RetrievedChunk]:
+    """召回中间行 → 带分片段（vector_similarity 映射 similarity，供置信度判断）。"""
+    chunks: list[RetrievedChunk] = []
+    for row in rows:
+        chunk = row.chunk
+        chunks.append(
+            RetrievedChunk(
+                kb_id=chunk.kb_id,
+                chunk_id=chunk.id,
+                document_id=chunk.document_id,
+                doc_name=row.filename,
+                content=chunk.content,
+                page_number=chunk.page_number,
+                section_title=chunk.section_title,
+                heading_path=chunk.heading_path,
+                similarity=(
+                    row.vector_similarity
+                    if row.vector_similarity is not None
+                    else 0.0
+                ),
+                kb_name=row.kb_name,
+            )
+        )
+    return chunks
 
 
 async def multi_query_kb_recall(
@@ -172,9 +203,9 @@ async def multi_query_kb_recall(
     # B2-b：自适应变体权重（以 is_low_confidence 返回值为准）
     var_w = settings.query_rewrite_variant_weight
     if len(variants) > 1:
-        _orig_chunks = [r.chunk for r in v_rows if hasattr(r, 'chunk')] + [
-            r.chunk for r in fts_rows if hasattr(r, 'chunk')
-        ]
+        _orig_chunks = _recall_rows_to_confidence_chunks(
+            [*v_rows, *fts_rows]
+        )
         if _orig_chunks and is_low_confidence(_orig_chunks):
             var_w = 1.0  # 低置信 → 提权变体，让变体结果更积极进入池
 
@@ -354,9 +385,9 @@ async def multi_query_workspace_recall(
     # B2-b：自适应变体权重（以 is_low_confidence 返回值为准）
     var_w = settings.query_rewrite_variant_weight
     if len(variants) > 1:
-        _orig_chunks = [r.chunk for r in v_rows if hasattr(r, 'chunk')] + [
-            r.chunk for r in fts_rows if hasattr(r, 'chunk')
-        ]
+        _orig_chunks = _recall_rows_to_confidence_chunks(
+            [*v_rows, *fts_rows]
+        )
         if _orig_chunks and is_low_confidence(_orig_chunks):
             var_w = 1.0
 

@@ -111,16 +111,17 @@ async def get_chat_messages(
     kb_visible = await is_kb_visible_in_org_scope(
         db, current_user, kb, department_id=department_id
     )
+    if not kb_visible:
+        raise ForbiddenError(
+            detail="无权访问该资料库",
+        )
+
     rows = await list_chat_messages(
         db,
         kb_id=kb_id,
         user_id=current_user.id,
         limit=limit,
     )
-    if not kb_visible and not rows:
-        raise ForbiddenError(
-            detail="无权访问该资料库",
-        )
 
     async def _kb_visible(
         _payload: HistoryCitationPayload, _raw: dict

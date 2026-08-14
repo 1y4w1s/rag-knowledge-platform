@@ -3,13 +3,15 @@
 import logging
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core.deps import CurrentUser
 from app.core.exceptions import ConflictError, ForbiddenError, UnauthorizedError, ValidationError
 from app.models.enums import AccountType, OrgRole
+from app.models.org_unit import OrgUnit
+from app.models.org_unit_member import OrgUnitMember
 from app.models.organization import Organization
 from app.models.organization_member import OrganizationMember
 from app.models.user import User
@@ -161,6 +163,16 @@ async def leave_team(
     org_name = org.name if org is not None else "团队"
 
     user = membership.user
+    # 与管理员移除成员（organization/members.py remove_member）对齐：
+    # 退团时同步清理该用户在团队内全部部门成员行，防止重加入后恢复部门管理员身份。
+    await db.execute(
+        delete(OrgUnitMember).where(
+            OrgUnitMember.user_id == current_user.id,
+            OrgUnitMember.org_unit_id.in_(
+                select(OrgUnit.id).where(OrgUnit.org_id == current_user.org_id)
+            ),
+        )
+    )
     await db.delete(membership)
     if user.account_type == AccountType.enterprise:
         user.account_type = AccountType.personal

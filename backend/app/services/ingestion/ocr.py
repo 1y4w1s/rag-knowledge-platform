@@ -131,6 +131,7 @@ def ocr_pdf_pages(
     """将 PDF 每页渲染为图后 OCR，返回 ``[(页码, 文本), ...]``。
 
     ``on_page(n, m)``：可选同步回调（当前页 / 总页），供 NW-4 进度回写。
+    逐页渲染、逐页识别、用完即弃；单页渲染失败抛 ``OCR_RUNTIME_ERROR``。
     """
     _require_ocr_enabled()
     try:
@@ -157,17 +158,31 @@ def ocr_pdf_pages(
     if page_count == 0:
         return []
 
-    try:
-        images = convert_from_path(str(pdf_path), first_page=1, last_page=page_count)
-    except Exception as exc:
-        if looks_like_poppler_missing(exc):
-            raise_ocr(OCR_POPPLER_MISSING, cause=exc)
-        raise_ocr(OCR_RUNTIME_ERROR, cause=exc)
-
     results: list[OcrPageResult] = []
-    for page_number, image in enumerate(images, start=1):
+    for page_number in range(1, page_count + 1):
+        try:
+            images = convert_from_path(
+                str(pdf_path), first_page=page_number, last_page=page_number
+            )
+        except Exception as exc:
+            if looks_like_poppler_missing(exc):
+                raise_ocr(OCR_POPPLER_MISSING, cause=exc)
+            raise_ocr(OCR_RUNTIME_ERROR, cause=exc)
+
+        if not images:
+            logger.warning(
+                "pdf page render returned no image: pdf=%s page=%s",
+                pdf_path,
+                page_number,
+            )
+            raise_ocr(OCR_RUNTIME_ERROR)
+
+        image = images[0]
         if on_page is not None:
             on_page(page_number, page_count)
-        text = _run_ocr_on_image(image)
+        try:
+            text = _run_ocr_on_image(image)
+        finally:
+            image.close()
         results.append((page_number, text))
     return results

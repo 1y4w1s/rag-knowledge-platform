@@ -1,24 +1,58 @@
 """Webhook 回调发送服务（Wave 7.5）。"""
 from __future__ import annotations
 
+import asyncio
 import hashlib
 import hmac
+import ipaddress
 import json
 import logging
+import socket
 import time
 from uuid import UUID
+from urllib.parse import urlparse
 
 import httpx
 
 from app.services.webhook.security import decrypt_secret
-from app.services.webhook.ssrf import reject_ssrf_target
+from app.services.webhook.ssrf import reject_ssrf_resolved_ips, reject_ssrf_target
 
 logger = logging.getLogger(__name__)
 
 
+class WebhookSecretError(RuntimeError):
+    """Webhook secret 无法解密时抛出：fail-closed，拒绝发送。"""
+
+
 def _reject_ssrf_target(url: str) -> None:
-    """校验 URL 不指向内网/回环/链路本地/云元数据地址（全地址族）。"""
-    reject_ssrf_target(url)
+    """校验 URL 不指向内网/回环/链路本地/云元数据地址（全地址族），且仅允许 HTTPS。"""
+    reject_ssrf_target(url, allowed_schemes=frozenset({"https"}))
+
+
+async def _resolve_host_ips(host: str, port: int) -> list[str]:
+    """解析域名全部 A/AAAA 地址，供发送前 SSRF 校验。"""
+    loop = asyncio.get_running_loop()
+    infos = await loop.getaddrinfo(host, port, type=socket.SOCK_STREAM)
+    return sorted({info[4][0] for info in infos})
+
+
+async def _reject_ssrf_resolved_targets(url: str) -> None:
+    """发送前解析域名并逐 IP 校验，堵住域名指向内网的发送窗口。"""
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").strip("[]")
+    if not host:
+        return
+    try:
+        ipaddress.ip_address(host)
+        return  # 字面 IP 已由 _reject_ssrf_target 校验
+    except ValueError:
+        pass
+    try:
+        ips = await _resolve_host_ips(host, parsed.port or 443)
+    except OSError as exc:
+        logger.warning("webhook DNS resolution failed: host=%s error=%s", host, exc)
+        raise ValueError("Webhook URL 域名解析失败，无法完成 SSRF 校验") from exc
+    reject_ssrf_resolved_ips(ips)
 
 
 def _sign_payload(payload: bytes, secret: str) -> str:
@@ -39,11 +73,17 @@ async def send_webhook(
         True 表示发送成功，False 表示最终失败。
     """
     _reject_ssrf_target(url)
-    # 尝试解密（兼容已有明文 secret，backfill 后全部加密）
+    await _reject_ssrf_resolved_targets(url)
     try:
         secret = decrypt_secret(secret)
-    except Exception:
-        pass  # 明文 secret，继续使用原值
+    except Exception as exc:
+        logger.error(
+            "webhook send blocked: event=%s url=%s reason=secret_decrypt_failed error=%s",
+            event,
+            url,
+            exc,
+        )
+        raise WebhookSecretError("webhook secret 解密失败，拒绝发送") from exc
     body = json.dumps(payload, ensure_ascii=False).encode()
     signature = _sign_payload(body, secret)
 

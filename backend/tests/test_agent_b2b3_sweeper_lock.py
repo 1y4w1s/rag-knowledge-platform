@@ -101,6 +101,7 @@ async def test_b2_sweeper_marks_stale_runs_failed(
                 step_index=1,
                 tool_name="semantic_search",
                 status=AgentStepStatus.running,
+                created_at=now - timedelta(hours=2),
             )
         )
         await db.commit()

@@ -9,6 +9,7 @@ LLM：复用 complete_chat()（熔断链 + provider 回退 + 无 key mock）。
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import os
 
@@ -78,13 +79,19 @@ async def generate_hypothetical_document(query: str) -> str | None:
     if not is_hyde_enabled():
         return None
 
+    # 无 LLM key 时 complete_chat 会返回兜底文案，不能当真假设文档。
+    if not (settings.deepseek_api_key or settings.tongyi_api_key):
+        return None
+
     messages: list[dict[str, str]] = [
         {"role": "system", "content": HYDE_SYSTEM_PROMPT},
         {"role": "user", "content": HYDE_USER_PROMPT.format(query=query.strip())},
     ]
 
     try:
-        result = await complete_chat(messages)
+        result = await asyncio.wait_for(
+            complete_chat(messages), timeout=settings.llm_timeout_seconds
+        )
         result = result.strip()
         if not result:
             logger.warning("hyde: complete_chat 返回空，降级")

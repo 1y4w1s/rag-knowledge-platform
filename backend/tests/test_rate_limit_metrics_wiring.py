@@ -18,14 +18,22 @@ fixture 恢复真实实现（reload + 全部 API 模块接线 + 降级/熔断隔
 
 from __future__ import annotations
 
+import logging
+import uuid
+
 import pytest
 from httpx import AsyncClient
 
 from app.api.middleware import rate_limit as rate_limit_mw
 from app.core.config import settings
 from app.services.auth import api_rate_limit as api_rl
+from app.services.auth import login_rate_limit as login_rl
+from app.services.auth.api_rate_limit import ApiRateLimitKind
 from app.services.auth.rate_limit_store import reset_rate_limit_backend_cache
-from app.services.observability.metrics_registry import RATE_LIMIT_REJECT_KINDS
+from app.services.observability.metrics_registry import (
+    RATE_LIMIT_REJECT_KINDS,
+    rate_limit_backend_fallback_snapshot,
+)
 
 METRICS_TOKEN = "test-metrics-token-t6o7"
 
@@ -154,3 +162,65 @@ async def test_http_middleware_429_increments_global_metric(
     state["limited"] = False
     body = (await client.get("/metrics")).text
     assert 'ruige_rate_limit_rejected_total{kind="global"} 1' in body
+
+
+@pytest.mark.asyncio
+async def test_redis_api_fallback_increments_metric_and_warns(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Redis 后端失败回退 memory：api 降级计数递增 + warning 可查。"""
+    monkeypatch.setenv("RATE_LIMIT_BACKEND", "redis")
+    reset_rate_limit_backend_cache()
+    api_rl.reset_all_api_rate_limits()
+
+    async def _boom() -> None:
+        raise ConnectionError("redis down")
+
+    monkeypatch.setattr("app.core.redis.get_redis", _boom)
+    with caplog.at_level(logging.WARNING, logger="app.services.auth.api_rate_limit"):
+        await api_rl.enforce_api_rate_limit(ApiRateLimitKind.chat, uuid.uuid4())
+
+    assert rate_limit_backend_fallback_snapshot().get("api", 0) >= 1
+    assert "回退 memory" in caplog.text
+
+    monkeypatch.delenv("RATE_LIMIT_BACKEND", raising=False)
+    reset_rate_limit_backend_cache()
+    api_rl.reset_all_api_rate_limits()
+
+
+@pytest.mark.asyncio
+async def test_login_redis_fallback_increments_metric_and_warns(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    """Redis 登录限流失败回退 memory：login 降级计数递增 + warning 可查。"""
+    monkeypatch.setenv("RATE_LIMIT_BACKEND", "redis")
+    reset_rate_limit_backend_cache()
+    login_rl.reset_all_login_rate_limits()
+
+    async def _boom() -> None:
+        raise ConnectionError("redis down")
+
+    monkeypatch.setattr("app.core.redis.get_redis", _boom)
+    with caplog.at_level(logging.WARNING, logger="app.services.auth.login_rate_limit"):
+        await login_rl.record_login_failure("203.0.113.55", "user-fallback")
+        await login_rl.is_login_rate_limited("203.0.113.55", "user-fallback")
+
+    assert rate_limit_backend_fallback_snapshot().get("login", 0) >= 2
+    assert "回退 memory" in caplog.text
+
+    monkeypatch.delenv("RATE_LIMIT_BACKEND", raising=False)
+    reset_rate_limit_backend_cache()
+    login_rl.reset_all_login_rate_limits()
+
+
+@pytest.mark.asyncio
+async def test_metrics_exports_backend_fallback_family(
+    client: AsyncClient,
+) -> None:
+    """固定 scrape：降级计数 family 两档恒有输出。"""
+    body = (await client.get("/metrics")).text
+    assert "# HELP ruige_rate_limit_backend_fallback_total" in body
+    assert 'ruige_rate_limit_backend_fallback_total{module="login"} 0' in body
+    assert 'ruige_rate_limit_backend_fallback_total{module="api"} 0' in body

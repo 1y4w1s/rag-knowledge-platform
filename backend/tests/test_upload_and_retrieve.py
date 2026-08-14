@@ -1,10 +1,13 @@
 """大上传+检索测试：上传多份文档后并发检索。"""
 import asyncio
 import uuid
+from pathlib import Path
 from httpx import ASGITransport, AsyncClient
 from app.main import app
 from app.core.database import SessionLocal
 from app.services.rag.retrieval import retrieve_chunks
+
+GOLDEN_MD = Path(__file__).resolve().parent / "fixtures" / "golden_handbook.md"
 
 
 async def test_upload_multiple_and_retrieve():
@@ -21,11 +24,15 @@ async def test_upload_multiple_and_retrieve():
         r = await c.post("/api/v1/knowledge-bases?workspace=personal", headers=h, json={"name": "Bulk-KB"})
         kb_id = r.json()["id"]
 
-        # 上传 5 次同样的文档
+        # 上传 5 份内容略异的文档（同内容会命中内容去重 409）
+        base_content = GOLDEN_MD.read_bytes()
         for i in range(5):
-            with open("/app/tests/fixtures/golden_handbook.md", "rb") as f:
-                r2 = await c.post(f"/api/v1/knowledge-bases/{kb_id}/documents?workspace=personal",
-                                  headers=h, files={"files": (f"hb_{i}.md", f, "text/markdown")})
+            content = base_content + f"\n\n# 批量变体 {i}\n".encode("utf-8")
+            r2 = await c.post(
+                f"/api/v1/knowledge-bases/{kb_id}/documents?workspace=personal",
+                headers=h,
+                files={"files": (f"hb_{i}.md", content, "text/markdown")},
+            )
             assert r2.status_code == 201, f"上传 {i} 失败"
 
         # 等待 ingestion

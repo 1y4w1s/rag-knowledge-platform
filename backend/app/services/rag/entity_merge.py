@@ -99,6 +99,12 @@ async def merge_fuzzy_entities(
             """),
             {"keep_id": keep_id, "remove_id": remove_id, "keep_id2": keep_id},
         )
+        # 同 chunk 已存在 keep 提及的重复行被 UPDATE 跳过，显式删除，
+        # 避免删实体后残留指向已删实体的引用（不依赖 FK 级联兜底）。
+        await db.execute(
+            text("DELETE FROM entity_mentions WHERE entity_id = :remove_id"),
+            {"remove_id": remove_id},
+        )
 
         # 3b. relations：将 remove 的 source/target 改为 keep
         for col, other_col in (("source_id", "target_id"), ("target_id", "source_id")):
@@ -117,6 +123,15 @@ async def merge_fuzzy_entities(
                 """),
                 {"keep_id": keep_id, "remove_id": remove_id},
             )
+
+        # 已存在等价 keep 关系的重复行被 UPDATE 跳过，同样显式删除。
+        await db.execute(
+            text("""
+                DELETE FROM relations
+                WHERE source_id = :remove_id OR target_id = :remove_id
+            """),
+            {"remove_id": remove_id},
+        )
 
         # 3c. 删除冗余实体
         await db.execute(

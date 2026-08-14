@@ -110,3 +110,7 @@ backend/=*,
 /.env.production.example
 /LICENSE
 /docs/
+
+# Local env / temp artifacts - do NOT commit
+frontend/.env.development
+backend/collect_full.txt

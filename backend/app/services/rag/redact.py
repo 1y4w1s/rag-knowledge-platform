@@ -2,7 +2,7 @@
 
 - mask_pii：规则集（手机号/证件/邮箱 → 占位）
 - citation 回显：executor.excerpt 调 mask（CITATION_REDACT_*）
-- 送模片段：scrub_llm_context（LLM_CONTEXT_REDACT_*，默认关；仍算出境 ≠ NW-33）
+- 送模片段：scrub_llm_context（LLM_CONTEXT_REDACT_*，P2-R16 默认开；仍算出境 ≠ NW-33）
 不 scrub 入库 / 预览 / 问句 / 历史。
 """
 
@@ -35,7 +35,7 @@ def mask_pii(text: str) -> str:
 
 
 def scrub_llm_context(text: str) -> str:
-    """送模【检索片段】正文：开 LLM_CONTEXT_REDACT 则 mask_pii，否则原样。"""
+    """送模【检索片段】正文：LLM_CONTEXT_REDACT 默认开，mask_pii 后出境。"""
     if not text:
         return text
     from app.core.config import settings

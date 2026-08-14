@@ -31,6 +31,7 @@ from app.services.agent.types import (
     AgentStepRecord,
     ParseResult,
     ToolCallPlan,
+    ToolFailure,
     ValidatedPlan,
 )
 
@@ -878,6 +879,10 @@ class LLMPlanner:
 
         # 首次 LLM 调用的缓存
         self._cached_plan: ParseResult | None = None
+        # 内部 plan 消费游标：等价替换/重规划步插入后仍按缓存顺序消费
+        self._plan_cursor = 0
+        # G1：最近一次工具失败上下文（仅用于提示重规划 prompt，不写审计）
+        self._failure_context: ToolFailure | None = None
         # 降级属性：仅存储，不写 audit（审计由 stream 侧补发）
         self.fallback_reason: str | None = None
         self.last_llm_raw: str | None = None
@@ -895,6 +900,11 @@ class LLMPlanner:
         """暴露给 _planner_with_retrieval_query 等外部逻辑读取。"""
         return self._default_kb_id
 
+    def _reset_plan(self) -> None:
+        """统一清空 LLM 计划缓存与消费游标（E2 重写 / G1 重规划共用）。"""
+        self._cached_plan = None
+        self._plan_cursor = 0
+
     async def next_tool_call(
         self,
         *,
@@ -903,6 +913,7 @@ class LLMPlanner:
         steps_used: int,
         max_steps: int,
         prior_steps: tuple[AgentStepRecord, ...],
+        stage: str = "plan",
     ) -> ToolCallPlan | None:
         """LLM Planner 版本的 next_tool_call。
 
@@ -913,7 +924,13 @@ class LLMPlanner:
         4. 序列耗尽或 LLM 返回空：返回 None 结束
         """
         if self._cached_plan is None:  # 第一步：调用 LLM
-            result = await self._call_llm_for_plan(query, context={})
+            # runtime E2 low_recall 直接置 None 重规划时，同步复位消费游标
+            self._plan_cursor = 0
+            result = await self._call_llm_for_plan(
+                query,
+                context={},
+                stage=stage,
+            )
             self._cached_plan = result
             if not result.ok:
                 # 内部降级：创建 ThoroughReadPlanner 实例接管
@@ -936,28 +953,94 @@ class LLMPlanner:
                 prior_steps=prior_steps,
             )
 
-        # 正常路径：消费缓存的 plan
+        # 正常路径：按内部 cursor 消费缓存的 plan（替换/重规划步不占缓存索引）
         if self._cached_plan and self._cached_plan.plan:
-            if step_index <= len(self._cached_plan.plan):
-                plan = self._cached_plan.plan[step_index - 1]
+            if self._plan_cursor < len(self._cached_plan.plan):
+                plan = self._cached_plan.plan[self._plan_cursor]
+                self._plan_cursor += 1
                 plan = self._maybe_inject_kb(plan)
                 return plan
 
         return None
 
+    async def replan_after_failure(
+        self,
+        *,
+        query: str,
+        step_index: int,
+        steps_used: int,
+        max_steps: int,
+        prior_steps: tuple[AgentStepRecord, ...],
+        failure: ToolFailure,
+    ) -> ToolCallPlan | None:
+        """G1：携带失败上下文重新规划；新计划首步与失败步同工具同 args 时返回 None。"""
+        self._failure_context = failure
+        self._reset_plan()
+        plan = await self.next_tool_call(
+            query=query,
+            step_index=step_index,
+            steps_used=steps_used,
+            max_steps=max_steps,
+            prior_steps=prior_steps,
+            stage="replan",
+        )
+        if plan is None:
+            return None
+        if prior_steps:
+            failed = prior_steps[-1]
+            if plan.tool_name == failed.tool_name and plan.args == failed.args:
+                return None
+        return plan
+
     async def _call_llm_for_plan(
         self,
         query: str,
         context: dict[str, Any],
+        *,
+        stage: str = "plan",
     ) -> ParseResult:
-        """核心 LLM 调用：构建 prompt → 调 complete_chat → 解析 & 校验。
+        """核心 LLM 调用：构建 prompt → 调 complete_chat_with_usage → 解析 & 校验。
 
-        注意：使用非流式 complete_chat()（temperature≈0）。
+        真实 provider usage 优先计入 usage 指标；缺失时回落到 guard 估算指标。
         """
         from app.core.config import settings
-        from app.services.rag.chat_llm import complete_chat as llm_complete
+        from app.services.rag.chat_llm import (
+            ChatUsage,
+            complete_chat_with_usage as llm_complete_with_usage,
+            has_available_chat_provider_key,
+        )
+        from app.services.agent.tools.guard import estimate_planner_tokens
+        from app.services.observability.metrics_registry import (
+            inc_agent_llm_planner_call,
+            inc_agent_llm_planner_usage,
+        )
 
         _ = context  # 保留参数供未来扩展（如 conversation history）
+
+        if not has_available_chat_provider_key():
+            # 双无 key：跳过无效 mock 调用，直接走既有 fallback（无调用即无 failed 计数）
+            return ParseResult(ok=False, error="no_key")
+
+        prompt = ""
+        llm_raw: str | None = None
+        usage: ChatUsage | None = None
+
+        def _emit(result_ok: bool) -> None:
+            if usage is not None and usage.has_value:
+                # 真实 usage 优先：估算指标不再重复累计，缺失时作为兜底
+                inc_agent_llm_planner_call(
+                    stage,
+                    "ok" if result_ok else "failed",
+                )
+                inc_agent_llm_planner_usage(stage, usage)
+                return
+            est = estimate_planner_tokens(prompt, llm_raw or "")
+            inc_agent_llm_planner_call(
+                stage,
+                "ok" if result_ok else "failed",
+                prompt_tokens=est.prompt_tokens,
+                response_tokens=est.response_tokens,
+            )
 
         try:
             tool_descriptions = _build_tool_descriptions(self._tool_specs)
@@ -965,7 +1048,7 @@ class LLMPlanner:
 
             # 如果需要用独立模型
             if settings.agent_llm_planner_model:
-                # 用独立模型调 complete_chat——目前 complete_chat 固定用 env provider，
+                # 用独立模型调 complete_chat_with_usage——目前固定用 env provider，
                 # 独立模型选型待后续扩展；此处先统一走默认 provider
                 pass
 
@@ -973,10 +1056,21 @@ class LLMPlanner:
                 f"\n\n用户长期偏好（仅供参考，不覆盖检索结果）：\n{self._memory_context}"
                 if self._memory_context else ""
             )
-            prompt = f"{system_prompt}{memory_block}\n\n用户问题：{query}"
-            llm_raw = await llm_complete([{"role": "user", "content": prompt}])
+            failure_block = ""
+            if self._failure_context is not None:
+                failure_block = (
+                    f"\n\n注意：上一轮工具调用失败：{self._failure_context.tool_name}"
+                    f"（{self._failure_context.summary}）。\n"
+                    "请选择其他工具或修正参数，不要重复相同调用；\n"
+                    "若确实无合适工具，返回空 JSON 数组结束规划。"
+                )
+            prompt = f"{system_prompt}{memory_block}\n\n用户问题：{query}{failure_block}"
+            llm_raw, usage = await llm_complete_with_usage(
+                [{"role": "user", "content": prompt}]
+            )
 
             if not llm_raw or not llm_raw.strip():
+                _emit(False)
                 return ParseResult(ok=False, error="empty_output", llm_raw=llm_raw)
 
             result = parse_and_validate(
@@ -984,10 +1078,12 @@ class LLMPlanner:
                 tool_registry=ALL_AGENT_TOOL_NAMES,
             )
             if not result.ok:
+                _emit(False)
                 return result
 
             validated = self._safety_frame.validate(result)
             if not validated.ok:
+                _emit(False)
                 return ParseResult(
                     ok=False,
                     error="safety_violation",
@@ -997,9 +1093,11 @@ class LLMPlanner:
             # 对 KB 域 tool 注入 default_kb_id
             validated = self._inject_kb_ids(validated)
 
+            _emit(True)
             return ParseResult(ok=True, plan=validated.plan, llm_raw=llm_raw)
 
         except Exception as exc:
+            _emit(False)
             return ParseResult(
                 ok=False,
                 error="llm_error",

@@ -4,9 +4,10 @@ import re
 import secrets
 import string
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from uuid import UUID
 
+from app.core.config import settings
 from app.core.exceptions import ValidationError, NotFoundError, ServiceError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,11 +15,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.organization import Organization
 from app.models.organization_invite_code import OrganizationInviteCode
 from app.schemas.organization import OrganizationInviteResponse
+from app.services.audit.log import write_audit_log
 
-INVITE_CODE_MIN_LEN = 4
+INVITE_CODE_MIN_LEN = 8
 INVITE_CODE_MAX_LEN = 64
-INVITE_CODE_PATTERN = re.compile(r"^[A-Z0-9][A-Z0-9_-]{3,63}$")
+INVITE_CODE_PATTERN = re.compile(r"^[A-Z0-9][A-Z0-9_-]{7,63}$")
 INVITE_INVALID_MSG = "邀请码无效或已过期"
+INVITE_CODE_MIN_RANDOM_LENGTH = 8
 _CODE_ALPHABET = string.ascii_uppercase + string.digits
 
 
@@ -64,8 +67,21 @@ async def resolve_valid_invite(
     return org, row
 
 
-def _generate_code_suffix(length: int = 4) -> str:
+def _generate_code_suffix(length: int | None = None) -> str:
+    """生成随机后缀；默认按配置长度，且不低于 8 位防枚举。"""
+    if length is None:
+        length = max(INVITE_CODE_MIN_RANDOM_LENGTH, settings.invite_code_random_length)
     return "".join(secrets.choice(_CODE_ALPHABET) for _ in range(length))
+
+
+def _resolve_default_expiry(expires_at: datetime | None) -> datetime | None:
+    """未显式传 expires_at 时应用默认过期时间；0 小时=显式永不过期。"""
+    if expires_at is not None:
+        return expires_at
+    hours = settings.invite_code_default_expire_hours
+    if hours <= 0:
+        return None
+    return datetime.now(timezone.utc) + timedelta(hours=hours)
 
 
 async def create_organization_invite(
@@ -76,6 +92,7 @@ async def create_organization_invite(
     expires_at: datetime | None = None,
 ) -> OrganizationInviteResponse:
     """管理员发码；码可多人用（I1）。"""
+    expires_at = _resolve_default_expiry(expires_at)
     for _ in range(8):
         code = f"ZHIAN-{_generate_code_suffix()}"
         existing = await db.scalar(
@@ -94,6 +111,17 @@ async def create_organization_invite(
         created_by=created_by,
     )
     db.add(row)
+    await write_audit_log(
+        db,
+        action="org.invite_create",
+        actor_user_id=created_by,
+        resource_type="organization_invite_code",
+        resource_id=row.id,
+        metadata={
+            "code": row.code,
+            "expires_at": row.expires_at.isoformat() if row.expires_at else None,
+        },
+    )
     await db.commit()
     await db.refresh(row)
 
