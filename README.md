@@ -228,9 +228,9 @@ frontend/
 | Advanced QA | 14 | 14/14 | 8/4 CI |
 | CRAG English | 100 | 26% | 外部英文参考集，仅作参考 |
 
-延迟数据来自本机 Docker 栈实测（2026-07-22，单次采样）：检索端到端 P50 930ms / P95 1500ms（SLO ≤2500ms）；对话 TTFT P50 956ms / P95 982ms（SLO ≤5000ms）。
+延迟数据来自本机 Docker 栈实测（2026-07-22）：检索端到端 P95 ≈1285ms（NW-54，SLO ≤2500ms）；对话 TTFT fast P95 ≈3125ms（NW-55，SLO ≤5000ms），thorough P50/P95 956/982ms（单次采样）。
 
-规模（2026-08-10 实测）：后端业务 Python ≈3.3 万行（32,805 行，不含 tests）；前端源码 ≈2.9 万行（28,919 行）；后端测试 219 个 `test_*.py` 文件。CI 门禁含 Ruff、pytest A 层、Hit@3 Golden Gate、`alembic check` 与 config wiring。
+规模（2026-08-10 实测）：后端业务 Python ≈3.3 万行（32,805 行，不含 tests）；前端源码 ≈2.9 万行（28,919 行）；后端测试 219 个 `test_*.py` 文件。CI 门禁含 Ruff、pytest A 层、Hit@3 Golden Gate、`alembic check`、config wiring 与 rag-benchmark（golden / enterprise / advanced 基线对比）。
 
 ---
 
