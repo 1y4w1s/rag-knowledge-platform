@@ -4,7 +4,7 @@
 # 用法：
 #   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 #
-# 验收：http://SERVER_IP/ 打开九页；GET /health → database ok（8000 或经 web /health）
+# 验收：http://SERVER_IP/ 打开完整前端；GET /health → database ok（8000 或经 web /health）
 
 services:
   postgres:

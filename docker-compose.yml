@@ -62,7 +62,6 @@ services:
       DATABASE_URL: postgresql+asyncpg://ruige:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env (T6-DC-1)}@postgres:5432/ruige
       LOKI_URL: http://loki:3100
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
-      RAG_RATE_LIMIT_MODE: bypass
       HF_ENDPOINT: https://hf-mirror.com
       REDIS_URL: redis://redis:6379/1
       RATE_LIMIT_BACKEND: redis

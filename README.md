@@ -36,6 +36,7 @@
 
 - Docker 与 Docker Compose
 - 至少一个 LLM Key（DeepSeek 或通义）；嵌入默认走本地 BGE ONNX，无需 Key
+- 首次入库会自动下载本地 BGE 嵌入模型，需可访问 Hugging Face 镜像
 
 ### 克隆并配置
 
@@ -258,6 +259,7 @@ frontend/
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 
 # 监控扩展（Prometheus + Grafana）
+# 需先在 .env 设置 GRAFANA_PASSWORD，否则 compose 会 fail-fast
 docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
 ```
 
