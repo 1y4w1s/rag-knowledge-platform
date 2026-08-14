@@ -626,8 +626,8 @@ async def _run_react_loop_until_outcome(
     fallback_queue: list[ToolFallbackPlan] = []
     replan_count = 0
     tool_fallback_count = 0
-    # W3 接入 settings.agent_max_tool_replans 前保持默认 2；0 表示关闭重规划。
-    replan_limit = getattr(settings, "agent_max_tool_replans", 2)
+    # 工具失败提示重规划上限；0 表示关闭重规划。
+    replan_limit = settings.agent_max_tool_replans
 
     # E3：加载记忆注入 planner（仅 LLMPlanner 路径，受 ablation 开关控制）
     if isinstance(planner, LLMPlanner) and settings.agent_memory_enabled:

@@ -168,7 +168,6 @@ class TestTokenEstimate:
 class TestConfig:
     def test_config_defaults_match_doc(self) -> None:
         assert settings.agent_memory_window_max_messages == 12
-        assert settings.agent_memory_window_max_rounds == 6
         assert settings.agent_memory_window_token_budget == 22400
         assert settings.agent_memory_window_min_keep == 2
         assert settings.agent_memory_window_summary_prefix == "wm_summary"

@@ -238,7 +238,6 @@ class Settings(BaseSettings):
 
     # ── T6 W2 Working Memory（滑动窗口）────────────────────────────
     agent_memory_window_max_messages: int = 12   # 消息数预算（= 6 轮）；0=禁用消息数裁剪
-    agent_memory_window_max_rounds: int = 6      # 轮数别名：max_messages / 2（文档/校验用）
     agent_memory_window_token_budget: int = 22400  # token 预算（64k × 35%，与 generation.py 口径一致）；0=禁用 token 裁剪
     agent_memory_window_min_keep: int = 2        # 至少保留最近消息数（防止双预算把最新一轮也裁掉）
     agent_memory_window_summary_prefix: str = "wm_summary"  # 摘要占位 key 前缀

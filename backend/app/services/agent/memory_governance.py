@@ -13,6 +13,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.config import settings
 from app.models.agent_memory import AgentMemory
 from app.services.agent.memory_summary import update_memory_summary
 from app.services.audit.agent import (
@@ -24,8 +25,8 @@ from app.services.audit.agent import (
 
 _CJK_CHAR = re.compile(r"[\u4e00-\u9fff\u3400-\u4dbf\uf900-\ufaff\u3040-\u30ff\uac00-\ud7af]")
 _DECAY_RATE = 0.01
-_CHURN_THRESHOLD = 3
-_CHURN_WINDOW_SECONDS = 86400
+_CHURN_THRESHOLD = settings.agent_memory_churn_threshold
+_CHURN_WINDOW_SECONDS = settings.agent_memory_churn_window_seconds
 _STALE_DAYS = 30
 _STALE_CONFIDENCE = 0.3
 _REINFORCE_DELTA = 0.05
