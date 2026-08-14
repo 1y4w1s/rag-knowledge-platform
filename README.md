@@ -25,6 +25,7 @@
 | 企业权限与审计 | 个人版 / 企业版，Owner / Admin / Member 与部门树；`kb_id` 注入所有查询，Member 写操作统一 403；50+ 审计事件可查询、可导出 |
 | Agent 子系统 | 确定性 ThoroughReadPlanner（simple / standard / complex，1-3 步工具链）；11 个工具，写操作走审批，长期记忆 |
 | 可观测与部署 | `/health` 三件套、自研 Prometheus 指标、OpenTelemetry 追踪、6 个熔断器与 L0-L4 显式降级；Docker Compose 内网 HTTP，非 root 容器 |
+| 安全与限流 | 上传 magic bytes 双检与 zip 炸弹防护、配额；SSRF / 提示注入过滤、引用脱敏、出境 scrub；登录与 API 双桶限流（Redis 可切） |
 
 ---
 
@@ -238,8 +239,7 @@ frontend/
 | Golden QA 全量 | 109（测试展开 135 passed + 0 xfailed） | 通过 | GQ-1 ~ GQ-110，只上不下 |
 | Enterprise QA | 90 | 60%（CI mock）/ 71.1%（8/9 真向量 n=90） | CI 门禁基线 / 对外观测 |
 | Advanced QA | 14 | 14/14 | CI 基线 |
-| CRAG English | 100 | 26% | 外部英文参考集，仅作参考 |
-| 外部英文基准（BEIR） | nfcorpus 323 / fiqa 648 / MS MARCO dev 6,980 | 参考 | RAGAS / BM25 评测收口，仅作外部参考 |
+| 外部英文基准（CRAG / BEIR） | 100 / 323 / 648 / 6,980 | 参考 | 外部英文参考集，不参与门禁 |
 
 延迟数据来自本机 Docker 栈实测（2026-07-22）：检索端到端 P95 ≈1285ms（SLO ≤2500ms）；对话首 token fast P95 ≈3125ms、thorough P50/P95 956/982ms（SLO ≤5000ms）。
 
