@@ -57,7 +57,7 @@ export function OrganizationSettingsPage() {
   }, [loadSettings]);
 
   useEffect(() => {
-    document.title = "睿阁 · 团队设置";
+    document.title = "索隐 · 团队设置";
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) {
       meta = document.createElement("meta");
@@ -66,7 +66,7 @@ export function OrganizationSettingsPage() {
     }
     meta.setAttribute("content", "管理团队名称与危险操作。");
     return () => {
-      document.title = "睿阁";
+      document.title = "索隐";
     };
   }, []);
 

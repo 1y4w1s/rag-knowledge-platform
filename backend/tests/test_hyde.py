@@ -88,11 +88,11 @@ class TestGenerateHypotheticalDocument:
         """正常调用 complete_chat 返回假设文档。"""
         from app.core.config import settings
 
-        mock_complete.return_value = "睿阁是一款企业级知识库管理平台，支持文档管理、智能问答和引用溯源。"
+        mock_complete.return_value = "索隐是一款企业级知识库管理平台，支持文档管理、智能问答和引用溯源。"
         with patch.object(settings, "deepseek_api_key", "sk-test"):
-            result = await generate_hypothetical_document("睿阁是什么？")
+            result = await generate_hypothetical_document("索隐是什么？")
         assert result is not None
-        assert "睿阁" in result
+        assert "索隐" in result
         assert len(result) > 10
 
     @patch("app.services.rag.hyde.complete_chat", new_callable=AsyncMock)
@@ -137,6 +137,6 @@ class TestGenerateHypotheticalDocument:
         with patch.object(settings, "deepseek_api_key", ""), patch.object(
             settings, "tongyi_api_key", ""
         ):
-            result = await generate_hypothetical_document("睿阁是什么？")
+            result = await generate_hypothetical_document("索隐是什么？")
         assert result is None
         mock_complete.assert_not_called()

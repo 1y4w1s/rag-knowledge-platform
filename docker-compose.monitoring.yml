@@ -1,4 +1,4 @@
-# 睿阁 — 监控栈（Grafana + Loki + Prometheus + Tempo）
+# 索隐 — 监控栈（Grafana + Loki + Prometheus + Tempo）
 # 用法：docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
 # 验收：http://localhost:3000  →  Grafana（admin/admin）
 #       http://localhost:3100/ready  →  Loki ready

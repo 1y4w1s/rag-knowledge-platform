@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://ruige.dev/eval/test-case/v1",
   "title": "EvalTestCase",
-  "description": "睿阁评测系统单道测试题 Schema",
+  "description": "索隐评测系统单道测试题 Schema",
   "type": "object",
   "required": [
     "case_id", "query", "difficulty", "source_doc",

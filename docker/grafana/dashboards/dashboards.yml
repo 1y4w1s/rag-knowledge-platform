@@ -2,9 +2,9 @@
 apiVersion: 1
 
 providers:
-  - name: "睿阁"
+  - name: "索隐"
     orgId: 1
-    folder: "睿阁"
+    folder: "索隐"
     type: file
     disableDeletion: true
     editable: true

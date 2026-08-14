@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""睿阁消融实验典型案例分析脚本。
+"""索隐消融实验典型案例分析脚本。
 
 在容器内运行，对比 Baseline (vector_only) 和 Full (rrf+conditional rerank)
 在每个 query 上的 Top-1 检索结果差异，输出典型案例候选。

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { RuigeLogo } from "@/components/brand/RuigeLogo";
+import { SuoyinLogo } from "@/components/brand/SuoyinLogo";
 
 interface AuthCardProps {
   children: ReactNode;
@@ -20,7 +20,7 @@ export function AuthCard({ children }: AuthCardProps) {
 export function AuthCardBrand() {
   return (
     <header className="mb-8">
-      <RuigeLogo size={36} withWordmark />
+      <SuoyinLogo size={36} withWordmark />
     </header>
   );
 }

@@ -91,7 +91,7 @@ async def send_webhook(
         "Content-Type": "application/json",
         "X-Webhook-Event": event,
         "X-Webhook-Signature": signature,
-        "User-Agent": "Ruige-Webhook/1.0",
+        "User-Agent": "Suoyin-Webhook/1.0",
     }
 
     for attempt in range(max_retries):

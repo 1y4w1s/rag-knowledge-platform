@@ -1,4 +1,4 @@
-"""检索适配器：将睿阁的检索系统连接到 BenchmarkRunner。
+"""检索适配器：将索隐的检索系统连接到 BenchmarkRunner。
 
 用法：
     from tests.benchmark.adapters.retrieval import RetrievalAdapter

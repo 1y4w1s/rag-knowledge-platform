@@ -51,7 +51,7 @@ class ReportGenerator:
     def to_markdown(self, filename: str = "report.md") -> Path:
         """输出 Markdown 摘要报告。"""
         lines = [
-            "# 睿阁 RAG 评测报告",
+            "# 索隐 RAG 评测报告",
             f"生成时间: {self.timestamp}",
             "",
             "---",
@@ -154,7 +154,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>睿阁 RAG 评测仪表盘</title>
+<title>索隐 RAG 评测仪表盘</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
   body { font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1200px; margin: 0 auto; padding: 2rem; background: #f8f5f0; color: #3d3229; }
@@ -174,13 +174,13 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 </style>
 </head>
 <body>
-<h1>&#x1F4CA; 睿阁 RAG 评测仪表盘</h1>
+<h1>&#x1F4CA; 索隐 RAG 评测仪表盘</h1>
 <p>生成时间: __TIMESTAMP__</p>
 
 <div id="summary"></div>
 <div class="grid" id="dataset-cards"></div>
 <div class="footer">
-  <p>睿阁 RAG Benchmark · 自动生成</p>
+  <p>索隐 RAG Benchmark · 自动生成</p>
 </div>
 
 <script>

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""睿阁 Benchmark 统一评测入口（v1.0：支持 retrieval + generation + RAGAS scorer）。
+"""索隐 Benchmark 统一评测入口（v1.0：支持 retrieval + generation + RAGAS scorer）。
 
 运行方式：
     # 检索评测（默认）
@@ -47,7 +47,7 @@ logger = logging.getLogger("run_benchmark")
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="睿阁 RAG Benchmark 统一评测入口",
+        description="索隐 RAG Benchmark 统一评测入口",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )

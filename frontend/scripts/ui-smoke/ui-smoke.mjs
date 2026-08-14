@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * ui-smoke.mjs — 睿阁 UI 验收脚本（替代不可用的 chrome-mcp）
+ * ui-smoke.mjs — 索隐 UI 验收脚本（替代不可用的 chrome-mcp）
  *
  * 用法（在 frontend/scripts/ui-smoke/ 下）：
  *   npm install

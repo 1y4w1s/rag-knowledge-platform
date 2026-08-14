@@ -80,7 +80,7 @@ export function AdminAuditPage() {
     void loadLogs({ silent }).finally(() => {
       isFirstLoad.current = false;
     });
-    document.title = "操作审计 · 睿阁";
+    document.title = "操作审计 · 索隐";
   }, [loadLogs]);
 
   const handleExport = useCallback(

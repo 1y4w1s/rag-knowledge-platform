@@ -1,5 +1,5 @@
 """
-睿阁 API 入口。
+索隐 API 入口。
 
 Wave 0.2：Docker 中 uvicorn 启动；提供 /health。
 Wave 1.1：注册 / 登录 API。
@@ -114,7 +114,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 
 app = FastAPI(
-    title="睿阁 API",
+    title="索隐 API",
     version="0.12.0",
     docs_url="/docs" if settings.environment == "development" else None,
     redoc_url="/redoc" if settings.environment == "development" else None,

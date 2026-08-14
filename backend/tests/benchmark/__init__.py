@@ -1,4 +1,4 @@
-"""睿阁 RAG 评测基准（Benchmark）框架。
+"""索隐 RAG 评测基准（Benchmark）框架。
 
 本模块独立于现有 pytest 测试，提供统一的评测框架：
 - BenchmarkDataset 基类 + 6 个数据集加载器

@@ -1,4 +1,4 @@
-# 睿阁 — 生产覆盖层（EW-B2 + EW-B4 web）
+# 索隐 — 生产覆盖层（EW-B2 + EW-B4 web）
 #
 # 在 docker-compose.yml 基础上增加 uploads 持久化卷、nginx 前端与资源说明。
 # 用法：

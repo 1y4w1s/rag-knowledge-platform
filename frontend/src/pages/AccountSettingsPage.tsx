@@ -77,16 +77,16 @@ export function AccountSettingsPage() {
   }, [loadSettings]);
 
   useEffect(() => {
-    document.title = "睿阁 · 账号设置";
+    document.title = "索隐 · 账号设置";
     let meta = document.querySelector('meta[name="description"]');
     if (!meta) {
       meta = document.createElement("meta");
       meta.setAttribute("name", "description");
       document.head.appendChild(meta);
     }
-    meta.setAttribute("content", "管理睿阁账号信息与安全设置。");
+    meta.setAttribute("content", "管理索隐账号信息与安全设置。");
     return () => {
-      document.title = "睿阁";
+      document.title = "索隐";
     };
   }, []);
 

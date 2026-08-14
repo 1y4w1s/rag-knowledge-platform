@@ -1,4 +1,4 @@
-# 睿阁 — Migration 回滚测试
+# 索隐 — Migration 回滚测试
 # 验证所有 migration 的 downgrade 方向正确可用。
 # 在 CI 中每次部署前执行，防止「只能升不能降」。
 #

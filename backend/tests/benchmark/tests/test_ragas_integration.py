@@ -67,7 +67,7 @@ def mock_retrieve_fn():
     """返回一个模拟检索函数：返回固定 chunk 列表。"""
     async def _retrieve(query: str, kb_id: str, top_k: int) -> list:
         return [
-            _FakeChunk(chunk_id="chunk_a", content="睿阁是一个企业级知识库平台，支持文档管理和智能问答。", similarity=0.92),
+            _FakeChunk(chunk_id="chunk_a", content="索隐是一个企业级知识库平台，支持文档管理和智能问答。", similarity=0.92),
             _FakeChunk(chunk_id="chunk_b", content="知识库支持多格式文档上传、切片、向量化存储。", similarity=0.85),
             _FakeChunk(chunk_id="chunk_c", content="系统内置混合检索（BM25 + 向量 + RRF）和引用溯源对话。", similarity=0.78),
         ][:top_k]
@@ -78,9 +78,9 @@ def mock_retrieve_fn():
 def mock_generate_fn():
     """返回一个模拟生成函数：返回固定回答和引用。"""
     async def _generate(query: str, kb_id: str) -> tuple:
-        answer = "睿阁是一个企业级知识库平台，支持文档管理和智能问答。"
+        answer = "索隐是一个企业级知识库平台，支持文档管理和智能问答。"
         citations = [
-            {"chunk_id": "chunk_a", "content": "睿阁是一个企业级知识库平台，支持文档管理和智能问答。"},
+            {"chunk_id": "chunk_a", "content": "索隐是一个企业级知识库平台，支持文档管理和智能问答。"},
             {"chunk_id": "chunk_b", "content": "知识库支持多格式文档上传、切片、向量化存储。"},
         ]
         return answer, citations
@@ -93,7 +93,7 @@ def simple_queries():
     return [
         BenchmarkQuery(
             case_id="ragas_test_001",
-            query="睿阁是什么？",
+            query="索隐是什么？",
             answer="企业级知识库平台",
             expects=({"content_contains": "企业级知识库"},),
             domain="general",

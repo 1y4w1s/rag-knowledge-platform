@@ -1,11 +1,11 @@
-# 睿阁 CRAG 全量评测 — 一键运行
+# 索隐 CRAG 全量评测 — 一键运行
 # 用法: 在项目根目录执行
 #     .\run_crag_full.ps1
 
 $LogFile = "backend\benchmark_results\crag_full_$(Get-Date -Format 'yyyyMMdd_HHmmss').log"
 
 Write-Host "============================================" -ForegroundColor Cyan
-Write-Host "  睿阁 CRAG 全量评测" -ForegroundColor Cyan
+Write-Host "  索隐 CRAG 全量评测" -ForegroundColor Cyan
 Write-Host "  日志: $LogFile" -ForegroundColor Cyan
 Write-Host "============================================" -ForegroundColor Cyan
 Write-Host ""

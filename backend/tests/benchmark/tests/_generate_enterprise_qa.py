@@ -243,7 +243,7 @@ async def main():
 
     qa_data = {
         "version": "1.0",
-        "description": "睿阁 Enterprise QA 验收集 v1.0 — 6 份模拟企业文档，L1-L4 分层",
+        "description": "索隐 Enterprise QA 验收集 v1.0 — 6 份模拟企业文档，L1-L4 分层",
         "hit_k": 3,
         "cases": all_cases,
     }

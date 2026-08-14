@@ -153,7 +153,7 @@ async def send_password_reset_email(
     try:
         await send_email_smtp(
             to=user.email,
-            subject="重置您的睿阁密码",
+            subject="重置您的索隐密码",
             html=f"""
             <p>您好，</p>
             <p>请点击以下链接重置密码（链接有效期 {settings.forgot_password_token_expire_minutes} 分钟）：</p>

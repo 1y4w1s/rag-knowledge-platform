@@ -93,7 +93,7 @@ def test_alert_rules_datasource_uid_resolves_to_declared_sources() -> None:
     loki_uid = next(s["uid"] for s in sources if s["name"] == "Loki")
     rules = _parse_alert_rule_uids(_read(ALERT_RULES_YML))
     assert len(rules) == 4, (
-        "睿阁应有 4 条告警规则（5xx / P95 延迟 / ingestion / EN 覆盖度）"
+        "索隐应有 4 条告警规则（5xx / P95 延迟 / ingestion / EN 覆盖度）"
     )
     loki_rules = [(uid, ds) for uid, ds in rules if uid != EN_ALERT_RULE_UID]
     for rule_uid, ds_uid in loki_rules:

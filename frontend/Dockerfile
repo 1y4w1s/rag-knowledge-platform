@@ -1,4 +1,4 @@
-﻿# 睿阁 EW-B4 · 多阶段：Vite 构建 → nginx 静态托管
+﻿# 索隐 EW-B4 · 多阶段：Vite 构建 → nginx 静态托管
 # 构建上下文：仓库根目录（见 docker-compose.prod.yml web.build）
 # NW-57：运行期以 nginx 用户（非 root）监听 8080
 

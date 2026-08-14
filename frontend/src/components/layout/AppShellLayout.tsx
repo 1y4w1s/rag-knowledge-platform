@@ -79,7 +79,7 @@ function AppShellContent() {
           <div className="flex shrink-0 items-center gap-2 border-b border-[var(--line2)] bg-[var(--shell-glass)]/60 px-5 py-2 text-sm text-muted">
             <span className="truncate">
               <span className="mx-1 text-[var(--line2)]">/</span>
-              {override ?? handle?.breadcrumb ?? <>睿阁</>}
+              {override ?? handle?.breadcrumb ?? <>索隐</>}
             </span>
             <div className="flex-1" />
             {handle?.trailing}

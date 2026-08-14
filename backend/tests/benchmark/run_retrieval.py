@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""睿阁 RAG 检索质量评测入口。
+"""索隐 RAG 检索质量评测入口。
 
 运行方式：
     # 快速模式（mock 嵌入，不依赖 API）
@@ -32,7 +32,7 @@ logger = logging.getLogger("run_retrieval")
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="睿阁 RAG 检索质量评测")
+    p = argparse.ArgumentParser(description="索隐 RAG 检索质量评测")
     p.add_argument(
         "--datasets",
         type=str,

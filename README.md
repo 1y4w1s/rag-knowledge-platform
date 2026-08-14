@@ -1,4 +1,4 @@
-<h1 align="center">睿阁（Ruige）</h1>
+<h1 align="center">索隐（Suoyin）</h1>
 <p align="center">
   <strong>企业级知识库 RAG 平台：从文档到答案，可溯源、可审计、可运营。</strong>
   <br />
@@ -11,7 +11,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/github/license/1y4w1s/rag-knowledge-platform" alt="MIT License" /></a>
 </p>
 
-> 睿阁不是 ChatPDF 的平替，而是面向企业的知识管理基础设施：每个回答都附带文档名、章节位置与原文片段，无依据时明确拒答，绝不做黑盒问答。
+> 索隐不是 ChatPDF 的平替，而是面向企业的知识管理基础设施：每个回答都附带文档名、章节位置与原文片段，无依据时明确拒答，绝不做黑盒问答。
 
 ---
 

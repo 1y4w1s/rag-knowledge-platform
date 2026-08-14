@@ -1,10 +1,10 @@
-# 睿阁 — RAG 企业知识库平台
+# 索隐 — RAG 企业知识库平台
 
 [![CI](https://github.com/1y4w1s/rag-knowledge-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/1y4w1s/rag-knowledge-platform/actions/workflows/ci.yml)
 
 > 多格式文档上传 → 知识库对话 → **引用溯源**（文档名 + 章节 + 页码）
 >
-> 代码目录名 `rag-knowledge-platform`；产品对外称 **睿阁**。
+> 代码目录名 `rag-knowledge-platform`；产品对外称 **索隐**。
 
 ---
 

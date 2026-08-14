@@ -1,4 +1,4 @@
-# 睿阁 — 自签 HTTPS 证书生成
+# 索隐 — 自签 HTTPS 证书生成
 # 用于内网部署，非生产公网环境。
 # 用法：.\scripts\gen-certs.ps1
 #

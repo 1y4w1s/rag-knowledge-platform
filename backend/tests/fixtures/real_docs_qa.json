@@ -25,7 +25,7 @@
     {"case_id": "RD-19", "difficulty": "L1", "tags": ["finance","real","simple"], "query": "每月统一报销日是几号？", "source": "md", "expect": {"content_contains": "1 日和 15 日", "section_title": "2.4"}, "source_docs": ["02_报销制度.md"]},
     {"case_id": "RD-20", "difficulty": "L2", "tags": ["finance","real","medium"], "query": "单张发票金额超过多少需要附真伪截图？", "source": "md", "expect": {"content_contains": "500", "section_title": "2.3"}, "source_docs": ["02_报销制度.md"]},
 
-    {"case_id": "RD-21", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "睿阁平台支持哪些文档格式？", "source": "md", "expect": {"content_contains": "PDF"}, "source_docs": ["03_README_REF.md"]},
+    {"case_id": "RD-21", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "索隐平台支持哪些文档格式？", "source": "md", "expect": {"content_contains": "PDF"}, "source_docs": ["03_README_REF.md"]},
     {"case_id": "RD-22", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "嵌入模型用的是哪个？", "source": "md", "expect": {"content_contains": "BGE", "section_title": "技术栈"}, "source_docs": ["03_README_REF.md"]},
     {"case_id": "RD-23", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "数据库用的是哪个？", "source": "md", "expect": {"content_contains": "PostgreSQL", "section_title": "技术栈"}, "source_docs": ["03_README_REF.md"]},
     {"case_id": "RD-24", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "对话模型用的是哪个？", "source": "md", "expect": {"content_contains": "DeepSeek", "section_title": "技术栈"}, "source_docs": ["03_README_REF.md"]},
@@ -34,6 +34,6 @@
     {"case_id": "RD-27", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "平台是否支持版本管理？", "source": "md", "expect": {"content_contains": "版本管理", "section_title": "核心功能"}, "source_docs": ["03_README_REF.md"]},
     {"case_id": "RD-28", "difficulty": "L2", "tags": ["tech","real","medium"], "query": "评测结果显示 Golden QA 的 Hit@3 是多少？", "source": "md", "expect": {"content_contains": "95.6%"}, "source_docs": ["03_README_REF.md"]},
     {"case_id": "RD-29", "difficulty": "L2", "tags": ["tech","real","medium"], "query": "系统使用什么切片策略？", "source": "md", "expect": {"content_contains": "结构优先"}, "source_docs": ["03_README_REF.md"]},
-    {"case_id": "RD-30", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "产品对外叫什么名字？", "source": "md", "expect": {"content_contains": "睿阁"}, "source_docs": ["03_README_REF.md"]}
+    {"case_id": "RD-30", "difficulty": "L1", "tags": ["tech","real","simple"], "query": "产品对外叫什么名字？", "source": "md", "expect": {"content_contains": "索隐"}, "source_docs": ["03_README_REF.md"]}
   ]
 }

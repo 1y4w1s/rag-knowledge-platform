@@ -287,7 +287,7 @@ export const ACCOUNT_SCENE: EmptyStateScene = createScene({
   ),
   desc: (
     <>
-      欢迎来到睿阁。<b>昵称、密码</b>都还没填。完成下面几项即可开始使用。
+      欢迎来到索隐。<b>昵称、密码</b>都还没填。完成下面几项即可开始使用。
     </>
   ),
   ctaPrimary: { label: "完善个人资料", iconPath: PATHS.userPlus },

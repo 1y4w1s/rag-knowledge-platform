@@ -2506,7 +2506,7 @@
 }
 
 /* v8 · Elite 动效与高级感增强
-   灵感：godly / shader gradient / motion 站点；贴合睿阁暖白·暖褐·赤陶品牌。
+   灵感：godly / shader gradient / motion 站点；贴合索隐暖白·暖褐·赤陶品牌。
    全部尊重 prefers-reduced-motion（全局守卫已把 transition/animation 时长压到 ~0）。 */
 @layer components {
   :root {

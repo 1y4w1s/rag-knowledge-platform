@@ -14,7 +14,7 @@ import {
   UserCog,
 } from "lucide-react";
 
-import { RuigeLogo } from "@/components/brand/RuigeLogo";
+import { SuoyinLogo } from "@/components/brand/SuoyinLogo";
 import {
   isChatNavActive,
   isKbNavActive,
@@ -71,8 +71,8 @@ export function AppSidebar() {
       id="app-sidebar"
       className={cn("app-sidebar rail relative h-full shrink-0", isOpen && "open")}
     >
-      <Link to="/dashboard" className="rail-mark" aria-label="睿阁 · 概览">
-        <RuigeLogo size={30} />
+      <Link to="/dashboard" className="rail-mark" aria-label="索隐 · 概览">
+        <SuoyinLogo size={30} />
       </Link>
       <div className="rail-sep" />
 

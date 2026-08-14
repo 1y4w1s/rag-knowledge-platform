@@ -2,31 +2,31 @@ import type { CSSProperties } from "react";
 
 import { cn } from "@/lib/utils";
 
-interface RuigeLogoProps {
+interface SuoyinLogoProps {
   /** 标记高度（px）。字标字号按此比例自适应。默认 28。 */
   size?: number;
-  /** 是否在标记右侧显示「睿阁」字标。默认 false（仅标记）。 */
+  /** 是否在标记右侧显示「索隐」字标。默认 false（仅标记）。 */
   withWordmark?: boolean;
   className?: string;
   style?: CSSProperties;
-  /** 无障碍标签。默认「睿阁」。 */
+  /** 无障碍标签。默认「索隐」。 */
   title?: string;
 }
 
 /**
- * 睿阁品牌标记：层叠飞檐塔阁（藏书阁意象）。
+ * 索隐品牌标记：层叠飞檐塔阁（藏书阁意象）。
  * - 标记使用 currentColor，由容器文字色驱动；此处固定为品牌赤陶 --action。
  * - 字标为暖褐/前景深色，与赤陶标记形成经典 lockup。
  * - 表单规则：飞檐两端统一上翘（几何宪法）；三段层叠=视觉重量+「多文档入库」；
  *   基座拱门负空间=第二眼才见的「知识之门 / 检索入口」。
  */
-export function RuigeLogo({
+export function SuoyinLogo({
   size = 28,
   withWordmark = false,
   className,
   style,
-  title = "睿阁",
-}: RuigeLogoProps) {
+  title = "索隐",
+}: SuoyinLogoProps) {
   return (
     <span
       className={cn("inline-flex items-center gap-2", className)}
@@ -102,7 +102,7 @@ export function RuigeLogo({
           className="brand-text font-serif font-bold leading-none tracking-[0.04em] text-foreground"
           style={{ fontSize: size * 0.62 }}
         >
-          睿阁
+          索隐
         </span>
       )}
     </span>

@@ -152,12 +152,12 @@ export function KnowledgeBasesPage() {
   }, [loadList]);
 
   useEffect(() => {
-    document.title = "睿阁 · 资料库";
+    document.title = "索隐 · 资料库";
     const meta = document.querySelector('meta[name="description"]');
     if (meta) {
       meta.setAttribute(
         "content",
-        "在睿阁整理文档集合，供 AI 带引用回答。创建、搜索、管理你的知识库。",
+        "在索隐整理文档集合，供 AI 带引用回答。创建、搜索、管理你的知识库。",
       );
     }
   }, []);

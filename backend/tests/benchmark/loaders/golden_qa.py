@@ -1,4 +1,4 @@
-"""Golden QA 数据集加载器（睿阁自建评测集）。
+"""Golden QA 数据集加载器（索隐自建评测集）。
 
 加载 tests/fixtures/golden_qa.json 并解析为统一的 BenchmarkQuery 格式。
 109 题，覆盖考勤、薪酬、合同、IT 等多个企业域。
@@ -47,8 +47,8 @@ class GoldenQADataset(BenchmarkDataset):
     def meta(self) -> DatasetMeta:
         return DatasetMeta(
             name="golden_qa",
-            display_name="Golden QA（睿阁自建）",
-            description="睿阁自建 Golden QA 评测集，109 题，覆盖 10+ 企业域",
+            display_name="Golden QA（索隐自建）",
+            description="索隐自建 Golden QA 评测集，109 题，覆盖 10+ 企业域",
             homepage="",
             license="Proprietary",
             total_questions=109,

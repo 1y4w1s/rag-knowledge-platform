@@ -70,7 +70,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     setOverride(null);
-    document.title = "睿阁 · 概览";
+    document.title = "索隐 · 概览";
   }, [setOverride]);
 
   const isEmpty = stats !== null && isDashboardEmpty(stats);

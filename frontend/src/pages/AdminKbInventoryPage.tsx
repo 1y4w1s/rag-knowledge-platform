@@ -26,7 +26,7 @@ export function AdminKbInventoryPage() {
   const [exportError, setExportError] = useState<string | null>(null);
 
   useEffect(() => {
-    document.title = "资产清单 · 睿阁";
+    document.title = "资产清单 · 索隐";
   }, []);
 
   const handleExport = useCallback(

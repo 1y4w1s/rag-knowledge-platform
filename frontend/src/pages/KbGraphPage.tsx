@@ -48,7 +48,7 @@ export function KbGraphPage() {
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null);
 
   useEffect(() => {
-    document.title = "睿阁 · 知识图谱";
+    document.title = "索隐 · 知识图谱";
   }, []);
 
   useEffect(() => {

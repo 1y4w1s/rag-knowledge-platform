@@ -1,5 +1,5 @@
 @"
-:: 睿阁 CRAG 全量评测脚本
+:: 索隐 CRAG 全量评测脚本
 :: 用法：双击运行，或在终端执行
 :: 运行前确保 Docker 已启动，API 可访问
 :: 日志输出到 benchmark_results/crag_full_YYYYMMDD_HHMMSS.log
@@ -16,7 +16,7 @@ set TIMESTAMP=!TIMESTAMP: =0!
 set LOG_FILE=%LOG_DIR%\crag_full_!TIMESTAMP!.log
 
 echo ============================================
-echo   睿阁 CRAG 全量评测
+echo   索隐 CRAG 全量评测
 echo   日志: %LOG_FILE%
 echo ============================================
 echo.

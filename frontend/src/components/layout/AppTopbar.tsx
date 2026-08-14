@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-import { RuigeLogo } from "@/components/brand/RuigeLogo";
+import { SuoyinLogo } from "@/components/brand/SuoyinLogo";
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
 import { useMobileDrawer } from "@/lib/mobile-drawer-context";
 
@@ -34,11 +34,11 @@ export function AppTopbar({ theme, onToggleTheme, themeMode }: AppTopbarProps) {
       <Link
         to="/dashboard"
         className="flex shrink-0 items-center gap-3 no-underline"
-        aria-label="睿阁 · 概览"
+        aria-label="索隐 · 概览"
       >
-        <RuigeLogo size={34} />
+        <SuoyinLogo size={34} />
         <span className="font-serif text-[20px] font-bold leading-none text-foreground">
-          睿阁
+          索隐
         </span>
       </Link>
 

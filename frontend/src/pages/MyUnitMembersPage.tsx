@@ -15,7 +15,7 @@ export function MyUnitMembersPage() {
   const [removeTarget, setRemoveTarget] = useState<OrgUnitMember | null>(null);
 
   useEffect(() => {
-    document.title = "睿阁 · 我的部门成员";
+    document.title = "索隐 · 我的部门成员";
     let meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
     if (!meta) {
       meta = document.createElement("meta");

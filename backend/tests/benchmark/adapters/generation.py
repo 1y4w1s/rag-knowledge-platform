@@ -1,4 +1,4 @@
-"""生成适配器：将睿阁的问答系统连接到 BenchmarkRunner。
+"""生成适配器：将索隐的问答系统连接到 BenchmarkRunner。
 
 非流式调用：检索 + 构造 messages + DeepSeek 生成 + 解析引用。
 

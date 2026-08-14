@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import type { ReactNode, ReactElement } from "react";
 
 import { cn } from "@/lib/utils";
-import { RuigeLogo } from "@/components/brand/RuigeLogo";
+import { SuoyinLogo } from "@/components/brand/SuoyinLogo";
 
 interface SidebarNavItemProps {
   to: string;
@@ -39,7 +39,7 @@ export function SidebarNavItem({ to, children, match, end, icon }: SidebarNavIte
 }
 
 export function BrandMark() {
-  return <RuigeLogo size={24} />;
+  return <SuoyinLogo size={24} />;
 }
 
 export function isKbNavActive(pathname: string): boolean {

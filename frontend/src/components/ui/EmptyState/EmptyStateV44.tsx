@@ -43,7 +43,7 @@ export function EmptyStateV44({ scene, variant }: { scene: EmptyStateScene; vari
   }
 
   function sendInvite() {
-    const name = inviteName.trim() || "睿阁团队";
+    const name = inviteName.trim() || "索隐团队";
     setInvited((prev) => [name, ...prev]);
     setInviteName("");
   }

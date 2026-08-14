@@ -22,7 +22,7 @@ _PDF_OK = b"%PDF-1.4\n% minimal\n"
 _OOXML_OK = b"PK\x03\x04" + b"\x00" * 20  # ZIP local file header 起头
 _PNG_OK = b"\x89PNG\r\n\x1a\n" + b"\x00" * 8
 _JPEG_OK = b"\xff\xd8\xff\xe0" + b"\x00" * 8
-_TXT_OK = "你好 睿阁\nplain text".encode("utf-8")
+_TXT_OK = "你好 索隐\nplain text".encode("utf-8")
 _MD_OK = b"# Title\n\nbody\n"
 
 

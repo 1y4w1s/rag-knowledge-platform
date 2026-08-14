@@ -29,7 +29,7 @@ NEEDLES = {
 
 def _write_txt(path: Path) -> None:
     path.write_text(
-        "Ruige M13 format matrix sample (plain text).\n"
+        "Suoyin M13 format matrix sample (plain text).\n"
         f"Acceptance code: {NEEDLES['txt']}\n"
         "This line exists so chat can cite the needle.\n",
         encoding="utf-8",
@@ -62,7 +62,7 @@ def _write_pdf(path: Path) -> None:
     from reportlab.pdfgen import canvas
 
     c = canvas.Canvas(str(path), pagesize=letter)
-    c.drawString(72, 720, "Ruige M13 PDF text-layer sample")
+    c.drawString(72, 720, "Suoyin M13 PDF text-layer sample")
     c.drawString(72, 700, f"Acceptance code: {NEEDLES['pdf']}")
     c.drawString(72, 680, "Enough extractable text for non-OCR PDF path.")
     c.showPage()

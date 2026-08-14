@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""睿阁消融实验运行器。
+"""索隐消融实验运行器。
 
 按设计文档 docs/design/rag-optimization-evolution-design.md §2.4 / §5.5，
 通过环境变量控制每轮实验的检索融合模式、Rerank 策略、Query Rewrite 策略，
@@ -330,7 +330,7 @@ def _generate_markdown_report(results: list[dict], dataset: str) -> str:
             break
 
     lines = []
-    lines.append(f"# 睿阁消融实验报告")
+    lines.append(f"# 索隐消融实验报告")
     lines.append(f"")
     lines.append(f"- **数据集**: {dataset}")
     lines.append(f"- **生成时间**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -445,7 +445,7 @@ def _generate_markdown_report(results: list[dict], dataset: str) -> str:
 
 def parse_args():
     p = argparse.ArgumentParser(
-        description="睿阁消融实验运行器 — 6 种配置独立跑分 + 消融矩阵输出",
+        description="索隐消融实验运行器 — 6 种配置独立跑分 + 消融矩阵输出",
     )
     p.add_argument(
         "--dataset", default="golden_qa",

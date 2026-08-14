@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""睿阁 RAG 评测统一入口（v1.0）。
+"""索隐 RAG 评测统一入口（v1.0）。
 替换 _run_golden_110.py、_run_ent_v2.py 等独立脚本。
 
 用法：
@@ -57,7 +57,7 @@ DATASETS = {
 
 
 def parse_args():
-    p = argparse.ArgumentParser(description="睿阁 RAG 评测")
+    p = argparse.ArgumentParser(description="索隐 RAG 评测")
     p.add_argument("--dataset", default="golden_qa", choices=list(DATASETS.keys()) + ["all"])
     p.add_argument("--mode", default="retrieval", choices=["retrieval", "generation", "full"])
     p.add_argument("--output", default="text", choices=["text", "json"])
@@ -323,12 +323,12 @@ async def gen_html_report(results: list[dict]) -> str:
         mrr = r.get("mrr", 0)
         rows += f"<tr><td>{r['dataset']}</td><td>{r['total']}</td><td>{rate_h1:.1%}</td><td>{rate_h3:.1%}</td><td>{rate_h5:.1%}</td><td>{mrr:.3f}</td></tr>"
     return f"""<!DOCTYPE html><html lang=zh-CN><head><meta charset=UTF-8>
-<title>睿阁评测报告</title>
+<title>索隐评测报告</title>
 <style>body{{font-family:sans-serif;padding:40px;background:#f5f3f0;color:#2c2420}}
 table{{border-collapse:collapse;width:100%;max-width:800px;background:#fff;border-radius:8px;overflow:hidden}}
 th,td{{padding:12px 16px;text-align:left;border-bottom:1px solid #eee}}
 th{{background:#2c2420;color:#fff}}</style></head>
-<body><h1>睿阁评测报告</h1>
+<body><h1>索隐评测报告</h1>
 <p>生成时间: {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M')}</p>
 <table><tr><th>数据集</th><th>题数</th><th>Hit@1</th><th>Hit@3</th><th>Hit@5</th><th>MRR</th></tr>{rows}</table></body></html>"""
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""睿阁 RAG 生成质量评测入口。
+"""索隐 RAG 生成质量评测入口。
 
 运行方式：
     # 单一数据集
@@ -30,7 +30,7 @@ logger = logging.getLogger("run_generation")
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="睿阁 RAG 生成质量评测")
+    p = argparse.ArgumentParser(description="索隐 RAG 生成质量评测")
     p.add_argument(
         "--datasets",
         type=str,

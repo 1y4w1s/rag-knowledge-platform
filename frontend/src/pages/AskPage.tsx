@@ -167,11 +167,11 @@ export function AskPage() {
   }, [scope]);
 
   useEffect(() => {
-    document.title = "睿阁 · 对话";
+    document.title = "索隐 · 对话";
     setOverride(<>对话</>);
     return () => {
       setOverride(null);
-      document.title = "睿阁";
+      document.title = "索隐";
       abortStreaming();
     };
   }, [setOverride, abortStreaming]);

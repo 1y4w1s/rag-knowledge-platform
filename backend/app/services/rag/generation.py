@@ -20,7 +20,7 @@ from app.services.rag.relevance import (
 )
 from app.services.rag.types import RetrievedChunk
 
-SYSTEM_PROMPT = """你是睿阁助手，严格依据【检索片段】中的信息回答【用户问题】。
+SYSTEM_PROMPT = """你是索隐助手，严格依据【检索片段】中的信息回答【用户问题】。
 
 工作流程：
 第一步（思考阶段）：列出回答问题需要引用哪些片段编号，以及每个片段中包含的关键信息。

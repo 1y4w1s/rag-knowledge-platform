@@ -1,9 +1,9 @@
-# Grafana 告警规则 — 睿阁运维
+# Grafana 告警规则 — 索隐运维
 apiVersion: 1
 
 groups:
-  - name: "睿阁 5xx 错误率"
-    folder: "睿阁告警"
+  - name: "索隐 5xx 错误率"
+    folder: "索隐告警"
     interval: 60s
     rules:
       - uid: ruige_high_5xx_rate
@@ -28,8 +28,8 @@ groups:
         labels:
           severity: warning
 
-  - name: "睿阁延迟"
-    folder: "睿阁告警"
+  - name: "索隐延迟"
+    folder: "索隐告警"
     interval: 60s
     rules:
       - uid: ruige_high_p95_latency
@@ -54,8 +54,8 @@ groups:
         labels:
           severity: warning
 
-  - name: "睿阁 Ingestion"
-    folder: "睿阁告警"
+  - name: "索隐 Ingestion"
+    folder: "索隐告警"
     interval: 60s
     rules:
       - uid: ruige_high_ingestion_failure
@@ -80,8 +80,8 @@ groups:
         labels:
           severity: critical
 
-  - name: "睿阁 EN 覆盖度"
-    folder: "睿阁告警"
+  - name: "索隐 EN 覆盖度"
+    folder: "索隐告警"
     interval: 60s
     rules:
       - uid: ruige_embedding_en_coverage_incomplete
