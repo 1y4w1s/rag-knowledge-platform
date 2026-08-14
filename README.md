@@ -8,9 +8,10 @@
 <p align="center">
   <a href="#快速开始"><img src="https://img.shields.io/badge/快速开始-10B981?style=flat" alt="快速开始" /></a>
   <a href="https://github.com/1y4w1s/rag-knowledge-platform/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/1y4w1s/rag-knowledge-platform/ci.yml" alt="CI" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/1y4w1s/rag-knowledge-platform" alt="MIT License" /></a>
 </p>
 
-> 睿阁不是 ChatPDF 的平替，而是企业知识管理的基础设施：每个回答都附带文档名、章节位置和原文片段，无依据时明确拒答，不做黑盒问答。
+> 睿阁不是 ChatPDF 的平替，而是面向企业的知识管理基础设施：每个回答都附带文档名、章节位置与原文片段，无依据时明确拒答，绝不做黑盒问答。
 
 ---
 
@@ -23,7 +24,7 @@
 | 引用溯源对话 | SSE 流式生成，终态按正文裁剪引用，杜绝「引用了片段但未给出」的幻觉；三级置信度 normal / low / refuse，无依据明确拒答 |
 | 企业权限与审计 | 个人版 / 企业版，Owner / Admin / Member 与部门树；`kb_id` 注入所有查询，Member 写操作统一 403；50+ 审计事件可查询、可导出 |
 | Agent 子系统 | 确定性 ThoroughReadPlanner（simple / standard / complex，1-3 步工具链）；11 个工具，写操作走审批，长期记忆 |
-| 可观测与部署 | `/health` 三件套、手写 Prometheus 指标、OpenTelemetry 追踪、6 个熔断器与 L0-L4 显式降级；Docker Compose 内网 HTTP，非 root 容器 |
+| 可观测与部署 | `/health` 三件套、自研 Prometheus 指标、OpenTelemetry 追踪、6 个熔断器与 L0-L4 显式降级；Docker Compose 内网 HTTP，非 root 容器 |
 
 ---
 
@@ -147,7 +148,7 @@ LLM / Embedding Key 仅存于服务端，前端不接触任何密钥。
 | 拒答 | 三级置信度 normal / low / refuse | 无依据必须拒答，禁止编造 |
 | 多轮 | contextualize 改写 + 换题门闩（bigram Jaccard） | 同 thread 换主题自动清历史，避免跨题污染 |
 
-贵能力按「题型 × 模式 × 分数信号」触发，用评测门禁证明收益后再扩默认面。
+各能力按「题型 × 模式 × 分数信号」触发，先过评测门禁，再扩大默认面。
 
 ---
 
@@ -214,8 +215,8 @@ frontend/
 | 嵌入 | BGE-small-zh（ONNX CPU） | 零云依赖，512 维，P50 395ms |
 | LLM | DeepSeek + 通义千问 | 双备熔断，Key 仅服务端 |
 | 前端 | React 19 + Vite + TypeScript + Tailwind | 19 个页面，全懒加载 |
-| 部署 | Docker Compose + Nginx | 非 root 容器，健康检查三板斧 |
-| 可观测 | Prometheus + OpenTelemetry | 手写指标、追踪、告警 |
+| 部署 | Docker Compose + Nginx | 非 root 容器，健康检查三件套 |
+| 可观测 | Prometheus + OpenTelemetry | 自研指标、追踪、告警 |
 
 ---
 
@@ -223,13 +224,13 @@ frontend/
 
 | 测试集 | 题数 | Hit@3 | 说明 |
 |--------|------|-------|------|
-| Golden QA 硬门禁 | 11 | 11/11 | CI 强制，修改检索 / 入库必过（fixture 缺 GQ-9） |
-| Golden QA 全量 | 109（测试展开 135 passed + 0 xfailed） | 通过 | GQ-1 ~ GQ-110（缺 GQ-9），只上不下 |
+| Golden QA 硬门禁 | 11 | 11/11 | CI 强制，修改检索 / 入库必过 |
+| Golden QA 全量 | 109（测试展开 135 passed + 0 xfailed） | 通过 | GQ-1 ~ GQ-110，只上不下 |
 | Enterprise QA | 90 | 60%（CI mock）/ 71.1%（8/9 真向量 n=90） | CI 门禁基线 / 对外观测 |
-| Advanced QA | 14 | 14/14 | 8/4 CI |
+| Advanced QA | 14 | 14/14 | CI 基线 |
 | CRAG English | 100 | 26% | 外部英文参考集，仅作参考 |
 
-延迟数据来自本机 Docker 栈实测（2026-07-22）：检索端到端 P95 ≈1285ms（NW-54，SLO ≤2500ms）；对话 TTFT fast P95 ≈3125ms（NW-55，SLO ≤5000ms），thorough P50/P95 956/982ms（单次采样）。
+延迟数据来自本机 Docker 栈实测（2026-07-22）：检索端到端 P95 ≈1285ms（SLO ≤2500ms）；对话首 token fast P95 ≈3125ms、thorough P50/P95 956/982ms（SLO ≤5000ms）。
 
 规模（2026-08-10 实测）：后端业务 Python ≈3.3 万行（32,805 行，不含 tests）；前端源码 ≈2.9 万行（28,919 行）；后端测试 219 个 `test_*.py` 文件。CI 门禁含 Ruff、pytest A 层、Hit@3 Golden Gate、`alembic check`、config wiring 与 rag-benchmark（golden / enterprise / advanced 基线对比）。
 
