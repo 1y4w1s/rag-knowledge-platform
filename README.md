@@ -19,10 +19,10 @@
 | 能力 | 说明 |
 |------|------|
 | 多格式入库 | PDF / DOCX / PPTX / XLSX / Markdown / TXT；扫描 PDF 走 OCR；按 `heading_path` 结构化切片，保留章节路径，`max_chars=1200` |
-| Hybrid 检索 | pgvector（ivfflat，512 维）与 PostgreSQL FTS（tsquery）经 RRF 融合，权重 `w_v=1.0 / w_f=1.5`（2026-08-09 全矩阵扫参定档） |
+| Hybrid 检索 | pgvector（HNSW cosine，512 维）与 PostgreSQL FTS（tsquery）经 RRF 融合，权重 `w_v=1.0 / w_f=1.5`（2026-08-09 全矩阵扫参定档） |
 | 引用溯源对话 | SSE 流式生成，终态按正文裁剪引用，杜绝「引用了片段但未给出」的幻觉；三级置信度 normal / low / refuse，无依据明确拒答 |
 | 企业权限与审计 | 个人版 / 企业版，Owner / Admin / Member 与部门树；`kb_id` 注入所有查询，Member 写操作统一 403；50+ 审计事件可查询、可导出 |
-| Agent 子系统 | 确定性 ThoroughReadPlanner（simple / standard / complex，1-3 步工具链）；12 个工具，写操作走审批，长期记忆 |
+| Agent 子系统 | 确定性 ThoroughReadPlanner（simple / standard / complex，1-3 步工具链）；11 个工具，写操作走审批，长期记忆 |
 | 可观测与部署 | `/health` 三件套、手写 Prometheus 指标、OpenTelemetry 追踪、6 个熔断器与 L0-L4 显式降级；Docker Compose 内网 HTTP，非 root 容器 |
 
 ---
@@ -142,7 +142,7 @@ LLM / Embedding Key 仅存于服务端，前端不接触任何密钥。
 | 切片 | 结构优先：按 `heading_path` 保留章节路径，而非固定长度窗口 | 固定窗口会打断段落、混合主题、丢失上下文 |
 | 检索融合 | RRF 融合向量 + FTS，`w_f=1.5` | 2026-08-09 全矩阵扫参定档；企业文档精确匹配场景更关键 |
 | 精排 | BGE reranker 默认关，仅排序歧义时条件触发 | 全量开 rerank 会打散已在 Top-3 的题，Hit@3 不升反跌 |
-| 嵌入 | BGE-small-zh（ONNX CPU，512 维，P50 395ms） | 与通义 text-embedding-v3 同分（86%），快 4.6 倍且零云依赖 |
+| 嵌入 | BGE-small-zh（ONNX CPU，512 维，P50 395ms） | 与通义 text-embedding-v2 同分（86%），快 4.6 倍且零云依赖 |
 | 拒答 | 三级置信度 normal / low / refuse | 无依据必须拒答，禁止编造 |
 | 多轮 | contextualize 改写 + 换题门闩（bigram Jaccard） | 同 thread 换主题自动清历史，避免跨题污染 |
 
@@ -222,8 +222,8 @@ frontend/
 
 | 测试集 | 题数 | Hit@3 | 说明 |
 |--------|------|-------|------|
-| Golden QA 硬门禁 | 12 | 12/12 | CI 强制，修改检索 / 入库必过 |
-| Golden QA 全量 | 110（测试展开 135 passed + 0 xfailed） | 通过 | GQ-1 ~ GQ-110，只上不下 |
+| Golden QA 硬门禁 | 11 | 11/11 | CI 强制，修改检索 / 入库必过（fixture 缺 GQ-9） |
+| Golden QA 全量 | 109（测试展开 135 passed + 0 xfailed） | 通过 | GQ-1 ~ GQ-110（缺 GQ-9），只上不下 |
 | Enterprise QA | 90 | 60%（CI mock）/ 71.1%（8/9 真向量 n=90） | CI 门禁基线 / 对外观测 |
 | Advanced QA | 14 | 14/14 | 8/4 CI |
 | CRAG English | 100 | 26% | 外部英文参考集，仅作参考 |
