@@ -19,13 +19,14 @@
 
 | 能力 | 说明 |
 |------|------|
-| 多格式入库 | PDF / DOCX / PPTX / XLSX / Markdown / TXT；扫描 PDF 走 OCR；按 `heading_path` 结构化切片，保留章节路径，`max_chars=1200` |
+| 多格式入库 | PDF / DOCX / PPTX / XLSX / Markdown / TXT；扫描 PDF 走 OCR；按 `heading_path` 结构化切片，保留章节路径，`max_chars=1200`；Parent-Child 切片与表格结构化 |
 | Hybrid 检索 | pgvector（HNSW cosine：中文 512 维 / 英文 384 维双列）与 PostgreSQL FTS（tsquery）经 RRF 融合，权重 `w_v=1.0 / w_f=1.5`（2026-08-09 全矩阵扫参定档） |
 | 引用溯源对话 | SSE 流式生成，终态按正文裁剪引用，杜绝「引用了片段但未给出」的幻觉；三级置信度 normal / low / refuse，无依据明确拒答 |
 | 企业权限与审计 | 个人版 / 企业版，Owner / Admin / Member 与部门树；`kb_id` 注入所有查询，Member 写操作统一 403；50+ 审计事件可查询、可导出 |
 | Agent 子系统 | 确定性 ThoroughReadPlanner（simple / standard / complex，1-3 步工具链）；11 个工具，写操作走审批，长期记忆 |
 | 可观测与部署 | `/health` 三件套、自研 Prometheus 指标、OpenTelemetry 追踪、6 个熔断器与 L0-L4 显式降级；Docker Compose 内网 HTTP，非 root 容器 |
 | 安全与限流 | 上传 magic bytes 双检与 zip 炸弹防护、配额；SSRF / 提示注入过滤、引用脱敏、出境 scrub；登录与 API 双桶限流（Redis 可切） |
+| 缓存与成本 | 检索 / LLM 响应 / 嵌入三级缓存；token 用量计量，成本可见 |
 
 ---
 
@@ -148,6 +149,7 @@ LLM / Embedding Key 仅存于服务端，前端不接触任何密钥。
 | 嵌入 | 中英双列：BGE-small-zh（中文，512 维，P50 395ms）+ BGE-small-en（英文，384 维），英问自动路由 | 与通义 text-embedding-v2 同分（86%），快 4.6 倍且零云依赖 |
 | 拒答 | 三级置信度 normal / low / refuse | 无依据必须拒答，禁止编造 |
 | 多轮 | contextualize 改写 + 换题门闩（bigram Jaccard） | 同 thread 换主题自动清历史，避免跨题污染 |
+| 图谱召回 | 实体 / 关系抽取与 KB 图谱导出，召回默认关 | A/B 无提升已回滚，保留能力待信号触发 |
 
 各能力按「题型 × 模式 × 分数信号」触发，先过评测门禁，再扩大默认面。
 
