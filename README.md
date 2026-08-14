@@ -20,7 +20,7 @@
 | 能力 | 说明 |
 |------|------|
 | 多格式入库 | PDF / DOCX / PPTX / XLSX / Markdown / TXT；扫描 PDF 走 OCR；按 `heading_path` 结构化切片，保留章节路径，`max_chars=1200` |
-| Hybrid 检索 | pgvector（HNSW cosine，512 维）与 PostgreSQL FTS（tsquery）经 RRF 融合，权重 `w_v=1.0 / w_f=1.5`（2026-08-09 全矩阵扫参定档） |
+| Hybrid 检索 | pgvector（HNSW cosine：中文 512 维 / 英文 384 维双列）与 PostgreSQL FTS（tsquery）经 RRF 融合，权重 `w_v=1.0 / w_f=1.5`（2026-08-09 全矩阵扫参定档） |
 | 引用溯源对话 | SSE 流式生成，终态按正文裁剪引用，杜绝「引用了片段但未给出」的幻觉；三级置信度 normal / low / refuse，无依据明确拒答 |
 | 企业权限与审计 | 个人版 / 企业版，Owner / Admin / Member 与部门树；`kb_id` 注入所有查询，Member 写操作统一 403；50+ 审计事件可查询、可导出 |
 | Agent 子系统 | 确定性 ThoroughReadPlanner（simple / standard / complex，1-3 步工具链）；11 个工具，写操作走审批，长期记忆 |
@@ -144,7 +144,7 @@ LLM / Embedding Key 仅存于服务端，前端不接触任何密钥。
 | 切片 | 结构优先：按 `heading_path` 保留章节路径，而非固定长度窗口 | 固定窗口会打断段落、混合主题、丢失上下文 |
 | 检索融合 | RRF 融合向量 + FTS，`w_f=1.5` | 2026-08-09 全矩阵扫参定档；企业文档精确匹配场景更关键 |
 | 精排 | BGE reranker 默认关，仅排序歧义时条件触发 | 全量开 rerank 会打散已在 Top-3 的题，Hit@3 不升反跌 |
-| 嵌入 | BGE-small-zh（ONNX CPU，512 维，P50 395ms） | 与通义 text-embedding-v2 同分（86%），快 4.6 倍且零云依赖 |
+| 嵌入 | 中英双列：BGE-small-zh（中文，512 维，P50 395ms）+ BGE-small-en（英文，384 维），英问自动路由 | 与通义 text-embedding-v2 同分（86%），快 4.6 倍且零云依赖 |
 | 拒答 | 三级置信度 normal / low / refuse | 无依据必须拒答，禁止编造 |
 | 多轮 | contextualize 改写 + 换题门闩（bigram Jaccard） | 同 thread 换主题自动清历史，避免跨题污染 |
 
@@ -222,7 +222,7 @@ frontend/
 | 后端 | FastAPI（Python 3.11）+ SQLAlchemy（async） | API 与数据访问 |
 | 数据库 | PostgreSQL 16 + pgvector | 关系、向量、全文索引同实例 |
 | 异步 | Celery + Redis | 入库队列，解析 / OCR / 嵌入异步执行 |
-| 嵌入 | BGE-small-zh（ONNX CPU） | 零云依赖，512 维，P50 395ms |
+| 嵌入 | BGE-small-zh（ONNX CPU）+ BGE-small-en | 中英双列（512 / 384 维），零云依赖 |
 | LLM | DeepSeek + 通义千问 | 双备熔断，Key 仅服务端 |
 | 前端 | React 19 + Vite + TypeScript + Tailwind | 19 个页面，全懒加载 |
 | 部署 | Docker Compose + Nginx | 非 root 容器，健康检查三件套 |
@@ -239,6 +239,7 @@ frontend/
 | Enterprise QA | 90 | 60%（CI mock）/ 71.1%（8/9 真向量 n=90） | CI 门禁基线 / 对外观测 |
 | Advanced QA | 14 | 14/14 | CI 基线 |
 | CRAG English | 100 | 26% | 外部英文参考集，仅作参考 |
+| 外部英文基准（BEIR） | nfcorpus 323 / fiqa 648 / MS MARCO dev 6,980 | 参考 | RAGAS / BM25 评测收口，仅作外部参考 |
 
 延迟数据来自本机 Docker 栈实测（2026-07-22）：检索端到端 P95 ≈1285ms（SLO ≤2500ms）；对话首 token fast P95 ≈3125ms、thorough P50/P95 956/982ms（SLO ≤5000ms）。
 
