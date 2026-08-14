@@ -1,4 +1,4 @@
-"""睿阁 — Locust 性能压测（容器内运行版）"""
+"""索隐 — Locust 性能压测（容器内运行版）"""
 from __future__ import annotations
 
 import random

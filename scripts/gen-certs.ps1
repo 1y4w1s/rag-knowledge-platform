@@ -41,7 +41,7 @@ Write-Host "正在生成自签证书 ..." -ForegroundColor Cyan
 
 # 生成私钥和自签证书（有效期 365 天）
 & openssl req -x509 -newkey rsa:2048 -keyout $keyPath -out $crtPath -days 365 -nodes `
-    -subj "/C=CN/ST=Guangdong/L=Shenzhen/O=Ruige/CN=localhost" `
+    -subj "/C=CN/ST=Guangdong/L=Shenzhen/O=Suoyin/CN=localhost" `
     -addext "subjectAltName=DNS:localhost,IP:127.0.0.1" 2>$null
 
 if ($LASTEXITCODE -eq 0) {

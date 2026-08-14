@@ -1,4 +1,4 @@
-"""睿阁 — Locust 性能压测脚本
+"""索隐 — Locust 性能压测脚本
 
 用法：locust -f backend/loadtests/locustfile.py --host=http://localhost:8000
 访问 http://localhost:8089 启动压测。

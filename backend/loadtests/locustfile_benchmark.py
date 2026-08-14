@@ -1,4 +1,4 @@
-"""睿阁 — Benchmark 性能压测（Locust 扩展）
+"""索隐 — Benchmark 性能压测（Locust 扩展）
 
 用法：
     locust -f backend/loadtests/locustfile_benchmark.py --host=http://localhost:8000

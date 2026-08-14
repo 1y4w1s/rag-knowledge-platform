@@ -1,4 +1,4 @@
-"""睿阁压测脚本"""
+"""索隐压测脚本"""
 import random
 import uuid
 import time
