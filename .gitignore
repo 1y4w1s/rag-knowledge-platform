@@ -108,7 +108,6 @@ backend/=*,
 /AGENTS.md
 /.env.example
 /.env.production.example
-/LICENSE
 /docs/
 
 # Local env / temp artifacts - do NOT commit
