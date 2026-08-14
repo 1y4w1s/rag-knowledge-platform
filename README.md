@@ -41,6 +41,7 @@ git clone https://github.com/1y4w1s/rag-knowledge-platform.git
 cd rag-knowledge-platform
 
 cat > .env <<'EOF'
+POSTGRES_PASSWORD=replace-with-a-strong-password  # compose 必填
 JWT_SECRET=replace-with-a-long-random-string
 CHAT_PROVIDER=deepseek
 DEEPSEEK_API_KEY=sk-xxx            # 对话主链路（必填之一）
@@ -158,7 +159,7 @@ LLM / Embedding Key 仅存于服务端，前端不接触任何密钥。
 | `JWT_SECRET` | 会话签名密钥 | 无 |
 | `CHAT_PROVIDER` | 主 LLM：`deepseek` / `tongyi` | `deepseek` |
 | `DEEPSEEK_API_KEY` | 主链路 Key | 空 |
-| `DEEPSEEK_BASE_URL` / `DEEPSEEK_MODEL` | 主链路地址与模型 | `api.deepseek.com` / `deepseek-chat` |
+| `DEEPSEEK_BASE_URL` / `DEEPSEEK_MODEL` | 主链路地址与模型 | `https://api.deepseek.com` / `deepseek-chat` |
 | `TONGYI_API_KEY` | 备用 LLM + 嵌入 | 空 |
 | `EMBEDDING_PROVIDER` | `bge`（本地 ONNX）/ `tongyi` | `bge` |
 | `GRAFANA_PASSWORD` | 监控登录密码（生产建议 ≥32 位随机字符） | 无 |

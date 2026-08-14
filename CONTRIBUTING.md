@@ -27,12 +27,12 @@
 ```
 fix: FTS tsquery 过滤 &|!() 特殊字符
 feat: 统一评测入口 scripts/run_benchmark.py
-bench: Enterprise QA 校准 56%→98%
+bench: 更新 golden / enterprise 检索基线
 ```
 
 ## 分支命名
 
-- `main` — 稳定分支
+- `master` — 稳定分支
 - `feat/<name>` — 新功能
 - `fix/<name>` — 修复
 - `bench/<name>` — 评测相关工作
@@ -40,4 +40,4 @@ bench: Enterprise QA 校准 56%→98%
 ## 代码审查
 
 - 所有 PR 至少 1 人 review 后合并
-- 禁止直接 push 到 main
+- 禁止直接 push 到 master
