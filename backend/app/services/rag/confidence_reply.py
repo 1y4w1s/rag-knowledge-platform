@@ -7,14 +7,16 @@ from __future__ import annotations
 
 from enum import Enum
 
+from app.core.config import settings
 from app.services.rag.relevance import (
     _vector_scores_universally_weak,
     should_refuse_answer,
 )
 from app.services.rag.types import RetrievedChunk
 
-# 与 generation.build_messages 片段标签阈值对齐；≥ 此值视为强命中（非 low）
-LOW_CONFIDENCE_SIM_CEILING = 0.5
+# 与 generation.build_messages 片段标签阈值对齐；≥ 此值视为强命中（非 low）。
+# M1 候选②：配置化（settings.relevance_low_sim_ceiling），消除硬编码双写。
+LOW_CONFIDENCE_SIM_CEILING = settings.relevance_low_sim_ceiling
 
 PARTIAL_DISCLAIMER_ZH = (
     "以下回答仅依据部分相关片段，可能无法完整覆盖您的问题；"

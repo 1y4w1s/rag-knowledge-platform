@@ -14,6 +14,9 @@ from app.models.agent_run import AgentRun
 from app.models.agent_step import AgentStep
 from app.models.enums import AgentRunMode, AgentRunStatus, AgentStepStatus
 
+# Agent 检索验证循环步数预算（文档「A0」= 本常量，≠ RRF「A0 固定」融合策略）。
+# M1 裁决 B：thorough 上限 5 → 3；G2-W1：3 → 4（解锁无先 S1 的 S2）；
+# G2-W1b：4 → 5（满阶梯 S1→S2：S1 占步后 steps=3 时 3+1 < 5）。
 DEFAULT_MAX_STEPS = 5
 
 

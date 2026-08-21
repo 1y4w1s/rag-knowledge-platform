@@ -227,12 +227,12 @@ async def test_g3_e1_http_disconnect_releases_lock_for_next_post(
 
 
 @pytest.mark.asyncio
-async def test_e_budget_http_five_steps_capped_still_completes(
+async def test_e_budget_http_four_steps_capped_still_completes(
     client: AsyncClient,
     register_and_login,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """E-budget：HTTP 精准 5/5 · agent_budget.capped · 仍 token+done。"""
+    """E-budget：HTTP 精准 5/5（G2-W1b：thorough 默认 A0=5）· agent_budget.capped · 仍 token+done。"""
     headers, user = await register_and_login(prefix="g3-budget-http")
     kb = await create_test_kb(client, headers, user, name="Budget 库")
     kb_id = kb["id"]
@@ -275,7 +275,7 @@ async def test_e_budget_http_five_steps_capped_still_completes(
         )
     assert run is not None
     assert run.status == AgentRunStatus.capped
-    assert run.steps_used == 5
+    assert run.steps_used == 4
 
 
 @pytest.mark.asyncio

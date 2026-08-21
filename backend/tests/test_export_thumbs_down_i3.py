@@ -20,6 +20,10 @@ from app.services.rag.feedback_export import (
     candidates_to_export_dict,
     list_thumbs_down_candidates,
 )
+from app.services.rag.feedback_attribution import (
+    ATTRIBUTION_LABELS,
+    METHOD_RULES_V1,
+)
 from tests.conftest import create_test_kb
 
 
@@ -129,9 +133,13 @@ async def test_export_only_thumbs_down_and_aligns_query(
     assert c.rater_user_id == user_id
 
     payload = candidates_to_export_dict(candidates)
+    assert payload["version"] == "1.2"
     assert payload["kind"] == "thumbs_down_candidates"
     assert "NOT golden_qa" in payload["description"]
     assert payload["note"] == EXPORT_NOTE
+    assert "Do not auto-ingest" in payload["note"]
+    assert "attribution" in payload["note"].lower()
+    assert "scaffold" in payload["note"].lower()
     assert payload["count"] == 1
     row = payload["candidates"][0]
     for key in (
@@ -145,10 +153,25 @@ async def test_export_only_thumbs_down_and_aligns_query(
         "feedback_text",
         "rated_at",
         "rater_user_id",
+        "attribution",
+        "golden_suggestion",
     ):
         assert key in row
     assert row["query"] == "年假有多少天？"
-
+    assert row["attribution"]["label"] in ATTRIBUTION_LABELS
+    assert row["attribution"]["method"] == METHOD_RULES_V1
+    assert row["attribution"]["confidence"] == "low"
+    assert row["attribution"]["rationale"]
+    assert row["golden_suggestion"]["status"] == "draft_only"
+    # generation_bad → hit 骨架；字段全 null，禁止当 expect
+    ph = row["golden_suggestion"]["expect_placeholder"]
+    assert isinstance(ph, dict)
+    assert ph["shape"] == "hit"
+    assert ph["content_contains"] is None
+    assert "fill_checklist" in row["golden_suggestion"]
+    assert "NOT golden" in row["golden_suggestion"]["note"]
+    # feedback「答非所问」优先于拒答形态
+    assert row["attribution"]["label"] == "generation_bad"
 
 @pytest.mark.asyncio
 async def test_export_kb_filter_and_missing_query(

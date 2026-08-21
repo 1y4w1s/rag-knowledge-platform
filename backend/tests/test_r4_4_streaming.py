@@ -399,7 +399,7 @@ def _assert_agent_tool_phase_before_citations(events: list[tuple[str, dict]]) ->
             assert data["step"] == step
         elif name == "agent_budget":
             assert data["steps_used"] == step
-            assert data["max_steps"] == 5
+            assert data["max_steps"] == 5  # G2-W1b：thorough 默认 A0=5
 
     assert events[-1][0] == "done"
 

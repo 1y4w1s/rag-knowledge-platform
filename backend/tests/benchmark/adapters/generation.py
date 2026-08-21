@@ -65,6 +65,9 @@ class GenerationAdapter:
     def __init__(self, db, kb_id: UUID) -> None:
         self._db = db
         self._kb_id = kb_id
+        # M1 摸底：最近一次送模上下文统计（评测脚本侧读取，不影响生成行为）
+        self.last_context_chars = 0
+        self.last_chunk_count = 0
 
     async def generate(
         self, query: str, kb_id: UUID | None = None
@@ -99,6 +102,13 @@ class GenerationAdapter:
 
         # 2. 构造 messages（含检索片段）
         messages = build_messages(query, chunks)
+        # M1 摸底：记录送模上下文字符数与片段数（评测侧输出分布，不动生成行为）
+        ctx_parts = [
+            m.get("content", "") for m in messages
+            if isinstance(m.get("content"), str) and m["content"].startswith("【检索片段】")
+        ]
+        self.last_context_chars = sum(len(p) for p in ctx_parts)
+        self.last_chunk_count = len(chunks)
 
         # 3. 流式生成并收集完整输出
         answer_parts: list[str] = []

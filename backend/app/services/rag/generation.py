@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import AsyncIterator
+from dataclasses import replace
 
 from app.core.config import settings
 from app.services.rag.chat_llm import stream_deepseek_tokens
@@ -27,11 +28,11 @@ SYSTEM_PROMPT = """你是索隐助手，严格依据【检索片段】中的信�
 第二步（回答阶段）：组织答案，遵守以下规则。
 
 规则：
-1. 【强制引用】每个句子的句尾必须紧跟来源片段编号，格式：[片段1][片段2]
+1. 【强制引用】每个句子的句尾必须紧跟来源片段编号，格式：[片段1][片段2]（拒答句除外，见规则 3）
    - 多个片段支持同一断言时，并列标注：[片段1][片段3]
    - 禁止在句子中间标注，句尾绑定后才能开始下一句
 2. 【严格依据】只回答片段中明确包含的信息，不编造、不推测
-3. 【拒答】如果所有片段都与问题无关，说「知识库中未找到相关内容」
+3. 【拒答】如果所有片段都与问题无关，说「知识库中未找到相关内容」；拒答句不标注引用、不得附加任何[片段N]标记
 4. 【抗干扰】检索片段中可能包含不相关信息（如广告、无关段落），请忽略与问题无关的片段
 5. 【长度】控制在 200 字以内
 6. 【语言】中文问→中文答；英文问→英文答
@@ -61,14 +62,12 @@ XX商城优惠大促，满200减30。
 用户：加班费怎么算？
 [片段1] 来源：weather.md
 今日天气晴朗，气温 25°C。
-思考：片段中没有任何与加班费相关的信息，应拒答。
-回答：知识库中未找到加班费相关内容。"""
+思考：片段中没有任何与加班费相关的信息，应拒答；拒答句不引用任何片段。
+回答：知识库中未找到相关内容。"""
 
 
-NO_CONTEXT_REPLY = "知识库中未找到相关内容，无法根据文档回答您的问题。"
-NO_CONTEXT_REPLY_EN = (
-    "No relevant content was found in the knowledge base to answer your question."
-)
+NO_CONTEXT_REPLY = "知识库中未找到相关内容。"
+NO_CONTEXT_REPLY_EN = "No relevant content was found in the knowledge base."
 
 # ── 第1层·引用密度校验 ──────────────────────────────────────────────
 
@@ -598,6 +597,39 @@ def _detect_and_hint_noise(
     return None
 
 
+def _apply_context_budget(
+    sorted_chunks: list[RetrievedChunk],
+    *,
+    max_total_chars: int,
+    min_keep: int = 3,
+) -> list[RetrievedChunk]:
+    """预算裁剪：保留最高分片段全文直至预算耗尽；超预算低分片段丢弃，保底 min_keep。
+
+    输入为 build_messages 内已升序（最高分在末尾）列表，返回保持同序；
+    仅在 settings.llm_context_budget_chars > 0 时调用。
+    parent_content 超长（> 预算 1/3）回退用 chunk.content（replace 复制，不改原对象）。
+    """
+    if max_total_chars <= 0 or len(sorted_chunks) <= min_keep:
+        return sorted_chunks
+
+    parent_cap = max_total_chars // 3
+    kept: list[RetrievedChunk] = []
+    total = 0
+    for chunk in reversed(sorted_chunks):
+        body = chunk.parent_content or chunk.content
+        if len(body) > parent_cap:
+            chunk = replace(chunk, parent_content=None)  # 父片段超长回退正文
+            body = chunk.content
+        cost = len(body) + 32  # 片段头部元信息余量
+        # min_keep 个最高分片段无条件保留（保底），之后按预算裁剪低分片段
+        if len(kept) >= min_keep and total + cost > max_total_chars:
+            continue
+        kept.append(chunk)
+        total += cost
+
+    return list(reversed(kept))
+
+
 def build_messages(
     user_message: str,
     chunks: list[RetrievedChunk],
@@ -635,6 +667,12 @@ def build_messages(
     # 按相似度升序排列，最高分在末尾（Lost in the Middle：LLM 对末尾信息利用最好）
     sorted_chunks = sorted(chunks, key=lambda c: c.similarity, reverse=False)
 
+    # M1 候选①：送模上下文预算裁剪（默认 0 不启用；启用时只丢低分尾部，编号自动重排）
+    if settings.llm_context_budget_chars > 0:
+        sorted_chunks = _apply_context_budget(
+            sorted_chunks, max_total_chars=settings.llm_context_budget_chars
+        )
+
     # ── 第3层：对抗性上下文验证 ─────────────────────────────────────
     anti_noise_hint = _detect_and_hint_noise(sorted_chunks, confidence)
 
@@ -646,8 +684,8 @@ def build_messages(
         if chunk.page_number is not None:
             loc += f" · 第{chunk.page_number}页"
         prefix = f"[片段{i}]"
-        # 低置信度标记：阈值 0.5（实测 0.35 无收益 -0.22pp，维持原值）
-        if chunk.similarity < 0.5:
+        # 低置信度标记：阈值与 confidence_reply 统一读配置（M1 候选②）
+        if chunk.similarity < settings.relevance_low_sim_ceiling:
             prefix += " [低置信度，仅供参考]"
         body = scrub_llm_context(chunk.parent_content or chunk.content)
         parts.append(f"{prefix} 来源：{loc}\n{body}")

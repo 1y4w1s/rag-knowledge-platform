@@ -88,6 +88,9 @@ async def _run_engine(
     monkeypatch.setattr(
         "app.services.rag.engine.degradation_requires_llm", lambda _level: True
     )
+    monkeypatch.setattr(
+        "app.services.rag.engine.has_available_chat_provider_key", lambda: True
+    )
     monkeypatch.setattr("app.services.rag.engine.compress_history", _no_compress)
     monkeypatch.setattr(
         "app.services.rag.engine.stream_deepseek_tokens", _tokens

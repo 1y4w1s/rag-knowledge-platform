@@ -444,9 +444,9 @@ async def retrieve_chunks(
 
     # complex → 强制多查询 + HyDE + Rerank（对齐 workspace 路径）
     elif strategy == RetrievalStrategy.complex:
-        # B3：complex 路径强制 multi-query（无论 rw_policy）
-        if rw_policy not in ("always", "conditional"):
-            rw_policy = "conditional"  # 临时提升以触发多 query
+        # M1 裁决 A 定案（2026-08-15）：删除 complex 强制提升 multi-query。
+        # 自家消融：Enterprise correctness 0.31→0.42、过度拒答 55.6%→44.4%；
+        # 规则自适应路由在本地 GLM 链路上无收益（Dissecting 实证一致）。
         _force_multi = True
         # B3：complex 路径生成 HyDE 并通过 injected_variants 注入
         hyde_variants: list[str] | None = None
@@ -697,9 +697,8 @@ async def retrieve_workspace_chunks(
 
     # complex → 强制多查询 + HyDE 注入
     elif strategy == RetrievalStrategy.complex:
-        # B3：complex 路径强制 multi-query（无论 rw_policy）
-        if rw_policy not in ("always", "conditional"):
-            rw_policy = "conditional"  # 临时提升到 conditional 以触发多 query
+        # M1 裁决 A 定案（2026-08-15）：删除 complex 强制提升 multi-query
+        # （自家消融 Enterprise correctness +0.11、过度拒答 -11.2pp，详见实施文档 §3 附录）
         _force_multi = True
         # B3：生成 HyDE 并通过 injected_variants 注入
         hyde_variants: list[str] | None = None

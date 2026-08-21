@@ -552,25 +552,40 @@ def _judge_rejection(
 ) -> tuple[bool, str]:
     """判定生成结果是否为正确拒答（N13-2）。
 
-    判据（无需 LLM 的启发式，避免评测额外消耗 API）：
-    - 有引用（citations 非空）→ 视为编造/未拒答 → False
-    - 空答案 → 正确拒答
-    - 命中系统固定拒答话术（NO_CONTEXT_REPLY / NO_CONTEXT_REPLY_EN）→ 正确拒答
-    - 其余视为「回答了内容」→ False
+    判据（无需 LLM 的启发式，避免评测额外消耗 API），以回答文本为准：
+    - 空答案 → 正确拒答（不编造即为拒答）
+    - 命中拒答核心短语（NO_CONTEXT_REPLY / NO_CONTEXT_REPLY_EN 的关键片段，含模型
+      输出的缩短/变体话术）→ 正确拒答。citations 只是 adapter 机械附带的检索片段
+      （检索门控未触发时也照样附带），不构成模型编造证据；
+      「有 citations 即未拒答」会把正确拒答误判为编造。
+    - 其余（有实质内容）→ 视为「回答了内容」→ False
+
+    已知局限：有依据却拒答（伪拒答）会被判为正确拒答——评测集拒答题均为知识库
+    真无依据，无此场景。
 
     judge_instance 参数保留（未来可换 LLM 判拒答），当前实现不依赖它。
     """
-    if citations:
-        return False, "provided citations without rejecting"
     text = (answer or "").strip()
     if not text:
         return True, "empty answer (rejected)"
-    try:
-        from app.services.rag.generation import NO_CONTEXT_REPLY, NO_CONTEXT_REPLY_EN
-    except Exception:
-        return False, "answered with content"
+
     def _norm(s: str) -> str:
-        return s.replace(" ", "").strip()
-    if _norm(text) == _norm(NO_CONTEXT_REPLY) or _norm(text) == _norm(NO_CONTEXT_REPLY_EN):
-        return True, "matched no-context reply"
+        return s.replace(" ", "").strip().lower()
+
+    # 拒答模式（NO_CONTEXT_REPLY / NO_CONTEXT_REPLY_EN 的关键片段）：
+    # 模型可能输出缩短/变体话术（如「知识库中未找到相关内容。」），甚至
+    # 「知识库中未找到{问题}的相关内容[片段N]」——中间插入问题词且附引用标记，
+    # 连续短语精确匹配会漏判，故用正则容错（「未找到」与「相关内容」间允许插入词）。
+    import re
+
+    _REJECT_PATTERN = re.compile(
+        r"未找到.{0,40}?相关内容"
+        r"|无法根据文档回答"
+        r"|no\s*relevant\s*content"
+        r"|not\s*found\s*in\s*the\s*knowledge\s*base",
+        re.IGNORECASE,
+    )
+    if _REJECT_PATTERN.search(_norm(text)):
+        note = " (citations attached but unused)" if citations else ""
+        return True, "matched no-context reply" + note
     return False, "answered with content"

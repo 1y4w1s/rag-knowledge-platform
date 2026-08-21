@@ -23,7 +23,8 @@ from app.services.agent.memory import (
     load_active_memories,
     format_memory_context,
 )
-from app.services.agent.planners import LLMPlanner
+from app.services.agent.planners import LLMPlanner, NextActionPlanner
+from app.services.agent.state import init_agent_state, reduce_observation
 from app.services.audit.agent import (
     audit_agent_reflection,
     audit_agent_run_started,
@@ -42,6 +43,7 @@ from app.services.agent.runs import (
 from app.services.agent.tools import (
     AgentToolName,
     ReadOnlyToolName,
+    SemanticSearchOutput,
     UnknownToolError,
     parse_agent_tool,
     run_compare_chunks,
@@ -71,7 +73,9 @@ from app.services.agent.tool_fallback import (
     should_replan,
 )
 from app.services.agent.types import (
+    AgentActionKind,
     AgentBudgetEvent,
+    AgentDecision,
     AgentRunOutcome,
     AgentStepRecord,
     StepExecution,
@@ -486,6 +490,407 @@ def _detect_low_confidence(records: list[AgentStepRecord]) -> bool:
     return bool(all_scores) and all(s < LOW_CONFIDENCE_SIM_CEILING for s in all_scores)
 
 
+# ═══════════════════════════════════════════════════════════════
+# M1-W2 候选① 漂移守卫（分解-检索联动闭环；默认关）
+# ═══════════════════════════════════════════════════════════════
+
+
+class _DriftHitChunk:
+    """只读适配：SemanticSearchHit → relevance 词面重叠判定所需的片段形状（T3 复用只读逻辑）。"""
+
+    __slots__ = (
+        "doc_name",
+        "section_title",
+        "heading_path",
+        "parent_content",
+        "content",
+        "similarity",
+    )
+
+    def __init__(self, hit: Any) -> None:
+        self.doc_name = hit.doc_name
+        self.section_title = hit.section_title
+        self.heading_path = None
+        self.parent_content = None
+        self.content = hit.excerpt or ""
+        self.similarity = float(hit.score or 0.0)
+
+
+def _sub_query_drift_signal(original_query: str, hits: Any) -> str | None:
+    """只读漂移判定（§10.4 修正：T3 词面重叠 + T2 sim 只读为主判据，T1 保留基频观测）。
+
+    任一信号命中即判定该子查询漂移：
+    - T1：检索 0 命中（最干净的漂移信号，同时是候选③ drift_search 基频观测对象）；
+    - T2：top1 sim < relevance_low_sim_ceiling（0.5，只读配置不改值；只触发收敛、不触发拒答）；
+    - T3：命中片段与原始 query 无词面重叠（复用 relevance.query_overlaps_chunk 只读逻辑——
+      黄金/关键实体被丢在排名边缘的 ENT-097 型漂移即表现为「无词面重叠」）。
+    """
+    if not hits:
+        return "T1"
+    if float(hits[0].score or 0.0) < settings.relevance_low_sim_ceiling:
+        return "T2"
+    from app.services.rag.relevance import query_overlaps_chunk
+
+    if any(query_overlaps_chunk(original_query, _DriftHitChunk(h)) for h in hits):
+        return None
+    return "T3"
+
+
+async def _run_recovery_search(
+    db: AsyncSession,
+    *,
+    workspace: WorkspaceScope,
+    tool_scope: AgentToolScope,
+    org_scope: OrgScope | None,
+    current_user: CurrentUser | None,
+    run_id: UUID,
+    thread_id: UUID,
+    user_id: UUID,
+    query: str,
+    args: dict[str, Any],
+    step_index: int,
+) -> tuple[StepExecution | None, AgentStepRecord | None]:
+    """漂移守卫的收敛/直检搜索执行：复用 _execute_step + step 落库/审计路径。
+
+    返回 (execution, record)；任何异常均以 (None, None) 安全回退，不阻断剩余子查询
+    与 S3 终点判据（§2.6 异常回退）。
+    """
+    tool_name = "semantic_search"
+    try:
+        db_step = await create_agent_step(
+            db,
+            run_id=run_id,
+            user_id=user_id,
+            step_index=step_index,
+            tool_name=tool_name,
+            args_json=args,
+        )
+        execution = await _execute_step(
+            db,
+            workspace=workspace,
+            tool_scope=tool_scope,
+            org_scope=org_scope,
+            current_user=current_user,
+            tool_name=tool_name,
+            args=args,
+            run_id=run_id,
+            thread_id=thread_id,
+            user_id=user_id,
+        )
+        if db_step is not None:
+            await finish_agent_step(
+                db,
+                step_id=db_step.id,
+                user_id=user_id,
+                ok=execution.ok,
+                result_summary=execution.summary,
+                latency_ms=execution.latency_ms,
+            )
+        await audit_agent_tool_executed(
+            db,
+            actor_user_id=user_id,
+            run_id=run_id,
+            step=step_index,
+            tool=tool_name,
+            ok=execution.ok,
+            latency_ms=execution.latency_ms,
+        )
+        return execution, AgentStepRecord(
+            step_index=step_index,
+            tool_name=tool_name,
+            args=args,
+            ok=execution.ok,
+            summary=execution.summary,
+            latency_ms=execution.latency_ms,
+            step_id=db_step.id if db_step is not None else None,
+            data=execution.data,
+        )
+    except Exception:
+        logger.warning("漂移守卫恢复搜索失败，跳过（不影响终点判据）", exc_info=True)
+        return None, None
+
+
+async def execute_critic_directed_retrieval(
+    db: AsyncSession,
+    *,
+    decision: AgentDecision,
+    workspace: WorkspaceScope,
+    tool_scope: AgentToolScope,
+    org_scope: OrgScope | None = None,
+) -> SemanticSearchOutput | None:
+    """L3-W7：执行 Critic 定向 semantic_search（生成后回流；不重开已终态 run）。
+
+    仅接受 reason_code=critic_directed_retrieve 的 tool Decision；失败/空命中返回 None。
+    """
+    if (
+        decision.action != AgentActionKind.tool
+        or decision.tool_name != "semantic_search"
+        or decision.reason_code != "critic_directed_retrieve"
+    ):
+        return None
+    query = str(decision.args.get("query", "")).strip()
+    if not query:
+        return None
+    raw_kb_ids = decision.args.get("kb_ids")
+    kb_ids = (
+        [UUID(str(item)) for item in raw_kb_ids] if raw_kb_ids else None
+    )
+    try:
+        result = await run_semantic_search(
+            db,
+            workspace,
+            tool_scope,
+            query=query,
+            org_scope=org_scope,
+            kb_ids=kb_ids,
+            top_k=decision.args.get("top_k"),
+        )
+    except Exception:
+        logger.warning("critic directed retrieval failed", exc_info=True)
+        return None
+    if not result.ok or result.data is None:
+        return None
+    if not isinstance(result.data, SemanticSearchOutput) or not result.data.hits:
+        return None
+    return result.data
+
+
+async def guard_sub_query_drift(
+    db: AsyncSession,
+    *,
+    sub_query: str,
+    original_query: str,
+    sub_args: dict[str, Any],
+    sub_execution: StepExecution,
+    steps_used: int,
+    max_steps: int,
+    workspace: WorkspaceScope,
+    tool_scope: AgentToolScope,
+    org_scope: OrgScope | None,
+    current_user: CurrentUser | None,
+    run_id: UUID,
+    thread_id: UUID,
+    user_id: UUID,
+    chain_state: dict[str, Any] | None = None,
+) -> tuple[list[AgentStepRecord], int]:
+    """子查询漂移守卫（M1-W2 候选①）：只读判定（T1/T2/T3）→ S1 收敛改写 / S2 整题直检回退。
+
+    调用时机：E2 complex_query 分解的子查询检索执行后（默认关，关闭时零激活）。
+    仅对 semantic_search 子查询结果产生判定（search_documents 无 sim/top 信号）。
+
+    S1（收敛改写）：每漂移子查询至多 rewrite 次（agent_decompose_drift_max_rewrites=1，
+    防 LLM 非确定性放大）；改写重检收敛则替换原始漂移记录；仍漂移则该改写结果丢弃。
+    S2（整题直检回退）：原 query 语义直检（RRF = 向量 + FTS 关键词混合，§10.4 修正②），
+    每分解链至多 1 次 + 预算守卫（steps_used + 1 < max_steps）。
+
+    返回 (恢复记录列表, 新 steps_used)：
+    - 列表为空 → 无漂移 / 默认关 / 无可用恢复路径，调用方保持原子查询记录原样；
+    - 列表非空 → 原子查询判定漂移，调用方以恢复记录替换原记录（§2.5「hits 不并入」）。
+
+    步数账本（W2 实施澄清，回填 §2.5）：S1/S2 恢复搜索均为真实执行步，各 +1 步
+    （与 §2.5 成本表「1 步」一致）；开启但预算不足（A0=3 常见）时零触发，走 S3 终点判据。
+    """
+    if not settings.agent_decompose_drift_recovery:
+        return [], steps_used
+
+    if not getattr(sub_execution, "ok", False) or sub_execution.data is None:
+        return [], steps_used
+    hits = getattr(sub_execution.data, "hits", None)
+    if hits is None:
+        return [], steps_used
+    if _sub_query_drift_signal(original_query, hits) is None:
+        return [], steps_used
+
+    chain_state = chain_state or {}
+
+    # ── S1 收敛改写（改写本身是 LLM 调用，不占 agent 步；重检是新执行步）──
+    from app.services.rag.generation import rewrite_query
+
+    rewrite_budget = max(0, int(settings.agent_decompose_drift_max_rewrites))
+    attempted = 0
+    while attempted < rewrite_budget and steps_used + 1 < max_steps:
+        attempted += 1
+        new_query = await rewrite_query(sub_query)
+        if not new_query or new_query.strip() == sub_query.strip():
+            break
+        execution, record = await _run_recovery_search(
+            db,
+            workspace=workspace,
+            tool_scope=tool_scope,
+            org_scope=org_scope,
+            current_user=current_user,
+            run_id=run_id,
+            thread_id=thread_id,
+            user_id=user_id,
+            query=new_query,
+            args={**sub_args, "query": new_query},
+            step_index=steps_used + 1,
+        )
+        if execution is None or record is None:
+            break
+        new_hits = getattr(execution.data, "hits", None) if execution.data else None
+        if new_hits and _sub_query_drift_signal(original_query, new_hits) is None:
+            await _safe_audit(audit_agent_reflection(
+                db, actor_user_id=user_id, run_id=run_id,
+                signal="drift_recovery", new_query=new_query,
+            ))
+            return [record], steps_used + 1
+        # 改写后仍漂移 → 该改写结果丢弃（hits 不并入），转入 S2 整题直检
+
+    # ── S2 整题直检回退（每分解链至多 1 次 + 预算守卫 steps_used + 1 < max_steps）──
+    if chain_state.get("s2_used"):
+        return [], steps_used
+    if steps_used + 1 >= max_steps:
+        return [], steps_used
+    chain_state["s2_used"] = True
+    execution, record = await _run_recovery_search(
+        db,
+        workspace=workspace,
+        tool_scope=tool_scope,
+        org_scope=org_scope,
+        current_user=current_user,
+        run_id=run_id,
+        thread_id=thread_id,
+        user_id=user_id,
+        query=original_query,
+        args={**sub_args, "query": original_query},
+        step_index=steps_used + 1,
+    )
+    if execution is None or record is None:
+        return [], steps_used
+    await _safe_audit(audit_agent_reflection(
+        db, actor_user_id=user_id, run_id=run_id,
+        signal="drift_recovery", new_query=original_query,
+    ))
+    return [record], steps_used + 1
+
+
+async def guard_evidence_insufficiency(
+    db: AsyncSession,
+    *,
+    sub_query: str,
+    original_query: str,
+    sub_args: dict[str, Any],
+    sub_execution: StepExecution,
+    steps_used: int,
+    max_steps: int,
+    workspace: WorkspaceScope,
+    tool_scope: AgentToolScope,
+    org_scope: OrgScope | None,
+    current_user: CurrentUser | None,
+    run_id: UUID,
+    thread_id: UUID,
+    user_id: UUID,
+    chain_state: dict[str, Any] | None = None,
+) -> tuple[list[AgentStepRecord], int]:
+    """M2 W2 · 证据不足自适应重检（S1 收敛改写 / S2 整题直检回退）。
+
+    触发判据：check_evidence_sufficiency 判定该子查询证据不足（漂移守卫未命中时——
+    漂移守卫优先，命中即由漂移路径恢复，本策略只补「有命中但数量/多样性不足」的空档）。
+
+    复用 M1 drift guard 的 S1/S2 恢复执行器 _run_recovery_search 与 rewrite_query，
+    不重造轮子；同样受 A0 预算守卫与每链 S2 至多 1 次约束。
+
+    W4 方案 C（预算修正）：S1 以 steps_used < max_steps 守卫——恢复步计入总步、
+    由调用方循环统一结算，故 steps_used = max_steps - 1 时 S1 单步可达且不越界
+    （返回步数 = steps_used + 1 ≤ max_steps）；S2 仍须 steps_used + 1 < max_steps
+    （每链至多 1 次，守住「直检不越过最后一步」）。
+
+    返回 (恢复记录列表, 新 steps_used)：
+    - 空列表 → 证据充分 / 策略默认关 / 无可用恢复路径，调用方保持原子查询记录原样；
+    - 非空列表 → 证据不足触发重检，调用方以恢复记录替换原记录（hits 不并入）。
+    """
+    if not settings.agent_evidence_strategy_enabled:
+        return [], steps_used
+
+    if not getattr(sub_execution, "ok", False) or sub_execution.data is None:
+        return [], steps_used
+    hits = getattr(sub_execution.data, "hits", None)
+    if hits is None:
+        return [], steps_used
+
+    from app.services.rag.evidence import check_evidence_sufficiency
+
+    verdict = check_evidence_sufficiency(hits, sub_query)
+    if verdict.sufficient:
+        return [], steps_used
+
+    chain_state = chain_state or {}
+    await _safe_audit(audit_agent_reflection(
+        db, actor_user_id=user_id, run_id=run_id,
+        signal="evidence_recovery",
+        new_query=f"verdict={verdict.reason} triggered=True",
+    ))
+
+    # ── S1 收敛改写（改写本身是 LLM 调用，不占 agent 步；重检是新执行步）──
+    # W4 方案 C：守卫放宽为 steps_used < max_steps —— 恢复步计入总步、由调用方循环
+    # 统一结算（steps_used 事后 >= max_steps 即 capped），steps_used = max_steps - 1
+    # 时 S1 单步可达且返回 steps_used + 1 ≤ max_steps 不越界。
+    from app.services.rag.generation import rewrite_query
+
+    rewrite_budget = max(0, int(settings.agent_decompose_drift_max_rewrites))
+    attempted = 0
+    while attempted < rewrite_budget and steps_used < max_steps:
+        attempted += 1
+        new_query = await rewrite_query(sub_query)
+        if not new_query or new_query.strip() == sub_query.strip():
+            break
+        execution, record = await _run_recovery_search(
+            db,
+            workspace=workspace,
+            tool_scope=tool_scope,
+            org_scope=org_scope,
+            current_user=current_user,
+            run_id=run_id,
+            thread_id=thread_id,
+            user_id=user_id,
+            query=new_query,
+            args={**sub_args, "query": new_query},
+            step_index=steps_used + 1,
+        )
+        if execution is None or record is None:
+            break
+        new_hits = getattr(execution.data, "hits", None) if execution.data else None
+        if new_hits:
+            new_verdict = check_evidence_sufficiency(new_hits, sub_query)
+            if new_verdict.sufficient:
+                await _safe_audit(audit_agent_reflection(
+                    db, actor_user_id=user_id, run_id=run_id,
+                    signal="evidence_recovery",
+                    new_query=f"rewrite={new_query} sufficient=True",
+                ))
+                return [record], steps_used + 1
+        # 改写后证据仍不足 → 该改写结果丢弃（hits 不并入），转入 S2 整题直检
+
+    # ── S2 整题直检回退（每分解链至多 1 次 + 预算守卫 steps_used + 1 < max_steps）──
+    if chain_state.get("evidence_s2_used"):
+        return [], steps_used
+    if steps_used + 1 >= max_steps:
+        return [], steps_used
+    chain_state["evidence_s2_used"] = True
+    execution, record = await _run_recovery_search(
+        db,
+        workspace=workspace,
+        tool_scope=tool_scope,
+        org_scope=org_scope,
+        current_user=current_user,
+        run_id=run_id,
+        thread_id=thread_id,
+        user_id=user_id,
+        query=original_query,
+        args={**sub_args, "query": original_query},
+        step_index=steps_used + 1,
+    )
+    if execution is None or record is None:
+        return [], steps_used
+    await _safe_audit(audit_agent_reflection(
+        db, actor_user_id=user_id, run_id=run_id,
+        signal="evidence_recovery",
+        new_query=f"direct={original_query}",
+    ))
+    return [record], steps_used + 1
+
+
 async def run_react_loop(
     db: AsyncSession,
     *,
@@ -597,6 +1002,273 @@ async def _converge_failed_run(
     await db.commit()
 
 
+async def _run_l3_next_action_loop(
+    db: AsyncSession,
+    *,
+    user_id: UUID,
+    thread_id: UUID,
+    query: str,
+    workspace: WorkspaceScope,
+    tool_scope: AgentToolScope,
+    planner: NextActionPlanner,
+    org_scope: OrgScope | None,
+    current_user: CurrentUser | None,
+    effective_hooks: ToolRuntimeHooks,
+    run: AgentRun,
+    max_steps: int,
+    timeout_seconds: float,
+) -> AgentRunOutcome:
+    """L3-W3：Observation-driven 最小 loop（成功后也 re-decide）。
+
+    显式 finish / clarify / refuse 收口；禁止用 None 猜语义。
+    复用 `_execute_step` / step 落库 / audit / budget hooks；
+    不做 E2 分解、不做 legacy fallback queue（失败进 Observation 后再 decide）。
+    """
+    memory_ctx = ""
+    if settings.agent_memory_enabled:
+        memories = await load_active_memories(db, user_id)
+        memory_ctx = format_memory_context(memories)
+        planner._memory_context = memory_ctx
+
+    state = init_agent_state(
+        original_query=query,
+        max_steps=max_steps,
+        memory_context=memory_ctx,
+    )
+    records: list[AgentStepRecord] = []
+    capped = False
+    timed_out = False
+    deadline = time.monotonic() + timeout_seconds
+    tool_run_counts: dict[str, int] = {}
+    search_successes = 0
+    terminal_decision: AgentDecision | None = None
+
+    ensure_agent_tool_breakers()
+
+    while state.steps_used < max_steps:
+        if time.monotonic() >= deadline:
+            timed_out = True
+            break
+
+        decision = await planner.decide_next(state)
+
+        if settings.agent_l3_trajectory_trace_enabled:
+            logger.info(
+                "module=agent_l3 operation=trajectory_trace "
+                "action=%s tool=%s reason_code=%s steps_used=%s",
+                decision.action,
+                decision.tool_name or "",
+                decision.reason_code or "",
+                state.steps_used,
+            )
+
+        if decision.action == AgentActionKind.finish:
+            terminal_decision = decision
+            break
+        if decision.action == AgentActionKind.clarify:
+            terminal_decision = decision
+            break
+        if decision.action == AgentActionKind.refuse:
+            terminal_decision = decision
+            break
+        if decision.action != AgentActionKind.tool or not decision.tool_name:
+            terminal_decision = AgentDecision(
+                action=AgentActionKind.refuse,
+                reason_code="invalid_tool_decision",
+            )
+            break
+
+        step_index = state.steps_used + 1
+        plan_args = _json_safe_args(decision.args)
+        args_summary = build_args_summary(decision.tool_name, plan_args)
+        await effective_hooks.on_tool_start(
+            ToolStartEvent(
+                step=step_index,
+                tool=decision.tool_name,
+                args_summary=args_summary,
+            )
+        )
+
+        db_step = await create_agent_step(
+            db,
+            run_id=run.id,
+            user_id=user_id,
+            step_index=step_index,
+            tool_name=decision.tool_name,
+            args_json=plan_args,
+        )
+
+        _is_external = decision.tool_name in EXTERNAL_TOOL_NAMES
+        run_limit = resolve_tool_run_limit(decision.tool_name)
+        limited_summary: str | None = None
+        limited_reason: str | None = None
+
+        if (
+            run_limit is not None
+            and tool_run_counts.get(decision.tool_name, 0) >= run_limit
+        ):
+            limited_summary = "工具调用已达本轮上限"
+            limited_reason = "tool_run_limit"
+        elif _is_external and settings.external_tools_enabled:
+            if not await allow_tool_window(decision.tool_name):
+                limited_summary = "工具已达全局窗口限流上限"
+                limited_reason = "tool_window_limit"
+
+        if limited_summary is None:
+            tool_run_counts[decision.tool_name] = (
+                tool_run_counts.get(decision.tool_name, 0) + 1
+            )
+            execution = await _execute_step(
+                db,
+                workspace=workspace,
+                tool_scope=tool_scope,
+                org_scope=org_scope,
+                current_user=current_user,
+                tool_name=decision.tool_name,
+                args=plan_args,
+                run_id=run.id,
+                thread_id=thread_id,
+                user_id=user_id,
+            )
+        else:
+            inc_agent_tool_call(
+                decision.tool_name, "limited", external=_is_external
+            )
+            execution = StepExecution(
+                ok=False,
+                summary=limited_summary,
+                latency_ms=0,
+                data=None,
+                failure=ToolFailure(
+                    kind=ToolFailureKind.disabled,
+                    tool_name=decision.tool_name,
+                    summary=limited_summary,
+                ),
+            )
+            db_step = None
+            await audit_agent_tool_denied(
+                db,
+                actor_user_id=user_id,
+                run_id=run.id,
+                tool=decision.tool_name,
+                reason=limited_reason,
+            )
+
+        if db_step is not None:
+            await finish_agent_step(
+                db,
+                step_id=db_step.id,
+                user_id=user_id,
+                ok=execution.ok,
+                result_summary=execution.summary,
+                latency_ms=execution.latency_ms,
+            )
+
+        if limited_summary is None:
+            await audit_agent_tool_executed(
+                db,
+                actor_user_id=user_id,
+                run_id=run.id,
+                step=step_index,
+                tool=decision.tool_name,
+                ok=execution.ok,
+                latency_ms=execution.latency_ms,
+            )
+            if (
+                not execution.ok
+                and execution.summary == FORBIDDEN_KB_SUMMARY
+            ):
+                await audit_agent_tool_denied(
+                    db,
+                    actor_user_id=user_id,
+                    run_id=run.id,
+                    tool=decision.tool_name,
+                )
+
+        record = AgentStepRecord(
+            step_index=step_index,
+            tool_name=decision.tool_name,
+            args=plan_args,
+            ok=execution.ok,
+            summary=execution.summary,
+            latency_ms=execution.latency_ms,
+            step_id=db_step.id if db_step is not None else None,
+            data=execution.data,
+        )
+        records.append(record)
+        state = reduce_observation(state, decision, execution, record)
+
+        await update_agent_run_steps_used(
+            db,
+            run_id=run.id,
+            user_id=user_id,
+            steps_used=state.steps_used,
+        )
+
+        if execution.ok and decision.tool_name in (
+            "semantic_search",
+            "search_documents",
+        ):
+            search_successes += 1
+
+        await _safe_audit(
+            extract_and_store_memory(
+                db,
+                user_id,
+                query,
+                kb_id=getattr(planner, "default_kb_id", None),
+                tool_name=decision.tool_name,
+                tool_data=execution.data,
+                mode=run.mode,
+                search_successes=search_successes,
+            )
+        )
+
+        step_capped = state.steps_used >= max_steps
+        if step_capped:
+            capped = True
+
+        await effective_hooks.on_tool_result(
+            ToolResultEvent(
+                step=step_index,
+                tool=decision.tool_name,
+                ok=execution.ok,
+                summary=execution.summary,
+                latency_ms=execution.latency_ms,
+                capped=step_capped,
+            )
+        )
+        await effective_hooks.on_agent_budget(
+            AgentBudgetEvent(
+                steps_used=state.steps_used,
+                max_steps=max_steps,
+                capped=step_capped,
+            )
+        )
+
+        if step_capped:
+            break
+        # 成功 / 失败均回到 while 顶 → decide_next（re-decide）
+
+    if (
+        terminal_decision is None
+        and not timed_out
+        and state.steps_used >= max_steps
+    ):
+        capped = True
+
+    return AgentRunOutcome(
+        run_id=run.id,
+        steps_used=state.steps_used,
+        max_steps=max_steps,
+        capped=capped,
+        timed_out=timed_out,
+        steps=tuple(records),
+        low_confidence=_detect_low_confidence(records),
+        terminal_decision=terminal_decision,
+    )
+
+
 async def _run_react_loop_until_outcome(
     db: AsyncSession,
     *,
@@ -614,6 +1286,24 @@ async def _run_react_loop_until_outcome(
     timeout_seconds: float,
 ) -> AgentRunOutcome:
     """ReAct 循环主体（返回 outcome；终态收敛由 run_react_loop 负责）。"""
+    # L3-W3：NextActionPlanner → Observation-driven loop（flag 关时工厂不会产出）
+    if isinstance(planner, NextActionPlanner):
+        return await _run_l3_next_action_loop(
+            db,
+            user_id=user_id,
+            thread_id=thread_id,
+            query=query,
+            workspace=workspace,
+            tool_scope=tool_scope,
+            planner=planner,
+            org_scope=org_scope,
+            current_user=current_user,
+            effective_hooks=effective_hooks,
+            run=run,
+            max_steps=max_steps,
+            timeout_seconds=timeout_seconds,
+        )
+
     records: list[AgentStepRecord] = []
     steps_used = 0
     capped = False
@@ -864,6 +1554,8 @@ async def _run_react_loop_until_outcome(
                 if sub_queries and len(sub_queries) >= 2:
                     from app.services.agent.planners import LLMPlannerFactory
                     all_hits = []
+                    # M1-W2 候选①：分解链级状态（S2 整题直检每链至多 1 次）
+                    chain_state: dict[str, Any] = {}
                     for sq in sub_queries[:3]:
                         if steps_used >= max_steps:
                             capped = True
@@ -942,22 +1634,103 @@ async def _run_react_loop_until_outcome(
                             user_id=user_id,
                             steps_used=steps_used,
                         )
-                        records.append(
-                            AgentStepRecord(
-                                step_index=sub_step_index,
-                                tool_name=p.tool_name,
-                                args=p.args,
-                                ok=_ok2,
-                                summary=_s2,
-                                latency_ms=_l2,
-                                step_id=db_sub.id if db_sub is not None else None,
-                                data=_d2,
-                            )
+                        sub_record = AgentStepRecord(
+                            step_index=sub_step_index,
+                            tool_name=p.tool_name,
+                            args=p.args,
+                            ok=_ok2,
+                            summary=_s2,
+                            latency_ms=_l2,
+                            step_id=db_sub.id if db_sub is not None else None,
+                            data=_d2,
                         )
-                        if _ok2 and _d2:
-                            all_hits.append(_d2)
-                        if _ok2 and p.tool_name in ("semantic_search", "search_documents"):
-                            search_successes += 1
+                        # M1-W2 候选① 漂移守卫：子查询检索结果照单全收前核对命中质量
+                        # （默认关零激活；开启时漂移走 S1 收敛改写 / S2 整题直检回退）
+                        recovery_records, steps_used = await guard_sub_query_drift(
+                            db,
+                            sub_query=sq,
+                            original_query=query,
+                            sub_args=p.args,
+                            sub_execution=sub_execution,
+                            steps_used=steps_used,
+                            max_steps=max_steps,
+                            workspace=workspace,
+                            tool_scope=tool_scope,
+                            org_scope=org_scope,
+                            current_user=current_user,
+                            run_id=run.id,
+                            thread_id=thread_id,
+                            user_id=user_id,
+                            chain_state=chain_state,
+                        )
+                        # 子查询合并贡献：漂移守卫恢复时以恢复记录替换原始记录（hits 不并入）；
+                        # 否则保留原子查询记录，并在证据不足时由 M2 W2 策略重检接管
+                        if recovery_records:
+                            merged_records = list(recovery_records)
+                        else:
+                            merged_records = [sub_record]
+                            # ── M2 W2 证据不足自适应重检（S1 改写 / S2 整题直检回退）──
+                            ev_recovery_records, steps_used = await guard_evidence_insufficiency(
+                                db,
+                                sub_query=sq,
+                                original_query=query,
+                                sub_args=p.args,
+                                sub_execution=sub_execution,
+                                steps_used=steps_used,
+                                max_steps=max_steps,
+                                workspace=workspace,
+                                tool_scope=tool_scope,
+                                org_scope=org_scope,
+                                current_user=current_user,
+                                run_id=run.id,
+                                thread_id=thread_id,
+                                user_id=user_id,
+                                chain_state=chain_state,
+                            )
+                            if ev_recovery_records:
+                                merged_records = ev_recovery_records
+                        records.extend(merged_records)
+                        await update_agent_run_steps_used(
+                            db,
+                            run_id=run.id,
+                            user_id=user_id,
+                            steps_used=steps_used,
+                        )
+                        for _recovery_record in merged_records:
+                            if _recovery_record.ok and _recovery_record.data:
+                                all_hits.append(_recovery_record.data)
+                            if _recovery_record.ok and _recovery_record.tool_name in (
+                                "semantic_search", "search_documents",
+                            ):
+                                search_successes += 1
+                        sub_capped = steps_used >= max_steps
+                        if sub_capped:
+                            capped = True
+                        # ── M2 证据充分性判定（W1 observation mode；只记录，不触发策略）──
+                        if settings.agent_evidence_sufficiency_obs:
+                            from app.services.rag.evidence import (
+                                check_evidence_sufficiency,
+                            )
+
+                            _evidence_hits = (
+                                _d2.hits
+                                if _d2 and hasattr(_d2, "hits")
+                                else ()
+                            )
+                            verdict = check_evidence_sufficiency(
+                                _evidence_hits, sq,
+                            )
+                            await _safe_audit(audit_agent_reflection(
+                                db,
+                                actor_user_id=user_id,
+                                run_id=run.id,
+                                signal="evidence_check",
+                                new_query=(
+                                    f"sufficient={verdict.sufficient}"
+                                    f" reason={verdict.reason}"
+                                ),
+                            ))
+                            # observation mode：只记录判定结果；策略触发由 W2 guard_evidence_insufficiency 负责
                         await effective_hooks.on_tool_result(
                             ToolResultEvent(
                                 step=sub_step_index,

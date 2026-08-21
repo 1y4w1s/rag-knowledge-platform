@@ -1,0 +1,575 @@
+{
+  "on_fail": "fail_closed",
+  "meta": {
+    "purpose": "G1-W2 observation round v1",
+    "sources": "Golden M3/M2/phase2 detail + handbook synthetic",
+    "n_planned": {
+      "A": "12-18",
+      "B": "4-6",
+      "C": "2-4"
+    }
+  },
+  "samples": [
+    {
+      "sample_id": "golden-GQ-13",
+      "tier": "A",
+      "query": "工作日加班怎么算加班费？",
+      "answer": "工作日加班按基本工资 1.5 倍计算加班费[片段1]。",
+      "chunks": [
+        {
+          "chunk_id": "1babbacd-161c-4790-ae0b-470e3dc58cb0",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "工作日加班按基本工资 1.5 倍计算加班费，休息日加班按 2 倍计算，法定节假日加班按 3 倍计算。加班须提前填写加班审批单。",
+          "section_title": "3.1 加班",
+          "page_number": 1,
+          "similarity": 1.0
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": false
+    },
+    {
+      "sample_id": "golden-GQ-4",
+      "tier": "A",
+      "query": "年假10天在哪个章节？",
+      "answer": "年假10天在 golden_handbook.md 的 1.1 年假 章节[片段1]。",
+      "chunks": [
+        {
+          "chunk_id": "0e7fa38f-b7dd-4f67-84b8-442d07a344a9",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "员工年满一年后可享受年假10天。年假须提前两周申请，由直属主管审批后方可休假。",
+          "section_title": "1.1 年假",
+          "page_number": 1,
+          "similarity": 1.0
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": false
+    },
+    {
+      "sample_id": "golden-GQ-98",
+      "tier": "A",
+      "query": "离职要提前多久",
+      "answer": "试用期员工提前3天通知；正式员工提前30天通知[片段2]。",
+      "chunks": [
+        {
+          "chunk_id": "afbad0c1-77e5-4f91-84ef-d469aa3e0b05",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "试用期员工提前 3 天通知；正式员工提前 30 天通知。未满通知期离职的，需支付相应天数的基本工资作为代通知金。",
+          "section_title": "5.1 离职通知期",
+          "page_number": 1,
+          "similarity": 1.0
+        },
+        {
+          "chunk_id": "add8a4eb-e9e5-48cc-b86d-ad8ce6fdcb70",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "高层管理人员及核心技术人员的竞业限制期为离职后 12 个月。竞业限制期间公司按月支付补偿金，标准为离职前 12 个月平均工资的 30%。",
+          "section_title": "5.2 竞业限制",
+          "page_number": 1,
+          "similarity": 0.99
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": false
+    },
+    {
+      "sample_id": "golden-GQ-68",
+      "tier": "A",
+      "query": "补充医疗保险门诊报销比例多少？年度上限多少？",
+      "answer": "补充医疗保险门诊报销比例为90%，年度上限为5000元[片段7]。",
+      "chunks": [
+        {
+          "chunk_id": "24cd4fcb-71bc-4456-b6b5-c5c5e886fca1",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "公司为正式员工购买补充医疗保险，覆盖门诊及住院费用。门诊报销比例 90%，年度上限 5000 元；住院报销比例 100%，年度上限 50000 元。直系亲属可自费加入，费用为每人每年 1200 元。",
+          "section_title": "8.3 补充医疗保险",
+          "page_number": 1,
+          "similarity": 1.0
+        },
+        {
+          "chunk_id": "3bf9a285-624a-4c2f-b04f-c3542c380e00",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "出差交通费：高铁二等座及以下凭票实报实销，飞机经济舱须提前审批。市内交通每天不超过 50 元。餐饮补贴已包含在出差补贴中，不再单独报销餐票。",
+          "section_title": "6.1 差旅报销",
+          "page_number": 1,
+          "similarity": 0.99
+        },
+        {
+          "chunk_id": "ed3d16f6-ab8b-48d3-bfaf-ac7295a8e8cc",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "销售岗位员工每月通讯补贴 200 元，其他岗位每月 100 元。凭发票报销。",
+          "section_title": "2.3 通讯补贴",
+          "page_number": 1,
+          "similarity": 0.98
+        },
+        {
+          "chunk_id": "1cb926d1-eca7-4567-a012-899a7d422da6",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "正式员工每年享受一次免费体检，标准为每人 800 元。入职满半年即可参加当年体检。体检由公司统一安排，员工也可自行前往指定体检机构。",
+          "section_title": "8.1 年度体检",
+          "page_number": 1,
+          "similarity": 0.97
+        },
+        {
+          "chunk_id": "81c0f283-e4b7-4e38-b32a-472d6601f65d",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "费用发生后 30 天内须提交报销申请。逾期 30 至 60 天的，须书面说明原因；超过 60 天不予受理。报销金额超过 5000 元须财务总监加签。",
+          "section_title": "6.4 报销时限",
+          "page_number": 1,
+          "similarity": 0.96
+        },
+        {
+          "chunk_id": "5049a0c0-e88e-417e-aac0-1dd2924ba304",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "出差期间每日补贴标准：一线城市 200 元，二线城市 150 元，其他城市 100 元。住宿费凭发票实报实销。",
+          "section_title": "3.2 出差",
+          "page_number": 1,
+          "similarity": 0.95
+        },
+        {
+          "chunk_id": "1babbacd-161c-4790-ae0b-470e3dc58cb0",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "工作日加班按基本工资 1.5 倍计算加班费，休息日加班按 2 倍计算，法定节假日加班按 3 倍计算。加班须提前填写加班审批单。",
+          "section_title": "3.1 加班",
+          "page_number": 1,
+          "similarity": 0.94
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": false
+    },
+    {
+      "sample_id": "golden-GQ-72",
+      "tier": "A",
+      "query": "S级绩效需要多少分？",
+      "answer": "S级绩效需要评分 ≥ 95 分[片段3]。",
+      "chunks": [
+        {
+          "chunk_id": "edd9a09d-24c1-44b0-9d88-423ba888df85",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "考核等级分为 S、A、B、C、D 五级。S 级（卓越）：评分 ≥ 95 分，占比不超过 10%；A 级（优秀）：评分 85-94 分；B 级（合格）：评分 70-84 分；C 级（待改进）：评分 60-69 分；D 级（不合格）：评分 < 60 分。连续两次 D 级将启动绩效改进计划，三次 D 级予以辞退。",
+          "section_title": "9.2 等级与评分",
+          "page_number": 1,
+          "similarity": 1.0
+        },
+        {
+          "chunk_id": "ba3df948-a4a7-465a-8c86-a1f6ffb11f27",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "S 级年终奖系数 1.5，A 级系数 1.2，B 级系数 1.0，C 级系数 0.5，D 级无年终奖。年度绩效为 S 级的员工次年度薪资上浮 15%，A 级上浮 10%，B 级上浮 5%，C 级和 D 级不调薪。",
+          "section_title": "9.3 绩效与薪酬关联",
+          "page_number": 1,
+          "similarity": 0.99
+        },
+        {
+          "chunk_id": "b6c65458-3918-4602-9173-239857095bde",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "S级(10%) + A级(25%) + B级(40%) + C级(15%) + D级(10%) = 100%强制分布。各部门须按此比例分配，不得随意调整。",
+          "section_title": "附录 C：绩效评分分布（年度示例）",
+          "page_number": 1,
+          "similarity": 0.98
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": false
+    },
+    {
+      "sample_id": "golden-GQ-58",
+      "tier": "A",
+      "query": "报销超过多少钱需要财务总监加签？",
+      "answer": "报销金额超过 5000 元需要财务总监加签[片段3]。",
+      "chunks": [
+        {
+          "chunk_id": "81c0f283-e4b7-4e38-b32a-472d6601f65d",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "费用发生后 30 天内须提交报销申请。逾期 30 至 60 天的，须书面说明原因；超过 60 天不予受理。报销金额超过 5000 元须财务总监加签。",
+          "section_title": "6.4 报销时限",
+          "page_number": 1,
+          "similarity": 1.0
+        },
+        {
+          "chunk_id": "3bf9a285-624a-4c2f-b04f-c3542c380e00",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "出差交通费：高铁二等座及以下凭票实报实销，飞机经济舱须提前审批。市内交通每天不超过 50 元。餐饮补贴已包含在出差补贴中，不再单独报销餐票。",
+          "section_title": "6.1 差旅报销",
+          "page_number": 1,
+          "similarity": 0.99
+        },
+        {
+          "chunk_id": "b4b8c5bd-fad6-46b1-8ed1-832becd81a71",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "招待客户用餐标准：一线城市每人不超过 300 元，二线城市不超过 200 元，其他城市不超过 150 元。宴请须提前填写招待申请单，注明事由及参与人员清单。",
+          "section_title": "6.2 业务招待",
+          "page_number": 1,
+          "similarity": 0.98
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": false
+    },
+    {
+      "sample_id": "golden-GQ-10",
+      "tier": "A",
+      "query": "年假需要提前多久申请",
+      "answer": "年假需要提前两周申请[片段3]。",
+      "chunks": [
+        {
+          "chunk_id": "0e7fa38f-b7dd-4f67-84b8-442d07a344a9",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "员工年满一年后可享受年假10天。年假须提前两周申请，由直属主管审批后方可休假。",
+          "section_title": "1.1 年假",
+          "page_number": 1,
+          "similarity": 1.0
+        },
+        {
+          "chunk_id": "55eb476d-9f0d-4941-ad52-a3d91af498c5",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "事假全年累计不得超过 15 天，须提前一天申请。病假须出具二级以上医院证明，全年累计不超过 30 天。事假期间无薪，病假期间按基本工资 60% 发放。",
+          "section_title": "1.3 事假与病假",
+          "page_number": 1,
+          "similarity": 0.99
+        },
+        {
+          "chunk_id": "78b56aae-2cdf-47d7-bd86-8423471cee20",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "```mermaid\nflowchart TD\n    A[填写请假申请] --> B{请假天数}\n    B -->|<=3天| C[直属主管审批]\n    B -->|>3天| D[部门总监审批]\n    B -->|>7天| E[人力资源总监审批]\n    C --> F{审批通过?}\n    D --> F\n    E --> F\n    F -->|是| G[休假]\n    F -->…",
+          "section_title": "附录 A：请假审批流程图",
+          "page_number": 1,
+          "similarity": 0.98
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": false
+    },
+    {
+      "sample_id": "golden-GQ-64",
+      "tier": "A",
+      "query": "机密数据能用微信发吗？",
+      "answer": "机密数据不能用微信发[片段2]。",
+      "chunks": [
+        {
+          "chunk_id": "a281de8b-e31c-45a2-b380-08fc8fd13a99",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "公司数据分为公开、内部、机密、绝密四级。机密及以上数据禁止通过即时通讯工具传输。禁止将公司数据存储于个人设备或未经授权的云存储服务。违反保密规定者视情节严重程度给予警告、记过或解除劳动合同处分。",
+          "section_title": "7.2 数据分级与保密",
+          "page_number": 1,
+          "similarity": 1.0
+        },
+        {
+          "chunk_id": "3bebf598-9491-47f6-a905-b9d9b908cd7d",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "公司配发设备仅限工作使用，禁止安装未经授权的软件。发现安全漏洞应在 2 小时内向 IT 部门报告。设备遗失须在 1 小时内报告，远程擦除数据后将追究保管责任。",
+          "section_title": "7.3 设备管理",
+          "page_number": 1,
+          "similarity": 0.99
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": false
+    },
+    {
+      "sample_id": "synth-A-meal",
+      "tier": "A",
+      "query": "正式员工每月餐补多少？",
+      "answer": "正式员工每月餐补为300元[片段1]。",
+      "chunks": [
+        {
+          "content": "正式员工每月餐补 300 元，随工资一并发放。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "2.2 餐补",
+          "similarity": 0.95,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": true
+    },
+    {
+      "sample_id": "synth-A-late",
+      "tier": "A",
+      "query": "迟到30分钟以内怎么处理？",
+      "answer": "迟到30分钟以内按事假半天处理[片段1]。",
+      "chunks": [
+        {
+          "content": "迟到 30 分钟以内按事假半天处理；超过 30 分钟按旷工半天处理。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "1.2 迟到",
+          "similarity": 0.95,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": true
+    },
+    {
+      "sample_id": "synth-A-train",
+      "tier": "A",
+      "query": "培训后提前离职怎么处理培训费？",
+      "answer": "培训后需在公司服务满一年，否则按比例退还培训费用[片段1]。",
+      "chunks": [
+        {
+          "content": "员工每年可参加不超过 5 天的外部培训，培训费用由公司承担。培训后需在公司服务满一年，否则按比例退还培训费用。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "4.1 培训",
+          "similarity": 0.95,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": true
+    },
+    {
+      "sample_id": "synth-A-promo",
+      "tier": "A",
+      "query": "晋升评估一年几次？",
+      "answer": "晋升评估每年6月和12月各一次[片段1]。",
+      "chunks": [
+        {
+          "content": "晋升评估每年 6 月和 12 月各一次。晋升条件包括：在当前岗位任职满一年、年度绩效评估为 B 级以上、无重大违纪记录。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "4.2 晋升",
+          "similarity": 0.95,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": true
+    },
+    {
+      "sample_id": "synth-A-noncompete",
+      "tier": "A",
+      "query": "竞业限制期多久？",
+      "answer": "竞业限制期为离职后12个月[片段1]。",
+      "chunks": [
+        {
+          "content": "高层管理人员及核心技术人员的竞业限制期为离职后 12 个月。竞业限制期间公司按月支付补偿金，标准为离职前 12 个月平均工资的 30%。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "5.2 竞业限制",
+          "similarity": 0.95,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": true
+    },
+    {
+      "sample_id": "synth-A-travel",
+      "tier": "A",
+      "query": "一线城市出差每日补贴多少？",
+      "answer": "一线城市出差每日补贴标准为200元[片段1]。",
+      "chunks": [
+        {
+          "content": "出差期间每日补贴标准：一线城市 200 元，二线城市 150 元，其他城市 100 元。住宿费凭发票实报实销。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "3.2 出差",
+          "similarity": 0.95,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": true
+    },
+    {
+      "sample_id": "synth-A-comm",
+      "tier": "A",
+      "query": "销售岗位通讯补贴多少？",
+      "answer": "销售岗位员工每月通讯补贴200元[片段1]。",
+      "chunks": [
+        {
+          "content": "销售岗位员工每月通讯补贴 200 元，其他岗位每月 100 元。凭发票报销。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "2.3 通讯补贴",
+          "similarity": 0.95,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": true
+    },
+    {
+      "sample_id": "synth-A-sick",
+      "tier": "A",
+      "query": "病假期间工资怎么发？",
+      "answer": "病假期间按基本工资60%发放[片段1]。",
+      "chunks": [
+        {
+          "content": "事假全年累计不得超过 15 天，须提前一天申请。病假须出具二级以上医院证明，全年累计不超过 30 天。事假期间无薪，病假期间按基本工资 60% 发放。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "1.3 事假与病假",
+          "similarity": 0.95,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": true
+    },
+    {
+      "sample_id": "synth-B-oor",
+      "tier": "B",
+      "query": "培训费怎么退？",
+      "answer": "培训费需按比例退还[片段9]。",
+      "chunks": [
+        {
+          "content": "员工参加培训后提前离职，需按比例退还培训费用。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "4.1 培训",
+          "similarity": 0.95,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": false,
+      "synthetic": true
+    },
+    {
+      "sample_id": "synth-B-missing-cite",
+      "tier": "B",
+      "query": "餐补多少？",
+      "answer": "正式员工每月餐补为300元。",
+      "chunks": [
+        {
+          "content": "正式员工每月餐补 300 元，随工资一并发放。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "2.2 餐补",
+          "similarity": 0.95,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": false,
+      "synthetic": true
+    },
+    {
+      "sample_id": "synth-B-shallow",
+      "tier": "B",
+      "query": "年假多少天？",
+      "answer": "年假每年15天且可拆分使用[片段1]。",
+      "chunks": [
+        {
+          "content": "会议室预约需提前一天申请。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "会议室",
+          "similarity": 0.95,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": false,
+      "synthetic": true
+    },
+    {
+      "sample_id": "synth-B-wrong-chunk",
+      "tier": "B",
+      "query": "加班费怎么算？",
+      "answer": "工作日加班按基本工资1.5倍计算加班费[片段1]。",
+      "chunks": [
+        {
+          "content": "正式员工每月餐补 300 元，随工资一并发放。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "2.2 餐补",
+          "similarity": 0.95,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": false,
+      "synthetic": true
+    },
+    {
+      "sample_id": "synth-B-oor-multi",
+      "tier": "B",
+      "query": "S级多少分？",
+      "answer": "S级绩效需要评分≥95分[片段5]。",
+      "chunks": [
+        {
+          "content": "S 级（卓越）：评分 ≥ 95 分，占比不超过 10%。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "9.2 等级与评分",
+          "similarity": 0.95,
+          "page_number": 1
+        },
+        {
+          "content": "B 级（合格）：评分 70-84 分。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "9.2b",
+          "similarity": 0.8,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": false,
+      "synthetic": true
+    },
+    {
+      "sample_id": "golden-GQ-38-C",
+      "tier": "C",
+      "query": "公积金缴纳比例是多少？",
+      "answer": "知识库中未找到相关内容。",
+      "chunks": [
+        {
+          "chunk_id": "24cd4fcb-71bc-4456-b6b5-c5c5e886fca1",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "公司为正式员工购买补充医疗保险，覆盖门诊及住院费用。门诊报销比例 90%，年度上限 5000 元；住院报销比例 100%，年度上限 50000 元。直系亲属可自费加入，费用为每人每年 1200 元。",
+          "section_title": "8.3 补充医疗保险",
+          "page_number": 1,
+          "similarity": 1.0
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": false
+    },
+    {
+      "sample_id": "golden-GQ-93-C",
+      "tier": "C",
+      "query": "公司有免费的咖啡吗？",
+      "answer": "知识库中未找到相关内容[片段1]。",
+      "chunks": [
+        {
+          "chunk_id": "1cb926d1-eca7-4567-a012-899a7d422da6",
+          "document_id": "b20ad787-1572-49e8-867a-c5aa44a55ae9",
+          "doc_name": "golden_handbook.md",
+          "content": "正式员工每年享受一次免费体检，标准为每人 800 元。入职满半年即可参加当年体检。体检由公司统一安排，员工也可自行前往指定体检机构。",
+          "section_title": "8.1 年度体检",
+          "page_number": 1,
+          "similarity": 1.0
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": false
+    },
+    {
+      "sample_id": "synth-C-3",
+      "tier": "C",
+      "query": "公司有免费咖啡吗？",
+      "answer": "知识库中未找到相关内容。",
+      "chunks": [
+        {
+          "content": "正式员工每年享受一次免费体检，标准为每人 800 元。",
+          "doc_name": "golden_handbook.md",
+          "section_title": "8.1 年度体检",
+          "similarity": 0.95,
+          "page_number": 1
+        }
+      ],
+      "human_should_pass": true,
+      "synthetic": true
+    }
+  ]
+}
