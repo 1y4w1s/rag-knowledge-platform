@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import time
+from dataclasses import replace
 from typing import Any, Protocol
 from uuid import UUID
 
@@ -1050,7 +1051,15 @@ async def _run_l3_next_action_loop(
             timed_out = True
             break
 
-        decision = await planner.decide_next(state)
+        # L4-W6b：Recovery 薄钩子（默认关 → None，与接线前逐字一致）
+        from app.services.agent.reflection_recovery import maybe_l3_recovery_decision
+
+        recovery_decision = maybe_l3_recovery_decision(state)
+        if recovery_decision is not None:
+            decision = planner._maybe_inject_kb(recovery_decision)
+            state = replace(state, reflection_count=state.reflection_count + 1)
+        else:
+            decision = await planner.decide_next(state)
 
         if settings.agent_l3_trajectory_trace_enabled:
             logger.info(
