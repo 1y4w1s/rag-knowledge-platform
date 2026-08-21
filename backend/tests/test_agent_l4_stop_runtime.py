@@ -106,7 +106,8 @@ def _patch_init_with_goals(monkeypatch: pytest.MonkeyPatch, goals: tuple[FactGoa
     real_init = init_agent_state
 
     def _init(**kwargs):
-        kwargs.setdefault("fact_goals", goals)
+        # runtime 现始终传 fact_goals=（Decomposer 薄接线）；测试强制覆盖种子
+        kwargs["fact_goals"] = goals
         return real_init(**kwargs)
 
     monkeypatch.setattr("app.services.agent.runtime.init_agent_state", _init)

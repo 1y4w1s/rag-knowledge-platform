@@ -1031,10 +1031,15 @@ async def _run_l3_next_action_loop(
         memory_ctx = format_memory_context(memories)
         planner._memory_context = memory_ctx
 
+    # L4：FactDecomposer → init（默认关 → 空 ledger，与接线前一致）
+    from app.services.agent.decomposer import maybe_fact_goals_for_init
+
+    fact_goals = await maybe_fact_goals_for_init(query)
     state = init_agent_state(
         original_query=query,
         max_steps=max_steps,
         memory_context=memory_ctx,
+        fact_goals=fact_goals,
     )
     records: list[AgentStepRecord] = []
     capped = False
@@ -1211,6 +1216,13 @@ async def _run_l3_next_action_loop(
         )
         records.append(record)
         state = reduce_observation(state, decision, execution, record)
+
+        # L4：EvidenceMatcher → tool observation（默认关 → 原样 ledger）
+        from app.services.agent.matcher_runtime import (
+            maybe_apply_evidence_match_after_tool,
+        )
+
+        state = maybe_apply_evidence_match_after_tool(state, execution)
 
         await update_agent_run_steps_used(
             db,

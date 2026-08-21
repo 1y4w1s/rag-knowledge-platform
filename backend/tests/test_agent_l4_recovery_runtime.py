@@ -250,7 +250,8 @@ async def test_runtime_flag_on_fill_gap_before_planner(
     real_init = init_agent_state
 
     def _init_with_facts(**kwargs):
-        kwargs.setdefault("fact_goals", (goal,))
+        # runtime 现始终传 fact_goals=；测试强制覆盖种子
+        kwargs["fact_goals"] = (goal,)
         return real_init(**kwargs)
 
     monkeypatch.setattr(

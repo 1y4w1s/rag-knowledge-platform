@@ -1,7 +1,8 @@
 """L4-W3 Evidence Matcher：FactGoal ↔ evidence coverage（默认关；fixture + lexical）。
 
 纯函数不读 flag；``EvidenceMatcher`` 仅挂 ``agent_l4_evidence_matcher_enabled``。
-Ledger reducer 更新 FactStatus / 方案 A；不接 runtime。
+Ledger reducer 更新 FactStatus / 方案 A。
+Runtime 薄接线见 ``matcher_runtime``。
 """
 
 from __future__ import annotations
