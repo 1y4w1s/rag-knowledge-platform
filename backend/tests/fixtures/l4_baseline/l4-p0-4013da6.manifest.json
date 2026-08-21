@@ -1,0 +1,72 @@
+{
+  "baseline_id": "l4-p0-4013da6",
+  "description": "Agentic RAG L4 P0 (W1–W5) Gate A runtime closed-loop freeze. Stop NOT wired into runtime product logic; measurement-only.",
+  "commit": "4013da64350246cb654a719c8f47b95b760fddaa",
+  "commit_short": "4013da6",
+  "source_pr": 4,
+  "frozen_at": "2026-08-21",
+  "gate": "A",
+  "flags": {
+    "agent_l4_fact_decomposition_enabled": false,
+    "agent_l4_evidence_matcher_enabled": false,
+    "agent_l4_contradiction_enabled": false,
+    "agent_l4_stop_policy_enabled": false,
+    "agent_l4_local_model_profile_enabled": false,
+    "agent_l4_multimodal_evidence_enabled": false,
+    "agent_l3_next_action_enabled": false,
+    "agent_l3_dynamic_tools_enabled": false,
+    "agent_l3_evidence_state_enabled": false,
+    "agent_l3_trajectory_trace_enabled": false,
+    "agent_l3_critic_retrieval_enabled": false,
+    "rag_critic_enabled": false
+  },
+  "golden": {
+    "agent_qa_path": "backend/tests/golden_agent_qa.json",
+    "agent_qa_case_count": 168,
+    "note": "Do not replace or rewrite; L4 Gate A is orthogonal to Agent Golden 168."
+  },
+  "modules": {
+    "W1": "types/state/fact_contracts",
+    "W2": "decomposer",
+    "W3": "matcher",
+    "W4": "stop_policy (pure evaluate_stop; not wired into runtime.py)",
+    "W5": "planner_fact_hints (NextActionPlanner.decide_next consumes when flag on)"
+  },
+  "acceptance": {
+    "1_missing_no_premature_finish": [
+      "test_a1_missing_fact_stop_not_finish_prefer_fill_gap",
+      "test_gate_a_runtime_trajectory_partial_then_fill_gap_then_finish"
+    ],
+    "2_conflicted_explicit_or_continue": [
+      "test_a3_conflict_forces_sufficient_false",
+      "test_gate_a_runtime_trajectory_conflicted_explicit_refuse"
+    ],
+    "3_covered_allows_finish": [
+      "test_a5_complete_allows_finish",
+      "test_gate_a_runtime_trajectory_partial_then_fill_gap_then_finish"
+    ],
+    "4_budget_incomplete_partial_or_refuse": [
+      "test_a6_budget_exhausted_partial_or_refuse_no_fake_complete"
+    ],
+    "5_flags_off_l3_baseline": [
+      "test_a8_all_l4_flags_false_stable_disabled",
+      "test_gate_a_trajectory_flags_off_conflicted_not_injected",
+      "test_gate_a_defaults_remain_false"
+    ]
+  },
+  "not_wired_yet": [
+    "StopPolicy.evaluate / evaluate_stop → runtime.py loop (finish/partial/refuse enforcement)",
+    "FactDecomposer → runtime init_agent_state(fact_goals=…)",
+    "EvidenceMatcher → runtime after tool hits",
+    "agent_l4_contradiction_enabled resolve path",
+    "W6 Reflection/Recovery (out of Gate A scope)"
+  ],
+  "pytest": {
+    "gate_a": "pytest tests/test_agent_l4_gate_a.py -q",
+    "l4_suite": "pytest tests/test_agent_l4_*.py -q",
+    "non_regression": "pytest tests/test_agent_l4_*.py tests/test_agent_l3_state.py -q"
+  },
+  "env": {
+    "note": "Flags above are product defaults (all False). Gate A tests monkeypatch flags on for measurement then restore. W6 not started in this window."
+  }
+}
