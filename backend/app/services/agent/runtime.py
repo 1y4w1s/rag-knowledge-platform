@@ -1061,6 +1061,11 @@ async def _run_l3_next_action_loop(
         else:
             decision = await planner.decide_next(state)
 
+        # L4-W5.5a：StopPolicy 薄钩子（默认关 → 原样 decision）
+        from app.services.agent.stop_policy import apply_stop_policy_decision
+
+        decision = apply_stop_policy_decision(state, decision)
+
         if settings.agent_l3_trajectory_trace_enabled:
             logger.info(
                 "module=agent_l3 operation=trajectory_trace "
@@ -1265,6 +1270,12 @@ async def _run_l3_next_action_loop(
         and state.steps_used >= max_steps
     ):
         capped = True
+
+    # L4-W5.5a：预算耗尽无 terminal 时用 StopPolicy 收敛（默认关 → None）
+    if terminal_decision is None and not timed_out:
+        from app.services.agent.stop_policy import maybe_stop_terminal
+
+        terminal_decision = maybe_stop_terminal(state)
 
     return AgentRunOutcome(
         run_id=run.id,
