@@ -313,7 +313,51 @@ class ChatEngine:
             yield {"event": "error", "data": {"detail": "回答被安全策略拦截"}}
             return
 
-        if settings.self_verify_enabled and self.chunks:
+        # ── G1 Critic（默认关）：规则 claim 先于贵价 self_verify；llm mode 与 verify 互斥 ──
+        critic_ran_llm = False
+        if settings.rag_critic_enabled and self.chunks:
+            from app.services.rag.critic import run_critic
+
+            body_for_critic = content
+            if confidence is AnswerConfidence.low:
+                prefix = partial_answer_disclaimer_for(self.message) + "\n\n"
+                if body_for_critic.startswith(prefix):
+                    body_for_critic = body_for_critic[len(prefix) :]
+
+            critic_result = await run_critic(
+                body_for_critic, self.chunks, self.message
+            )
+            critic_ran_llm = (
+                settings.rag_critic_mode or ""
+            ).strip().lower() == "llm"
+            if not critic_result.ok:
+                on_fail = (settings.rag_critic_on_fail or "fail_closed").strip().lower()
+                if on_fail == "annotate_only":
+                    logger.info(
+                        "module=rag_critic operation=annotate_only label=%s rationale=%s",
+                        critic_result.label,
+                        critic_result.rationale,
+                    )
+                elif critic_result.corrected:
+                    content = (
+                        with_partial_disclaimer(self.message, critic_result.corrected)
+                        if confidence is AnswerConfidence.low
+                        else critic_result.corrected
+                    )
+                    yield {"event": "correction", "data": {"text": content}}
+                else:
+                    # 对齐 P2-04：失败且无纠正稿 → fail-closed 拒答
+                    content = no_context_reply_for(self.message)
+                    self.citations = []
+                    yield {"event": "correction", "data": {"text": content}}
+                    message_id = await self._save(content, [])
+                    done = {"citations": []}
+                    if message_id is not None:
+                        done["message_id"] = str(message_id)
+                    yield {"event": "done", "data": done}
+                    return
+
+        if settings.self_verify_enabled and self.chunks and not critic_ran_llm:
             from app.services.rag.generation import verify_answer
 
             # 校验只看模型正文，避免 disclaimer 干扰；落库仍保留前缀

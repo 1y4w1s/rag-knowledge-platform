@@ -358,8 +358,52 @@ async def _stream_generation_phase(
 
     assistant_content = "".join(token_parts)
 
+    # ── G1-W1b Critic（默认关）：只调 run_critic；失败策略对齐 engine；禁复制规则 ──
+    critic_fail_closed = False
+    if (
+        settings.rag_critic_enabled
+        and not gen_plan.refusal
+        and gen_plan.gated_chunks
+    ):
+        from app.services.rag.confidence_reply import with_partial_disclaimer
+        from app.services.rag.critic import run_critic
+        from app.services.rag.generation import no_context_reply_for
+
+        gated = list(gen_plan.gated_chunks)
+        confidence = classify_answer_confidence(gated, message)
+        body_for_critic = assistant_content
+        if confidence is AnswerConfidence.low:
+            prefix = partial_answer_disclaimer_for(message) + "\n\n"
+            if body_for_critic.startswith(prefix):
+                body_for_critic = body_for_critic[len(prefix) :]
+        critic_result = await run_critic(body_for_critic, gated, message)
+        if not critic_result.ok:
+            on_fail = (settings.rag_critic_on_fail or "fail_closed").strip().lower()
+            if on_fail == "annotate_only":
+                logger.info(
+                    "module=rag_critic operation=annotate_only label=%s rationale=%s",
+                    critic_result.label,
+                    critic_result.rationale,
+                )
+            elif critic_result.corrected:
+                assistant_content = (
+                    with_partial_disclaimer(message, critic_result.corrected)
+                    if confidence is AnswerConfidence.low
+                    else critic_result.corrected
+                )
+                yield _sse_event("correction", {"text": assistant_content})
+            else:
+                assistant_content = no_context_reply_for(message)
+                citations = []
+                critic_fail_closed = True
+                yield _sse_event("correction", {"text": assistant_content})
+
     # F1：流式 citation 为候选；done/落库按正文 [片段N] 硬对齐（拒答跳过；漏标 keep-all）
-    if not gen_plan.refusal and gen_plan.gated_chunks:
+    if (
+        not critic_fail_closed
+        and not gen_plan.refusal
+        and gen_plan.gated_chunks
+    ):
         gated = list(gen_plan.gated_chunks)
         confidence = classify_answer_confidence(gated, message)
         use_workspace = bool(citations and "kb_id" in citations[0])

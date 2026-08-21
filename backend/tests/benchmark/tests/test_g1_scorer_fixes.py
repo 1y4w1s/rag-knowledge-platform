@@ -172,13 +172,25 @@ async def test_rejection_wrong_when_fabricating():
 
 
 def test_judge_rejection_helper():
-    """_judge_rejection 判据：无引用+拒答话术/空答案=正确；带引用=错误。"""
+    """_judge_rejection 判据：拒答话术/空答案=正确（citations 机械附带不构成编造）；有实质内容=错误。"""
     assert _judge_rejection("知识库中未找到相关内容，无法根据文档回答您的问题。", [])[0] is True
     assert _judge_rejection("", [])[0] is True
     assert _judge_rejection(
         "No relevant content was found in the knowledge base to answer your question.", []
     )[0] is True
-    assert _judge_rejection("", [{"chunk_id": "c1"}])[0] is False  # 有引用 → 未拒答
+    # 修复点：拒答话术 + adapter 附带引用 → 仍判正确拒答（判据看回答文本）
+    assert _judge_rejection(
+        "知识库中未找到相关内容，无法根据文档回答您的问题。", [{"chunk_id": "c1"}]
+    )[0] is True
+    # 修复点：模型输出缩短/变体话术（如「知识库中未找到相关内容。」）→ 核心短语匹配判正确拒答
+    assert _judge_rejection("知识库中未找到相关内容。", [])[0] is True
+    assert _judge_rejection("知识库中未找到相关内容。", [{"chunk_id": "c1"}])[0] is True
+    # 修复点：拒答话术中插入问题词且附引用标记（「未找到{问题}的相关内容[片段N]」）→ 仍判正确拒答
+    assert _judge_rejection(
+        "知识库中未找到怀孕期间是否可以辞退的相关内容[片段1][片段2][片段3]", []
+    )[0] is True
+    # 空答案 + 附带引用 → 不编造即拒答
+    assert _judge_rejection("", [{"chunk_id": "c1"}])[0] is True
     assert _judge_rejection("答案是 10 天。", [])[0] is False  # 有内容 → 编造
 
 

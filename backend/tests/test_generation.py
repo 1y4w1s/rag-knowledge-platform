@@ -107,9 +107,8 @@ def test_build_messages_injection_in_chunk_content_still_in_context_block() -> N
 
 
 def test_no_context_reply_wording_matches_prd() -> None:
-    reply = no_context_reply_for("随便问")
-    assert "知识库中未找到相关内容" in reply
-    assert "无法根据文档" in reply
+    """M3 候选③：拒答话术统一为「知识库中未找到相关内容。」口径（PRD §39）。"""
+    assert no_context_reply_for("随便问") == "知识库中未找到相关内容。"
 
 
 # --------------------------------------------------------------------------- #

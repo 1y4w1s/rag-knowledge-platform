@@ -18,10 +18,16 @@ from app.models.chat_feedback import ChatFeedback
 from app.models.chat_message import ChatMessage
 from app.models.enums import MessageRole
 from app.models.knowledge_base import KnowledgeBase
+from app.services.rag.feedback_attribution import (
+    attribute_thumbs_down,
+    build_golden_suggestion,
+)
 
 EXPORT_NOTE = (
     "Human must fill expect / case_id before merging into golden_qa.json. "
-    "Do not auto-ingest. Export ≠ CI gate."
+    "Do not auto-ingest. Export ≠ CI gate. "
+    "attribution is a heuristic draft — human must verify. "
+    "expect_placeholder is an empty scaffold only — never use as golden expect."
 )
 
 
@@ -125,6 +131,7 @@ async def list_thumbs_down_candidates(
 
 
 def candidate_to_dict(c: ThumbsDownCandidate) -> dict[str, Any]:
+    attribution = attribute_thumbs_down(c.query, c.answer, c.feedback_text)
     return {
         "feedback_id": str(c.feedback_id),
         "message_id": str(c.message_id),
@@ -136,6 +143,12 @@ def candidate_to_dict(c: ThumbsDownCandidate) -> dict[str, Any]:
         "feedback_text": c.feedback_text,
         "rated_at": c.rated_at.isoformat() if c.rated_at else None,
         "rater_user_id": str(c.rater_user_id),
+        "attribution": attribution.to_dict(),
+        "golden_suggestion": build_golden_suggestion(
+            c.query,
+            attribution_label=attribution.label,
+            answer=c.answer,
+        ),
     }
 
 
@@ -144,7 +157,7 @@ def candidates_to_export_dict(
 ) -> dict[str, Any]:
     """导出包装：显式 NOT golden_qa，供人工审题。"""
     return {
-        "version": "1.0",
+        "version": "1.2",
         "kind": "thumbs_down_candidates",
         "description": "thumbs-down candidates for manual golden review — NOT golden_qa",
         "note": EXPORT_NOTE,

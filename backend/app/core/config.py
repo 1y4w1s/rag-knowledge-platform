@@ -186,6 +186,11 @@ class Settings(BaseSettings):
     fts_recall_k: int = 30          # 全文检索召回 Top-N（同步调升）
     llm_top_k: int = 8              # 最终送 LLM 的片段数（2026-07-18 从 5 调升到 8）
     self_verify_enabled: bool = False  # 生成后自动验证（额外 DeepSeek 调用）
+    # G1 Critic：claim 级规则校验（默认关；不替代、不默认打开 self_verify）
+    rag_critic_enabled: bool = False
+    rag_critic_mode: str = "rules"  # rules | llm（主开关开时才读；生产勿默认 llm）
+    rag_critic_max_claims: int = 12
+    rag_critic_on_fail: str = "fail_closed"  # fail_closed | annotate_only
     citation_density_check_enabled: bool = True  # 第2层：生成后校验引用密度并重生成
     citation_density_regenerate_limit: int = 1   # 低密度时最多重生成次数
 
@@ -225,6 +230,10 @@ class Settings(BaseSettings):
 
     # ── E2 Agentic Reflection ─────────────────────────────────────
     agent_max_reflections: int = 3
+    # M1 候选③ 漂移守卫主开关（默认关；W2 复测轮开启，劣化立即置回 False）
+    agent_decompose_drift_recovery: bool = False
+    # 每漂移子查询 S1 收敛改写上限（防 LLM 非确定性放大/改写死循环）
+    agent_decompose_drift_max_rewrites: int = 1
 
     # ── E3 Agentic Memory ─────────────────────────────────────────
     agent_memory_enabled: bool = True
@@ -297,6 +306,16 @@ class Settings(BaseSettings):
 
     # ── C1 Vision LLM ──────────────────────────────────────────────
     tongyi_vl_model: str = "qwen-vl-plus"
+
+    # ── M1 候选②：低置信话术相似度上限阈值（≥此值→强命中，非 low）────
+    relevance_low_sim_ceiling: float = 0.5
+    # ── M1 候选①：送模上下文预算裁剪（0=不启用；>0 时只丢低分尾部）────
+    llm_context_budget_chars: int = 0
+
+    # ── M2 C1：证据充分性判定 observation mode 开关（默认关；W1 复测轮开启）────
+    agent_evidence_sufficiency_obs: bool = False
+    # ── M2 C2：证据不足自适应重检开关（默认关；开启后证据不足走 S1 改写 / S2 整题直检）────
+    agent_evidence_strategy_enabled: bool = False
 
     # ── D1 GraphRAG ─────────────────────────────────────────────────
     graph_recall_enabled: bool = False  # 2026-07-31 实测：图谱召回质量差（sim 0.25-0.3 噪音 130+，正确答案被淹没），L4 无提升，回滚

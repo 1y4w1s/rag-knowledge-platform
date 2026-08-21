@@ -58,7 +58,7 @@ class TestSystemPrompt:
 
     def test_has_refusal_example(self) -> None:
         assert "拒答—无依据" in SYSTEM_PROMPT
-        assert "知识库中未找到加班费相关内容" in SYSTEM_PROMPT
+        assert "回答：知识库中未找到相关内容。" in SYSTEM_PROMPT
 
     def test_has_anti_noise_example(self) -> None:
         assert "抗干扰—忽略噪音" in SYSTEM_PROMPT
