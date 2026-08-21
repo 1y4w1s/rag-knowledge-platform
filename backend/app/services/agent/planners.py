@@ -1359,6 +1359,9 @@ def _build_next_action_prompt(
     """L3 prompt：状态摘要 + 当前可用工具；禁止自由文本 CoT。"""
     missing = ", ".join(summary.missing_facts) if summary.missing_facts else "(none)"
     covered = ", ".join(summary.covered_facts) if summary.covered_facts else "(none)"
+    conflicted = (
+        ", ".join(summary.conflicted_facts) if summary.conflicted_facts else "(none)"
+    )
     docs = ", ".join(summary.doc_names) if summary.doc_names else "(none)"
     scores = ", ".join(f"{s:.3f}" for s in summary.top_scores) if summary.top_scores else "(none)"
     return (
@@ -1373,6 +1376,7 @@ def _build_next_action_prompt(
         "- 不得调用未列出的工具；\n"
         "- 不得调用写工具；\n"
         "- 若 missing_facts 非空且仍有有效检索路径，不得 finish；\n"
+        "- 若 conflicted_facts 非空，不得 finish（应 refuse 或 clarify）；\n"
         "- 不重复完全相同的失败调用；\n"
         "- 不输出自由文本推理，只输出结构化 decision 与 reason_code。\n\n"
         f"可用工具：\n{tool_descriptions}\n\n"
@@ -1388,6 +1392,7 @@ def _build_next_action_prompt(
         f"- confidence: {summary.confidence}\n"
         f"- covered_facts: {covered}\n"
         f"- missing_facts: {missing}\n"
+        f"- conflicted_facts: {conflicted}\n"
         f"- last_failure: {summary.last_failure_kind} / {summary.last_failure_summary}\n"
         f"- reflection_count: {summary.reflection_count}\n\n"
         "只输出一个 JSON 对象，格式示例：\n"
@@ -1478,6 +1483,10 @@ class NextActionPlanner:
         available = self._available_tools(state)
         available_names = frozenset(s.name for s in available)
         summary = summarize_state_for_planner(state)
+        # L4-W5：flag 门控注入 missing / conflicted（默认关；不接 Stop runtime）
+        from app.services.agent.planner_fact_hints import apply_observation_fact_hints
+
+        summary = apply_observation_fact_hints(summary, state.evidence)
         parsed = await self._call_llm(summary, available)
         self._planner_calls += 1
 

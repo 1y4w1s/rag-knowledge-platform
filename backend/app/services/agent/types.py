@@ -157,14 +157,82 @@ class EvidenceConflict:
     note: str = ""
 
 
+# ── L4 FactGoal contracts（W1；方案 A：facts 真源 → 字符串三元组派生）──
+
+
+class FactStatus(str, Enum):
+    missing = "missing"
+    partial = "partial"
+    covered = "covered"
+    conflicted = "conflicted"
+
+
+class FactKind(str, Enum):
+    lookup = "lookup"
+    compare = "compare"
+    condition = "condition"
+    exception = "exception"
+    verify = "verify"
+
+
+class EvidenceRelation(str, Enum):
+    """Evidence Matcher 对单条 FactGoal 的关系（W3：fixture / lexical）。"""
+
+    supports = "supports"
+    partial = "partial"
+    contradicts = "contradicts"
+    resolves = "resolves"
+
+
+@dataclass(frozen=True, slots=True)
+class FactGoal:
+    """可核验事实目标（Benchmark 标注 / 运行时状态机共用）。"""
+
+    id: str
+    text: str
+    kind: FactKind = FactKind.lookup
+    required: bool = True
+    status: FactStatus = FactStatus.missing
+
+
+@dataclass(frozen=True, slots=True)
+class FactObservation:
+    """一次 observation 对若干 fact 的关系声明（fixture 或 matcher 产出）。"""
+
+    relations: tuple[tuple[str, EvidenceRelation], ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class EvidenceItem:
+    """单条证据与 FactGoal 的边（ledger 条目；不含完整 chunk 正文）。"""
+
+    evidence_id: str
+    source_type: str = "text"
+    chunk_id: UUID | None = None
+    document_id: UUID | None = None
+    page: str | None = None
+    excerpt_hash: str = ""
+    supports: tuple[str, ...] = ()
+    contradicts: tuple[str, ...] = ()
+    partials: tuple[str, ...] = ()
+    resolves: tuple[str, ...] = ()
+    confidence: float = 0.0
+    provenance: str = ""
+
+
 @dataclass(frozen=True, slots=True)
 class EvidenceState:
+    # 方案 A 真源；空 = 纯 L3 字符串槽位路径
+    facts: tuple[FactGoal, ...] = ()
+    # 派生视图（有 facts 时由 sync 写入；无 facts 时兼容 L3 直接赋值）
     required_facts: tuple[str, ...] = ()
     covered_facts: tuple[str, ...] = ()
     missing_facts: tuple[str, ...] = ()
     chunk_ids: tuple[UUID, ...] = ()
     document_ids: tuple[UUID, ...] = ()
     contradictions: tuple[EvidenceConflict, ...] = ()
+    # L4-W3 ledger：matcher 产出的证据条目（默认空；不接 runtime）
+    evidence_items: tuple[EvidenceItem, ...] = ()
     sufficient: bool = False
     confidence: float = 0.0
 
@@ -188,6 +256,8 @@ class ObservationSummary:
     confidence: float = 0.0
     covered_facts: tuple[str, ...] = ()
     missing_facts: tuple[str, ...] = ()
+    # L4-W5：flag 开时由 apply_observation_fact_hints 注入；默认空
+    conflicted_facts: tuple[str, ...] = ()
     last_failure_kind: str | None = None
     last_failure_summary: str | None = None
     reflection_count: int = 0

@@ -6,6 +6,13 @@ from dataclasses import dataclass, replace
 from typing import Any
 from uuid import UUID
 
+from app.services.agent.fact_contracts import (
+    derive_fact_views,
+    facts_ready_for_stop,
+    reduce_fact_observation,
+    seed_fact_goals,
+    sync_evidence_fact_views,
+)
 from app.services.agent.tools.compare_chunks import CompareChunksOutput
 from app.services.agent.tools.get_chunk_excerpt import GetChunkExcerptOutput
 from app.services.agent.tools.grep_in_document import GrepInDocumentOutput
@@ -16,10 +23,23 @@ from app.services.agent.types import (
     AgentState,
     AgentStepRecord,
     EvidenceState,
+    FactGoal,
     ObservationSummary,
     StepExecution,
 )
 from app.services.rag.evidence import check_evidence_sufficiency
+
+# re-export L4 contracts（测试可从 state 导入）
+__all__ = [
+    "derive_fact_views",
+    "facts_ready_for_stop",
+    "init_agent_state",
+    "reduce_fact_observation",
+    "reduce_observation",
+    "summarize_state_for_planner",
+    "sync_evidence_fact_views",
+    "update_evidence_state",
+]
 
 # Planner 摘要硬上限（防 token 线性膨胀；不含正文）
 _MAX_IDS = 32
@@ -45,24 +65,25 @@ def init_agent_state(
     active_query: str | None = None,
     memory_context: str = "",
     required_facts: tuple[str, ...] = (),
+    fact_goals: tuple[FactGoal, ...] = (),
 ) -> AgentState:
-    """构造空 AgentState；missing_facts 初始等于 required_facts。"""
-    facts = tuple(_clip_fact(f) for f in required_facts if f)
+    """构造空 AgentState；FactGoal 为真源时派生 required/missing。"""
+    goals = seed_fact_goals(fact_goals=fact_goals, required_facts=required_facts)
+    if goals:
+        evidence = sync_evidence_fact_views(EvidenceState(facts=goals))
+    else:
+        evidence = EvidenceState()
     return AgentState(
         original_query=original_query,
         active_query=active_query if active_query is not None else original_query,
         steps=(),
-        evidence=EvidenceState(
-            required_facts=facts,
-            missing_facts=facts,
-        ),
+        evidence=evidence,
         steps_used=0,
         max_steps=max_steps,
         reflection_count=0,
         last_failure=None,
         memory_context=memory_context,
     )
-
 
 def reduce_observation(
     state: AgentState,
@@ -88,7 +109,9 @@ def update_evidence_state(
 ) -> EvidenceState:
     """从 step record 聚合 ID / 分数 / sufficiency（不存 chunk 正文）。"""
     if not record.ok or record.data is None:
-        return replace(evidence, sufficient=False, confidence=0.0)
+        return sync_evidence_fact_views(
+            replace(evidence, sufficient=False, confidence=0.0)
+        )
 
     chunk_ids, document_ids, _doc_names, scores, hit_stubs = _extract_from_record(
         record
@@ -109,16 +132,17 @@ def update_evidence_state(
     elif scores:
         confidence = max(confidence, max(scores))
 
-    return replace(
+    updated = replace(
         evidence,
         chunk_ids=merged_chunks,
         document_ids=merged_docs,
         sufficient=sufficient,
         confidence=confidence,
-        # facts：required 由 init 种子；覆盖算法另窗（不重造 sufficiency）
+        # 无 FactGoal 时保留 L3 字符串槽位；有 facts 时由 sync 派生（覆盖算法另窗）
         covered_facts=evidence.covered_facts,
         missing_facts=evidence.missing_facts or evidence.required_facts,
     )
+    return sync_evidence_fact_views(updated)
 
 
 def summarize_state_for_planner(state: AgentState) -> ObservationSummary:
