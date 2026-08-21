@@ -1,7 +1,7 @@
 """L4-W2 Fact Decomposer：query → FactGoal[]（默认关；deterministic + schema 可测）。
 
 纯函数不读 flag；LLM 仅挂 ``agent_l4_fact_decomposition_enabled`` 且可 mock。
-产出可喂 ``init_agent_state(..., fact_goals=)`` / ``seed_fact_goals``。
+``maybe_fact_goals_for_init`` 薄挂 L3 loop → ``init_agent_state(..., fact_goals=)``。
 """
 
 from __future__ import annotations
@@ -201,6 +201,19 @@ class FactDecomposer:
             llm_raw=parsed.llm_raw,
             source="llm",
         )
+
+
+async def maybe_fact_goals_for_init(
+    query: str,
+    *,
+    difficulty: str | None = None,
+    decomposer: FactDecomposer | None = None,
+) -> tuple[FactGoal, ...]:
+    """L3 loop 薄接线：flag 关 / 失败 → ()；ok → 喂 ``init_agent_state``。"""
+    result = await (decomposer or FactDecomposer()).decompose(
+        query, difficulty=difficulty
+    )
+    return result.fact_goals if result.ok else ()
 
 
 def _coerce_payload(raw: str | dict[str, Any] | list[Any]) -> Any:

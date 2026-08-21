@@ -198,7 +198,7 @@ def apply_stop_policy_decision(
     """L3 loop 薄接线：StopPolicy 改写 decision（默认关 = 原样）。
 
     Runtime 边界：无 required FactGoal 时不改写（空 ledger 不误杀 L3 finish；
-    Decomposer 未接线前 evaluate_stop 的 no_required_facts 不强制进 control flow）。
+    Decomposer flag 关或分解失败时仍为空 ledger，evaluate_stop 不强制进 control flow）。
     """
     signal = StopPolicy().evaluate(
         state.evidence,
