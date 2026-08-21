@@ -1,0 +1,88 @@
+{
+  "baseline_id": "l4-p0-gate-b-7a32878",
+  "description": "Agentic RAG L4 P0 Gate B Product Closure freeze. Decomposer / Matcher / StopPolicy ARE wired into product runtime (flags still default OFF). Closure ≠ default rollout.",
+  "commit": "7a32878c55e492701fc1806439fc2bf20a90ab83",
+  "commit_short": "7a32878",
+  "source_pr": 9,
+  "frozen_at": "2026-08-22",
+  "gate": "B",
+  "status": "DONE_FROZEN",
+  "supersedes": "l4-p0-4013da6",
+  "historical_gate_a_baseline": {
+    "baseline_id": "l4-p0-4013da6",
+    "commit_short": "4013da6",
+    "note": "Gate A historical snapshot only. Its not_wired_yet fields describe 4013da6-era truth and must not be rewritten."
+  },
+  "flags": {
+    "agent_l4_fact_decomposition_enabled": false,
+    "agent_l4_evidence_matcher_enabled": false,
+    "agent_l4_contradiction_enabled": false,
+    "agent_l4_stop_policy_enabled": false,
+    "agent_l4_local_model_profile_enabled": false,
+    "agent_l4_multimodal_evidence_enabled": false,
+    "agent_l4_reflection_recovery_enabled": false,
+    "agent_l3_next_action_enabled": false,
+    "agent_l3_dynamic_tools_enabled": false,
+    "agent_l3_evidence_state_enabled": false,
+    "agent_l3_trajectory_trace_enabled": false,
+    "agent_l3_critic_retrieval_enabled": false,
+    "rag_critic_enabled": false
+  },
+  "golden": {
+    "agent_qa_path": "backend/tests/golden_agent_qa.json",
+    "agent_qa_case_count": 168,
+    "note": "Do not replace or rewrite; L4 Gate B is orthogonal to Agent Golden 168."
+  },
+  "modules": {
+    "W1": "types/state/fact_contracts",
+    "W2": "decomposer + maybe_fact_goals_for_init (runtime)",
+    "W3": "matcher + matcher_runtime after tool observation (runtime)",
+    "W4": "stop_policy + apply_stop_policy_decision / maybe_stop_terminal (runtime)",
+    "W5": "planner_fact_hints (NextActionPlanner.decide_next consumes when flag on)"
+  },
+  "runtime_wiring": {
+    "stop_policy": {"status": "PASS_MERGED", "pr": 7},
+    "fact_decomposer": {"status": "PASS_MERGED", "pr": 8},
+    "evidence_matcher": {"status": "PASS_MERGED", "pr": 8}
+  },
+  "acceptance": {
+    "D_matcher_state_consumed_by_next_planner": [
+      "test_gate_b_d_second_planner_sees_matcher_state"
+    ],
+    "E_missing_tool_matcher_covered_stop_allows_finish": [
+      "test_gate_b_e_matcher_then_stop_allows_finish"
+    ],
+    "F_observation_matcher_conflict_blocks_fake_complete": [
+      "test_gate_b_f_matcher_conflict_blocks_facts_covered_finish"
+    ],
+    "G_tool_failure_does_not_pollute_fact_coverage": [
+      "test_gate_b_g_tool_failure_does_not_cover"
+    ],
+    "H_all_l4_flags_off_l3_non_regression": [
+      "test_gate_b_h_all_flags_off_l3_baseline",
+      "test_gate_b_defaults_remain_false"
+    ]
+  },
+  "wired_in_product": [
+    "StopPolicy.evaluate / evaluate_stop → runtime.py loop (finish/partial/refuse enforcement)",
+    "FactDecomposer → runtime init_agent_state(fact_goals=…)",
+    "EvidenceMatcher → runtime after tool hits"
+  ],
+  "not_done_yet": [
+    "Default rollout (all agent_l3_* / agent_l4_* / critic flags remain False)",
+    "W7 Local Model Profile",
+    "Real Local-LLM trajectory benchmark",
+    "Critic hardening",
+    "Multimodal Evidence",
+    "agent_l4_contradiction_enabled resolve path"
+  ],
+  "pytest": {
+    "gate_a": "pytest tests/test_agent_l4_gate_a.py -q",
+    "gate_b": "pytest tests/test_agent_l4_gate_b.py -q",
+    "l4_suite": "pytest tests/test_agent_l4_*.py -q",
+    "non_regression": "pytest tests/test_agent_l4_*.py tests/test_agent_l3_state.py -q"
+  },
+  "env": {
+    "note": "Flags above are product defaults (all False). Gate B tests monkeypatch flags on for E2E then restore. W7 not started."
+  }
+}
