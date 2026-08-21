@@ -238,11 +238,12 @@ class Settings(BaseSettings):
     agent_l3_max_planner_calls: int = 0
     agent_l3_critic_retrieval_enabled: bool = False
 
-    # ── L4 Evidence-Driven Local Intelligence（W1 仅占位；全部默认关）──
+    # ── L4 Evidence-Driven Local Intelligence（全部默认关）──
     agent_l4_fact_decomposition_enabled: bool = False
     agent_l4_evidence_matcher_enabled: bool = False
     agent_l4_contradiction_enabled: bool = False
     agent_l4_stop_policy_enabled: bool = False
+    agent_l4_reflection_recovery_enabled: bool = False
     agent_l4_local_model_profile_enabled: bool = False
     agent_l4_multimodal_evidence_enabled: bool = False
 

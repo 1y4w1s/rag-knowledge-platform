@@ -37,6 +37,7 @@ def test_l3_l4_and_critic_flags_remain_false() -> None:
     assert settings.agent_l4_evidence_matcher_enabled is False
     assert settings.agent_l4_contradiction_enabled is False
     assert settings.agent_l4_stop_policy_enabled is False
+    assert settings.agent_l4_reflection_recovery_enabled is False
     assert settings.agent_l4_local_model_profile_enabled is False
     assert settings.agent_l4_multimodal_evidence_enabled is False
 
