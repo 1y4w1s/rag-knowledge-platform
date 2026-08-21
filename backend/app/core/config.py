@@ -228,6 +228,16 @@ class Settings(BaseSettings):
     agent_llm_planner_enabled: bool = True
     agent_llm_planner_model: Optional[str] = None
 
+    # ── L3 Observation-driven NextActionPlanner（全部默认关；可回滚）──
+    agent_l3_next_action_enabled: bool = False
+    agent_l3_dynamic_tools_enabled: bool = False
+    agent_l3_evidence_state_enabled: bool = False
+    # 轨迹摘要也默认 False（与本批「全 flag 关」一致；开观测另开）
+    agent_l3_trajectory_trace_enabled: bool = False
+    # 0 = 对齐当次 max_steps；>0 为硬上限（防只规划不执行）
+    agent_l3_max_planner_calls: int = 0
+    agent_l3_critic_retrieval_enabled: bool = False
+
     # ── E2 Agentic Reflection ─────────────────────────────────────
     agent_max_reflections: int = 3
     # M1 候选③ 漂移守卫主开关（默认关；W2 复测轮开启，劣化立即置回 False）

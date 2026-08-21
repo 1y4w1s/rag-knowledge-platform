@@ -276,15 +276,23 @@ async def _stream_generation_phase(
     history: list[dict[str, str]] | None = None,
     assistant_message_id: UUID,
     state: dict[str, Any],
+    workspace: WorkspaceScope | None = None,
+    tool_scope: AgentToolScope | None = None,
+    org_scope: OrgScope | None = None,
+    workspace_mode: bool = False,
+    retrieval_query: str | None = None,
+    default_kb_id: UUID | None = None,
 ) -> AsyncIterator[str]:
     """生成阶段事件流（citation → token → done；A2：纯渲染，落库由 core finally 统一收口）。"""
     citations = list(gen_plan.citations)
+    active_plan = gen_plan
+    query_for_gen = retrieval_query or message
 
     # H1：thorough 终态置信度（classify 后立刻；不改拒答阈值）
-    if gen_plan.refusal:
+    if active_plan.refusal:
         inc_chat_answer(AnswerConfidence.refuse.value, "thorough")
     else:
-        gated_for_conf = list(gen_plan.gated_chunks)
+        gated_for_conf = list(active_plan.gated_chunks)
         conf = classify_answer_confidence(gated_for_conf, message)
         inc_chat_answer(conf.value, "thorough")
 
@@ -292,10 +300,10 @@ async def _stream_generation_phase(
         yield _sse_event("citation", citation)
 
     token_parts: list[str] = []
-    if gen_plan.refusal:
+    if active_plan.refusal:
         token_stream = stream_no_context_reply(message)
     else:
-        gated = list(gen_plan.gated_chunks)
+        gated = list(active_plan.gated_chunks)
         confidence = classify_answer_confidence(gated, message)
         if (
             not degradation_requires_llm(assess_degradation())
@@ -324,8 +332,8 @@ async def _stream_generation_phase(
 
             # E4：外部工具结果注入 prompt
             enriched_message = message
-            if gen_plan.external_context:
-                enriched_message += f"\n\n{gen_plan.external_context}"
+            if active_plan.external_context:
+                enriched_message += f"\n\n{active_plan.external_context}"
 
             messages = build_messages(
                 enriched_message,
@@ -343,14 +351,14 @@ async def _stream_generation_phase(
                 yield _sse_event("token", {"text": text})
     except Exception as exc:
         # L1 异常兜底：provider 双失败把熔断器打开后的竞争窗口切到降级流
-        if gen_plan.refusal:
+        if active_plan.refusal:
             raise
         logger.warning(
             "module=rag_degradation operation=llm_all_down mode=thorough error=%s",
             exc,
         )
         async for text in stream_degraded_fragment_reply(
-            message, list(gen_plan.gated_chunks)
+            message, list(active_plan.gated_chunks)
         ):
             if text:
                 token_parts.append(text)
@@ -358,18 +366,18 @@ async def _stream_generation_phase(
 
     assistant_content = "".join(token_parts)
 
-    # ── G1-W1b Critic（默认关）：只调 run_critic；失败策略对齐 engine；禁复制规则 ──
+    # ── G1-W1b Critic（默认关）+ L3-W7 定向再检索回流（另 flag，默认关）──
     critic_fail_closed = False
     if (
         settings.rag_critic_enabled
-        and not gen_plan.refusal
-        and gen_plan.gated_chunks
+        and not active_plan.refusal
+        and active_plan.gated_chunks
     ):
         from app.services.rag.confidence_reply import with_partial_disclaimer
-        from app.services.rag.critic import run_critic
+        from app.services.rag.critic import build_critic_retrieval_gap, run_critic
         from app.services.rag.generation import no_context_reply_for
 
-        gated = list(gen_plan.gated_chunks)
+        gated = list(active_plan.gated_chunks)
         confidence = classify_answer_confidence(gated, message)
         body_for_critic = assistant_content
         if confidence is AnswerConfidence.low:
@@ -377,6 +385,35 @@ async def _stream_generation_phase(
             if body_for_critic.startswith(prefix):
                 body_for_critic = body_for_critic[len(prefix) :]
         critic_result = await run_critic(body_for_critic, gated, message)
+
+        # L3-W7：unsupported claim → 限预算定向补检 → revise（至多 1 次）
+        if (
+            not critic_result.ok
+            and settings.agent_l3_critic_retrieval_enabled
+            and workspace is not None
+            and tool_scope is not None
+        ):
+            revised = await _maybe_critic_retrieve_and_revise(
+                db,
+                message=message,
+                query_for_gen=query_for_gen,
+                critic_result=critic_result,
+                outcome=outcome,
+                active_plan=active_plan,
+                history=history,
+                workspace=workspace,
+                tool_scope=tool_scope,
+                org_scope=org_scope,
+                workspace_mode=workspace_mode,
+                default_kb_id=default_kb_id,
+            )
+            if revised is not None:
+                active_plan, assistant_content, critic_result = revised
+                gated = list(active_plan.gated_chunks)
+                citations = list(active_plan.citations)
+                confidence = classify_answer_confidence(gated, message)
+                yield _sse_event("correction", {"text": assistant_content})
+
         if not critic_result.ok:
             on_fail = (settings.rag_critic_on_fail or "fail_closed").strip().lower()
             if on_fail == "annotate_only":
@@ -401,10 +438,10 @@ async def _stream_generation_phase(
     # F1：流式 citation 为候选；done/落库按正文 [片段N] 硬对齐（拒答跳过；漏标 keep-all）
     if (
         not critic_fail_closed
-        and not gen_plan.refusal
-        and gen_plan.gated_chunks
+        and not active_plan.refusal
+        and active_plan.gated_chunks
     ):
-        gated = list(gen_plan.gated_chunks)
+        gated = list(active_plan.gated_chunks)
         confidence = classify_answer_confidence(gated, message)
         use_workspace = bool(citations and "kb_id" in citations[0])
         to_cite = workspace_chunk_to_citation if use_workspace else chunk_to_citation
@@ -438,6 +475,118 @@ async def _stream_generation_phase(
             "agent_run_id": str(outcome.run_id),
         },
     )
+
+
+async def _maybe_critic_retrieve_and_revise(
+    db: AsyncSession,
+    *,
+    message: str,
+    query_for_gen: str,
+    critic_result,
+    outcome: AgentRunOutcome,
+    active_plan,
+    history: list[dict[str, str]] | None,
+    workspace: WorkspaceScope,
+    tool_scope: AgentToolScope,
+    org_scope: OrgScope | None,
+    workspace_mode: bool,
+    default_kb_id: UUID | None,
+):
+    """Critic 失败 → 定向检索 → 合并证据 → 再生成 → 再 critic；成功则返回三元组。"""
+    from app.services.agent.finalize import gate_agent_chunks, merge_step_hits_to_chunks
+    from app.services.agent.planners import plan_critic_directed_retrieval
+    from app.services.agent.runtime import execute_critic_directed_retrieval
+    from app.services.agent.types import AgentStepRecord
+    from app.services.rag.critic import build_critic_retrieval_gap, run_critic
+
+    gap = build_critic_retrieval_gap(critic_result, original_query=message)
+    decision = plan_critic_directed_retrieval(
+        gap,
+        steps_used=outcome.steps_used,
+        max_steps=outcome.max_steps,
+        default_kb_id=default_kb_id,
+        already_used=0,
+    )
+    if decision is None:
+        return None
+
+    search_out = await execute_critic_directed_retrieval(
+        db,
+        decision=decision,
+        workspace=workspace,
+        tool_scope=tool_scope,
+        org_scope=org_scope,
+    )
+    if search_out is None:
+        return None
+
+    recover_record = AgentStepRecord(
+        step_index=outcome.steps_used + 1,
+        tool_name="semantic_search",
+        args=decision.args,
+        ok=True,
+        summary=f"critic directed hits={len(search_out.hits)}",
+        latency_ms=search_out.retrieval_ms,
+        data=search_out,
+    )
+    new_chunks = await merge_step_hits_to_chunks(db, (recover_record,))
+    if not new_chunks:
+        return None
+
+    combined = {c.chunk_id: c for c in active_plan.gated_chunks}
+    for chunk in new_chunks:
+        combined[chunk.chunk_id] = chunk
+    revised_plan = gate_agent_chunks(
+        query_for_gen,
+        list(combined.values()),
+        workspace_mode=workspace_mode,
+    )
+    if revised_plan.refusal or not revised_plan.gated_chunks:
+        return None
+
+    gated = list(revised_plan.gated_chunks)
+    confidence = classify_answer_confidence(gated, message)
+    revised_parts: list[str] = []
+    if (
+        not degradation_requires_llm(assess_degradation())
+        or not has_available_chat_provider_key()
+    ):
+        async for text in stream_degraded_fragment_reply(message, gated):
+            if text:
+                revised_parts.append(text)
+    else:
+        if confidence is AnswerConfidence.low:
+            revised_parts.append(partial_answer_disclaimer_for(message))
+            revised_parts.append("\n\n")
+        enriched = message
+        if revised_plan.external_context:
+            enriched += f"\n\n{revised_plan.external_context}"
+        messages = build_messages(
+            enriched,
+            gated,
+            history=history,
+            compressed_summary=None,
+            answer_confidence=confidence,
+        )
+        try:
+            async for text in stream_deepseek_tokens(messages):
+                if text:
+                    revised_parts.append(text)
+        except Exception:
+            logger.warning(
+                "module=rag_critic operation=revise_llm_failed",
+                exc_info=True,
+            )
+            return None
+
+    revised_content = "".join(revised_parts)
+    body = revised_content
+    if confidence is AnswerConfidence.low:
+        prefix = partial_answer_disclaimer_for(message) + "\n\n"
+        if body.startswith(prefix):
+            body = body[len(prefix) :]
+    new_critic = await run_critic(body, gated, message)
+    return revised_plan, revised_content, new_critic
 
 
 def _planner_with_retrieval_query(
@@ -551,6 +700,13 @@ async def _stream_agent_core(
             history=history,
             assistant_message_id=assistant_message_id,
             state=state,
+            workspace=workspace,
+            tool_scope=tool_scope,
+            org_scope=org_scope,
+            workspace_mode=workspace_mode,
+            retrieval_query=retrieval_query,
+            default_kb_id=getattr(planner, "default_kb_id", None)
+            or getattr(planner, "_default_kb_id", None),
         ):
             if frame.startswith("event: token"):
                 try:

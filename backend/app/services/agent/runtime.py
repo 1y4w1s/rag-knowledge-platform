@@ -23,7 +23,8 @@ from app.services.agent.memory import (
     load_active_memories,
     format_memory_context,
 )
-from app.services.agent.planners import LLMPlanner
+from app.services.agent.planners import LLMPlanner, NextActionPlanner
+from app.services.agent.state import init_agent_state, reduce_observation
 from app.services.audit.agent import (
     audit_agent_reflection,
     audit_agent_run_started,
@@ -71,7 +72,9 @@ from app.services.agent.tool_fallback import (
     should_replan,
 )
 from app.services.agent.types import (
+    AgentActionKind,
     AgentBudgetEvent,
+    AgentDecision,
     AgentRunOutcome,
     AgentStepRecord,
     StepExecution,
@@ -606,6 +609,53 @@ async def _run_recovery_search(
         return None, None
 
 
+async def execute_critic_directed_retrieval(
+    db: AsyncSession,
+    *,
+    decision: AgentDecision,
+    workspace: WorkspaceScope,
+    tool_scope: AgentToolScope,
+    org_scope: OrgScope | None = None,
+) -> "SemanticSearchOutput | None":
+    """L3-W7：执行 Critic 定向 semantic_search（生成后回流；不重开已终态 run）。
+
+    仅接受 reason_code=critic_directed_retrieve 的 tool Decision；失败/空命中返回 None。
+    """
+    from app.services.agent.tools.semantic_search import SemanticSearchOutput
+
+    if (
+        decision.action != AgentActionKind.tool
+        or decision.tool_name != "semantic_search"
+        or decision.reason_code != "critic_directed_retrieve"
+    ):
+        return None
+    query = str(decision.args.get("query", "")).strip()
+    if not query:
+        return None
+    raw_kb_ids = decision.args.get("kb_ids")
+    kb_ids = (
+        [UUID(str(item)) for item in raw_kb_ids] if raw_kb_ids else None
+    )
+    try:
+        result = await run_semantic_search(
+            db,
+            workspace,
+            tool_scope,
+            query=query,
+            org_scope=org_scope,
+            kb_ids=kb_ids,
+            top_k=decision.args.get("top_k"),
+        )
+    except Exception:
+        logger.warning("critic directed retrieval failed", exc_info=True)
+        return None
+    if not result.ok or result.data is None:
+        return None
+    if not isinstance(result.data, SemanticSearchOutput) or not result.data.hits:
+        return None
+    return result.data
+
+
 async def guard_sub_query_drift(
     db: AsyncSession,
     *,
@@ -953,6 +1003,263 @@ async def _converge_failed_run(
     await db.commit()
 
 
+async def _run_l3_next_action_loop(
+    db: AsyncSession,
+    *,
+    user_id: UUID,
+    thread_id: UUID,
+    query: str,
+    workspace: WorkspaceScope,
+    tool_scope: AgentToolScope,
+    planner: NextActionPlanner,
+    org_scope: OrgScope | None,
+    current_user: CurrentUser | None,
+    effective_hooks: ToolRuntimeHooks,
+    run: AgentRun,
+    max_steps: int,
+    timeout_seconds: float,
+) -> AgentRunOutcome:
+    """L3-W3：Observation-driven 最小 loop（成功后也 re-decide）。
+
+    显式 finish / clarify / refuse 收口；禁止用 None 猜语义。
+    复用 `_execute_step` / step 落库 / audit / budget hooks；
+    不做 E2 分解、不做 legacy fallback queue（失败进 Observation 后再 decide）。
+    """
+    memory_ctx = ""
+    if settings.agent_memory_enabled:
+        memories = await load_active_memories(db, user_id)
+        memory_ctx = format_memory_context(memories)
+        planner._memory_context = memory_ctx
+
+    state = init_agent_state(
+        original_query=query,
+        max_steps=max_steps,
+        memory_context=memory_ctx,
+    )
+    records: list[AgentStepRecord] = []
+    capped = False
+    timed_out = False
+    deadline = time.monotonic() + timeout_seconds
+    tool_run_counts: dict[str, int] = {}
+    search_successes = 0
+    terminal_decision: AgentDecision | None = None
+
+    ensure_agent_tool_breakers()
+
+    while state.steps_used < max_steps:
+        if time.monotonic() >= deadline:
+            timed_out = True
+            break
+
+        decision = await planner.decide_next(state)
+
+        if decision.action == AgentActionKind.finish:
+            terminal_decision = decision
+            break
+        if decision.action == AgentActionKind.clarify:
+            terminal_decision = decision
+            break
+        if decision.action == AgentActionKind.refuse:
+            terminal_decision = decision
+            break
+        if decision.action != AgentActionKind.tool or not decision.tool_name:
+            terminal_decision = AgentDecision(
+                action=AgentActionKind.refuse,
+                reason_code="invalid_tool_decision",
+            )
+            break
+
+        step_index = state.steps_used + 1
+        plan_args = _json_safe_args(decision.args)
+        args_summary = build_args_summary(decision.tool_name, plan_args)
+        await effective_hooks.on_tool_start(
+            ToolStartEvent(
+                step=step_index,
+                tool=decision.tool_name,
+                args_summary=args_summary,
+            )
+        )
+
+        db_step = await create_agent_step(
+            db,
+            run_id=run.id,
+            user_id=user_id,
+            step_index=step_index,
+            tool_name=decision.tool_name,
+            args_json=plan_args,
+        )
+
+        _is_external = decision.tool_name in EXTERNAL_TOOL_NAMES
+        run_limit = resolve_tool_run_limit(decision.tool_name)
+        limited_summary: str | None = None
+        limited_reason: str | None = None
+
+        if (
+            run_limit is not None
+            and tool_run_counts.get(decision.tool_name, 0) >= run_limit
+        ):
+            limited_summary = "工具调用已达本轮上限"
+            limited_reason = "tool_run_limit"
+        elif _is_external and settings.external_tools_enabled:
+            if not await allow_tool_window(decision.tool_name):
+                limited_summary = "工具已达全局窗口限流上限"
+                limited_reason = "tool_window_limit"
+
+        if limited_summary is None:
+            tool_run_counts[decision.tool_name] = (
+                tool_run_counts.get(decision.tool_name, 0) + 1
+            )
+            execution = await _execute_step(
+                db,
+                workspace=workspace,
+                tool_scope=tool_scope,
+                org_scope=org_scope,
+                current_user=current_user,
+                tool_name=decision.tool_name,
+                args=plan_args,
+                run_id=run.id,
+                thread_id=thread_id,
+                user_id=user_id,
+            )
+        else:
+            inc_agent_tool_call(
+                decision.tool_name, "limited", external=_is_external
+            )
+            execution = StepExecution(
+                ok=False,
+                summary=limited_summary,
+                latency_ms=0,
+                data=None,
+                failure=ToolFailure(
+                    kind=ToolFailureKind.disabled,
+                    tool_name=decision.tool_name,
+                    summary=limited_summary,
+                ),
+            )
+            db_step = None
+            await audit_agent_tool_denied(
+                db,
+                actor_user_id=user_id,
+                run_id=run.id,
+                tool=decision.tool_name,
+                reason=limited_reason,
+            )
+
+        if db_step is not None:
+            await finish_agent_step(
+                db,
+                step_id=db_step.id,
+                user_id=user_id,
+                ok=execution.ok,
+                result_summary=execution.summary,
+                latency_ms=execution.latency_ms,
+            )
+
+        if limited_summary is None:
+            await audit_agent_tool_executed(
+                db,
+                actor_user_id=user_id,
+                run_id=run.id,
+                step=step_index,
+                tool=decision.tool_name,
+                ok=execution.ok,
+                latency_ms=execution.latency_ms,
+            )
+            if (
+                not execution.ok
+                and execution.summary == FORBIDDEN_KB_SUMMARY
+            ):
+                await audit_agent_tool_denied(
+                    db,
+                    actor_user_id=user_id,
+                    run_id=run.id,
+                    tool=decision.tool_name,
+                )
+
+        record = AgentStepRecord(
+            step_index=step_index,
+            tool_name=decision.tool_name,
+            args=plan_args,
+            ok=execution.ok,
+            summary=execution.summary,
+            latency_ms=execution.latency_ms,
+            step_id=db_step.id if db_step is not None else None,
+            data=execution.data,
+        )
+        records.append(record)
+        state = reduce_observation(state, decision, execution, record)
+
+        await update_agent_run_steps_used(
+            db,
+            run_id=run.id,
+            user_id=user_id,
+            steps_used=state.steps_used,
+        )
+
+        if execution.ok and decision.tool_name in (
+            "semantic_search",
+            "search_documents",
+        ):
+            search_successes += 1
+
+        await _safe_audit(
+            extract_and_store_memory(
+                db,
+                user_id,
+                query,
+                kb_id=getattr(planner, "default_kb_id", None),
+                tool_name=decision.tool_name,
+                tool_data=execution.data,
+                mode=run.mode,
+                search_successes=search_successes,
+            )
+        )
+
+        step_capped = state.steps_used >= max_steps
+        if step_capped:
+            capped = True
+
+        await effective_hooks.on_tool_result(
+            ToolResultEvent(
+                step=step_index,
+                tool=decision.tool_name,
+                ok=execution.ok,
+                summary=execution.summary,
+                latency_ms=execution.latency_ms,
+                capped=step_capped,
+            )
+        )
+        await effective_hooks.on_agent_budget(
+            AgentBudgetEvent(
+                steps_used=state.steps_used,
+                max_steps=max_steps,
+                capped=step_capped,
+            )
+        )
+
+        if step_capped:
+            break
+        # 成功 / 失败均回到 while 顶 → decide_next（re-decide）
+
+    if (
+        terminal_decision is None
+        and not timed_out
+        and state.steps_used >= max_steps
+    ):
+        capped = True
+
+    return AgentRunOutcome(
+        run_id=run.id,
+        steps_used=state.steps_used,
+        max_steps=max_steps,
+        capped=capped,
+        timed_out=timed_out,
+        steps=tuple(records),
+        low_confidence=_detect_low_confidence(records),
+        terminal_decision=terminal_decision,
+    )
+
+
 async def _run_react_loop_until_outcome(
     db: AsyncSession,
     *,
@@ -970,6 +1277,24 @@ async def _run_react_loop_until_outcome(
     timeout_seconds: float,
 ) -> AgentRunOutcome:
     """ReAct 循环主体（返回 outcome；终态收敛由 run_react_loop 负责）。"""
+    # L3-W3：NextActionPlanner → Observation-driven loop（flag 关时工厂不会产出）
+    if isinstance(planner, NextActionPlanner):
+        return await _run_l3_next_action_loop(
+            db,
+            user_id=user_id,
+            thread_id=thread_id,
+            query=query,
+            workspace=workspace,
+            tool_scope=tool_scope,
+            planner=planner,
+            org_scope=org_scope,
+            current_user=current_user,
+            effective_hooks=effective_hooks,
+            run=run,
+            max_steps=max_steps,
+            timeout_seconds=timeout_seconds,
+        )
+
     records: list[AgentStepRecord] = []
     steps_used = 0
     capped = False

@@ -13,6 +13,11 @@ from enum import Enum
 from typing import Any
 from uuid import UUID
 
+from app.services.agent.tool_resolver import (
+    INDEPENDENT_TOOL_SPECS,
+    ToolResolver,
+    ToolSpec,
+)
 from app.services.agent.tools.registry import (
     ALL_AGENT_TOOL_NAMES,
     AgentToolName,
@@ -28,12 +33,19 @@ from app.services.agent.tools.semantic_search import (
     SemanticSearchOutput,
 )
 from app.services.agent.types import (
+    AgentActionKind,
+    AgentDecision,
+    AgentState,
     AgentStepRecord,
+    DecisionParseResult,
+    ObservationSummary,
     ParseResult,
     ToolCallPlan,
     ToolFailure,
+    ValidatedDecision,
     ValidatedPlan,
 )
+from app.services.rag.critic import CriticRetrievalGap
 
 _EDIT_FAQ_DRAFT_NAME_BASE_MAX = 40
 _EDIT_FAQ_DRAFT_TITLE_MAX = 40
@@ -283,12 +295,50 @@ class EditFaqDraftPlanner:
         return None
 
 
+# L3-W7：Critic 失败后至多 1 次定向再检索（与 agent 步预算对齐）
+CRITIC_RETRIEVAL_MAX = 1
+
+
+def plan_critic_directed_retrieval(
+    gap: CriticRetrievalGap | None,
+    *,
+    steps_used: int,
+    max_steps: int,
+    default_kb_id: UUID | None = None,
+    already_used: int = 0,
+    enabled: bool | None = None,
+) -> AgentDecision | None:
+    """手册 §7 / M7：CriticRetrievalGap → 限预算 semantic_search Decision。
+
+    flag 关 / 无缺口 / 已用尽补检次数 / steps_used ≥ max_steps → None（调用方走原 fail 策略）。
+    """
+    from app.core.config import settings
+
+    if enabled is None:
+        enabled = settings.agent_l3_critic_retrieval_enabled
+    if not enabled or gap is None:
+        return None
+    query = (gap.suggested_query or "").strip()
+    if not query:
+        return None
+    if already_used >= CRITIC_RETRIEVAL_MAX:
+        return None
+    if steps_used >= max_steps:
+        return None
+    return AgentDecision(
+        action=AgentActionKind.tool,
+        tool_name=ReadOnlyToolName.semantic_search.value,
+        args=_search_args(query, default_kb_id),
+        reason_code="critic_directed_retrieve",
+    )
+
+
 def create_tool_planner(
     message: str, *, default_kb_id: UUID | None = None
-) -> ThoroughReadPlanner | LLMPlanner:
+) -> ThoroughReadPlanner | LLMPlanner | NextActionPlanner:
     """改造：从直接返回 ThoroughReadPlanner → 通过 LLMPlannerFactory 路由。
 
-    签名保持兼容（返回类型仍符合 ToolPlanner Protocol）。
+    签名保持兼容（返回类型仍符合 ToolPlanner Protocol；L3 flag 开时为 NextActionPlanner）。
     """
     return LLMPlannerFactory.create(message, default_kb_id=default_kb_id)
 
@@ -545,75 +595,16 @@ def create_document_write_planner(
 # =============================================================================
 
 
-@dataclass(frozen=True, slots=True)
-class ToolSpec:
-    """LLM 可见的 tool 元信息。"""
+# LLM planner 只暴露可独立调用的只读 tool（legacy 路径；L3 动态面见 ToolResolver）
+_INDEPENDENT_TOOL_NAMES: tuple[str, ...] = tuple(s.name for s in INDEPENDENT_TOOL_SPECS)
 
-    name: str
-    description: str
-    parameters: dict[str, Any]  # JSON Schema 格式的参数描述
-
-
-# LLM 可独立调用的 tool 参数 schema（无需前序结果）
+# 兼容：旧 schema/描述仍供 SafetyFrame.all_tool_specs（legacy LLMPlanner）
 _TOOL_PARAM_SCHEMAS: dict[str, dict[str, Any]] = {
-    "semantic_search": {
-        "type": "object",
-        "properties": {
-            "query": {
-                "type": "string",
-                "description": "搜索查询，基于语义匹配文档内容",
-            },
-        },
-        "required": ["query"],
-    },
-    "web_search": {
-        "type": "object",
-        "properties": {
-            "query": {"type": "string", "description": "联网搜索关键词"},
-            "num_results": {"type": "integer", "description": "返回结果数量（默认5，最大5）"},
-        },
-        "required": ["query"],
-    },
-    "search_documents": {
-        "type": "object",
-        "properties": {
-            "query": {
-                "type": "string",
-                "description": "文档名或关键词搜索",
-            },
-            "mode": {
-                "type": "string",
-                "description": "搜索模式：filename（按文件名）或 content（按内容）",
-                "enum": ["filename", "content"],
-            },
-        },
-        "required": ["query"],
-    },
-    "list_knowledge_bases": {
-        "type": "object",
-        "properties": {
-            "q": {
-                "type": "string",
-                "description": "可选的关键词过滤",
-            },
-        },
-    },
+    s.name: s.parameters for s in INDEPENDENT_TOOL_SPECS
 }
-
 _TOOL_DESCRIPTIONS: dict[str, str] = {
-    "semantic_search": "语义搜索，根据查询语义检索相关文档片段（返回 Top-N 命中）",
-    "search_documents": "文档搜索，按文件名或内容搜索文档元信息",
-    "list_knowledge_bases": "列出用户当前可见的知识库列表",
-    "web_search": "联网搜索（需要 SEARCH_API_KEY），返回搜索结果标题/URL/摘要",
+    s.name: s.description for s in INDEPENDENT_TOOL_SPECS
 }
-
-# LLM planner 只暴露可独立调用的只读 tool
-_INDEPENDENT_TOOL_NAMES: tuple[str, ...] = (
-    "semantic_search",
-    "search_documents",
-    "list_knowledge_bases",
-    "web_search",
-)
 
 
 def _build_tool_descriptions(tool_specs: list[ToolSpec]) -> str:
@@ -679,6 +670,10 @@ def _validate_tool_args(tool_name: str, args: dict[str, Any]) -> str | None:
     elif tool_name == "grep_in_document":
         if not args.get("document_id") or not args.get("pattern"):
             return "grep_in_document 缺少必需参数 document_id 或 pattern"
+    elif tool_name == "compare_chunks":
+        ids = args.get("chunk_ids")
+        if not isinstance(ids, list) or len(ids) < 2:
+            return "compare_chunks 缺少必需参数 chunk_ids（至少2个）"
     return None
 
 
@@ -837,6 +832,71 @@ class SafetyFrame:
             return ValidatedPlan(ok=False, violations=violations)
 
         return ValidatedPlan(ok=True, plan=plan)
+
+    def validate_decision(
+        self,
+        decision: AgentDecision,
+        state: AgentState,
+        *,
+        available_tools: frozenset[str] | None = None,
+    ) -> ValidatedDecision:
+        """L3：对单步 AgentDecision 做安全校验。
+
+        检查项（顺序裁定）：
+        1. action ∈ tool/finish/clarify/refuse
+        2. tool：tool_name 存在、非写 tool、外部工具关时拒 web_search、参数最小字段
+        3. 若传入 available_tools：tool 必须在当前解锁面内（dependent 未解锁则拒）
+        4. finish/clarify/refuse：不得带可执行 tool_name（忽略空）
+        5. 超预算（steps_used >= max_steps）不得再选 tool
+        """
+        violations: list[str] = []
+
+        if decision.action == AgentActionKind.tool:
+            if not decision.tool_name:
+                violations.append("tool action missing tool_name")
+            else:
+                if not _tool_exists(decision.tool_name, ALL_AGENT_TOOL_NAMES):
+                    violations.append(f"tool '{decision.tool_name}' not in registry")
+                if self._is_write_tool(decision.tool_name):
+                    violations.append(f"write tool '{decision.tool_name}' not allowed")
+                from app.core.config import settings
+
+                if (
+                    not settings.external_tools_enabled
+                    and decision.tool_name == "web_search"
+                ):
+                    violations.append(
+                        f"external tool '{decision.tool_name}' disabled by config"
+                    )
+                if (
+                    available_tools is not None
+                    and decision.tool_name not in available_tools
+                ):
+                    violations.append(
+                        f"tool '{decision.tool_name}' not currently available"
+                    )
+                arg_err = _validate_tool_args(decision.tool_name, decision.args or {})
+                if arg_err is not None:
+                    violations.append(arg_err)
+            if state.steps_used >= state.max_steps:
+                violations.append(
+                    f"budget exhausted: steps_used={state.steps_used} >= max_steps={state.max_steps}"
+                )
+        elif decision.action in (
+            AgentActionKind.finish,
+            AgentActionKind.clarify,
+            AgentActionKind.refuse,
+        ):
+            if decision.tool_name:
+                violations.append(
+                    f"{decision.action.value} must not include tool_name"
+                )
+        else:
+            violations.append(f"unknown action '{decision.action}'")
+
+        if violations:
+            return ValidatedDecision(ok=False, violations=violations)
+        return ValidatedDecision(ok=True, decision=decision)
 
     @staticmethod
     def _is_write_tool(tool_name: str) -> bool:
@@ -1142,12 +1202,12 @@ class LLMPlanner:
 
 
 class LLMPlannerFactory:
-    """根据规则条件路由到 LLMPlanner 或 ThoroughReadPlanner。
+    """根据规则条件路由到 NextActionPlanner / LLMPlanner / ThoroughReadPlanner。
 
-    路由逻辑：
-    1. 简单问题（query_depth == simple）→ 直接走 ThoroughReadPlanner（不改行为）
-    2. 关闭开关（AGENT_LLM_PLANNER_ENABLED=false）→ 直接走 ThoroughReadPlanner
-    3. 走 LLMPlanner → 内部已含降级路径（LLM 失败时自动 fallback）
+    路由逻辑（L3-W2）：
+    1. `agent_l3_next_action_enabled` 且非 simple → NextActionPlanner
+    2. 简单问题 / 关 LLM 开关 / 超长 → ThoroughReadPlanner
+    3. 否则 → LLMPlanner（legacy 回滚）
     """
 
     @staticmethod
@@ -1156,16 +1216,33 @@ class LLMPlannerFactory:
         *,
         default_kb_id: UUID | None = None,
         memory_context: str = "",
-    ) -> ThoroughReadPlanner | LLMPlanner:
-        """根据规则路由，返回兼容 ToolPlanner Protocol 的实例。"""
+    ) -> ThoroughReadPlanner | LLMPlanner | NextActionPlanner:
+        """根据规则路由；flag 关时行为与改造前一致。"""
         safety_frame = SafetyFrame(query, default_kb_id=default_kb_id)
+        from app.core.config import settings
+
+        if settings.agent_l3_next_action_enabled:
+            q = query.strip()
+            if (
+                safety_frame.depth == QueryDepth.simple
+                or not q
+                or len(q) > 500
+            ):
+                return ThoroughReadPlanner(query, default_kb_id=default_kb_id)
+            tool_specs = _l3_tool_specs(safety_frame)
+            return NextActionPlanner(
+                query,
+                safety_frame=safety_frame,
+                tool_specs=tool_specs,
+                default_kb_id=default_kb_id,
+                memory_context=memory_context,
+            )
 
         if not safety_frame.should_use_llm_planner:
             return ThoroughReadPlanner(query, default_kb_id=default_kb_id)
 
         tool_specs = safety_frame.all_tool_specs()
         # E4：外部工具开关 — 关闭时剔除 web_search（sql_query 已下线）
-        from app.core.config import settings
         if not settings.external_tools_enabled:
             tool_specs = [ts for ts in tool_specs if ts.name != "web_search"]
         return LLMPlanner(
@@ -1175,3 +1252,313 @@ class LLMPlannerFactory:
             default_kb_id=default_kb_id,
             memory_context=memory_context,
         )
+
+
+def _l3_tool_specs(safety_frame: SafetyFrame) -> list[ToolSpec]:
+    """W4：构造时种子为独立只读面；逐步解锁由 decide_next → ToolResolver。"""
+    from app.core.config import settings
+
+    del safety_frame
+    specs = list(INDEPENDENT_TOOL_SPECS)
+    if not settings.external_tools_enabled:
+        specs = [s for s in specs if s.name != "web_search"]
+    return specs
+
+
+def _strip_llm_json_fence(llm_raw: str) -> str:
+    """去掉 ```json … ``` 包裹，与 parse_and_validate 同口径。"""
+    raw = llm_raw.strip()
+    if raw.startswith("```"):
+        start = raw.find("\n")
+        end = raw.rfind("```")
+        if start != -1 and end != -1 and end > start:
+            raw = raw[start:end].strip()
+        else:
+            raw = raw.strip("`").strip()
+    if raw.startswith("json"):
+        raw = raw[4:].strip()
+    return raw.strip("`").strip()
+
+
+def parse_agent_decision(llm_raw: str) -> DecisionParseResult:
+    """解析 LLM 返回的**单对象** JSON → AgentDecision（纯函数，无 I/O）。
+
+    与 parse_and_validate（序列）相对：禁止 list；只接受 dict。
+    未知字段忽略；非法 action / 缺字段 → ok=False。
+    """
+    if not llm_raw or not llm_raw.strip():
+        return DecisionParseResult(ok=False, error="empty_output", llm_raw=llm_raw)
+
+    try:
+        parsed = json.loads(_strip_llm_json_fence(llm_raw))
+    except json.JSONDecodeError:
+        return DecisionParseResult(ok=False, error="parse_error", llm_raw=llm_raw)
+
+    if isinstance(parsed, list):
+        return DecisionParseResult(ok=False, error="not_single_object", llm_raw=llm_raw)
+    if not isinstance(parsed, dict):
+        return DecisionParseResult(ok=False, error="parse_error", llm_raw=llm_raw)
+
+    action_raw = parsed.get("action")
+    if not isinstance(action_raw, str):
+        return DecisionParseResult(ok=False, error="invalid_action", llm_raw=llm_raw)
+    try:
+        action = AgentActionKind(action_raw)
+    except ValueError:
+        return DecisionParseResult(ok=False, error="invalid_action", llm_raw=llm_raw)
+
+    tool_name = parsed.get("tool_name")
+    if tool_name is not None and not isinstance(tool_name, str):
+        return DecisionParseResult(ok=False, error="parse_error", llm_raw=llm_raw)
+
+    args = parsed.get("args", {})
+    if args is None:
+        args = {}
+    if not isinstance(args, dict):
+        return DecisionParseResult(ok=False, error="parse_error", llm_raw=llm_raw)
+
+    reason_code = parsed.get("reason_code", "")
+    if reason_code is None:
+        reason_code = ""
+    if not isinstance(reason_code, str):
+        return DecisionParseResult(ok=False, error="parse_error", llm_raw=llm_raw)
+
+    user_message = parsed.get("user_message")
+    if user_message is not None and not isinstance(user_message, str):
+        return DecisionParseResult(ok=False, error="parse_error", llm_raw=llm_raw)
+
+    if action == AgentActionKind.tool:
+        if not tool_name:
+            return DecisionParseResult(
+                ok=False, error="missing_tool_name", llm_raw=llm_raw
+            )
+        arg_err = _validate_tool_args(tool_name, args)
+        if arg_err is not None:
+            return DecisionParseResult(ok=False, error="invalid_args", llm_raw=llm_raw)
+    else:
+        # finish / clarify / refuse：不携带可执行 tool
+        tool_name = None
+        args = {}
+
+    return DecisionParseResult(
+        ok=True,
+        decision=AgentDecision(
+            action=action,
+            tool_name=tool_name,
+            args=args,
+            reason_code=reason_code,
+            user_message=user_message,
+        ),
+        llm_raw=llm_raw,
+    )
+
+
+def _build_next_action_prompt(
+    tool_descriptions: str,
+    summary: ObservationSummary,
+) -> str:
+    """L3 prompt：状态摘要 + 当前可用工具；禁止自由文本 CoT。"""
+    missing = ", ".join(summary.missing_facts) if summary.missing_facts else "(none)"
+    covered = ", ".join(summary.covered_facts) if summary.covered_facts else "(none)"
+    docs = ", ".join(summary.doc_names) if summary.doc_names else "(none)"
+    scores = ", ".join(f"{s:.3f}" for s in summary.top_scores) if summary.top_scores else "(none)"
+    return (
+        "你是只读知识检索 Agent 的下一步决策器。"
+        "目标：根据当前证据状态，只选择「一个」下一动作。\n\n"
+        "允许动作：\n"
+        "1) tool：调用一个当前可用工具\n"
+        "2) finish：证据已足够回答\n"
+        "3) clarify：用户问题存在必须由用户消除的歧义\n"
+        "4) refuse：在剩余预算/权限内无法形成可支持回答的证据\n\n"
+        "硬规则：\n"
+        "- 不得调用未列出的工具；\n"
+        "- 不得调用写工具；\n"
+        "- 若 missing_facts 非空且仍有有效检索路径，不得 finish；\n"
+        "- 不重复完全相同的失败调用；\n"
+        "- 不输出自由文本推理，只输出结构化 decision 与 reason_code。\n\n"
+        f"可用工具：\n{tool_descriptions}\n\n"
+        "当前观察摘要（无正文）：\n"
+        f"- original_query: {summary.original_query}\n"
+        f"- active_query: {summary.active_query}\n"
+        f"- steps_used/max_steps: {summary.steps_used}/{summary.max_steps}\n"
+        f"- last_tool/ok: {summary.last_tool}/{summary.last_ok}\n"
+        f"- last_summary: {summary.last_summary}\n"
+        f"- doc_names: {docs}\n"
+        f"- top_scores: {scores}\n"
+        f"- evidence_sufficient: {summary.evidence_sufficient}\n"
+        f"- confidence: {summary.confidence}\n"
+        f"- covered_facts: {covered}\n"
+        f"- missing_facts: {missing}\n"
+        f"- last_failure: {summary.last_failure_kind} / {summary.last_failure_summary}\n"
+        f"- reflection_count: {summary.reflection_count}\n\n"
+        "只输出一个 JSON 对象，格式示例：\n"
+        '{"action":"tool","tool_name":"semantic_search",'
+        '"args":{"query":"..."},"reason_code":"initial_retrieval"}\n'
+        "或 "
+        '{"action":"finish","reason_code":"evidence_sufficient"}'
+    )
+
+
+class NextActionPlanner:
+    """L3 Observation-driven Planner：每步 decide_next(state) → 单步 AgentDecision。
+
+    - **无** `_cached_plan` / `_plan_cursor`（禁止一次排完再游标消费）
+    - 不实现 ToolPlanner.next_tool_call（由 runtime `_run_l3_next_action_loop` 消费）
+    - LLM 失败 / 校验失败 → refuse（显式动作，不用 None 猜语义）
+    """
+
+    def __init__(
+        self,
+        query: str,
+        *,
+        safety_frame: SafetyFrame,
+        tool_specs: list[ToolSpec],
+        default_kb_id: UUID | None = None,
+        memory_context: str = "",
+    ) -> None:
+        self._query = query.strip()
+        self._safety_frame = safety_frame
+        self._tool_specs = tool_specs
+        self._default_kb_id = default_kb_id
+        self._memory_context = memory_context
+        self._planner_calls = 0
+        self.fallback_reason: str | None = None
+        self.last_llm_raw: str | None = None
+
+    @property
+    def depth(self) -> QueryDepth:
+        return self._safety_frame.depth
+
+    @property
+    def default_kb_id(self) -> UUID | None:
+        return self._default_kb_id
+
+    def _available_tools(self, state: AgentState) -> list[ToolSpec]:
+        """按 AgentState + agent_l3_dynamic_tools_enabled 解锁 dependent tools。"""
+        from app.core.config import settings
+
+        return ToolResolver.resolve(
+            state,
+            dynamic_enabled=settings.agent_l3_dynamic_tools_enabled,
+            external_tools_enabled=settings.external_tools_enabled,
+        )
+
+    def _max_planner_calls(self, state: AgentState) -> int:
+        from app.core.config import settings
+
+        configured = settings.agent_l3_max_planner_calls
+        if configured and configured > 0:
+            return configured
+        return state.max_steps
+
+    async def decide_next(self, state: AgentState) -> AgentDecision:
+        """Observation → 单步 AgentDecision（每次重新规划，无缓存序列）。"""
+        from app.core.config import settings
+        from app.services.agent.evidence_gate import (
+            apply_evidence_stop_retrieve,
+            maybe_finish_from_evidence,
+        )
+        from app.services.agent.state import summarize_state_for_planner
+
+        if self._planner_calls >= self._max_planner_calls(state):
+            return AgentDecision(
+                action=AgentActionKind.refuse,
+                reason_code="budget_exhausted",
+            )
+        if state.steps_used >= state.max_steps:
+            return AgentDecision(
+                action=AgentActionKind.refuse,
+                reason_code="budget_exhausted",
+            )
+
+        # L3-W5：EvidenceState.sufficient → 短路 finish（默认关）
+        early_finish = maybe_finish_from_evidence(state)
+        if early_finish is not None:
+            return early_finish
+
+        available = self._available_tools(state)
+        available_names = frozenset(s.name for s in available)
+        summary = summarize_state_for_planner(state)
+        parsed = await self._call_llm(summary, available)
+        self._planner_calls += 1
+
+        if not parsed.ok or parsed.decision is None:
+            self.fallback_reason = parsed.error
+            self.last_llm_raw = parsed.llm_raw
+            return AgentDecision(
+                action=AgentActionKind.refuse,
+                reason_code=parsed.error or "parse_error",
+            )
+
+        validated = self._safety_frame.validate_decision(
+            parsed.decision,
+            state,
+            available_tools=available_names,
+        )
+        if not validated.ok or validated.decision is None:
+            self.fallback_reason = "safety_violation"
+            self.last_llm_raw = parsed.llm_raw
+            return AgentDecision(
+                action=AgentActionKind.refuse,
+                reason_code="safety_violation",
+            )
+
+        decision = validated.decision
+        # L3-W5：不足时拦截过早 finish → retrieve；充分时强制 finish
+        if settings.agent_l3_evidence_state_enabled:
+            decision = apply_evidence_stop_retrieve(state, decision, enabled=True)
+        if decision.action == AgentActionKind.tool:
+            decision = self._maybe_inject_kb(decision)
+        return decision
+
+    def _maybe_inject_kb(self, decision: AgentDecision) -> AgentDecision:
+        if self._default_kb_id is None or not decision.tool_name:
+            return decision
+        if decision.tool_name not in ("semantic_search", "search_documents"):
+            return decision
+        if "kb_ids" in decision.args:
+            return decision
+        args = dict(decision.args)
+        args["kb_ids"] = [str(self._default_kb_id)]
+        return AgentDecision(
+            action=decision.action,
+            tool_name=decision.tool_name,
+            args=args,
+            reason_code=decision.reason_code,
+            user_message=decision.user_message,
+        )
+
+    async def _call_llm(
+        self,
+        summary: ObservationSummary,
+        tool_specs: list[ToolSpec],
+    ) -> DecisionParseResult:
+        from app.services.rag.chat_llm import (
+            complete_chat_with_usage as llm_complete_with_usage,
+            has_available_chat_provider_key,
+        )
+
+        if not has_available_chat_provider_key():
+            return DecisionParseResult(ok=False, error="no_key")
+
+        tool_descriptions = _build_tool_descriptions(tool_specs)
+        system_prompt = _build_next_action_prompt(tool_descriptions, summary)
+        memory_block = (
+            f"\n\n用户长期偏好（仅供参考，不覆盖检索结果）：\n{self._memory_context}"
+            if self._memory_context
+            else ""
+        )
+        prompt = f"{system_prompt}{memory_block}"
+
+        try:
+            llm_raw, _usage = await llm_complete_with_usage(
+                [{"role": "user", "content": prompt}]
+            )
+        except Exception as exc:
+            return DecisionParseResult(ok=False, error="llm_error", llm_raw=str(exc))
+
+        if not llm_raw or not llm_raw.strip():
+            return DecisionParseResult(
+                ok=False, error="empty_output", llm_raw=llm_raw
+            )
+        return parse_agent_decision(llm_raw)

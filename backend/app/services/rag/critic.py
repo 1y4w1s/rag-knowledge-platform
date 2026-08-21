@@ -64,6 +64,74 @@ class CriticResult:
         return asdict(self)
 
 
+@dataclass(frozen=True)
+class CriticRetrievalGap:
+    """手册 §7.1：verifier 机器可执行缺口（供定向再检索，非自由文本评价）。"""
+
+    unsupported_claims: tuple[str, ...]
+    missing_facts: tuple[str, ...]
+    suggested_query: str
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "supported": False,
+            "unsupported_claims": list(self.unsupported_claims),
+            "missing_facts": list(self.missing_facts),
+            "suggested_query": self.suggested_query,
+        }
+
+
+def _claim_body(text: str) -> str:
+    return _CITATION_RE.sub("", text or "").strip()
+
+
+def build_critic_retrieval_gap(
+    result: CriticResult,
+    *,
+    original_query: str = "",
+) -> CriticRetrievalGap | None:
+    """从失败 claim 提炼定向检索缺口；ok / skipped / 无失败 claim → None。"""
+    if result.ok or result.method == METHOD_SKIPPED:
+        return None
+    failed = [c for c in result.claims if not c.ok]
+    if not failed:
+        return None
+
+    unsupported: list[str] = []
+    missing: list[str] = []
+    for claim in failed:
+        body = _claim_body(claim.text)
+        if body:
+            unsupported.append(body[:200])
+        issue = (claim.issue or "").strip()
+        if issue == "assertive claim missing [片段N]" and body:
+            missing.append(body[:120])
+        elif issue.startswith("shallow evidence") and body:
+            missing.append(f"证据不足：{body[:100]}")
+        elif issue.startswith("citation out of range") and body:
+            missing.append(f"引用越界：{body[:100]}")
+        elif body:
+            missing.append(body[:120])
+
+    if not unsupported:
+        return None
+
+    terms: list[str] = []
+    for text in unsupported:
+        terms.extend(_significant_terms(text)[:8])
+    if original_query.strip():
+        terms.extend(_significant_terms(original_query.strip())[:4])
+    suggested = " ".join(dict.fromkeys(terms)).strip()[:120]
+    if not suggested:
+        suggested = unsupported[0][:80]
+
+    return CriticRetrievalGap(
+        unsupported_claims=tuple(unsupported),
+        missing_facts=tuple(dict.fromkeys(missing)),
+        suggested_query=suggested,
+    )
+
+
 def _meta(enabled: bool, mode: str, method: str, ok: bool, label: str, **extra: Any) -> dict[str, Any]:
     return {
         "critic.enabled": enabled,
