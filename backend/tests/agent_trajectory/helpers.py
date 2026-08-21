@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import uuid
-from uuid import UUID
 
 from app.core.database import SessionLocal
 from app.services.agent.planners import NextActionPlanner, SafetyFrame

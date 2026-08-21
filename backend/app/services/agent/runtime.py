@@ -43,6 +43,7 @@ from app.services.agent.runs import (
 from app.services.agent.tools import (
     AgentToolName,
     ReadOnlyToolName,
+    SemanticSearchOutput,
     UnknownToolError,
     parse_agent_tool,
     run_compare_chunks,
@@ -616,13 +617,11 @@ async def execute_critic_directed_retrieval(
     workspace: WorkspaceScope,
     tool_scope: AgentToolScope,
     org_scope: OrgScope | None = None,
-) -> "SemanticSearchOutput | None":
+) -> SemanticSearchOutput | None:
     """L3-W7：执行 Critic 定向 semantic_search（生成后回流；不重开已终态 run）。
 
     仅接受 reason_code=critic_directed_retrieve 的 tool Decision；失败/空命中返回 None。
     """
-    from app.services.agent.tools.semantic_search import SemanticSearchOutput
-
     if (
         decision.action != AgentActionKind.tool
         or decision.tool_name != "semantic_search"
@@ -1052,6 +1051,16 @@ async def _run_l3_next_action_loop(
             break
 
         decision = await planner.decide_next(state)
+
+        if settings.agent_l3_trajectory_trace_enabled:
+            logger.info(
+                "module=agent_l3 operation=trajectory_trace "
+                "action=%s tool=%s reason_code=%s steps_used=%s",
+                decision.action,
+                decision.tool_name or "",
+                decision.reason_code or "",
+                state.steps_used,
+            )
 
         if decision.action == AgentActionKind.finish:
             terminal_decision = decision

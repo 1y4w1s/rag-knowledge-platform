@@ -374,7 +374,7 @@ async def _stream_generation_phase(
         and active_plan.gated_chunks
     ):
         from app.services.rag.confidence_reply import with_partial_disclaimer
-        from app.services.rag.critic import build_critic_retrieval_gap, run_critic
+        from app.services.rag.critic import run_critic
         from app.services.rag.generation import no_context_reply_for
 
         gated = list(active_plan.gated_chunks)
