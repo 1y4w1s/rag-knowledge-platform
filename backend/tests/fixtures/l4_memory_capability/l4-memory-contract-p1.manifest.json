@@ -1,0 +1,233 @@
+{
+  "schema_version": "l4-memory-contract-p1-v1",
+  "stage": "MEMORY_CONTRACT_MIGRATION_P1",
+  "base_sha": "0b313460cdce11ac4204e14a83375f5b860d16a2",
+  "p0_merge_sha": "0b313460cdce11ac4204e14a83375f5b860d16a2",
+  "p0_feature_sha": "a2e8e872b955357e3d89730f4d4fe895bf69684a",
+  "evaluator_p0": "PASS/FROZEN",
+  "legacy_memory4_score": "INVALID_FOR_UTILIZATION_CAPABILITY",
+  "legacy_memory4_pass_count": 2,
+  "legacy_memory4_total": 4,
+  "golden_rewrite": false,
+  "legacy_memory4_mutated": false,
+  "product_remediation": false,
+  "runtime_rollout": false,
+  "capability_score": "NOT_YET_MEASURED",
+  "measured_model_score": "NOT_YET_MEASURED",
+  "denominators": {
+    "L1": 4,
+    "L2": 4,
+    "L3": 2,
+    "L4_utilization": 0,
+    "L5_task_benefit": 0,
+    "empty_memory_behavior": 2,
+    "blocked_by_l3_observability": 2
+  },
+  "ready_for_memory_p2": "OBSERVABILITY",
+  "need_l3_instrumentation": true,
+  "l3_observability_recommendation": {
+    "need_product_instrumentation": true,
+    "gap_id": "L3_OBSERVABILITY_GAP",
+    "minimal_fields": [
+      "memory_id",
+      "memory_hash",
+      "injected_to_context",
+      "scope",
+      "position_or_source",
+      "run_id",
+      "step_id"
+    ],
+    "rationale": "L4/L5 capability measurement requires machine-observable proof that seeded memories entered model context; planner._memory_context string injection alone is not emitted as structured telemetry in production trajectories.",
+    "product_remediation_in_this_task": false
+  },
+  "migration_audits": [
+    {
+      "case_id": "GA-9",
+      "user_intent": "Answer the user's preferred retrieval language from stored preference memory.",
+      "seeded_or_empty": "seeded (1 preference: lang=en)",
+      "memory_proposition": "preference/lang language=en",
+      "legacy_expected_behavior": "memory_loaded",
+      "current_runtime_memory_path": "L1_SEED -> L2_LOAD -> L3_EXPOSE -> L4_CONSUME",
+      "L1_L5_applicability": {
+        "L1_SEEDED": true,
+        "L2_LOADED": true,
+        "L3_EXPOSED": true,
+        "L4_UTILIZED": true,
+        "L5_TASK_BENEFIT": true
+      },
+      "capability_target": "planner_or_final_uses_target_memory_semantic_content; not_prompt_text_presence_only",
+      "measurement_currently_possible": {
+        "L1": true,
+        "L2": true,
+        "L3": false,
+        "L4": false,
+        "L5": false,
+        "EMPTY_MEMORY_BEHAVIOR": false
+      },
+      "primary_migration_category": "BLOCKED_BY_L3_OBSERVABILITY",
+      "blocker": "L3_OBSERVABILITY_GAP: no structured memory exposure trace in production trajectories"
+    },
+    {
+      "case_id": "GA-10",
+      "user_intent": "Search documents about Docker and React honoring language and topic preferences.",
+      "seeded_or_empty": "seeded (2 preferences: lang=en, topic=docker)",
+      "memory_proposition": "preference/lang language=en; preference/topic topic=docker",
+      "legacy_expected_behavior": "memory_loaded",
+      "current_runtime_memory_path": "L1_SEED -> L2_LOAD -> L3_EXPOSE -> L4_CONSUME",
+      "L1_L5_applicability": {
+        "L1_SEEDED": true,
+        "L2_LOADED": true,
+        "L3_EXPOSED": true,
+        "L4_UTILIZED": true,
+        "L5_TASK_BENEFIT": true
+      },
+      "capability_target": "planner_or_final_uses_target_memory_semantic_content; topic_preference_influences_retrieval_or_answer",
+      "measurement_currently_possible": {
+        "L1": true,
+        "L2": true,
+        "L3": false,
+        "L4": false,
+        "L5": false,
+        "EMPTY_MEMORY_BEHAVIOR": false
+      },
+      "primary_migration_category": "BLOCKED_BY_L3_OBSERVABILITY",
+      "blocker": "L3_OBSERVABILITY_GAP: no structured memory exposure trace in production trajectories"
+    },
+    {
+      "case_id": "GA-11",
+      "user_intent": "Answer language preference when no memory is seeded (safe empty behavior).",
+      "seeded_or_empty": "empty (pre_seed_memories=[])",
+      "memory_proposition": "(none — empty memory control)",
+      "legacy_expected_behavior": "memory_empty",
+      "current_runtime_memory_path": "L1_SEED -> L2_LOAD -> L3_EXPOSE -> L4_CONSUME",
+      "L1_L5_applicability": {
+        "L1_SEEDED": true,
+        "L2_LOADED": true,
+        "L3_EXPOSED": true,
+        "L4_UTILIZED": false,
+        "L5_TASK_BENEFIT": false
+      },
+      "capability_target": "no_fabricated_memory; reasonable_retrieval_or_clarify; no_unproductive_loop; safe_termination",
+      "measurement_currently_possible": {
+        "L1": true,
+        "L2": true,
+        "L3": true,
+        "L4": false,
+        "L5": false,
+        "EMPTY_MEMORY_BEHAVIOR": true
+      },
+      "primary_migration_category": "EMPTY_MEMORY_CONTROL",
+      "blocker": ""
+    },
+    {
+      "case_id": "GA-12",
+      "user_intent": "Search with low-confidence empty memory context without fabrication.",
+      "seeded_or_empty": "empty (pre_seed_memories=[])",
+      "memory_proposition": "(none — empty memory control)",
+      "legacy_expected_behavior": "memory_empty",
+      "current_runtime_memory_path": "L1_SEED -> L2_LOAD -> L3_EXPOSE -> L4_CONSUME",
+      "L1_L5_applicability": {
+        "L1_SEEDED": true,
+        "L2_LOADED": true,
+        "L3_EXPOSED": true,
+        "L4_UTILIZED": false,
+        "L5_TASK_BENEFIT": false
+      },
+      "capability_target": "no_fabricated_memory; reasonable_retrieval_or_clarify; no_unproductive_loop; safe_termination",
+      "measurement_currently_possible": {
+        "L1": true,
+        "L2": true,
+        "L3": true,
+        "L4": false,
+        "L5": false,
+        "EMPTY_MEMORY_BEHAVIOR": true
+      },
+      "primary_migration_category": "EMPTY_MEMORY_CONTROL",
+      "blocker": ""
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "GA-9",
+      "primary_migration_category": "BLOCKED_BY_L3_OBSERVABILITY",
+      "legacy_expected_chunk": "memory_loaded",
+      "user_intent": "Answer preferred retrieval language from memory.",
+      "memory_propositions": [
+        "preference/lang={\"language\": \"en\"}"
+      ],
+      "measurement_level_applicability": {
+        "L1_SEEDED": true,
+        "L2_LOADED": true,
+        "L3_EXPOSED": false,
+        "L4_UTILIZED": false,
+        "L5_TASK_BENEFIT": false
+      },
+      "blocker": "L3_OBSERVABILITY_GAP: no structured memory exposure trace in production trajectories",
+      "legacy_case_hash": "598897afd1818ba426c9f4060ea4e3711f9694c0d3477ca616082df099dc6066",
+      "migration_contract_hash": "236743c656e9c8d0e5601edaecdab1fac6ea60ea6265228ae5a3f29e1a8f7eb8",
+      "fixture_migratable": true
+    },
+    {
+      "case_id": "GA-10",
+      "primary_migration_category": "BLOCKED_BY_L3_OBSERVABILITY",
+      "legacy_expected_chunk": "memory_loaded",
+      "user_intent": "Search Docker/React with preference-aware retrieval.",
+      "memory_propositions": [
+        "preference/lang={\"language\": \"en\"}",
+        "preference/topic={\"topic\": \"docker\"}"
+      ],
+      "measurement_level_applicability": {
+        "L1_SEEDED": true,
+        "L2_LOADED": true,
+        "L3_EXPOSED": false,
+        "L4_UTILIZED": false,
+        "L5_TASK_BENEFIT": false
+      },
+      "blocker": "L3_OBSERVABILITY_GAP: no structured memory exposure trace in production trajectories",
+      "legacy_case_hash": "de483435a5068901e525c30a680cb1295c4269a1f4d3d6027fde63c5245bbd3a",
+      "migration_contract_hash": "983a53290750f03c57467a4c4920dfb30ac9127baf80ab29957d158758ea3cbf",
+      "fixture_migratable": true
+    },
+    {
+      "case_id": "GA-11",
+      "primary_migration_category": "EMPTY_MEMORY_CONTROL",
+      "legacy_expected_chunk": "memory_empty",
+      "user_intent": "Safe behavior when memory store is empty.",
+      "memory_propositions": [],
+      "measurement_level_applicability": {
+        "L1_SEEDED": true,
+        "L2_LOADED": true,
+        "L3_EXPOSED": true,
+        "L4_UTILIZED": false,
+        "L5_TASK_BENEFIT": false
+      },
+      "blocker": "",
+      "legacy_case_hash": "d068610f2144e53e039e596bb6a4b5339d12f82ad878b182355c9570eb085bed",
+      "migration_contract_hash": "808d90fc7b65c3353bf9caad3d9fcfa1985f26a29c9ae829822455573b460d8e",
+      "fixture_migratable": false
+    },
+    {
+      "case_id": "GA-12",
+      "primary_migration_category": "EMPTY_MEMORY_CONTROL",
+      "legacy_expected_chunk": "memory_empty",
+      "user_intent": "Search without fabricating low-confidence memory.",
+      "memory_propositions": [],
+      "measurement_level_applicability": {
+        "L1_SEEDED": true,
+        "L2_LOADED": true,
+        "L3_EXPOSED": true,
+        "L4_UTILIZED": false,
+        "L5_TASK_BENEFIT": false
+      },
+      "blocker": "",
+      "legacy_case_hash": "08b2452dbcda7c9b844089a7019523dec2cf8e1d1c5ce0db76d0d2acf7b51533",
+      "migration_contract_hash": "0bc12d8be917854eca7095fe88c2bfb64a89d6d833d724a4747c632d16687d84",
+      "fixture_migratable": false
+    }
+  ],
+  "notes": [
+    "Sidecar contract manifest — does not modify golden_agent_qa.json.",
+    "L4/L5 denominators frozen at 0 until L3 exposure is machine-observable.",
+    "Empty-memory cases route to EMPTY_MEMORY_BEHAVIOR metric only."
+  ]
+}
