@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import time
-import uuid
 from dataclasses import asdict, dataclass, field
 from typing import Any
 from uuid import UUID
@@ -22,15 +21,12 @@ from app.eval.local_agent_trajectory.injection import (
 from app.eval.tool_capability.fixtures import ADAPT_FIXTURE_TRAJECTORIES
 from app.eval.tool_capability.schema import ToolStepInput, ToolTrajectoryInput
 from app.eval.tool_capability.seed import SeededWorkspace, seed_case_workspace, workspace_for
-from app.models.enums import AccountType
-from app.models.user import User
 from app.services.agent.fact_contracts import fact_coverage_ratio
 from app.services.agent.runtime import run_react_loop
 from app.services.agent.tools.list_knowledge_bases import ListKnowledgeBasesOutput
 from app.services.agent.tools.scope import AgentToolScope
 from app.services.agent.tools.search_documents import SearchDocumentsOutput
 from app.services.agent.types import AgentActionKind, AgentRunOutcome, AgentStepRecord
-from app.services.auth.password import hash_password
 from app.services.rag.thread_persistence import create_workspace_thread
 from app.services.workspace.scope import WorkspaceKind
 

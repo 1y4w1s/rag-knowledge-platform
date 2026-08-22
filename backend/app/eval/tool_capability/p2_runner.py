@@ -6,7 +6,6 @@ import hashlib
 import json
 import platform
 import subprocess
-import sys
 import time
 import uuid
 from pathlib import Path
