@@ -8,6 +8,7 @@
     python scripts/run_benchmark.py --dataset expense_qa --mode retrieval
 """
 import argparse, asyncio, json, os, sys, uuid, time
+from contextlib import contextmanager
 from pathlib import Path
 
 os.environ["RAG_RATE_LIMIT_MODE"] = "bypass"
@@ -56,15 +57,37 @@ DATASETS = {
 }
 
 
-def parse_args():
+def parse_args(argv: list[str] | None = None):
     p = argparse.ArgumentParser(description="索隐 RAG 评测")
     p.add_argument("--dataset", default="golden_qa", choices=list(DATASETS.keys()) + ["all"])
     p.add_argument("--mode", default="retrieval", choices=["retrieval", "generation", "full"])
     p.add_argument("--output", default="text", choices=["text", "json"])
-    return p.parse_args()
+    p.add_argument(
+        "--skip-entity-extract",
+        action="store_true",
+        default=False,
+        help="Skip entity extraction during benchmark ingestion only (CI Enterprise opt-in)",
+    )
+    return p.parse_args(argv)
 
 
-async def run_retrieval(dataset_cfg: dict, output: str) -> dict:
+@contextmanager
+def _skip_entity_extract_context(enabled: bool):
+    """Process-local toggle for skip_entity_extract; restore on exit."""
+    if not enabled:
+        yield
+        return
+    from app.core.config import settings
+
+    saved = settings.skip_entity_extract
+    settings.skip_entity_extract = True
+    try:
+        yield
+    finally:
+        settings.skip_entity_extract = saved
+
+
+async def run_retrieval(dataset_cfg: dict, output: str, *, skip_entity_extract: bool = False) -> dict:
     """对单一数据集运行检索评测，返回结果摘要。"""
     from httpx import ASGITransport, AsyncClient
     from app.main import app
@@ -103,19 +126,20 @@ async def run_retrieval(dataset_cfg: dict, output: str) -> dict:
     doc_names = dataset_cfg["docs"]
     if doc_names is None:
         doc_names = sorted(p.name for p in FIXTURES.glob("acme_*.md"))
-    for doc_name in doc_names:
-        src = FIXTURES / doc_name
-        if not src.exists():
-            continue
-        did = uuid.uuid4()
-        sd = up / str(kb_id) / str(did); sd.mkdir(parents=True, exist_ok=True)
-        sp = sd / src.name; sp.write_bytes(src.read_bytes())
-        async with SessionLocal() as db:
-            doc = Doc(id=did, kb_id=kb_id, filename=src.name,
-                      file_type="md", file_size=sp.stat().st_size,
-                      storage_path=str(sp), status=DocumentStatus.queued, uploaded_by=uid)
-            db.add(doc); await db.commit()
-            await process_document_ingestion(did)
+    with _skip_entity_extract_context(skip_entity_extract):
+        for doc_name in doc_names:
+            src = FIXTURES / doc_name
+            if not src.exists():
+                continue
+            did = uuid.uuid4()
+            sd = up / str(kb_id) / str(did); sd.mkdir(parents=True, exist_ok=True)
+            sp = sd / src.name; sp.write_bytes(src.read_bytes())
+            async with SessionLocal() as db:
+                doc = Doc(id=did, kb_id=kb_id, filename=src.name,
+                          file_type="md", file_size=sp.stat().st_size,
+                          storage_path=str(sp), status=DocumentStatus.queued, uploaded_by=uid)
+                db.add(doc); await db.commit()
+                await process_document_ingestion(did)
 
     domains = {}
     results_hit = []
@@ -223,7 +247,7 @@ async def run_retrieval(dataset_cfg: dict, output: str) -> dict:
     }
 
 
-async def run_generation(dataset_cfg: dict, output: str) -> dict:
+async def run_generation(dataset_cfg: dict, output: str, *, skip_entity_extract: bool = False) -> dict:
     """对单一数据集运行生成评测（抽样 10 题）。"""
     import uuid as _uuid, json as _json, re as _re
     from httpx import ASGITransport, AsyncClient
@@ -257,17 +281,18 @@ async def run_generation(dataset_cfg: dict, output: str) -> dict:
     doc_names = dataset_cfg["docs"]
     if doc_names is None:
         doc_names = sorted(p.name for p in FIXTURES.glob("acme_*.md"))
-    for doc_name in doc_names:
-        src = FIXTURES / doc_name
-        if not src.exists():
-            continue
-        did = _uuid.uuid4()
-        sd = up / str(kb_id) / str(did); sd.mkdir(parents=True, exist_ok=True)
-        sp = sd / src.name; sp.write_bytes(src.read_bytes())
-        async with SessionLocal() as db:
-            doc = Doc(id=did, kb_id=kb_id, filename=src.name, file_type="md", file_size=sp.stat().st_size, storage_path=str(sp), status=DocumentStatus.queued, uploaded_by=uid)
-            db.add(doc); await db.commit()
-            await process_document_ingestion(did)
+    with _skip_entity_extract_context(skip_entity_extract):
+        for doc_name in doc_names:
+            src = FIXTURES / doc_name
+            if not src.exists():
+                continue
+            did = _uuid.uuid4()
+            sd = up / str(kb_id) / str(did); sd.mkdir(parents=True, exist_ok=True)
+            sp = sd / src.name; sp.write_bytes(src.read_bytes())
+            async with SessionLocal() as db:
+                doc = Doc(id=did, kb_id=kb_id, filename=src.name, file_type="md", file_size=sp.stat().st_size, storage_path=str(sp), status=DocumentStatus.queued, uploaded_by=uid)
+                db.add(doc); await db.commit()
+                await process_document_ingestion(did)
 
     has_citations = 0
     faithful = 0
@@ -345,7 +370,7 @@ async def main():
         print(f"{'='*60}")
 
         if args.mode in ("retrieval", "full"):
-            result = await run_retrieval(cfg, args.output)
+            result = await run_retrieval(cfg, args.output, skip_entity_extract=args.skip_entity_extract)
             print(f"  Total: {result['total']} (excluded {result['rejection_count']} rejection queries)")
             print(f"  Hit@1: {result['hit_at_1']:.3f}  Hit@3: {result['hit_at_3']:.3f}  Hit@5: {result['hit_at_5']:.3f}  MRR: {result['mrr']:.3f}")
             lat = result.get('latency_ms', {})
@@ -366,7 +391,7 @@ async def main():
 
         if args.mode == "full":
             print("  Generation evaluation...")
-            gen_result = await run_generation(cfg, args.output)
+            gen_result = await run_generation(cfg, args.output, skip_entity_extract=args.skip_entity_extract)
             print(f"  Generated: {gen_result['total']}")
             print(f"  Has citations: {gen_result['has_citations']}/{gen_result['total']}")
             print(f"  Faithfulness: {gen_result['faithful']}/{gen_result['total']} = {gen_result['faithful_rate']:.0%}")
@@ -375,7 +400,7 @@ async def main():
     if args.mode == "generation":
         for ds_name in datasets_to_run:
             cfg = DATASETS[ds_name]
-            gen_result = await run_generation(cfg, args.output)
+            gen_result = await run_generation(cfg, args.output, skip_entity_extract=args.skip_entity_extract)
             print(f"  {cfg['name']}: {gen_result['total']} gen, citations={gen_result['has_citations']}/{gen_result['total']}, faithful={gen_result['faithful_rate']:.0%}")
 
     if args.output == "json":
