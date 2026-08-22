@@ -1,0 +1,63 @@
+{
+  "baseline_id": "gate-c-evidence-integrity-w8-p1",
+  "gate": "Gate C",
+  "schema_version": "1.0.0",
+  "created_for": "W8 P1 EvidenceMatcher False-Positive Characterization",
+  "ground_truth_policy": "frozen_in_cases_not_matcher_snapshot",
+  "notes": [
+    "This manifest freezes harness expectations, not matcher quality.",
+    "Do not rewrite IntegrityCase.expected_* to match buggy covered outputs.",
+    "W8 P0 historical rates remain authoritative for trajectory research."
+  ],
+  "w8_p0_historical": {
+    "master": "dabec723d883d57dd1db5b5b56301c79749dba62",
+    "f2_case_id": "F2",
+    "end_to_end_success_rate": 0.875,
+    "safe_termination_rate": 1.0,
+    "system_saved_rate": 0.125,
+    "unrecovered_model_failure_rate": 0.0,
+    "local_agent_capability": "CONDITIONAL",
+    "runtime_rollout_ready": false
+  },
+  "matcher_audit_snapshot": {
+    "algorithm": "deterministic lexical token overlap",
+    "support_overlap_threshold": 0.45,
+    "partial_overlap_threshold": 0.22,
+    "negation_heuristic": true,
+    "semantic_signal": false
+  },
+  "f2_reproduction": {
+    "case_ids": ["F2_W8_REPRO", "F2_W8_REPRO_X2"],
+    "evidence_source": "EXCERPT_UNRELATED from local_agent_trajectory.cases",
+    "expected_stable": true,
+    "threshold_behavior": "above_support",
+    "root_cause_layer": "MATCHER"
+  },
+  "min_case_count": 20,
+  "max_case_count": 40,
+  "required_categories": [
+    "exact_support",
+    "keyword_overlap",
+    "wrong_value",
+    "negation",
+    "entity_mismatch",
+    "temporal_mismatch",
+    "scope_mismatch",
+    "partial_support",
+    "paraphrase",
+    "distractor",
+    "conflict",
+    "no_evidence",
+    "f2_repro"
+  ],
+  "characterization_floors": {
+    "coverage_false_positive_rate_min": 0.5,
+    "comment": "Informational floor proving Gate C detects F2-class risk; not a quality target."
+  },
+  "ci_policy": {
+    "assert_harness_integrity": true,
+    "assert_f2_reproduced": true,
+    "assert_matcher_precision_gate": false,
+    "assert_no_matcher_code_change": true
+  }
+}
