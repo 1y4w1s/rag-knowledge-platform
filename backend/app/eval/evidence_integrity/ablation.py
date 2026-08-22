@@ -82,16 +82,16 @@ def _match_for_candidate(
     *,
     only_uncovered: bool,
 ) -> MatchResult:
-    if spec.use_product_deterministic:
-        return baseline_match(facts, snippets, only_uncovered=only_uncovered)
-    assert spec.relation_fn is not None
-    return eval_match(
-        facts,
-        snippets,
-        spec.relation_fn,
-        only_uncovered=only_uncovered,
-        source=f"eval_{spec.candidate_id.lower()}",
-    )
+    if spec.relation_fn is not None:
+        return eval_match(
+            facts,
+            snippets,
+            spec.relation_fn,
+            only_uncovered=only_uncovered,
+            source=f"eval_{spec.candidate_id.lower()}",
+        )
+    assert spec.use_product_deterministic
+    return baseline_match(facts, snippets, only_uncovered=only_uncovered)
 
 
 def run_case_with_candidate(
