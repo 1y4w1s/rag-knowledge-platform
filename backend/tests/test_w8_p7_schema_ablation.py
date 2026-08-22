@@ -1,4 +1,4 @@
-"""W8 P7 Schema Remediation P0 offline ablation — deterministic Gate H tests."""
+"""W8 P7 Schema Remediation P0/P0b offline ablation — deterministic Gate H tests."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from app.eval.schema_ablation.dataset import (
 from app.eval.contract_validity.schema_baseline import schema_characterization_baseline
 from app.eval.schema_ablation.candidates import (
     CandidateKind,
+    apply_duplicate_consistent_canonicalization,
     apply_narrow_canonicalization,
     decode_llm_json,
     evaluate_candidate,
@@ -52,13 +53,21 @@ def test_target_fixture_lineage_nine_cases() -> None:
         assert strict.error == "invalid_action"
 
 
+def test_failure_shape_one_missing_eight_duplicate() -> None:
+    report = run_schema_ablation()
+    shape = report.dataset["failure_shape"]
+    assert shape["missing_tool_name"] == 1
+    assert shape["duplicate_consistent_tool_name"] == 8
+    assert shape["conflicting_tool_name"] == 0
+
+
 def test_strict_baseline_does_not_recover_targets() -> None:
     report = run_schema_ablation()
     assert report.strict.target_recovered_count == 0
     assert report.strict.target_failure_count == 9
 
 
-def test_candidate_a_only_exact_allowed_tool_without_tool_name() -> None:
+def test_candidate_a1_only_exact_allowed_tool_without_tool_name() -> None:
     inventory = frozen_tool_inventory(external_tools_enabled=False)
     obj = {"action": "semantic_search", "args": {"query": "x"}, "reason_code": "t"}
     patched, applied = apply_narrow_canonicalization(obj, inventory)
@@ -83,37 +92,94 @@ def test_candidate_a_only_exact_allowed_tool_without_tool_name() -> None:
     assert applied_dup is False
 
 
-def test_narrow_recovers_only_gq132_from_real_targets() -> None:
+def test_a1_recovers_only_gq132_from_real_targets() -> None:
     report = run_schema_ablation()
     assert report.narrow.target_recovered_count == 1
-    recovered = [r for r in report.target_failure_reports if r.result == "RECOVERED"]
-    assert len(recovered) == 1
-    assert recovered[0].case_id == "GQ-132"
+    inventory = frozen_tool_inventory()
+    targets = load_target_failures()
+    gq132 = next(t for t in targets if t.case_id == "GQ-132")
+    out132 = evaluate_candidate(
+        gq132.raw_output, kind=CandidateKind.narrow, inventory=inventory
+    )
+    assert out132.parse_ok is True
+    gq98 = next(t for t in targets if t.case_id == "GQ-98")
+    out98 = evaluate_candidate(gq98.raw_output, kind=CandidateKind.narrow, inventory=inventory)
+    assert out98.parse_ok is False
 
 
-def test_valid_passthrough_semantic_preservation() -> None:
+def test_a2_recovers_missing_tool_name_target() -> None:
+    inventory = frozen_tool_inventory()
+    targets = load_target_failures()
+    gq132 = next(t for t in targets if t.case_id == "GQ-132")
+    out = evaluate_candidate(
+        gq132.raw_output,
+        kind=CandidateKind.duplicate_consistent,
+        inventory=inventory,
+    )
+    assert out.repair_applied is True
+    assert out.parse_ok is True
+    assert out.decision is not None
+    assert out.decision["action"] == "tool"
+    assert out.decision["tool_name"] == "list_knowledge_bases"
+
+
+def test_a2_recovers_duplicate_consistent_target() -> None:
+    inventory = frozen_tool_inventory()
+    dup_raw = (
+        '```json\n{"action":"search_documents","tool_name":"search_documents",'
+        '"args":{"query":"x"},"reason_code":"initial_retrieval"}\n```'
+    )
+    out = evaluate_candidate(
+        dup_raw,
+        kind=CandidateKind.duplicate_consistent,
+        inventory=inventory,
+    )
+    assert out.repair_applied is True
+    assert out.parse_ok is True
+    assert out.decision is not None
+    assert out.decision["action"] == "tool"
+    assert out.decision["tool_name"] == "search_documents"
+
+
+def test_a2_recovers_all_nine_real_targets() -> None:
     report = run_schema_ablation()
-    assert report.narrow.valid_passthrough_count >= 30
-    assert report.narrow.valid_passthrough_preserved == report.narrow.valid_passthrough_count
-    assert report.narrow.valid_passthrough_rate == 1.0
+    a2 = report.duplicate_consistent
+    assert a2.target_recovered_count == 9
+    assert a2.missing_tool_recovered_count == 1
+    assert a2.duplicate_recovered_count == 8
+    assert all(r.result == "RECOVERED" for r in report.target_failure_reports)
 
 
-def test_unknown_action_and_typo_not_repaired() -> None:
+def test_a2_valid_passthrough_semantic_preservation() -> None:
+    report = run_schema_ablation()
+    a2 = report.duplicate_consistent
+    assert a2.valid_passthrough_count >= 30
+    assert a2.valid_passthrough_preserved == a2.valid_passthrough_count
+    assert a2.valid_passthrough_rate == 1.0
+
+
+def test_unknown_action_and_typo_not_repaired_by_a2() -> None:
     inventory = frozen_tool_inventory()
     for raw in (
         '{"action":"unknown_tool","args":{"query":"x"}}',
         '{"action":"semantic_seach","args":{"query":"x"}}',
+        json.dumps(
+            {"action": "unknown_tool", "tool_name": "unknown_tool", "args": {"query": "x"}},
+        ),
+        json.dumps(
+            {"action": "semantic_seach", "tool_name": "semantic_seach", "args": {"query": "x"}},
+        ),
     ):
         out = evaluate_candidate(
             raw,
-            kind=CandidateKind.narrow,
+            kind=CandidateKind.duplicate_consistent,
             inventory=inventory,
         )
         assert out.parse_ok is False
         assert out.repair_applied is False
 
 
-def test_conflicting_tool_name_not_repaired() -> None:
+def test_conflicting_tool_name_not_repaired_by_a2() -> None:
     inventory = frozen_tool_inventory()
     raw = json.dumps(
         {
@@ -122,59 +188,104 @@ def test_conflicting_tool_name_not_repaired() -> None:
             "args": {"query": "x"},
         }
     )
-    out = evaluate_candidate(raw, kind=CandidateKind.narrow, inventory=inventory)
+    out = evaluate_candidate(raw, kind=CandidateKind.duplicate_consistent, inventory=inventory)
     assert out.parse_ok is False
     assert out.repair_applied is False
 
 
-def test_missing_required_args_not_valid_after_repair() -> None:
+def test_duplicate_invalid_args_canonicalized_but_rejected() -> None:
     inventory = frozen_tool_inventory()
-    raw = json.dumps({"action": "semantic_search", "args": {}})
-    out = evaluate_candidate(raw, kind=CandidateKind.narrow, inventory=inventory)
+    raw = json.dumps(
+        {
+            "action": "search_documents",
+            "tool_name": "search_documents",
+            "args": {},
+        }
+    )
+    obj, _ = decode_llm_json(raw)
+    assert obj is not None
+    patched, applied = apply_duplicate_consistent_canonicalization(obj, inventory)
+    assert applied is True
+    assert patched["action"] == "tool"
+    out = evaluate_candidate(
+        raw,
+        kind=CandidateKind.duplicate_consistent,
+        inventory=inventory,
+    )
+    assert out.repair_applied is True
     assert out.parse_ok is False
 
 
-def test_malformed_json_still_fails() -> None:
+def test_duplicate_wrong_arg_types_rejected_by_a2() -> None:
     inventory = frozen_tool_inventory()
-    out = evaluate_candidate("{not json", kind=CandidateKind.narrow, inventory=inventory)
+    raw = json.dumps(
+        {
+            "action": "search_documents",
+            "tool_name": "search_documents",
+            "args": {"query": 0},
+        }
+    )
+    out = evaluate_candidate(raw, kind=CandidateKind.duplicate_consistent, inventory=inventory)
+    assert out.repair_applied is True
+    assert out.parse_ok is False
+
+
+def test_out_of_scope_duplicate_not_repaired_by_a2() -> None:
+    inventory = frozen_tool_inventory()
+    raw = json.dumps(
+        {
+            "action": "grep_in_document",
+            "tool_name": "grep_in_document",
+            "args": {"document_id": "d", "pattern": "p"},
+        }
+    )
+    out = evaluate_candidate(raw, kind=CandidateKind.duplicate_consistent, inventory=inventory)
     assert out.parse_ok is False
     assert out.repair_applied is False
 
 
-def test_finish_clarify_refuse_unaffected() -> None:
+def test_malformed_json_still_fails_a2() -> None:
+    inventory = frozen_tool_inventory()
+    out = evaluate_candidate(
+        "{not json",
+        kind=CandidateKind.duplicate_consistent,
+        inventory=inventory,
+    )
+    assert out.parse_ok is False
+    assert out.repair_applied is False
+
+
+def test_finish_clarify_refuse_unaffected_by_a2() -> None:
     inventory = frozen_tool_inventory()
     for raw in (
         '{"action":"finish","reason_code":"done"}',
         '{"action":"clarify","reason_code":"ambiguous","user_message":"?"}',
         '{"action":"refuse","reason_code":"unsupported"}',
+        json.dumps({"action": "finish", "tool_name": "finish", "reason_code": "done"}),
+        json.dumps(
+            {
+                "action": "clarify",
+                "tool_name": "clarify",
+                "reason_code": "ambiguous",
+                "user_message": "?",
+            },
+        ),
+        json.dumps({"action": "refuse", "tool_name": "refuse", "reason_code": "unsupported"}),
     ):
         strict = evaluate_strict(raw)
-        narrow = evaluate_candidate(
+        a2 = evaluate_candidate(
             raw,
-            kind=CandidateKind.narrow,
+            kind=CandidateKind.duplicate_consistent,
             inventory=inventory,
             strict_baseline=strict,
         )
         assert strict.parse_ok is True
-        assert narrow.parse_ok is True
-        assert narrow.repair_applied is False
-        assert narrow.decision == strict.decision
+        assert a2.parse_ok is True
+        assert a2.repair_applied is False
+        assert a2.decision == strict.decision
 
 
-def test_out_of_scope_dependent_tool_not_repaired() -> None:
-    inventory = frozen_tool_inventory()
-    raw = json.dumps(
-        {
-            "action": "grep_in_document",
-            "args": {"document_id": "d", "pattern": "p"},
-        }
-    )
-    out = evaluate_candidate(raw, kind=CandidateKind.narrow, inventory=inventory)
-    assert out.parse_ok is False
-    assert out.repair_applied is False
-
-
-def test_narrow_only_mutates_action_and_tool_name_fields() -> None:
+def test_a2_only_mutates_action_and_tool_name_fields() -> None:
     inventory = frozen_tool_inventory()
     raw = json.dumps(
         {
@@ -184,18 +295,26 @@ def test_narrow_only_mutates_action_and_tool_name_fields() -> None:
     )
     obj, _ = decode_llm_json(raw)
     assert obj is not None
-    patched, applied = apply_narrow_canonicalization(obj, inventory)
+    patched, applied = apply_duplicate_consistent_canonicalization(obj, inventory)
     assert applied is True
     for key in ("reason_code", "args", "user_message"):
         assert patched.get(key) == obj.get(key)
 
 
-def test_narrow_zero_false_repair_on_hard_negatives() -> None:
+def test_a2_zero_false_repair_on_hard_negatives() -> None:
+    report = run_schema_ablation()
+    a2 = report.duplicate_consistent
+    assert a2.false_repair_count == 0
+    assert a2.unknown_tool_accept_count == 0
+    assert a2.conflict_accept_count == 0
+    assert a2.out_of_scope_tool_accept_count == 0
+    assert a2.invalid_arguments_accept_count == 0
+    assert a2.non_tool_action_mutation_count == 0
+
+
+def test_a1_zero_false_repair_on_hard_negatives() -> None:
     report = run_schema_ablation()
     assert report.narrow.false_repair_count == 0
-    assert report.narrow.unknown_tool_accept_count == 0
-    assert report.narrow.conflict_accept_count == 0
-    assert report.narrow.out_of_scope_tool_accept_count == 0
 
 
 def test_broad_control_high_recovery_but_unsafe() -> None:
@@ -209,7 +328,7 @@ def test_parser_failure_layer_documented() -> None:
     assert len(PARSER_CONTRACT_CHAIN) >= 8
 
 
-def test_ablation_report_gate_h_partial() -> None:
+def test_ablation_report_gate_h_pass_with_a2() -> None:
     payload = build_schema_ablation_report(
         repo_root=Path(__file__).resolve().parents[1]
     )
@@ -217,25 +336,39 @@ def test_ablation_report_gate_h_partial() -> None:
     assert payload["product_diff"] == 0
     assert payload["golden_diff"] == 0
     assert payload["raw_target_lineage"] == "VALID"
-    assert payload["recommendation"]["recommended_fix"] == "NARROW_CANONICALIZATION"
-    assert payload["recommendation"]["status"] == "PARTIAL"
+    assert payload["failure_shape"]["missing_tool_name"] == 1
+    assert payload["failure_shape"]["duplicate_consistent_tool_name"] == 8
+    assert payload["recommendation"]["recommended_fix"] == "DUPLICATE_CONSISTENT_CANONICALIZATION"
+    assert payload["recommendation"]["status"] == "RECOMMENDED_FOR_PRODUCT_IMPLEMENTATION"
     assert payload["recommendation"]["safety"] == "PASS"
-    assert payload["gate_h"]["gate_h"] == "PARTIAL"
-    assert payload["gate_h"]["ready_for_schema_product_implementation"] is False
+    assert payload["gate_h"]["gate_h"] == "PASS"
+    assert payload["gate_h"]["w8_p7_p0b"] == "PASS"
+    assert payload["gate_h"]["ready_for_schema_product_implementation"] is True
+    assert payload["gate_h"]["ready_for_prompt_ablation"] is False
+    a2 = payload["OFFLINE_A2_RESULT"]
+    assert a2["target_recovered_count"] == 9
+    assert a2["valid_passthrough_rate"] == 1.0
+    assert a2["false_repair_count"] == 0
 
 
-def test_hard_negative_count_at_least_eighteen() -> None:
-    assert len(build_hard_negatives()) >= 18
+def test_hard_negative_count_at_least_thirty() -> None:
+    assert len(build_hard_negatives()) >= 30
 
 
-def test_p5_duplicate_tool_name_targets_fail_narrow() -> None:
-    """Eight P5 failures set both action and tool_name to the same tool."""
+def test_p5_duplicate_tool_name_targets_fail_a1_but_recover_a2() -> None:
     inventory = frozen_tool_inventory()
     dup_raw = (
         '```json\n{"action":"search_documents","tool_name":"search_documents",'
         '"args":{"query":"x"},"reason_code":"initial_retrieval"}\n```'
     )
-    out = evaluate_candidate(dup_raw, kind=CandidateKind.narrow, inventory=inventory)
-    assert out.repair_applied is False
-    assert out.parse_ok is False
+    a1 = evaluate_candidate(dup_raw, kind=CandidateKind.narrow, inventory=inventory)
+    assert a1.repair_applied is False
+    assert a1.parse_ok is False
     assert parse_agent_decision(dup_raw).error == "invalid_action"
+    a2 = evaluate_candidate(
+        dup_raw,
+        kind=CandidateKind.duplicate_consistent,
+        inventory=inventory,
+    )
+    assert a2.repair_applied is True
+    assert a2.parse_ok is True

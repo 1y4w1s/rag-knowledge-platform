@@ -116,6 +116,39 @@ def apply_narrow_canonicalization(
     return patched, True
 
 
+def apply_duplicate_consistent_canonicalization(
+    obj: dict[str, Any],
+    inventory: ToolInventorySnapshot,
+) -> tuple[dict[str, Any], bool]:
+    """Candidate A2 — duplicate-consistent tool-name canonicalization (eval-only).
+
+    When and only when:
+    1. action is str
+    2. action exactly equals an allowed/exposed tool name
+    3. tool_name missing/null OR tool_name == action (exact duplicate)
+    Transform: action→tool; if tool_name missing/null set tool_name→original action.
+    If tool_name == action, preserve tool_name value.
+    """
+    patched = copy.deepcopy(obj)
+    action_raw = patched.get("action")
+    if not isinstance(action_raw, str):
+        return patched, False
+    if action_raw not in inventory.allowed_tool_names:
+        return patched, False
+
+    if _tool_name_missing_or_null(patched):
+        patched["action"] = "tool"
+        patched["tool_name"] = action_raw
+        return patched, True
+
+    existing = patched.get("tool_name")
+    if isinstance(existing, str) and existing == action_raw:
+        patched["action"] = "tool"
+        return patched, True
+
+    return patched, False
+
+
 def apply_broad_canonicalization(
     obj: dict[str, Any],
     inventory: ToolInventorySnapshot,
@@ -173,6 +206,8 @@ def evaluate_candidate(
 
     if kind == CandidateKind.narrow:
         patched, applied = apply_narrow_canonicalization(obj, inventory)
+    elif kind == CandidateKind.duplicate_consistent:
+        patched, applied = apply_duplicate_consistent_canonicalization(obj, inventory)
     elif kind == CandidateKind.broad:
         patched, applied = apply_broad_canonicalization(obj, inventory)
     else:
@@ -229,7 +264,14 @@ def classify_hard_negative_accept(
         "invalid_arguments_accept": 0,
         "out_of_scope_tool_accept": 0,
     }
-    if dimension in {"finish_action", "clarify_action", "refuse_action"}:
+    if dimension in {
+        "finish_action",
+        "clarify_action",
+        "refuse_action",
+        "duplicate_finish",
+        "duplicate_clarify",
+        "duplicate_refuse",
+    }:
         if (
             outcome.parse_ok
             and outcome.decision
@@ -257,6 +299,9 @@ def classify_hard_negative_accept(
                 "missing_required_args",
                 "wrong_arg_type",
                 "illegal_argument_structure",
+                "duplicate_missing_required_args",
+                "duplicate_wrong_arg_type",
+                "duplicate_malformed_args",
             }:
                 counts["invalid_arguments_accept"] = 1
             return counts
@@ -267,7 +312,14 @@ def classify_hard_negative_accept(
         counts["unknown_tool_accept"] = 1
     if dimension == "conflicting_tool_name":
         counts["conflict_accept"] = 1
-    if dimension in {"missing_required_args", "wrong_arg_type", "illegal_argument_structure"}:
+    if dimension in {
+        "missing_required_args",
+        "wrong_arg_type",
+        "illegal_argument_structure",
+        "duplicate_missing_required_args",
+        "duplicate_wrong_arg_type",
+        "duplicate_malformed_args",
+    }:
         counts["invalid_arguments_accept"] = 1
     if dimension == "out_of_scope_dependent_tool":
         counts["out_of_scope_tool_accept"] = 1

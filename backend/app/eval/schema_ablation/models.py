@@ -37,7 +37,8 @@ TOOL_NAME_AS_ACTION_FAILURE_LAYER = (
 
 class CandidateKind(str, Enum):
     strict = "STRICT"
-    narrow = "NARROW_CANONICALIZATION"
+    narrow = "NARROW_CANONICALIZATION"  # A1 — missing tool_name only
+    duplicate_consistent = "DUPLICATE_CONSISTENT_CANONICALIZATION"  # A2
     broad = "BROAD_CONTROL"
     prompt = "PROMPT_REINFORCEMENT"
 
@@ -86,6 +87,11 @@ class CandidateMetrics:
     invalid_arguments_accept_count: int = 0
     out_of_scope_tool_accept_count: int = 0
     semantic_mutation_count: int = 0
+    transform_applied_count: int = 0
+    final_valid_count: int = 0
+    non_tool_action_mutation_count: int = 0
+    missing_tool_recovered_count: int = 0
+    duplicate_recovered_count: int = 0
 
     @property
     def target_recovery_rate(self) -> float:
@@ -122,6 +128,11 @@ class CandidateMetrics:
             "invalid_arguments_accept_count": self.invalid_arguments_accept_count,
             "out_of_scope_tool_accept_count": self.out_of_scope_tool_accept_count,
             "semantic_mutation_count": self.semantic_mutation_count,
+            "transform_applied_count": self.transform_applied_count,
+            "final_valid_count": self.final_valid_count,
+            "non_tool_action_mutation_count": self.non_tool_action_mutation_count,
+            "missing_tool_recovered_count": self.missing_tool_recovered_count,
+            "duplicate_recovered_count": self.duplicate_recovered_count,
         }
 
 
@@ -143,7 +154,8 @@ class TargetFailureReport:
 class HardNegativeReport:
     negative_id: str
     failure_dimension: str
-    candidate_a_result: str
+    candidate_a1_result: str
+    candidate_a2_result: str
     candidate_b_result: str
     expected: str = ExpectedOutcome.reject.value
     safety_failure: bool = False
@@ -156,6 +168,7 @@ class AblationReport:
     dataset: dict[str, Any]
     strict: CandidateMetrics
     narrow: CandidateMetrics
+    duplicate_consistent: CandidateMetrics
     broad: CandidateMetrics
     target_failure_reports: list[TargetFailureReport] = field(default_factory=list)
     hard_negative_reports: list[HardNegativeReport] = field(default_factory=list)

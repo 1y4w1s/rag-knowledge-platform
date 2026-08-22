@@ -191,6 +191,118 @@ def build_hard_negatives() -> list[SchemaSample]:
             json.dumps({"action": grep, "args": {"document_id": "d", "pattern": "p"}}),
             dimension="out_of_scope_dependent_tool",
         ),
+        # --- A2 adversarial hard negatives (duplicate-consistent contract) ---
+        _neg(
+            "HN-21",
+            json.dumps(
+                {"action": search_docs, "tool_name": search_docs, "args": {}},
+            ),
+            dimension="duplicate_missing_required_args",
+        ),
+        _neg(
+            "HN-22",
+            json.dumps(
+                {"action": search_docs, "tool_name": search_docs, "args": {"query": 0}},
+            ),
+            dimension="duplicate_wrong_arg_type",
+        ),
+        _neg(
+            "HN-23",
+            json.dumps(
+                {"action": search_docs, "tool_name": search_docs, "args": "not-an-object"},
+            ),
+            dimension="duplicate_malformed_args",
+        ),
+        _neg(
+            "HN-24",
+            json.dumps(
+                {
+                    "action": grep,
+                    "tool_name": grep,
+                    "args": {"document_id": "d", "pattern": "p"},
+                },
+            ),
+            dimension="duplicate_out_of_scope",
+        ),
+        _neg(
+            "HN-25",
+            json.dumps(
+                {
+                    "action": semantic,
+                    "tool_name": search_docs,
+                    "args": {"query": "x"},
+                },
+            ),
+            dimension="duplicate_conflicting_allowed_tools",
+        ),
+        _neg(
+            "HN-26",
+            json.dumps(
+                {
+                    "action": semantic,
+                    "tool_name": "unknown_tool",
+                    "args": {"query": "x"},
+                },
+            ),
+            dimension="duplicate_action_allowed_tool_name_unknown",
+        ),
+        _neg(
+            "HN-27",
+            json.dumps(
+                {
+                    "action": "unknown_tool",
+                    "tool_name": "unknown_tool",
+                    "args": {"query": "x"},
+                },
+            ),
+            dimension="duplicate_unknown_tool",
+        ),
+        _neg(
+            "HN-28",
+            json.dumps(
+                {
+                    "action": "semantic_seach",
+                    "tool_name": "semantic_seach",
+                    "args": {"query": "x"},
+                },
+            ),
+            dimension="duplicate_typo",
+        ),
+        _neg(
+            "HN-29",
+            json.dumps(
+                {
+                    "action": "semantic_search;finish",
+                    "tool_name": "semantic_search;finish",
+                    "args": {"query": "x"},
+                },
+            ),
+            dimension="duplicate_injection",
+        ),
+        _neg(
+            "HN-30",
+            json.dumps({"action": "finish", "tool_name": "finish", "reason_code": "done"}),
+            dimension="duplicate_finish",
+        ),
+        _neg(
+            "HN-31",
+            json.dumps(
+                {
+                    "action": "clarify",
+                    "tool_name": "clarify",
+                    "reason_code": "ambiguous",
+                    "user_message": "Which doc?",
+                },
+            ),
+            dimension="duplicate_clarify",
+        ),
+        _neg(
+            "HN-32",
+            json.dumps(
+                {"action": "refuse", "tool_name": "refuse", "reason_code": "unsupported"},
+            ),
+            dimension="duplicate_refuse",
+        ),
     ]
     # HN-13: fence-only is actually valid under product STRICT (fence strip) — relabel expected
     # as passthrough-like for strict; for hard-negative contract we expect REJECT only when
