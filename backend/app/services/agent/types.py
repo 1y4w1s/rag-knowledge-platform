@@ -136,6 +136,7 @@ class DecisionParseResult:
     decision: AgentDecision | None = None
     error: str | None = None
     llm_raw: str | None = None
+    canonicalization_applied: bool = False
 
 
 @dataclass(frozen=True, slots=True)
