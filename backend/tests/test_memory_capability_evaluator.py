@@ -174,8 +174,12 @@ def test_golden_memory4_audit_four_cases() -> None:
 def test_runtime_mapping_documents_l3_observability_gap() -> None:
     audit = runtime_mapping_audit()
     assert audit["l3_observability_gap"]["gap_id"] == "L3_OBSERVABILITY_GAP"
+    assert audit["l3_observability_gap"].get("status") == "CONFIRMED"
     assert audit["product_code_modified"] is False
-    assert len(audit["pipeline"]) == 4
+    stages = [stage["stage"] for stage in audit["pipeline"]]
+    assert "L3_EXPOSE_BOUNDARY" in stages
+    assert "L2_LOAD" in stages
+    assert len(audit["pipeline"]) >= 4
 
 
 def test_denominator_integrity_unloaded_excludes_l3_l4() -> None:

@@ -18,14 +18,32 @@ RUNTIME_MEMORY_PIPELINE: tuple[dict[str, str], ...] = (
         "observable": "list[AgentMemory] returned to runtime",
     },
     {
-        "stage": "L3_EXPOSE",
-        "location": "backend/app/services/agent/memory.py::format_memory_context",
-        "mechanism": "Formatted bullet list injected into planner prompt prefix",
-        "observable": "planner._memory_context string; init_agent_state(memory_context=...)",
+        "stage": "L3_EXPOSE_PREP",
+        "location": "backend/app/services/agent/memory.py::format_memory_context + runtime assign",
+        "mechanism": (
+            "Formatted bullet list stored on planner._memory_context / "
+            "init_agent_state(memory_context=...) — NOT yet model-visible"
+        ),
+        "observable": "planner._memory_context string; AgentState.memory_context",
+    },
+    {
+        "stage": "L3_EXPOSE_BOUNDARY",
+        "location": (
+            "backend/app/services/agent/planners.py::"
+            "LLMPlanner._call_llm_for_plan / NextActionPlanner._call_llm"
+        ),
+        "mechanism": (
+            "Non-empty _memory_context appended as memory_block into prompt, "
+            "then passed to llm_complete_with_usage — TRUE model-visible exposure"
+        ),
+        "observable": (
+            "prompt content at LLM call; currently NO structured MemoryExposureEvent "
+            "(see exposure_audit.py / MemoryExposureEvent contract)"
+        ),
     },
     {
         "stage": "L4_CONSUME",
-        "location": "backend/app/services/agent/planners.py (LLMPlanner.decide_next / next_tool_call)",
+        "location": "backend/app/services/agent/planners.py (LLMPlanner / NextActionPlanner)",
         "mechanism": "Memory block appended to system/user prompt; no dedicated memory tool",
         "observable": "Model output / tool args only — no structured utilization trace",
     },
@@ -33,18 +51,23 @@ RUNTIME_MEMORY_PIPELINE: tuple[dict[str, str], ...] = (
 
 L3_OBSERVABILITY_GAP: dict[str, Any] = {
     "gap_id": "L3_OBSERVABILITY_GAP",
+    "status": "CONFIRMED",
     "description": (
-        "Runtime exposes memory via planner._memory_context string injection but does not "
-        "emit a structured trace event confirming which memory keys reached the model context "
-        "at each decide step."
+        "Runtime exposes memory at planner prompt assembly but does not "
+        "emit a structured MemoryExposureEvent confirming which memory hashes reached "
+        "the model context at each decide step."
     ),
     "impact": (
-        "L3_EXPOSED can be verified in unit/integration tests that inspect planner state, "
-        "but production trajectories lack a first-class observability hook for exposure audit."
+        "L3_EXPOSED can be verified in unit/integration tests that inspect planner state "
+        "or fixture exposed_context strings, but trajectories lack a first-class "
+        "observability hook for machine-provable exposure audit."
     ),
     "workaround_for_eval": (
-        "Deterministic evaluator accepts explicit exposed_context input from fixtures or "
-        "test harness captures of planner._memory_context — no product instrumentation added."
+        "Deterministic evaluator accepts explicit exposed_context OR MemoryExposureEvent "
+        "fixtures (l3_exposed_from_events) — no product instrumentation in this task."
+    ),
+    "true_boundary": (
+        "planners.py LLMPlanner._call_llm_for_plan / NextActionPlanner._call_llm"
     ),
     "no_memory_tool": True,
     "forbidden_taxonomy": "MODEL_IGNORES_MEMORY_TOOL",
