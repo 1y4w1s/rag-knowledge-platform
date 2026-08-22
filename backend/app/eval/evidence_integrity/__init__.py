@@ -9,10 +9,19 @@ from app.eval.evidence_integrity.cases import gate_c_cases
 from app.eval.evidence_integrity.runner import build_report, reproduce_f2, run_suite
 from app.eval.evidence_integrity.schema import SCHEMA_VERSION
 
+try:
+    from app.eval.evidence_integrity.ablation import run_ablation
+    from app.eval.evidence_integrity.candidates import CANDIDATES
+except ImportError:  # pragma: no cover
+    run_ablation = None  # type: ignore[assignment,misc]
+    CANDIDATES = ()  # type: ignore[assignment,misc]
+
 __all__ = [
     "SCHEMA_VERSION",
     "build_report",
     "gate_c_cases",
     "reproduce_f2",
     "run_suite",
+    "run_ablation",
+    "CANDIDATES",
 ]
