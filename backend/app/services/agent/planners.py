@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import re
 from enum import Enum
+from collections.abc import Collection
 from typing import Any
 from uuid import UUID
 
@@ -1279,7 +1280,45 @@ def _strip_llm_json_fence(llm_raw: str) -> str:
     return raw.strip("`").strip()
 
 
-def parse_agent_decision(llm_raw: str) -> DecisionParseResult:
+def _tool_name_missing_or_null(parsed: dict[str, Any]) -> bool:
+    if "tool_name" not in parsed:
+        return True
+    return parsed.get("tool_name") is None
+
+
+def _apply_duplicate_consistent_canonicalization(
+    parsed: dict[str, Any],
+    exposed_tool_names: frozenset[str],
+) -> bool:
+    """Repair TOOL_NAME_AS_ACTION when action duplicates an exposed tool name.
+
+    Only when tool_name is missing/null or exactly equals action. Mutates ``parsed``
+    in place. Returns True if canonicalization was applied.
+    """
+    action_raw = parsed.get("action")
+    if not isinstance(action_raw, str):
+        return False
+    if action_raw not in exposed_tool_names:
+        return False
+
+    if _tool_name_missing_or_null(parsed):
+        parsed["action"] = "tool"
+        parsed["tool_name"] = action_raw
+        return True
+
+    existing = parsed.get("tool_name")
+    if isinstance(existing, str) and existing == action_raw:
+        parsed["action"] = "tool"
+        return True
+
+    return False
+
+
+def parse_agent_decision(
+    llm_raw: str,
+    *,
+    exposed_tool_names: Collection[str] | None = None,
+) -> DecisionParseResult:
     """解析 LLM 返回的**单对象** JSON → AgentDecision（纯函数，无 I/O）。
 
     与 parse_and_validate（序列）相对：禁止 list；只接受 dict。
@@ -1298,42 +1337,87 @@ def parse_agent_decision(llm_raw: str) -> DecisionParseResult:
     if not isinstance(parsed, dict):
         return DecisionParseResult(ok=False, error="parse_error", llm_raw=llm_raw)
 
+    canonicalization_applied = False
+    if exposed_tool_names is not None:
+        exposed = frozenset(exposed_tool_names)
+        canonicalization_applied = _apply_duplicate_consistent_canonicalization(
+            parsed, exposed
+        )
+
     action_raw = parsed.get("action")
     if not isinstance(action_raw, str):
-        return DecisionParseResult(ok=False, error="invalid_action", llm_raw=llm_raw)
+        return DecisionParseResult(
+            ok=False,
+            error="invalid_action",
+            llm_raw=llm_raw,
+            canonicalization_applied=canonicalization_applied,
+        )
     try:
         action = AgentActionKind(action_raw)
     except ValueError:
-        return DecisionParseResult(ok=False, error="invalid_action", llm_raw=llm_raw)
+        return DecisionParseResult(
+            ok=False,
+            error="invalid_action",
+            llm_raw=llm_raw,
+            canonicalization_applied=canonicalization_applied,
+        )
 
     tool_name = parsed.get("tool_name")
     if tool_name is not None and not isinstance(tool_name, str):
-        return DecisionParseResult(ok=False, error="parse_error", llm_raw=llm_raw)
+        return DecisionParseResult(
+            ok=False,
+            error="parse_error",
+            llm_raw=llm_raw,
+            canonicalization_applied=canonicalization_applied,
+        )
 
     args = parsed.get("args", {})
     if args is None:
         args = {}
     if not isinstance(args, dict):
-        return DecisionParseResult(ok=False, error="parse_error", llm_raw=llm_raw)
+        return DecisionParseResult(
+            ok=False,
+            error="parse_error",
+            llm_raw=llm_raw,
+            canonicalization_applied=canonicalization_applied,
+        )
 
     reason_code = parsed.get("reason_code", "")
     if reason_code is None:
         reason_code = ""
     if not isinstance(reason_code, str):
-        return DecisionParseResult(ok=False, error="parse_error", llm_raw=llm_raw)
+        return DecisionParseResult(
+            ok=False,
+            error="parse_error",
+            llm_raw=llm_raw,
+            canonicalization_applied=canonicalization_applied,
+        )
 
     user_message = parsed.get("user_message")
     if user_message is not None and not isinstance(user_message, str):
-        return DecisionParseResult(ok=False, error="parse_error", llm_raw=llm_raw)
+        return DecisionParseResult(
+            ok=False,
+            error="parse_error",
+            llm_raw=llm_raw,
+            canonicalization_applied=canonicalization_applied,
+        )
 
     if action == AgentActionKind.tool:
         if not tool_name:
             return DecisionParseResult(
-                ok=False, error="missing_tool_name", llm_raw=llm_raw
+                ok=False,
+                error="missing_tool_name",
+                llm_raw=llm_raw,
+                canonicalization_applied=canonicalization_applied,
             )
         arg_err = _validate_tool_args(tool_name, args)
         if arg_err is not None:
-            return DecisionParseResult(ok=False, error="invalid_args", llm_raw=llm_raw)
+            return DecisionParseResult(
+                ok=False,
+                error="invalid_args",
+                llm_raw=llm_raw,
+                canonicalization_applied=canonicalization_applied,
+            )
     else:
         # finish / clarify / refuse：不携带可执行 tool
         tool_name = None
@@ -1349,6 +1433,7 @@ def parse_agent_decision(llm_raw: str) -> DecisionParseResult:
             user_message=user_message,
         ),
         llm_raw=llm_raw,
+        canonicalization_applied=canonicalization_applied,
     )
 
 
@@ -1569,4 +1654,5 @@ class NextActionPlanner:
             return DecisionParseResult(
                 ok=False, error="empty_output", llm_raw=llm_raw
             )
-        return parse_agent_decision(llm_raw)
+        exposed = frozenset(s.name for s in tool_specs)
+        return parse_agent_decision(llm_raw, exposed_tool_names=exposed)
