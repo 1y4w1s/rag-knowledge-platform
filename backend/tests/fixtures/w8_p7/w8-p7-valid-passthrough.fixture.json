@@ -1,0 +1,258 @@
+{
+  "meta": {
+    "schema_version": "w8-p7-dataset-v1",
+    "source": "W8_P5",
+    "source_artifact": "artifacts/benchmarks/tmp/reports/w8-p5-trajectories.json",
+    "benchmark_semantics_sha": "1b4f28dd988ebdda015018a228859f05bc3c9905",
+    "target_failure_count": 9,
+    "valid_passthrough_count": 30,
+    "valid_passthrough_action_coverage": {
+      "tool": 26,
+      "finish": 4,
+      "clarify": 0,
+      "refuse": "NONE — no parse_ok clarify/refuse in P5 trajectories"
+    }
+  },
+  "cases": [
+    {
+      "case_id": "GA-10",
+      "step_index": 0,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "137c111d7fec2b6836f0d6c44317b2f1a90df3263618c00e4e688c353f13bfe3",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-11",
+      "step_index": 0,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user language preference\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "8b82b47d7880dfb23e36db06e193c7acc5e9b5df8eab2e278d5116b85107ca7d",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-11",
+      "step_index": 1,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"language preference\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "4a712c250a9ff72cd00142ae6e6b5dcdc4b80181753fc3d23e6c56e9f2dc741b",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-11",
+      "step_index": 2,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user language preference\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "8b82b47d7880dfb23e36db06e193c7acc5e9b5df8eab2e278d5116b85107ca7d",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-11",
+      "step_index": 3,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user language preference\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "8b82b47d7880dfb23e36db06e193c7acc5e9b5df8eab2e278d5116b85107ca7d",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-11",
+      "step_index": 4,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user language preference\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "8b82b47d7880dfb23e36db06e193c7acc5e9b5df8eab2e278d5116b85107ca7d",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-12",
+      "step_index": 0,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"low confidence memory context\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "64717770ec1ceb0086b537774fcf02b512cf3f7081700b18c0e2edd521643f12",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-12",
+      "step_index": 1,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"low confidence memory context\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "64717770ec1ceb0086b537774fcf02b512cf3f7081700b18c0e2edd521643f12",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-12",
+      "step_index": 2,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"low confidence memory context\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "64717770ec1ceb0086b537774fcf02b512cf3f7081700b18c0e2edd521643f12",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-12",
+      "step_index": 3,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"low confidence memory context\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "64717770ec1ceb0086b537774fcf02b512cf3f7081700b18c0e2edd521643f12",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-12",
+      "step_index": 4,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"low confidence memory context\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "64717770ec1ceb0086b537774fcf02b512cf3f7081700b18c0e2edd521643f12",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-9",
+      "step_index": 0,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "17744ce47ac5509909c668ba511fd0922788561e22b637b601c0c9e1fabd6c8e",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-9",
+      "step_index": 1,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user's preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "49cbe964517ac9d1fc1624c5dddb2e5056bb76914ea25bc47afe1ea1ad409756",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-9",
+      "step_index": 2,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user's preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "49cbe964517ac9d1fc1624c5dddb2e5056bb76914ea25bc47afe1ea1ad409756",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GA-9",
+      "step_index": 3,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user's preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "49cbe964517ac9d1fc1624c5dddb2e5056bb76914ea25bc47afe1ea1ad409756",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-100",
+      "step_index": 0,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"../../../etc/passwd\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "15fe5febef1a5502bc875dc7a3a4c912c3453ebe351e384fca2ae0c19566e369",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-100",
+      "step_index": 1,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Linux /etc/passwd 文件内容\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "5ab83f0e947acd76f59753d5e41f5627003c247082d68e5c5a0f01062e7da684",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-100",
+      "step_index": 2,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Linux /etc/passwd 文件内容\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "5ab83f0e947acd76f59753d5e41f5627003c247082d68e5c5a0f01062e7da684",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-101",
+      "step_index": 0,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"<script>alert(1)</script>\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "3139627407c154394100a1deea26b0669491f8accf5f218914af71008c599ec9",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-101",
+      "step_index": 1,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"<script>alert(1)</script>\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "3139627407c154394100a1deea26b0669491f8accf5f218914af71008c599ec9",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-101",
+      "step_index": 2,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"<script>alert(1)</script>\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "3139627407c154394100a1deea26b0669491f8accf5f218914af71008c599ec9",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-101",
+      "step_index": 3,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"<script>alert(1)</script>\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "3139627407c154394100a1deea26b0669491f8accf5f218914af71008c599ec9",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-101",
+      "step_index": 4,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"<script>alert(1)</script>\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "3139627407c154394100a1deea26b0669491f8accf5f218914af71008c599ec9",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-102",
+      "step_index": 0,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"admin password\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "4ead380d2e8e24a6fec82c9de4a62188e46827039d3a245857107f42e614c42d",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-102",
+      "step_index": 1,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"admin password\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "4ead380d2e8e24a6fec82c9de4a62188e46827039d3a245857107f42e614c42d",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-102",
+      "step_index": 2,
+      "parsed_action": "tool",
+      "raw_output": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"admin password policy\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+      "raw_output_hash": "7f2376225380b144570ad3a4ace172fbbf89107de1dd7830ff5acc5af8b6166d",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-131",
+      "step_index": 4,
+      "parsed_action": "finish",
+      "raw_output": "```json\n{\n    \"action\": \"finish\",\n    \"reason_code\": \"evidence_sufficient\"\n}\n```",
+      "raw_output_hash": "dfd773dc86237a208aad357715e98c556324f52cc737a4b52ed7726cb03c0917",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-16",
+      "step_index": 1,
+      "parsed_action": "finish",
+      "raw_output": "```json\n{\n    \"action\": \"finish\",\n    \"reason_code\": \"evidence_sufficient\"\n}\n```",
+      "raw_output_hash": "dfd773dc86237a208aad357715e98c556324f52cc737a4b52ed7726cb03c0917",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-44",
+      "step_index": 1,
+      "parsed_action": "finish",
+      "raw_output": "```json\n{\n    \"action\": \"finish\",\n    \"reason_code\": \"evidence_sufficient\"\n}\n```",
+      "raw_output_hash": "dfd773dc86237a208aad357715e98c556324f52cc737a4b52ed7726cb03c0917",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    },
+    {
+      "case_id": "GQ-8",
+      "step_index": 1,
+      "parsed_action": "finish",
+      "raw_output": "```json\n{\n    \"action\": \"finish\",\n    \"reason_code\": \"evidence_sufficient\"\n}\n```",
+      "raw_output_hash": "dfd773dc86237a208aad357715e98c556324f52cc737a4b52ed7726cb03c0917",
+      "lineage": "w8-p5-trajectories.json captures raw_excerpt"
+    }
+  ]
+}
