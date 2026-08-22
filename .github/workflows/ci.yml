@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [master]
 
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -149,7 +153,6 @@ jobs:
   rag-benchmark:
     runs-on: ubuntu-latest
     timeout-minutes: 40
-    needs: test
     env:
       HF_ENDPOINT: https://hf-mirror.com
 
