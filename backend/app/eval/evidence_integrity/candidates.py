@@ -19,7 +19,6 @@ from app.services.agent.matcher import (
     _hash_excerpt,
     _lexical_relation,
     _tokens,
-    deterministic_match,
     evidence_items_to_observation,
 )
 from app.services.agent.types import EvidenceRelation, FactGoal, FactStatus
@@ -445,14 +444,21 @@ def baseline_match(
     *,
     only_uncovered: bool = True,
 ) -> MatchResult:
-    return deterministic_match(facts, snippets, only_uncovered=only_uncovered)
+    """Gate C frozen legacy baseline via ``_lexical_relation`` (not product hardened path)."""
+    return eval_match(
+        facts,
+        snippets,
+        _lexical_relation,
+        only_uncovered=only_uncovered,
+        source="legacy_lexical_baseline",
+    )
 
 
 CANDIDATES: tuple[CandidateSpec, ...] = (
     CandidateSpec(
         candidate_id="BASELINE",
-        description="Product deterministic_match (Gate C frozen baseline)",
-        use_product_deterministic=True,
+        description="Legacy _lexical_relation (Gate C frozen baseline)",
+        relation_fn=_lexical_relation,
     ),
     CandidateSpec(
         candidate_id="A",

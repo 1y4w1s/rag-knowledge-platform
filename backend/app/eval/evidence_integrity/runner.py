@@ -1,9 +1,10 @@
-"""Gate C runner — calls real EvidenceMatcher / deterministic_match (no LLM)."""
+"""Gate C runner — legacy lexical baseline + product deterministic_match (no LLM)."""
 
 from __future__ import annotations
 
 from typing import Any
 
+from app.eval.evidence_integrity.candidates import eval_match
 from app.eval.evidence_integrity.cases import F2_EVIDENCE, F2_FACT_X1, F2_FACT_X2, gate_c_cases
 from app.eval.evidence_integrity.schema import (
     SCHEMA_VERSION,
@@ -23,7 +24,6 @@ from app.services.agent.matcher import (
     _lexical_relation,
     _tokens,
     apply_and_score,
-    deterministic_match,
 )
 from app.services.agent.stop_policy import StopKind, evaluate_stop
 from app.services.agent.types import (
@@ -76,8 +76,24 @@ def _max_overlap(fact_text: str, evidence_texts: tuple[str, ...]) -> float | Non
     return max(scores) if scores else None
 
 
+def _legacy_lexical_match(
+    facts: tuple[FactGoal, ...],
+    snippets: tuple[EvidenceSnippet, ...],
+    *,
+    only_uncovered: bool,
+) -> Any:
+    """Frozen Gate C baseline path — ``_lexical_relation`` only."""
+    return eval_match(
+        facts,
+        snippets,
+        _lexical_relation,
+        only_uncovered=only_uncovered,
+        source="legacy_lexical_baseline",
+    )
+
+
 def run_case(case: IntegrityCase) -> CaseResult:
-    """Run one characterization case through real deterministic matcher + StopPolicy."""
+    """Run one characterization case through legacy lexical baseline + StopPolicy."""
     facts = [
         FactGoal(
             id="F1",
@@ -107,7 +123,7 @@ def run_case(case: IntegrityCase) -> CaseResult:
     evidence = EvidenceState(facts=tuple(facts))
     status_before = facts[0].status
 
-    match = deterministic_match(facts, snippets, only_uncovered=False)
+    match = _legacy_lexical_match(tuple(facts), snippets, only_uncovered=False)
     if match.ok:
         evidence, match = apply_and_score(evidence, match)
 
@@ -172,14 +188,14 @@ def run_case(case: IntegrityCase) -> CaseResult:
 
 
 def reproduce_f2() -> dict[str, Any]:
-    """Stable offline F2 false-positive reproduction (no LM Studio)."""
+    """Stable offline F2 false-positive reproduction via legacy lexical baseline."""
     facts = (
         FactGoal(id="X1", text=F2_FACT_X1, required=True, status=FactStatus.missing),
         FactGoal(id="X2", text=F2_FACT_X2, required=True, status=FactStatus.missing),
     )
     snippet = EvidenceSnippet(evidence_id="unrelated", text=F2_EVIDENCE)
     before = {g.id: g.status.value for g in facts}
-    match = deterministic_match(facts, (snippet,), only_uncovered=True)
+    match = _legacy_lexical_match(facts, (snippet,), only_uncovered=True)
     evidence = EvidenceState(facts=facts)
     if match.ok:
         evidence, match = apply_and_score(evidence, match)
@@ -209,7 +225,7 @@ def reproduce_f2() -> dict[str, Any]:
         "matcher_input": {
             "facts": [g.text for g in facts],
             "snippets": [F2_EVIDENCE],
-            "source": "deterministic_match",
+            "source": "legacy_lexical_baseline",
         },
         "matcher_output": {
             "ok": match.ok,
@@ -233,7 +249,7 @@ def reproduce_f2() -> dict[str, Any]:
         "why_system_says_covered": (
             "Character-token Jaccard overlap of FactGoal vs EXCERPT_UNRELATED "
             f"reaches {_SUPPORT_OVERLAP}+ because both share 住/宿/标/准; "
-            "deterministic_match emits supports → ledger covered → StopPolicy "
+            "legacy _lexical_relation emits supports → ledger covered → StopPolicy "
             "facts_covered finish. RELATED≠SUPPORTED."
         ),
         "stop_policy": {
@@ -265,7 +281,7 @@ def build_report(
         "schema_version": SCHEMA_VERSION,
         "gate": "Gate C — Evidence Integrity Characterization",
         "matcher_audit": {
-            "algorithm": "deterministic lexical token overlap",
+            "algorithm": "legacy _lexical_relation token overlap (frozen baseline)",
             "token_pattern": r"[A-Za-z0-9_]+|[\u4e00-\u9fff]",
             "support_overlap_threshold": _SUPPORT_OVERLAP,
             "partial_overlap_threshold": _PARTIAL_OVERLAP,
@@ -275,7 +291,8 @@ def build_report(
             "llm_judge": False,
             "explicit_support_labels": "fixture path only",
             "entrypoints": [
-                "deterministic_match",
+                "_lexical_relation (legacy baseline)",
+                "deterministic_match (product hardened)",
                 "EvidenceMatcher.match (flag-gated)",
             ],
         },

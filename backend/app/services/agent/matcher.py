@@ -31,6 +31,43 @@ from app.services.agent.types import (
 _TOKEN = re.compile(r"[A-Za-z0-9_]+|[\u4e00-\u9fff]")
 _NEG = re.compile(r"不(适用|存在|允许|包含)|禁止|无此|并非|相反|不适用")
 _AFFIRM = re.compile(r"适用|存在|允许|确认|包含|标准|档位")
+_YEAR = re.compile(r"(?:19|20)\d{2}")
+_NUM = re.compile(r"\d+(?:\.\d+)?")
+_CN_AMOUNT = re.compile(
+    r"[零一二三四五六七八九十百千万两]+(?:元|块|钱|块钱)?|"
+    r"[零一二三四五六七八九十百千万两]+"
+)
+_TOPIC_ONLY = re.compile(
+    r"按照|有关|规定|执行|讨论|涉及|另行|管理|确认.*调整|"
+    r"由.*制定|可纳入|流程"
+)
+_NEG_EXTENDED = re.compile(
+    r"不(?:可以|得|能|适用|存在|允许|包含)|禁止|无此|并非|相反|不适用|无法"
+)
+_DEFINITIVE = re.compile(
+    r"标准为|为每人|每人每天|上限|下限|不得|必须|可以报销|"
+    r"允许|禁止|不适用|是\s*\d"
+)
+_ENTITY_GROUPS: tuple[tuple[str, ...], ...] = (
+    ("北京", "上海", "广州", "深圳"),
+    ("国内", "国际"),
+    ("教授", "普通工作"),
+    ("教授级", "普通工作"),
+)
+_DEPT = re.compile(r"[\u4e00-\u9fff]{2,10}部")
+_CN_DIGIT = {
+    "零": 0,
+    "一": 1,
+    "二": 2,
+    "两": 2,
+    "三": 3,
+    "四": 4,
+    "五": 5,
+    "六": 6,
+    "七": 7,
+    "八": 8,
+    "九": 9,
+}
 _REL_RANK = {
     EvidenceRelation.partial: 1,
     EvidenceRelation.supports: 2,
@@ -141,7 +178,7 @@ def deterministic_match(
         partials: list[str] = []
         contradicts: list[str] = []
         for goal in targets:
-            rel = _lexical_relation(goal.text, text)
+            rel = _hardened_relation(goal.text, text)
             if rel == EvidenceRelation.contradicts:
                 contradicts.append(goal.id)
             elif rel == EvidenceRelation.partial:
@@ -234,6 +271,7 @@ def _item_relations(item: EvidenceItem) -> list[tuple[str, EvidenceRelation]]:
     )
 
 def _lexical_relation(fact_text: str, evidence_text: str) -> EvidenceRelation | None:
+    """Legacy Gate C frozen baseline — do not change thresholds or semantics."""
     ft, et = _tokens(fact_text), _tokens(evidence_text)
     if not ft or not et:
         return None
@@ -247,6 +285,244 @@ def _lexical_relation(fact_text: str, evidence_text: str) -> EvidenceRelation | 
     if overlap >= _SUPPORT_OVERLAP:
         return EvidenceRelation.supports
     return EvidenceRelation.partial
+
+
+def _extract_years(text: str) -> set[str]:
+    return set(_YEAR.findall(text))
+
+
+def _cn_simple_to_int(token: str) -> int | None:
+    """Best-effort for paraphrase cases (e.g. 五百 -> 500); known I1 boundary."""
+    token = token.strip().replace("块钱", "").replace("块", "").replace("钱", "").replace("元", "")
+    if not token:
+        return None
+    if token.isdigit():
+        return int(token)
+    if token == "十":
+        return 10
+    if token.startswith("十") and len(token) == 2 and token[1] in _CN_DIGIT:
+        return 10 + _CN_DIGIT[token[1]]
+    if token.endswith("十") and len(token) == 2 and token[0] in _CN_DIGIT:
+        return _CN_DIGIT[token[0]] * 10
+    if "百" in token:
+        parts = token.split("百", 1)
+        head = parts[0]
+        tail = parts[1] if len(parts) > 1 else ""
+        base = _CN_DIGIT.get(head, 1 if head == "" else None)
+        if base is None:
+            return None
+        value = base * 100
+        if tail:
+            if tail == "十":
+                value += 10
+            elif tail.startswith("十") and len(tail) == 2:
+                value += 10 + _CN_DIGIT.get(tail[1], 0)
+            elif tail in _CN_DIGIT:
+                value += _CN_DIGIT[tail]
+        return value
+    if len(token) == 1 and token in _CN_DIGIT:
+        return _CN_DIGIT[token]
+    return None
+
+
+def _extract_values(text: str) -> set[int]:
+    values: set[int] = set()
+    for m in _NUM.finditer(text):
+        raw = m.group(0)
+        if raw.isdigit() and len(raw) == 4 and raw.startswith(("19", "20")):
+            continue
+        try:
+            values.add(int(float(raw)))
+        except ValueError:
+            continue
+    for m in _CN_AMOUNT.finditer(text):
+        parsed = _cn_simple_to_int(m.group(0))
+        if parsed is not None and parsed < 1900:
+            values.add(parsed)
+    return values
+
+
+def _asks_for_value(fact: str) -> bool:
+    return bool(re.search(r"多少|几\b|是否", fact)) or fact.rstrip().endswith("?")
+
+
+def _asks_for_lookup(fact: str) -> bool:
+    return "找到" in fact
+
+
+def _years_conflict(fact: str, evidence: str) -> bool:
+    fact_years = _extract_years(fact)
+    ev_years = _extract_years(evidence)
+    if not fact_years or not ev_years:
+        return False
+    return fact_years.isdisjoint(ev_years)
+
+
+def _values_conflict(fact: str, evidence: str) -> bool:
+    fact_vals = _extract_values(fact)
+    ev_vals = _extract_values(evidence)
+    if not fact_vals or not ev_vals:
+        return False
+    ft, et = _tokens(fact), _tokens(evidence)
+    overlap = len(ft & et) / len(ft) if ft else 0.0
+    if overlap < _PARTIAL_OVERLAP:
+        return False
+    if fact_vals == ev_vals:
+        return False
+    return True
+
+
+def _entity_scope_conflict(fact: str, evidence: str) -> bool:
+    for group in _ENTITY_GROUPS:
+        fact_hits = [item for item in group if item in fact]
+        ev_hits = [item for item in group if item in evidence]
+        if fact_hits and ev_hits and set(fact_hits) != set(ev_hits):
+            return True
+    fact_depts = set(_DEPT.findall(fact))
+    ev_depts = set(_DEPT.findall(evidence))
+    if fact_depts and ev_depts and fact_depts.isdisjoint(ev_depts):
+        return True
+    return False
+
+
+def _has_negation_marker(text: str) -> bool:
+    return bool(_NEG.search(text) or _NEG_EXTENDED.search(text))
+
+
+def _explicit_polarity_conflict(fact: str, evidence: str) -> bool:
+    ft, et = _tokens(fact), _tokens(evidence)
+    if not ft or not et:
+        return False
+    overlap = len(ft & et) / len(ft)
+    if overlap < _PARTIAL_OVERLAP:
+        return False
+    if "不可以" in evidence and "可以" in fact and "不可以" not in fact:
+        return True
+    if "禁止" in evidence and "允许" in fact:
+        return True
+    if "不得" in evidence and ("可以" in fact or "允许" in fact):
+        return True
+    return False
+
+
+def _negation_conflict(fact: str, evidence: str) -> bool:
+    if _explicit_polarity_conflict(fact, evidence):
+        return True
+    fact_neg = _has_negation_marker(fact)
+    ev_neg = _has_negation_marker(evidence)
+    if fact_neg == ev_neg:
+        return False
+    ft, et = _tokens(fact), _tokens(evidence)
+    if not ft or not et:
+        return False
+    overlap = len(ft & et) / len(ft)
+    return overlap >= _PARTIAL_OVERLAP
+
+
+def _comparison_incomplete(fact: str, evidence: str) -> bool:
+    fact_years = _extract_years(fact)
+    ev_years = _extract_years(evidence)
+    if len(fact_years) >= 2 and ev_years and len(ev_years) < len(fact_years):
+        return True
+    if "比较" in fact and ("A" in fact or "B" in fact):
+        needed = {label for label in ("A", "B") if label in fact}
+        if needed and not needed.issubset(set(evidence)):
+            return True
+    if "分别" in fact and len(fact_years) >= 2:
+        if not ev_years or len(ev_years) < len(fact_years):
+            return True
+    return False
+
+
+def _apply_structural_guards(
+    fact: str, evidence: str, base: EvidenceRelation | None
+) -> EvidenceRelation | None:
+    """A — structural guards on legacy lexical baseline."""
+    if base is None:
+        return None
+    if base == EvidenceRelation.contradicts:
+        return base
+    if _negation_conflict(fact, evidence) or _values_conflict(fact, evidence):
+        return EvidenceRelation.contradicts
+    if base == EvidenceRelation.supports and (
+        _years_conflict(fact, evidence)
+        or _entity_scope_conflict(fact, evidence)
+        or _comparison_incomplete(fact, evidence)
+    ):
+        return EvidenceRelation.partial
+    return base
+
+
+def _has_answer_bearing_content(fact: str, evidence: str) -> bool:
+    """B — claim-level answer-bearing validation."""
+    ft, et = _tokens(fact), _tokens(evidence)
+    if not ft or not et:
+        return False
+    overlap = len(ft & et) / len(ft)
+    if overlap < _PARTIAL_OVERLAP:
+        return False
+
+    fact_years = _extract_years(fact)
+    ev_years = _extract_years(evidence)
+    ev_vals = _extract_values(evidence)
+    has_definitive = bool(ev_vals) or bool(_DEFINITIVE.search(evidence))
+    topic_only = bool(_TOPIC_ONLY.search(evidence)) and not has_definitive
+
+    if _asks_for_value(fact) and not has_definitive:
+        return False
+
+    if fact_years:
+        if fact_years.isdisjoint(ev_years):
+            return False
+        if (_asks_for_lookup(fact) or _asks_for_value(fact)) and not has_definitive:
+            return False
+
+    if _asks_for_lookup(fact):
+        if topic_only or not has_definitive:
+            return False
+
+    if topic_only and (_asks_for_value(fact) or _asks_for_lookup(fact) or fact_years):
+        return False
+
+    if _comparison_incomplete(fact, evidence):
+        return False
+
+    return True
+
+
+def _overlap_partial(fact: str, evidence: str) -> bool:
+    ft, et = _tokens(fact), _tokens(evidence)
+    if not ft or not et:
+        return False
+    return len(ft & et) / len(ft) >= _PARTIAL_OVERLAP
+
+
+def _has_strong_support(fact: str, evidence: str) -> bool:
+    base = _lexical_relation(fact, evidence)
+    if base != EvidenceRelation.supports:
+        return False
+    guarded = _apply_structural_guards(fact, evidence, base)
+    if guarded != EvidenceRelation.supports:
+        return False
+    return _has_answer_bearing_content(fact, evidence)
+
+
+def _hardened_relation(fact_text: str, evidence_text: str) -> EvidenceRelation | None:
+    """A+B+C product relation: guards + claim validation + conservative full-cover."""
+    guarded = _apply_structural_guards(
+        fact_text, evidence_text, _lexical_relation(fact_text, evidence_text)
+    )
+    if guarded is None or guarded == EvidenceRelation.contradicts:
+        return guarded
+    if guarded in (EvidenceRelation.supports, EvidenceRelation.partial):
+        if not _has_answer_bearing_content(fact_text, evidence_text):
+            if guarded == EvidenceRelation.supports:
+                return EvidenceRelation.partial
+            return EvidenceRelation.partial if _overlap_partial(fact_text, evidence_text) else None
+    if guarded == EvidenceRelation.supports and not _has_strong_support(fact_text, evidence_text):
+        return EvidenceRelation.partial
+    return guarded
+
 
 def _tokens(text: str) -> set[str]:
     return {m.group(0).lower() for m in _TOKEN.finditer(text) if m.group(0).strip()}

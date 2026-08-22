@@ -25,8 +25,13 @@ from app.eval.evidence_integrity.runner import (
 )
 from app.eval.evidence_integrity.schema import EvalRelation, SCHEMA_VERSION
 from app.eval.local_agent_trajectory.cases import EXCERPT_UNRELATED
-from app.services.agent.matcher import _SUPPORT_OVERLAP, deterministic_match, EvidenceSnippet
-from app.services.agent.types import FactGoal, FactStatus
+from app.services.agent.matcher import (
+    _SUPPORT_OVERLAP,
+    _lexical_relation,
+    deterministic_match,
+    EvidenceSnippet,
+)
+from app.services.agent.types import EvidenceRelation, FactGoal, FactStatus
 
 FIXTURE_DIR = Path(__file__).resolve().parent / "fixtures" / "l4_evidence_integrity"
 BASELINE_MANIFEST = FIXTURE_DIR / "gate-c-baseline.manifest.json"
@@ -88,14 +93,16 @@ def test_f2_reproduced_offline_without_llm() -> None:
         assert score is not None and score >= _SUPPORT_OVERLAP
 
 
-def test_real_matcher_entry_used() -> None:
-    """Characterization must call product deterministic_match, not a copy."""
+def test_legacy_lexical_baseline_reproduces_f2_bug() -> None:
+    """Frozen Gate C baseline must still reproduce F2 via _lexical_relation."""
     facts = [FactGoal(id="X1", text=F2_FACT_X1, status=FactStatus.missing)]
     snip = EvidenceSnippet(evidence_id="u", text=F2_EVIDENCE)
+    rel = _lexical_relation(F2_FACT_X1, F2_EVIDENCE)
+    assert rel == EvidenceRelation.supports
     match = deterministic_match(facts, (snip,), only_uncovered=True)
     assert match.ok is True
     assert match.source == "deterministic"
-    assert any("X1" in item.supports for item in match.items)
+    assert not any("X1" in item.supports for item in match.items)
 
 
 def test_suite_runs_deterministic_and_reports_metrics() -> None:
