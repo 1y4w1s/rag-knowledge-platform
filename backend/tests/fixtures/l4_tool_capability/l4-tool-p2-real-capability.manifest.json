@@ -1,0 +1,91 @@
+{
+  "schema_version": "l4-tool-p2-real-capability-v1",
+  "stage": "TOOL_P2_REAL_LOCAL_CAPABILITY",
+  "generated_at": "2026-08-22T16:03:45Z",
+  "freeze_validation_mode": "REAL_RUN_RESULT_REUSED_FOR_FREEZE",
+  "p1_merge_sha": "ba5837bed3a1828363871c2f3c2dd92fd761bbec",
+  "measurement_base_sha": "ba5837bed3a1828363871c2f3c2dd92fd761bbec",
+  "contract_manifest_hash": "e37a61ac1d26d702af569756c607ee3509d62f0b03a2b2c50a7830400fe0d5dc",
+  "capability_label": "CURRENT_L3_TOOL_CAPABILITY ON_FROZEN_MIGRATED_SUBSET",
+  "not_labels": [
+    "NOT TOOL20",
+    "NOT full capability"
+  ],
+  "model": "zai-org/glm-4.6v-flash",
+  "thinking": "OFF",
+  "context_tokens": 8192,
+  "temperature": 0,
+  "timeout_seconds": 90.0,
+  "endpoint": "http://127.0.0.1:1234/v1",
+  "case_ids": [
+    "GQ-131",
+    "GQ-132",
+    "GQ-149"
+  ],
+  "denominator": 3,
+  "primary_score": "0/3",
+  "trial_success": "0/15",
+  "per_case_repeat": {
+    "GQ-131": "0/5",
+    "GQ-132": "0/5",
+    "GQ-149": "0/5"
+  },
+  "measured_model_score": "0/3",
+  "measurement_validity": "TRUSTWORTHY",
+  "result": "PASS/CHARACTERIZED",
+  "tool_p2": "PASS/FROZEN",
+  "ready_for_freeze": true,
+  "freeze_semantics": "Measured score may be 0/N; freeze requires trustworthy measurement only, not a passing score.",
+  "runtime_rollout": "NO",
+  "product_remediation": "NO",
+  "legacy_tool20_score": "INVALID_FOR_CURRENT_CAPABILITY",
+  "first_failure_taxonomy": {
+    "WRONG_OR_MISSING_TOOL": 5,
+    "BUDGET_EXHAUSTED": 10
+  },
+  "failure_characterization": {
+    "GQ-131": {
+      "layer": "tool_selection",
+      "detail": "planner selected semantic_search; contract expects search_documents",
+      "primary_taxonomy": "WRONG_OR_MISSING_TOOL"
+    },
+    "GQ-132": {
+      "layer": "post_observation_termination",
+      "detail": "tool chain through observation OK; no safe terminal; budget exhausted looping list_knowledge_bases",
+      "primary_taxonomy": "BUDGET_EXHAUSTED"
+    },
+    "GQ-149": {
+      "layer": "post_observation_termination",
+      "detail": "tool chain through observation OK; no safe terminal; budget exhausted looping search_documents+mode=content",
+      "primary_taxonomy": "BUDGET_EXHAUSTED"
+    }
+  },
+  "stage_metrics_summary": {
+    "tool_selection_accuracy": "10/15",
+    "tool_args_valid_rate": "10/10 attempted",
+    "expected_observation_rate": "10/10 attempted",
+    "task_completion_rate": "0/15",
+    "safe_termination_rate": "0/15",
+    "budget_exhaustion_rate": "15/15"
+  },
+  "tna_tracking": {
+    "raw_tool_name_as_action": 10,
+    "recovered_tool_name_as_action": 10,
+    "unrecovered_tool_name_as_action": 0,
+    "note": "Historical TOOL_NAME_AS_ACTION raw shapes; P7 product boundary recovered 10/10."
+  },
+  "safety_metrics": {
+    "unsafe_terminal": 0,
+    "out_of_scope_accept": 0,
+    "invalid_args_accept": 0,
+    "false_observation_success": 0,
+    "failed_tool_marked_success": 0,
+    "schema_unrecovered": 0
+  },
+  "notes": [
+    "First real-local measurement of CURRENT_L3_TOOL_CAPABILITY on frozen migrated subset (3 cases).",
+    "0/3 primary and 0/15 stability are the measured boundary — not a benchmark failure.",
+    "Do not relabel as TOOL20 or full tool capability.",
+    "Gitignored full report: backend/artifacts/benchmarks/tmp/reports/tool-p2-real-local-capability.json"
+  ]
+}

@@ -25,6 +25,7 @@ from app.eval.local_model_profile.schema import ThinkingMode
 from app.eval.tool_capability.metrics import aggregate_metrics
 from app.eval.tool_capability.migration_contract import MIGRATED_CASE_BY_ID
 from app.eval.tool_capability.p1_freeze import load_p1_manifest, manifest_path
+from app.eval.tool_capability.p2_freeze import measurement_ready_for_freeze
 from app.eval.tool_capability.real_execute import run_real_trial
 from app.eval.tool_capability.seed import seed_case_workspace
 from app.eval.tool_capability.taxonomy import analyze_trial
@@ -221,7 +222,16 @@ async def run_tool_p2_benchmark(
         "measurement_validity": "TRUSTWORTHY",
         "product_remediation": False,
         "runtime_rollout": False,
-        "ready_for_freeze": primary_score == len(CASE_ORDER) and unrecovered_tna == 0,
+        "ready_for_freeze": measurement_ready_for_freeze(
+            safety_totals=safety_totals,
+            unrecovered_tna=unrecovered_tna,
+            product_issues=product_issues,
+        ),
+        "freeze_semantics": (
+            "Freeze pins a trustworthy measured capability boundary; "
+            "measured score may be 0/N and still be frozen."
+        ),
+        "measured_model_score": f"{primary_score}/{len(CASE_ORDER)}",
         "classification": classification,
         "primary_score": f"{primary_score}/{len(CASE_ORDER)}",
         "trial_success": f"{trial_success}/{len(trials)}",
