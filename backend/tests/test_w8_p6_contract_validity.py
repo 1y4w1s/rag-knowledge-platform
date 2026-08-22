@@ -10,6 +10,7 @@ import pytest
 from app.eval.contract_validity.adversarial import (
     MOCK_NEGATIVE_RETRIEVAL_VALIDITY,
     adversarial_probe_case_ids,
+    bge_capability_valid_proven_from_probe,
     build_adversarial_characterization,
 )
 from app.eval.contract_validity.golden_contracts import (
@@ -34,7 +35,9 @@ from app.eval.contract_validity.models import (
 from app.eval.contract_validity.runner import (
     BENCHMARK_SEMANTICS_SHA,
     VALIDATED_MERGED_MASTER_SHA,
+    BgeProbeResult,
     build_contract_validity_report,
+    gate_g_readiness,
 )
 from app.eval.contract_validity.schema_baseline import schema_characterization_baseline
 from app.eval.contract_validity.tool_contract import (
@@ -118,9 +121,73 @@ def test_mock_negative_retrieval_validity_invalid() -> None:
 
 def test_bge_initial_state_candidate_not_proven_by_default() -> None:
     repo_root = Path(__file__).resolve().parents[1]
-    adv = build_adversarial_characterization(repo_root=repo_root, bge_proven=False)
+    adv = build_adversarial_characterization(repo_root=repo_root)
     assert adv.bge_candidate_available is True
     assert adv.bge_capability_valid_proven is False
+    assert bge_capability_valid_proven_from_probe(None) is False
+
+
+def test_bge_proof_cannot_be_asserted_without_probe_evidence() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    base = build_contract_validity_report(repo_root=repo_root)
+    assert base["adversarial"]["bge_capability_valid_proven"] is False
+    assert base["adversarial"]["bge_capability_valid_proven_status"] == "NOT_PROVEN"
+
+    blocked_with_true_flag = BgeProbeResult(
+        status="BLOCKED",
+        candidate_available=True,
+        capability_valid_proven=True,
+        query_group_count=28,
+        probe_records=[],
+        blocker="synthetic",
+    )
+    blocked_report = build_contract_validity_report(
+        repo_root=repo_root,
+        bge_probe_result=blocked_with_true_flag,
+    )
+    assert blocked_report["adversarial"]["bge_capability_valid_proven"] is False
+    assert blocked_report["adversarial"]["bge_capability_valid_proven_status"] == "NOT_PROVEN"
+
+    ok_but_not_proven = BgeProbeResult(
+        status="OK",
+        candidate_available=True,
+        capability_valid_proven=False,
+        query_group_count=28,
+        probe_records=[{"case_id": "GQ-92", "retrieval_returned": True}],
+        blocker="always-top-k on adversarial negatives",
+    )
+    ok_report = build_contract_validity_report(
+        repo_root=repo_root,
+        bge_probe_result=ok_but_not_proven,
+    )
+    assert ok_report["adversarial"]["bge_capability_valid_proven"] is False
+
+    proven_probe = BgeProbeResult(
+        status="OK",
+        candidate_available=True,
+        capability_valid_proven=True,
+        query_group_count=28,
+        probe_records=[{"case_id": "GQ-92", "retrieval_returned": False}],
+    )
+    proven_report = build_contract_validity_report(
+        repo_root=repo_root,
+        bge_probe_result=proven_probe,
+    )
+    assert proven_report["adversarial"]["bge_capability_valid_proven"] is True
+    assert proven_report["adversarial"]["bge_capability_valid_proven_status"] == "YES"
+    assert bge_capability_valid_proven_from_probe(proven_probe) is True
+
+
+def test_gate_g_readiness_splits_adversarial_ablation_stages() -> None:
+    readiness = gate_g_readiness()
+    assert readiness["ready_for_schema_ablation"] is True
+    assert readiness["ready_for_adversarial_measurement_contract_ablation"] is True
+    assert readiness["ready_for_adversarial_product_ablation"] is False
+    assert readiness["ready_for_tool_re_spec"] is True
+    assert readiness["ready_for_memory_evaluator_design"] is True
+    assert readiness["ready_for_broad_capability_remediation"] is False
+    report = build_contract_validity_report(repo_root=Path(__file__).resolve().parents[1])
+    assert report["readiness"] == readiness
 
 
 def test_schema_baseline_frozen_p5_numbers() -> None:

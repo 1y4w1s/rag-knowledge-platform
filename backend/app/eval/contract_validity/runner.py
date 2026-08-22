@@ -35,6 +35,7 @@ __all__ = [
     "VALIDATED_MERGED_MASTER_SHA",
     "BgeProbeResult",
     "build_contract_validity_report",
+    "gate_g_readiness",
     "run_bge_retrieval_validity_probe",
 ]
 
@@ -57,15 +58,34 @@ class BgeProbeResult:
         return asdict(self)
 
 
+def gate_g_readiness() -> dict[str, bool]:
+    """Frozen Gate G readiness flags (P6 contract-validity scope)."""
+    return {
+        "ready_for_schema_ablation": True,
+        "ready_for_adversarial_measurement_contract_ablation": True,
+        "ready_for_adversarial_product_ablation": False,
+        "ready_for_tool_re_spec": True,
+        "ready_for_memory_evaluator_design": True,
+        "ready_for_broad_capability_remediation": False,
+        "ready_for_golden_168": False,
+        "ready_for_runtime_rollout": False,
+    }
+
+
 def build_contract_validity_report(
     *,
     repo_root: Path | None = None,
-    bge_proven: bool = False,
+    bge_probe_result: BgeProbeResult | None = None,
 ) -> dict[str, Any]:
-    """Assemble tracked Gate G contract validity snapshot."""
+    """Assemble tracked Gate G contract validity snapshot.
+
+    ``bge_capability_valid_proven`` in the snapshot is derived only from
+    ``bge_probe_result`` when ``status == \"OK\"`` and
+    ``capability_valid_proven is True``. Callers cannot assert proven via boolean.
+    """
     adversarial = build_adversarial_characterization(
         repo_root=repo_root,
-        bge_proven=bge_proven,
+        bge_probe_result=bge_probe_result,
     )
     tool_records = tool_contract_records()
     memory_records = memory_contract_records()
@@ -95,6 +115,8 @@ def build_contract_validity_report(
         "schema_baseline": schema.to_dict(),
         "metric_validity_matrix": [m.to_dict() for m in METRIC_VALIDITY_MATRIX],
         "bge_probe_case_ids": list(adversarial_probe_case_ids()),
+        "readiness": gate_g_readiness(),
+        "bge_probe_artifact_required_for_proven_status": True,
     }
 
 

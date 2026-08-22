@@ -226,6 +226,7 @@ class AdversarialContractCharacterization:
     formal_contract: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
+        proven_status = "YES" if self.bge_capability_valid_proven else "NOT_PROVEN"
         return {
             "original_pass_count": self.original_pass_count,
             "original_pass_total": self.original_pass_total,
@@ -233,6 +234,7 @@ class AdversarialContractCharacterization:
             "mock_negative_retrieval_validity": self.mock_negative_retrieval_validity.value,
             "bge_candidate_available": self.bge_candidate_available,
             "bge_capability_valid_proven": self.bge_capability_valid_proven,
+            "bge_capability_valid_proven_status": proven_status,
             "retrieval_threshold_semantics": self.retrieval_threshold_semantics,
             "primary_conclusion": self.primary_conclusion,
             "formal_contract": self.formal_contract,

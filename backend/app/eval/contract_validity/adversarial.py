@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Protocol
 
 from app.eval.contract_validity.golden_contracts import (
     ADVERSARIAL_FORMAL_CONTRACT,
@@ -41,16 +42,29 @@ def bge_candidate_available(repo_root: Path | None = None) -> bool:
     return any((root / rel).exists() for rel in BGE_FASTEMBED_CANDIDATE_PATHS)
 
 
+class _BgeProbeEvidence(Protocol):
+    status: str
+    capability_valid_proven: bool
+
+
+def bge_capability_valid_proven_from_probe(probe: _BgeProbeEvidence | None) -> bool:
+    """Proven status must come from probe evidence — never from caller boolean."""
+    if probe is None:
+        return False
+    return probe.status == "OK" and probe.capability_valid_proven is True
+
+
 def build_adversarial_characterization(
     *,
     repo_root: Path | None = None,
-    bge_proven: bool = False,
+    bge_probe_result: _BgeProbeEvidence | None = None,
 ) -> AdversarialContractCharacterization:
     candidate = bge_candidate_available(repo_root)
+    bge_proven = bge_capability_valid_proven_from_probe(bge_probe_result)
     if bge_proven:
         conclusion = (
             "BGE retrieval distinguishes positive controls from adversarial negatives "
-            "under real retrieval semantics."
+            "under real retrieval semantics (probe.status=OK, capability_valid_proven=True)."
         )
     elif candidate:
         conclusion = (
