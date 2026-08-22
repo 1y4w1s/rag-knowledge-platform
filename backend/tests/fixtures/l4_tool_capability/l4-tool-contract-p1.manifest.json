@@ -1,0 +1,242 @@
+{
+  "schema_version": "l4-tool-contract-p1-v1",
+  "stage": "TOOL_CONTRACT_MIGRATION_P1",
+  "base_sha": "9288b91801215bc2b0f7ca3f871c45393f5ad0c0",
+  "p0_merge_sha": "9288b91801215bc2b0f7ca3f871c45393f5ad0c0",
+  "p0_feature_sha": "ffc6e9b134e3e07e9bb15ffd1d58a0a29f38539f",
+  "evaluator_p0": "PASS/FROZEN",
+  "legacy_tool20_score": "INVALID",
+  "golden_rewrite": false,
+  "product_remediation": false,
+  "runtime_rollout": false,
+  "CURRENT_L3_TOOL_CAPABILITY_DENOMINATOR": 3,
+  "capability_valid_cases": 3,
+  "measured_model_score": "NOT_YET_MEASURED",
+  "migrated_case_ids": [
+    "GQ-131",
+    "GQ-132",
+    "GQ-149"
+  ],
+  "gate_g_primary_counts_preserved": {
+    "CURRENT_L3_NATIVE": 3,
+    "INTEGRATION_ONLY": 5,
+    "STALE_GOLDEN_CONTRACT": 5,
+    "UNSATISFIABLE_CURRENT_CONTRACT": 7
+  },
+  "cases": [
+    {
+      "case_id": "GQ-131",
+      "legacy_classification": "CURRENT_L3_NATIVE",
+      "migration_status": "MIGRATED_CURRENT_L3",
+      "current_runtime_intent": "Answer how to search documents across knowledge bases using search_documents (query='How to search documents across knowledge bases?')",
+      "expected_tool": "search_documents",
+      "required_args_semantics": {
+        "query": "non-empty string"
+      },
+      "resolver_expectation": "ToolResolver accepts independent read-only tool in kb scope",
+      "execution_expectation": "run_* returns ok=True with structured data payload",
+      "observation_contract": "search_documents: total + document_id + filename (+ summary); list_knowledge_bases: total + kb_id + name",
+      "post_observation_behavior": "finish after usable observation (no premature re-tool loop)",
+      "safe_terminal_contract": "terminal_action in finish|refuse|clarify, safe=True, budget_exhausted=False",
+      "budget_expectation": "default agent step budget not exhausted",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "expected": "planner selects search_documents"
+        },
+        {
+          "stage": "tool_args_valid",
+          "expected": "args satisfy current L3 tool schema",
+          "required_fields": [
+            "query"
+          ]
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "expected": "ToolResolver accepts call in kb scope with injected workspace"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "expected": "tool returns ok result without execution error"
+        },
+        {
+          "stage": "expected_observation_present",
+          "expected": "tool-native payload present (not legacy expected_chunk)",
+          "tool_native_matcher": "total:int + items[].document_id + items[].filename + summary"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "expected": "finish/refuse/clarify after observation",
+          "acceptable_actions": [
+            "finish",
+            "refuse",
+            "clarify"
+          ]
+        },
+        {
+          "stage": "safe_terminal",
+          "expected": "finish/refuse/clarify with safe=True and budget not exhausted",
+          "acceptable_actions": [
+            "finish",
+            "refuse",
+            "clarify"
+          ]
+        }
+      ],
+      "satisfiability": {
+        "tool_in_l3_inventory": true,
+        "args_expressible": true,
+        "resolver_can_accept": true,
+        "observation_producible": true,
+        "safe_terminal_reachable": true,
+        "proven": true
+      },
+      "legacy_case_hash": "aa6bd139cbea1eed7eb89c465fbbc963c9d75fdaf8146e2e9d1d6827cdb2a682",
+      "migration_contract_hash": "a315a48ec6bf146012609d34fb602848191e05317de8b19c71e3ec78d9893e86"
+    },
+    {
+      "case_id": "GQ-132",
+      "legacy_classification": "CURRENT_L3_NATIVE",
+      "migration_status": "MIGRATED_CURRENT_L3",
+      "current_runtime_intent": "Answer how to list knowledge bases using list_knowledge_bases (query='List all knowledge bases endpoint')",
+      "expected_tool": "list_knowledge_bases",
+      "required_args_semantics": {
+        "q": "optional filter string or null"
+      },
+      "resolver_expectation": "ToolResolver accepts independent read-only tool in kb scope",
+      "execution_expectation": "run_* returns ok=True with structured data payload",
+      "observation_contract": "search_documents: total + document_id + filename (+ summary); list_knowledge_bases: total + kb_id + name",
+      "post_observation_behavior": "finish after usable observation (no premature re-tool loop)",
+      "safe_terminal_contract": "terminal_action in finish|refuse|clarify, safe=True, budget_exhausted=False",
+      "budget_expectation": "default agent step budget not exhausted",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "expected": "planner selects list_knowledge_bases"
+        },
+        {
+          "stage": "tool_args_valid",
+          "expected": "args satisfy current L3 tool schema"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "expected": "ToolResolver accepts call in kb scope with injected workspace"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "expected": "tool returns ok result without execution error"
+        },
+        {
+          "stage": "expected_observation_present",
+          "expected": "tool-native payload present (not legacy expected_chunk)",
+          "tool_native_matcher": "total:int + items[].kb_id + items[].name"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "expected": "finish/refuse/clarify after observation",
+          "acceptable_actions": [
+            "finish",
+            "refuse",
+            "clarify"
+          ]
+        },
+        {
+          "stage": "safe_terminal",
+          "expected": "finish/refuse/clarify with safe=True and budget not exhausted",
+          "acceptable_actions": [
+            "finish",
+            "refuse",
+            "clarify"
+          ]
+        }
+      ],
+      "satisfiability": {
+        "tool_in_l3_inventory": true,
+        "args_expressible": true,
+        "resolver_can_accept": true,
+        "observation_producible": true,
+        "safe_terminal_reachable": true,
+        "proven": true
+      },
+      "legacy_case_hash": "faf62cb6f54c503c4b4da69b31b272f77e322ac99b363022b25fbfbcbaccb481",
+      "migration_contract_hash": "3d11082c8000f7ecc1bd9cbefefa95018973ebe9c4b037250ef1fc7f363d1747"
+    },
+    {
+      "case_id": "GQ-149",
+      "legacy_classification": "CURRENT_L3_NATIVE",
+      "migration_status": "MIGRATED_CURRENT_L3",
+      "current_runtime_intent": "Answer content-mode document search using search_documents with mode=content (query='Search documents by content mode')",
+      "expected_tool": "search_documents",
+      "required_args_semantics": {
+        "query": "non-empty string",
+        "mode": "content"
+      },
+      "resolver_expectation": "ToolResolver accepts independent read-only tool in kb scope",
+      "execution_expectation": "run_* returns ok=True with structured data payload",
+      "observation_contract": "search_documents: total + document_id + filename (+ summary); list_knowledge_bases: total + kb_id + name",
+      "post_observation_behavior": "finish after usable observation (no premature re-tool loop)",
+      "safe_terminal_contract": "terminal_action in finish|refuse|clarify, safe=True, budget_exhausted=False",
+      "budget_expectation": "default agent step budget not exhausted",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "expected": "planner selects search_documents"
+        },
+        {
+          "stage": "tool_args_valid",
+          "expected": "args satisfy current L3 tool schema",
+          "required_fields": [
+            "query",
+            "mode"
+          ]
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "expected": "ToolResolver accepts call in kb scope with injected workspace"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "expected": "tool returns ok result without execution error"
+        },
+        {
+          "stage": "expected_observation_present",
+          "expected": "tool-native payload present (not legacy expected_chunk)",
+          "tool_native_matcher": "total:int + items[].document_id + items[].filename + summary"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "expected": "finish/refuse/clarify after observation",
+          "acceptable_actions": [
+            "finish",
+            "refuse",
+            "clarify"
+          ]
+        },
+        {
+          "stage": "safe_terminal",
+          "expected": "finish/refuse/clarify with safe=True and budget not exhausted",
+          "acceptable_actions": [
+            "finish",
+            "refuse",
+            "clarify"
+          ]
+        }
+      ],
+      "satisfiability": {
+        "tool_in_l3_inventory": true,
+        "args_expressible": true,
+        "resolver_can_accept": true,
+        "observation_producible": true,
+        "safe_terminal_reachable": true,
+        "proven": true
+      },
+      "legacy_case_hash": "bbe37e86e07b53eeb1536eb67fb5c78b746a1290647a3b29a499142b77f04672",
+      "migration_contract_hash": "2d9c7909a8df3f52f898c3c679987df22180906e39e5f8cc0425c561621f629d"
+    }
+  ],
+  "notes": [
+    "Sidecar contract manifest — does not modify golden_agent_qa.json.",
+    "Legacy TOOL20 Gate G classification counts remain frozen.",
+    "Denominator frozen; no real model capability score yet."
+  ]
+}

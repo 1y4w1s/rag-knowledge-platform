@@ -18,6 +18,15 @@ class MigrationAction(str, Enum):
     UNSATISFIABLE = "UNSATISFIABLE"
 
 
+class MigrationStatus(str, Enum):
+    UNMIGRATED = "UNMIGRATED"
+    MIGRATED_CURRENT_L3 = "MIGRATED_CURRENT_L3"
+    MIGRATION_BLOCKED = "MIGRATION_BLOCKED"
+
+
+_MIGRATED_CURRENT_L3_IDS: frozenset[str] = frozenset({"GQ-131", "GQ-132", "GQ-149"})
+
+
 @dataclass(frozen=True, slots=True)
 class ToolMigrationEntry:
     case_id: str
@@ -26,6 +35,7 @@ class ToolMigrationEntry:
     expected_tool: str | None
     legacy_expected_chunk: str
     reason: str
+    migration_status: MigrationStatus = MigrationStatus.UNMIGRATED
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -35,6 +45,7 @@ class ToolMigrationEntry:
             "expected_tool": self.expected_tool,
             "legacy_expected_chunk": self.legacy_expected_chunk,
             "reason": self.reason,
+            "migration_status": self.migration_status.value,
         }
 
 
@@ -66,6 +77,12 @@ def _expected_tool(record) -> str | None:
     return None
 
 
+def _migration_status(case_id: str) -> MigrationStatus:
+    if case_id in _MIGRATED_CURRENT_L3_IDS:
+        return MigrationStatus.MIGRATED_CURRENT_L3
+    return MigrationStatus.UNMIGRATED
+
+
 def build_tool20_migration_map() -> tuple[ToolMigrationEntry, ...]:
     entries: list[ToolMigrationEntry] = []
     for case_id in sorted(TOOL_CASE_BY_ID):
@@ -78,6 +95,7 @@ def build_tool20_migration_map() -> tuple[ToolMigrationEntry, ...]:
                 expected_tool=_expected_tool(record),
                 legacy_expected_chunk=record.expected_chunk,
                 reason=record.reason,
+                migration_status=_migration_status(case_id),
             )
         )
     return tuple(entries)
@@ -92,4 +110,10 @@ GATE_G_PRIMARY_COUNTS = tool_primary_counts()
 
 ADAPT_CASE_IDS: frozenset[str] = frozenset(
     e.case_id for e in TOOL20_MIGRATION_MAP if e.action == MigrationAction.ADAPT
+)
+
+MIGRATED_CURRENT_L3_IDS: frozenset[str] = frozenset(
+    e.case_id
+    for e in TOOL20_MIGRATION_MAP
+    if e.migration_status == MigrationStatus.MIGRATED_CURRENT_L3
 )
