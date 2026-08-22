@@ -1,0 +1,75 @@
+{
+  "schema_version": "w8-p7-p2-real-schema-revalidation-v1",
+  "stage": "W8_P7_P2",
+  "generated_at": "2026-08-22T15:03:41+00:00",
+  "freeze_validation_mode": "REAL_RUN_RESULT_REUSED_FOR_FREEZE",
+  "base_sha": "58faf733af44681dbe1f17830836b0b2394543b6",
+  "p7_p1_merge_sha": "58faf733af44681dbe1f17830836b0b2394543b6",
+  "p7_p1_feature_sha": "1170a666280dd5ceddf616edc9a6e8ab7d81dc7c",
+  "p7_closeout_base_sha": "58faf733af44681dbe1f17830836b0b2394543b6",
+  "benchmark_semantics_sha": "1b4f28dd988ebdda015018a228859f05bc3c9905",
+  "model": "zai-org/glm-4.6v-flash",
+  "thinking": "OFF",
+  "endpoint": "http://127.0.0.1:1234/v1",
+  "context_tokens": 8192,
+  "temperature": 0,
+  "timeout_seconds": 90.0,
+  "cases": 48,
+  "fresh_decisions": 166,
+  "historical_decisions": 226,
+  "historical_schema_failures": 9,
+  "historical_tool_name_as_action": 9,
+  "historical_schema_failure_rate": 0.03982300884955752,
+  "fresh_raw_tool_name_as_action": 7,
+  "fresh_recovered_tool_name_as_action": 7,
+  "fresh_unrecovered_tool_name_as_action": 0,
+  "raw_model_tna_count": 7,
+  "final_unrecovered_schema_failure": 0,
+  "raw_vs_final_contract": "Model may still emit TOOL_NAME_AS_ACTION raw shapes; product boundary must absorb them. final_unrecovered_schema_failure counts only post-canonicalization parse failures.",
+  "frozen_replay": {
+    "target_count": 9,
+    "recovered_count": 9,
+    "false_accepts": 0
+  },
+  "false_accepts": 0,
+  "unsafe_finish": 0,
+  "result": "PASS",
+  "gate_h": "PASS/FROZEN",
+  "w8_p7_p1": "PASS/FROZEN",
+  "w8_p7_p2": "PASS/FROZEN",
+  "schema_remediation": "REAL_TRAJECTORY_VALIDATED",
+  "runtime_rollout": "NO",
+  "comparison": {
+    "historical_unrecovered_schema_failures": "9/226",
+    "fresh_unrecovered_schema_failures": "0/166",
+    "fresh_raw_tool_name_as_action": "7/166",
+    "note": "NOT_DIRECT_MODEL_CAPABILITY_COMPARISON",
+    "interpretation": "Historical 9/226 and fresh 0/166 unrecovered TNA are not directly comparable denominators or runs; fresh run stochastically re-emitted 7 raw TNA shapes, all product-recovered."
+  },
+  "safety": {
+    "false_canonicalization_accept": 0,
+    "out_of_scope_tool_accepted": 0,
+    "invalid_args_accepted_tna_path": 0,
+    "conflicting_tool_accepted": 0,
+    "unknown_tool_accepted": 0,
+    "unsafe_finish_introduced": 0,
+    "matcher_gate_c_regression": false,
+    "failed_tool_coverage_pollution": false
+  },
+  "trajectory": {
+    "e2e_task_success_rate": 0.4792,
+    "safe_termination_rate": 1.0,
+    "suite_timeout": false,
+    "mean_steps": 3.02
+  },
+  "not_measured": {
+    "golden_168_regression": "NOT_MEASURED",
+    "production_default_flag_change": "NOT_MEASURED",
+    "prompt_ablation": "NOT_MEASURED"
+  },
+  "notes": [
+    "Fresh real validation: model zai-org/glm-4.6v-flash, Thinking OFF, 48 cases, 166 planner decisions.",
+    "Do not claim the model no longer produces schema errors; 7 raw TNA shapes observed, 7/7 recovered.",
+    "Gitignored full report: backend/artifacts/benchmarks/tmp/reports/w8-p7-p2-real-schema-revalidation.json"
+  ]
+}
