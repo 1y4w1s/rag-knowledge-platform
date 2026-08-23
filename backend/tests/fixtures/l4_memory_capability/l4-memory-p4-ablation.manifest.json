@@ -1,0 +1,244 @@
+{
+  "schema_version": "l4-memory-p4-ablation-manifest-v1",
+  "stage": "MEMORY_P4_OFFLINE_UTILIZATION_ABLATION",
+  "corpus_trials": 20,
+  "dominant_root_cause": "M4_INSTRUCTION_PRIORITY_CONFLICT",
+  "supporting_root_causes": [
+    "M2_FORMAT_SALIENCE_FAILURE",
+    "M3_TASK_RELEVANCE_LINK_FAILURE",
+    "M1_EXPOSURE_BUT_NOT_ATTENDED"
+  ],
+  "evaluator_blind_spot": "PARTIAL",
+  "evaluator_audit_notes": [
+    "L4 accepts paraphrase/implication for language/topic (not exact-sentence only).",
+    "All propositions must match; GA-10 query-echo can satisfy topic while language fails.",
+    "P3 L5 task_contract mirrors utilization for seeded cases -> L5 couples to L4.",
+    "L4=0/10 is NOT explained away by evaluator blind spot for language absence.",
+    "SOFT_SPOT: latin-only output containing substring 'language preference' may FP English (observed=True).",
+    "PARTIAL only: topic echo + L5 coupling + soft-spot phrase; language non-utilization on frozen P3 outputs is real."
+  ],
+  "matrix": [
+    {
+      "candidate_id": "C0_BASELINE_FROZEN_FORMAT",
+      "apparent_utilization_recovery": 0.0,
+      "evaluator_valid_recovery": 1.0,
+      "false_utilization_on_hard_negatives": 0.0,
+      "prompt_invasiveness": "none",
+      "autonomy_impact": "none",
+      "privacy_impact": "none",
+      "implementation_complexity": "none",
+      "removes_instruction_conflict": false,
+      "improves_task_binding": false,
+      "forces_answer_content": false,
+      "bypasses_planner_autonomy": false,
+      "verdict": "REJECT",
+      "rationale": "Frozen baseline: double disclaimer conflict; L4 proxy readiness 0.",
+      "details": [
+        "apparent_ready=0/10",
+        "evaluator_valid=10/10",
+        "hard_neg_false_rate=0.0",
+        "conflict_in_render=True"
+      ]
+    },
+    {
+      "candidate_id": "C1_CONTRASTIVE_MEMORY_RELEVANCE_LABEL",
+      "apparent_utilization_recovery": 1.0,
+      "evaluator_valid_recovery": 1.0,
+      "false_utilization_on_hard_negatives": 0.0,
+      "prompt_invasiveness": "low",
+      "autonomy_impact": "low_advisory",
+      "privacy_impact": "none_extra",
+      "implementation_complexity": "low",
+      "removes_instruction_conflict": true,
+      "improves_task_binding": true,
+      "forces_answer_content": false,
+      "bypasses_planner_autonomy": false,
+      "verdict": "READY_FOR_PRODUCT_EXPERIMENT",
+      "rationale": "Removes instruction conflict, adds task binding, keeps autonomy, hard-neg false util=0, does not force answer content.",
+      "details": [
+        "apparent_ready=10/10",
+        "evaluator_valid=10/10",
+        "hard_neg_false_rate=0.0",
+        "conflict_in_render=False"
+      ]
+    },
+    {
+      "candidate_id": "C2_STRUCTURED_PROPOSITION_BLOCK",
+      "apparent_utilization_recovery": 1.0,
+      "evaluator_valid_recovery": 1.0,
+      "false_utilization_on_hard_negatives": 0.0,
+      "prompt_invasiveness": "low",
+      "autonomy_impact": "low_advisory",
+      "privacy_impact": "none_extra",
+      "implementation_complexity": "low",
+      "removes_instruction_conflict": true,
+      "improves_task_binding": true,
+      "forces_answer_content": false,
+      "bypasses_planner_autonomy": false,
+      "verdict": "READY_FOR_PRODUCT_EXPERIMENT",
+      "rationale": "Removes instruction conflict, adds task binding, keeps autonomy, hard-neg false util=0, does not force answer content.",
+      "details": [
+        "apparent_ready=10/10",
+        "evaluator_valid=10/10",
+        "hard_neg_false_rate=0.0",
+        "conflict_in_render=False"
+      ]
+    },
+    {
+      "candidate_id": "C3_MEMORY_TO_TASK_BINDING_HINT",
+      "apparent_utilization_recovery": 1.0,
+      "evaluator_valid_recovery": 1.0,
+      "false_utilization_on_hard_negatives": 0.0,
+      "prompt_invasiveness": "medium",
+      "autonomy_impact": "medium_advisory_subgoal",
+      "privacy_impact": "none_extra",
+      "implementation_complexity": "medium",
+      "removes_instruction_conflict": true,
+      "improves_task_binding": true,
+      "forces_answer_content": false,
+      "bypasses_planner_autonomy": false,
+      "verdict": "READY_FOR_PRODUCT_EXPERIMENT",
+      "rationale": "Removes instruction conflict, adds task binding, keeps autonomy, hard-neg false util=0, does not force answer content.",
+      "details": [
+        "apparent_ready=10/10",
+        "evaluator_valid=10/10",
+        "hard_neg_false_rate=0.0",
+        "conflict_in_render=False"
+      ]
+    },
+    {
+      "candidate_id": "C4_MEMORY_PLACEMENT_ABLATION",
+      "apparent_utilization_recovery": 1.0,
+      "evaluator_valid_recovery": 1.0,
+      "false_utilization_on_hard_negatives": 0.0,
+      "prompt_invasiveness": "medium",
+      "autonomy_impact": "none",
+      "privacy_impact": "none_extra",
+      "implementation_complexity": "medium",
+      "removes_instruction_conflict": true,
+      "improves_task_binding": false,
+      "forces_answer_content": false,
+      "bypasses_planner_autonomy": false,
+      "verdict": "DIAGNOSTIC_ONLY",
+      "rationale": "Placement ablation only; does not fix task-binding alone.",
+      "details": [
+        "apparent_ready=10/10",
+        "evaluator_valid=10/10",
+        "hard_neg_false_rate=0.0",
+        "conflict_in_render=False"
+      ]
+    },
+    {
+      "candidate_id": "C5_EXPLICIT_MEMORY_USE_DECISION_FIELD",
+      "apparent_utilization_recovery": 1.0,
+      "evaluator_valid_recovery": 1.0,
+      "false_utilization_on_hard_negatives": 0.0,
+      "prompt_invasiveness": "medium",
+      "autonomy_impact": "medium_structured_decision",
+      "privacy_impact": "none_extra",
+      "implementation_complexity": "medium",
+      "removes_instruction_conflict": true,
+      "improves_task_binding": true,
+      "forces_answer_content": false,
+      "bypasses_planner_autonomy": false,
+      "verdict": "READY_FOR_PRODUCT_EXPERIMENT",
+      "rationale": "Removes instruction conflict, adds task binding, keeps autonomy, hard-neg false util=0, does not force answer content.",
+      "details": [
+        "apparent_ready=10/10",
+        "evaluator_valid=10/10",
+        "hard_neg_false_rate=0.0",
+        "conflict_in_render=False"
+      ]
+    },
+    {
+      "candidate_id": "C6_DETERMINISTIC_TASK_MEMORY_RELEVANCE_FILTER",
+      "apparent_utilization_recovery": 1.0,
+      "evaluator_valid_recovery": 1.0,
+      "false_utilization_on_hard_negatives": 0.0,
+      "prompt_invasiveness": "high_filter",
+      "autonomy_impact": "high_prefilter",
+      "privacy_impact": "filter_may_drop_props",
+      "implementation_complexity": "medium",
+      "removes_instruction_conflict": true,
+      "improves_task_binding": true,
+      "forces_answer_content": false,
+      "bypasses_planner_autonomy": true,
+      "verdict": "DIAGNOSTIC_ONLY",
+      "rationale": "Deterministic relevance filter bypasses planner autonomy — diagnostic only.",
+      "details": [
+        "apparent_ready=10/10",
+        "evaluator_valid=10/10",
+        "hard_neg_false_rate=0.0",
+        "conflict_in_render=False"
+      ]
+    }
+  ],
+  "primary": "C1_CONTRASTIVE_MEMORY_RELEVANCE_LABEL",
+  "fallback": "C2_STRUCTURED_PROPOSITION_BLOCK",
+  "ready_for_product_experiment": true,
+  "l5_fixed": false,
+  "product_diff": 0,
+  "selection_rationale": "Primary C1_CONTRASTIVE_MEMORY_RELEVANCE_LABEL: conflict removed + binding + autonomy preserved + hard-neg regression 0. Fallback C2_STRUCTURED_PROPOSITION_BLOCK.",
+  "info_flow_sample": [
+    {
+      "case_id": "GA-9",
+      "trial_index": 1,
+      "seeded_proposition": "lang={'language': 'en'}",
+      "prompt_placement": "planner_user_prompt.after_system_before_query",
+      "planner_instruction_conflict": "disclaimer='仅供参考，不覆盖检索结果' repeated in format_memory_context + planner wrap",
+      "final_behavior": "tool_loop_capped tools=['semantic_search', 'semantic_search', 'semantic_search']",
+      "utilization_verdict": false,
+      "dominant_taxonomy": "M4_INSTRUCTION_PRIORITY_CONFLICT",
+      "supporting_taxonomy": [
+        "M2_FORMAT_SALIENCE_FAILURE",
+        "M3_TASK_RELEVANCE_LINK_FAILURE",
+        "M1_EXPOSURE_BUT_NOT_ATTENDED"
+      ]
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 1,
+      "seeded_proposition": "lang={'language': 'en'}; topic={'topic': 'docker'}",
+      "prompt_placement": "planner_user_prompt.after_system_before_query",
+      "planner_instruction_conflict": "disclaimer='仅供参考，不覆盖检索结果' repeated in format_memory_context + planner wrap",
+      "final_behavior": "tool_loop_capped tools=['semantic_search', 'semantic_search', 'semantic_search']",
+      "utilization_verdict": false,
+      "dominant_taxonomy": "M4_INSTRUCTION_PRIORITY_CONFLICT",
+      "supporting_taxonomy": [
+        "M2_FORMAT_SALIENCE_FAILURE",
+        "M3_TASK_RELEVANCE_LINK_FAILURE",
+        "M1_EXPOSURE_BUT_NOT_ATTENDED"
+      ]
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 2,
+      "seeded_proposition": "lang={'language': 'en'}",
+      "prompt_placement": "planner_user_prompt.after_system_before_query",
+      "planner_instruction_conflict": "disclaimer='仅供参考，不覆盖检索结果' repeated in format_memory_context + planner wrap",
+      "final_behavior": "tool_loop_capped tools=['semantic_search', 'semantic_search', 'semantic_search']",
+      "utilization_verdict": false,
+      "dominant_taxonomy": "M4_INSTRUCTION_PRIORITY_CONFLICT",
+      "supporting_taxonomy": [
+        "M2_FORMAT_SALIENCE_FAILURE",
+        "M3_TASK_RELEVANCE_LINK_FAILURE",
+        "M1_EXPOSURE_BUT_NOT_ATTENDED"
+      ]
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 2,
+      "seeded_proposition": "lang={'language': 'en'}; topic={'topic': 'docker'}",
+      "prompt_placement": "planner_user_prompt.after_system_before_query",
+      "planner_instruction_conflict": "disclaimer='仅供参考，不覆盖检索结果' repeated in format_memory_context + planner wrap",
+      "final_behavior": "tool_loop_capped tools=['semantic_search', 'semantic_search', 'semantic_search']",
+      "utilization_verdict": false,
+      "dominant_taxonomy": "M4_INSTRUCTION_PRIORITY_CONFLICT",
+      "supporting_taxonomy": [
+        "M2_FORMAT_SALIENCE_FAILURE",
+        "M3_TASK_RELEVANCE_LINK_FAILURE",
+        "M1_EXPOSURE_BUT_NOT_ATTENDED"
+      ]
+    }
+  ]
+}

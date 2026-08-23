@@ -1,0 +1,3634 @@
+{
+  "schema_version": "memory-p4-frozen-corpus-v1",
+  "source_report_schema": "w8-memory-p3-real-capability-v1",
+  "source_run_id": "85fb8525-026d-49bb-a418-a6735eb7239b",
+  "source_head_sha": "4c81c6340f1789a641ef0d6cbaf42c1efdaa2bc2",
+  "source_classification": "PASS/CHARACTERIZED (valid low utilization)",
+  "p3_freeze_merge_sha": "248cf9c17a9af887dbd941a71d5a5fb65cc8238a",
+  "metrics": {
+    "L1_SEEDED": {
+      "passed": 10,
+      "denom": 10
+    },
+    "L2_LOADED": {
+      "passed": 10,
+      "denom": 10
+    },
+    "L3_EXPOSED": {
+      "passed": 10,
+      "denom": 10,
+      "rates": {
+        "GA-9": 1.0,
+        "GA-10": 1.0
+      }
+    },
+    "L4_UTILIZED": {
+      "passed": 0,
+      "denom": 10
+    },
+    "L5_TASK_BENEFIT": {
+      "passed": 0,
+      "denom": 10
+    },
+    "empty_memory_correct_behavior": {
+      "passed": 0,
+      "denom": 10
+    },
+    "false_utilization": 0,
+    "memory_contradiction": 0,
+    "aggregate": {
+      "case_count": 10,
+      "metrics": [
+        {
+          "metric": "seed_success_rate",
+          "eligible": 10,
+          "attempted": 10,
+          "passed": 10,
+          "rate": 1.0
+        },
+        {
+          "metric": "load_success_rate",
+          "eligible": 10,
+          "attempted": 10,
+          "passed": 10,
+          "rate": 1.0
+        },
+        {
+          "metric": "exposure_success_rate",
+          "eligible": 10,
+          "attempted": 10,
+          "passed": 10,
+          "rate": 1.0
+        },
+        {
+          "metric": "semantic_utilization_rate",
+          "eligible": 10,
+          "attempted": 10,
+          "passed": 0,
+          "rate": 0.0
+        },
+        {
+          "metric": "task_benefit_rate",
+          "eligible": 10,
+          "attempted": 10,
+          "passed": 0,
+          "rate": 0.0
+        },
+        {
+          "metric": "contradiction_rate",
+          "eligible": 10,
+          "attempted": 10,
+          "passed": 0,
+          "rate": 0.0
+        },
+        {
+          "metric": "empty_memory_behavior_rate",
+          "eligible": 10,
+          "attempted": 10,
+          "passed": 0,
+          "rate": 0.0
+        },
+        {
+          "metric": "false_utilization_rate",
+          "eligible": 10,
+          "attempted": 10,
+          "passed": 0,
+          "rate": 0.0
+        }
+      ],
+      "false_utilization_count": 0
+    }
+  },
+  "with_vs_without": {
+    "pairs": 10,
+    "with_task_pass": 0,
+    "without_task_pass": 0,
+    "l5_true": 0
+  },
+  "final_report_summary": {
+    "MEMORY_P3_State": "MEMORY_P3_MEASURED",
+    "L3": "PROVEN",
+    "GA9_GA10_exposure_rates": {
+      "GA-9": 1.0,
+      "GA-10": 1.0
+    },
+    "L4": {
+      "passed": 0,
+      "denom": 10
+    },
+    "L5": {
+      "passed": 0,
+      "denom": 10
+    },
+    "WITH_vs_WITHOUT": {
+      "pairs": 10,
+      "with_task_pass": 0,
+      "without_task_pass": 0,
+      "l5_true": 0
+    },
+    "empty_controls": {
+      "passed": 0,
+      "denom": 10
+    },
+    "false_utilization": 0,
+    "privacy": {
+      "plaintext_in_trace": 0,
+      "wrong_scope": 0,
+      "wrong_run_step_acceptance": 0,
+      "empty_fake_exposure": 0,
+      "false_utilization": 0
+    },
+    "measurement_validity": "VALID",
+    "Ready_For_MEMORY_P3_Freeze": "YES",
+    "Product_remediation": "NO",
+    "Runtime_rollout": "NO"
+  },
+  "model_config": {
+    "model": "zai-org/glm-4.6v-flash",
+    "provider": "lmstudio_openai_compatible",
+    "base_url": "http://127.0.0.1:1234/v1",
+    "endpoint_host": "127.0.0.1",
+    "thinking": "OFF",
+    "context_tokens": 8192,
+    "temperature": 0,
+    "timeout_seconds": 90.0,
+    "lm_studio_version": "CLI commit: 9902c3a",
+    "hardware": "Windows-10-10.0.26200-SP0"
+  },
+  "frozen_format": {
+    "disclaimer": "用户长期偏好（仅供参考，不覆盖检索结果）：",
+    "line_template": "- [{tier}] {key}: {payload} ({memory_type}) importance={importance}",
+    "planner_wraps_disclaimer_again": true,
+    "context_slot": "planner_user_prompt",
+    "channel": "next_action_planner"
+  },
+  "cases": {
+    "GA-9": {
+      "query": "What is the user's preferred language for retrieval?",
+      "seeds": [
+        {
+          "key": "lang",
+          "memory_type": "preference",
+          "value": {
+            "language": "en"
+          }
+        }
+      ]
+    },
+    "GA-10": {
+      "query": "Search documents about Docker and React",
+      "seeds": [
+        {
+          "key": "lang",
+          "memory_type": "preference",
+          "value": {
+            "language": "en"
+          }
+        },
+        {
+          "key": "topic",
+          "memory_type": "preference",
+          "value": {
+            "topic": "docker"
+          }
+        }
+      ]
+    }
+  },
+  "trials": [
+    {
+      "case_id": "GA-9",
+      "trial_index": 1,
+      "condition": "WITH_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "proposition contract not fully satisfied"
+      },
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": "",
+        "authoritative_event_count": 5
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retr",
+      "tool_query": "user preferred language for retrieval",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [
+        {
+          "run_id": "b9edf2be-8ccd-48e3-9c88-d3a57b679111",
+          "step_id": "0",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "c6d45062-bc4d-46e4-bd4c-9c94571088df",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "b9edf2be-8ccd-48e3-9c88-d3a57b679111",
+          "step_id": "1",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "c6d45062-bc4d-46e4-bd4c-9c94571088df",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "b9edf2be-8ccd-48e3-9c88-d3a57b679111",
+          "step_id": "2",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "c6d45062-bc4d-46e4-bd4c-9c94571088df",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "b9edf2be-8ccd-48e3-9c88-d3a57b679111",
+          "step_id": "3",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "c6d45062-bc4d-46e4-bd4c-9c94571088df",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "b9edf2be-8ccd-48e3-9c88-d3a57b679111",
+          "step_id": "4",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "c6d45062-bc4d-46e4-bd4c-9c94571088df",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        }
+      ],
+      "run_id": "b9edf2be-8ccd-48e3-9c88-d3a57b679111"
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 1,
+      "condition": "WITHOUT_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": false,
+        "attempted": false,
+        "passed": false,
+        "reason": "N/A for empty memory case"
+      },
+      "L5_TASK_BENEFIT": {
+        "attempted": false,
+        "note": "filled after pairing"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": ""
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_sea",
+      "tool_query": "user preferred language for retrieval",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user's preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [],
+      "run_id": "1d0bb7f9-71c5-428d-9e23-107fd4caf74e"
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 1,
+      "condition": "WITH_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "proposition contract not fully satisfied"
+      },
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": "",
+        "authoritative_event_count": 10
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        },
+        {
+          "proposition_id": "prop_cde732737aa05379",
+          "key": "topic",
+          "kind": "topic_preference",
+          "expected_semantic_consequence": "docker",
+          "observed_satisfied": true,
+          "utilized": true
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n无命中\n无命中\n无命中\n无命中\n无命中",
+      "tool_query": "Docker and React",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [
+        {
+          "run_id": "9b251df1-7595-4e6e-8783-20d0bfb03bbf",
+          "step_id": "0",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "be623ca6-fa65-4a90-ae0a-87b6b7fc7d90",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "9b251df1-7595-4e6e-8783-20d0bfb03bbf",
+          "step_id": "0",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "79deca18-bf45-45f3-95d6-ec91e314a34a",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "9b251df1-7595-4e6e-8783-20d0bfb03bbf",
+          "step_id": "1",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "be623ca6-fa65-4a90-ae0a-87b6b7fc7d90",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "9b251df1-7595-4e6e-8783-20d0bfb03bbf",
+          "step_id": "1",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "79deca18-bf45-45f3-95d6-ec91e314a34a",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "9b251df1-7595-4e6e-8783-20d0bfb03bbf",
+          "step_id": "2",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "be623ca6-fa65-4a90-ae0a-87b6b7fc7d90",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "9b251df1-7595-4e6e-8783-20d0bfb03bbf",
+          "step_id": "2",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "79deca18-bf45-45f3-95d6-ec91e314a34a",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "9b251df1-7595-4e6e-8783-20d0bfb03bbf",
+          "step_id": "3",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "be623ca6-fa65-4a90-ae0a-87b6b7fc7d90",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "9b251df1-7595-4e6e-8783-20d0bfb03bbf",
+          "step_id": "3",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "79deca18-bf45-45f3-95d6-ec91e314a34a",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "9b251df1-7595-4e6e-8783-20d0bfb03bbf",
+          "step_id": "4",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "be623ca6-fa65-4a90-ae0a-87b6b7fc7d90",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "9b251df1-7595-4e6e-8783-20d0bfb03bbf",
+          "step_id": "4",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "79deca18-bf45-45f3-95d6-ec91e314a34a",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        }
+      ],
+      "run_id": "9b251df1-7595-4e6e-8783-20d0bfb03bbf"
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 1,
+      "condition": "WITHOUT_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": false,
+        "attempted": false,
+        "passed": false,
+        "reason": "N/A for empty memory case"
+      },
+      "L5_TASK_BENEFIT": {
+        "attempted": false,
+        "note": "filled after pairing"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": ""
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        },
+        {
+          "proposition_id": "prop_cde732737aa05379",
+          "key": "topic",
+          "kind": "topic_preference",
+          "expected_semantic_consequence": "docker",
+          "observed_satisfied": true,
+          "utilized": true
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Doc",
+      "tool_query": "Docker and React",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [],
+      "run_id": "4e56bb97-520f-45d7-a317-9405187b90d4"
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 2,
+      "condition": "WITH_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "proposition contract not fully satisfied"
+      },
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": "",
+        "authoritative_event_count": 5
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retr",
+      "tool_query": "user preferred language for retrieval",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [
+        {
+          "run_id": "610df408-bc98-4e70-9081-4cdab1fc5ff3",
+          "step_id": "0",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "1611bc4e-a5ba-42b5-83a7-4e17e25dd97d",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "610df408-bc98-4e70-9081-4cdab1fc5ff3",
+          "step_id": "1",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "1611bc4e-a5ba-42b5-83a7-4e17e25dd97d",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "610df408-bc98-4e70-9081-4cdab1fc5ff3",
+          "step_id": "2",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "1611bc4e-a5ba-42b5-83a7-4e17e25dd97d",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "610df408-bc98-4e70-9081-4cdab1fc5ff3",
+          "step_id": "3",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "1611bc4e-a5ba-42b5-83a7-4e17e25dd97d",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "610df408-bc98-4e70-9081-4cdab1fc5ff3",
+          "step_id": "4",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "1611bc4e-a5ba-42b5-83a7-4e17e25dd97d",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        }
+      ],
+      "run_id": "610df408-bc98-4e70-9081-4cdab1fc5ff3"
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 2,
+      "condition": "WITHOUT_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": false,
+        "attempted": false,
+        "passed": false,
+        "reason": "N/A for empty memory case"
+      },
+      "L5_TASK_BENEFIT": {
+        "attempted": false,
+        "note": "filled after pairing"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": ""
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_sea",
+      "tool_query": "user preferred language for retrieval",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user's preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [],
+      "run_id": "e720ee34-cbc0-4d59-951e-e0f4c541cf83"
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 2,
+      "condition": "WITH_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "proposition contract not fully satisfied"
+      },
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": "",
+        "authoritative_event_count": 10
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        },
+        {
+          "proposition_id": "prop_cde732737aa05379",
+          "key": "topic",
+          "kind": "topic_preference",
+          "expected_semantic_consequence": "docker",
+          "observed_satisfied": true,
+          "utilized": true
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n无命中\n无命中\n无命中\n无命中\n无命中",
+      "tool_query": "Docker and React",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [
+        {
+          "run_id": "ef190d45-0a07-4bbf-bdca-0c35a1d95cf2",
+          "step_id": "0",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "d7e51bff-e4e2-4492-b3de-6343340b3f30",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "ef190d45-0a07-4bbf-bdca-0c35a1d95cf2",
+          "step_id": "0",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "cd376c32-dcce-4713-a59f-59ff1ce0a07c",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "ef190d45-0a07-4bbf-bdca-0c35a1d95cf2",
+          "step_id": "1",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "d7e51bff-e4e2-4492-b3de-6343340b3f30",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "ef190d45-0a07-4bbf-bdca-0c35a1d95cf2",
+          "step_id": "1",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "cd376c32-dcce-4713-a59f-59ff1ce0a07c",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "ef190d45-0a07-4bbf-bdca-0c35a1d95cf2",
+          "step_id": "2",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "d7e51bff-e4e2-4492-b3de-6343340b3f30",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "ef190d45-0a07-4bbf-bdca-0c35a1d95cf2",
+          "step_id": "2",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "cd376c32-dcce-4713-a59f-59ff1ce0a07c",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "ef190d45-0a07-4bbf-bdca-0c35a1d95cf2",
+          "step_id": "3",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "d7e51bff-e4e2-4492-b3de-6343340b3f30",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "ef190d45-0a07-4bbf-bdca-0c35a1d95cf2",
+          "step_id": "3",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "cd376c32-dcce-4713-a59f-59ff1ce0a07c",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "ef190d45-0a07-4bbf-bdca-0c35a1d95cf2",
+          "step_id": "4",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "d7e51bff-e4e2-4492-b3de-6343340b3f30",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "ef190d45-0a07-4bbf-bdca-0c35a1d95cf2",
+          "step_id": "4",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "cd376c32-dcce-4713-a59f-59ff1ce0a07c",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        }
+      ],
+      "run_id": "ef190d45-0a07-4bbf-bdca-0c35a1d95cf2"
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 2,
+      "condition": "WITHOUT_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": false,
+        "attempted": false,
+        "passed": false,
+        "reason": "N/A for empty memory case"
+      },
+      "L5_TASK_BENEFIT": {
+        "attempted": false,
+        "note": "filled after pairing"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": ""
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        },
+        {
+          "proposition_id": "prop_cde732737aa05379",
+          "key": "topic",
+          "kind": "topic_preference",
+          "expected_semantic_consequence": "docker",
+          "observed_satisfied": true,
+          "utilized": true
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Doc",
+      "tool_query": "Docker and React",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [],
+      "run_id": "70682a10-0ddb-4f39-91dc-1b8a64fdd595"
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 3,
+      "condition": "WITH_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "proposition contract not fully satisfied"
+      },
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": "",
+        "authoritative_event_count": 5
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retr",
+      "tool_query": "user preferred language for retrieval",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [
+        {
+          "run_id": "7427692d-f896-4a0f-9d36-65fa74623c77",
+          "step_id": "0",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "4018a8f7-1112-4253-b455-6393477e2906",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "7427692d-f896-4a0f-9d36-65fa74623c77",
+          "step_id": "1",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "4018a8f7-1112-4253-b455-6393477e2906",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "7427692d-f896-4a0f-9d36-65fa74623c77",
+          "step_id": "2",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "4018a8f7-1112-4253-b455-6393477e2906",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "7427692d-f896-4a0f-9d36-65fa74623c77",
+          "step_id": "3",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "4018a8f7-1112-4253-b455-6393477e2906",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "7427692d-f896-4a0f-9d36-65fa74623c77",
+          "step_id": "4",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "4018a8f7-1112-4253-b455-6393477e2906",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        }
+      ],
+      "run_id": "7427692d-f896-4a0f-9d36-65fa74623c77"
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 3,
+      "condition": "WITHOUT_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": false,
+        "attempted": false,
+        "passed": false,
+        "reason": "N/A for empty memory case"
+      },
+      "L5_TASK_BENEFIT": {
+        "attempted": false,
+        "note": "filled after pairing"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": ""
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_sea",
+      "tool_query": "user preferred language for retrieval",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user's preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [],
+      "run_id": "aa7afabd-4667-48f1-b123-f02eaa13d764"
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 3,
+      "condition": "WITH_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "proposition contract not fully satisfied"
+      },
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": "",
+        "authoritative_event_count": 10
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        },
+        {
+          "proposition_id": "prop_cde732737aa05379",
+          "key": "topic",
+          "kind": "topic_preference",
+          "expected_semantic_consequence": "docker",
+          "observed_satisfied": true,
+          "utilized": true
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n无命中\n无命中\n无命中\n无命中\n无命中",
+      "tool_query": "Docker and React",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [
+        {
+          "run_id": "4b908d60-1c1e-4552-931a-5c1785be3344",
+          "step_id": "0",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "f61d5a8b-f664-4373-87e4-014f3be3f2fc",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "4b908d60-1c1e-4552-931a-5c1785be3344",
+          "step_id": "0",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "41a1f3af-787e-480d-881a-aae4ead85316",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "4b908d60-1c1e-4552-931a-5c1785be3344",
+          "step_id": "1",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "f61d5a8b-f664-4373-87e4-014f3be3f2fc",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "4b908d60-1c1e-4552-931a-5c1785be3344",
+          "step_id": "1",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "41a1f3af-787e-480d-881a-aae4ead85316",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "4b908d60-1c1e-4552-931a-5c1785be3344",
+          "step_id": "2",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "f61d5a8b-f664-4373-87e4-014f3be3f2fc",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "4b908d60-1c1e-4552-931a-5c1785be3344",
+          "step_id": "2",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "41a1f3af-787e-480d-881a-aae4ead85316",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "4b908d60-1c1e-4552-931a-5c1785be3344",
+          "step_id": "3",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "f61d5a8b-f664-4373-87e4-014f3be3f2fc",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "4b908d60-1c1e-4552-931a-5c1785be3344",
+          "step_id": "3",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "41a1f3af-787e-480d-881a-aae4ead85316",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "4b908d60-1c1e-4552-931a-5c1785be3344",
+          "step_id": "4",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "f61d5a8b-f664-4373-87e4-014f3be3f2fc",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "4b908d60-1c1e-4552-931a-5c1785be3344",
+          "step_id": "4",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "41a1f3af-787e-480d-881a-aae4ead85316",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        }
+      ],
+      "run_id": "4b908d60-1c1e-4552-931a-5c1785be3344"
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 3,
+      "condition": "WITHOUT_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": false,
+        "attempted": false,
+        "passed": false,
+        "reason": "N/A for empty memory case"
+      },
+      "L5_TASK_BENEFIT": {
+        "attempted": false,
+        "note": "filled after pairing"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": ""
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        },
+        {
+          "proposition_id": "prop_cde732737aa05379",
+          "key": "topic",
+          "kind": "topic_preference",
+          "expected_semantic_consequence": "docker",
+          "observed_satisfied": true,
+          "utilized": true
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Doc",
+      "tool_query": "Docker and React",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [],
+      "run_id": "7cfed2c2-3e1b-4787-bf0d-4a20e5d04d10"
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 4,
+      "condition": "WITH_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "proposition contract not fully satisfied"
+      },
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": "",
+        "authoritative_event_count": 5
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retr",
+      "tool_query": "user preferred language for retrieval",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [
+        {
+          "run_id": "c3567b23-2ae1-4a7d-8578-825c2609ae9e",
+          "step_id": "0",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "d8c58a72-21d0-4168-a579-842dc7be60c5",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "c3567b23-2ae1-4a7d-8578-825c2609ae9e",
+          "step_id": "1",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "d8c58a72-21d0-4168-a579-842dc7be60c5",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "c3567b23-2ae1-4a7d-8578-825c2609ae9e",
+          "step_id": "2",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "d8c58a72-21d0-4168-a579-842dc7be60c5",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "c3567b23-2ae1-4a7d-8578-825c2609ae9e",
+          "step_id": "3",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "d8c58a72-21d0-4168-a579-842dc7be60c5",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "c3567b23-2ae1-4a7d-8578-825c2609ae9e",
+          "step_id": "4",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "d8c58a72-21d0-4168-a579-842dc7be60c5",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        }
+      ],
+      "run_id": "c3567b23-2ae1-4a7d-8578-825c2609ae9e"
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 4,
+      "condition": "WITHOUT_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": false,
+        "attempted": false,
+        "passed": false,
+        "reason": "N/A for empty memory case"
+      },
+      "L5_TASK_BENEFIT": {
+        "attempted": false,
+        "note": "filled after pairing"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": ""
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_sea",
+      "tool_query": "user preferred language for retrieval",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user's preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [],
+      "run_id": "108ca0bf-370e-4b6a-b712-7030abb9893b"
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 4,
+      "condition": "WITH_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "proposition contract not fully satisfied"
+      },
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": "",
+        "authoritative_event_count": 10
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        },
+        {
+          "proposition_id": "prop_cde732737aa05379",
+          "key": "topic",
+          "kind": "topic_preference",
+          "expected_semantic_consequence": "docker",
+          "observed_satisfied": true,
+          "utilized": true
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n无命中\n无命中\n无命中\n无命中\n无命中",
+      "tool_query": "Docker and React",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [
+        {
+          "run_id": "4173d2b6-11e8-4442-9365-dd72c3a9adfc",
+          "step_id": "0",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "66b708e2-4f27-4fc9-8d7d-19b504297a61",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "4173d2b6-11e8-4442-9365-dd72c3a9adfc",
+          "step_id": "0",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "bb0eb2e0-7ee6-421a-9b28-6c9694d65b6b",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "4173d2b6-11e8-4442-9365-dd72c3a9adfc",
+          "step_id": "1",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "66b708e2-4f27-4fc9-8d7d-19b504297a61",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "4173d2b6-11e8-4442-9365-dd72c3a9adfc",
+          "step_id": "1",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "bb0eb2e0-7ee6-421a-9b28-6c9694d65b6b",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "4173d2b6-11e8-4442-9365-dd72c3a9adfc",
+          "step_id": "2",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "66b708e2-4f27-4fc9-8d7d-19b504297a61",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "4173d2b6-11e8-4442-9365-dd72c3a9adfc",
+          "step_id": "2",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "bb0eb2e0-7ee6-421a-9b28-6c9694d65b6b",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "4173d2b6-11e8-4442-9365-dd72c3a9adfc",
+          "step_id": "3",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "66b708e2-4f27-4fc9-8d7d-19b504297a61",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "4173d2b6-11e8-4442-9365-dd72c3a9adfc",
+          "step_id": "3",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "bb0eb2e0-7ee6-421a-9b28-6c9694d65b6b",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "4173d2b6-11e8-4442-9365-dd72c3a9adfc",
+          "step_id": "4",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "66b708e2-4f27-4fc9-8d7d-19b504297a61",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "4173d2b6-11e8-4442-9365-dd72c3a9adfc",
+          "step_id": "4",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "bb0eb2e0-7ee6-421a-9b28-6c9694d65b6b",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        }
+      ],
+      "run_id": "4173d2b6-11e8-4442-9365-dd72c3a9adfc"
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 4,
+      "condition": "WITHOUT_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": false,
+        "attempted": false,
+        "passed": false,
+        "reason": "N/A for empty memory case"
+      },
+      "L5_TASK_BENEFIT": {
+        "attempted": false,
+        "note": "filled after pairing"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": ""
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        },
+        {
+          "proposition_id": "prop_cde732737aa05379",
+          "key": "topic",
+          "kind": "topic_preference",
+          "expected_semantic_consequence": "docker",
+          "observed_satisfied": true,
+          "utilized": true
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Doc",
+      "tool_query": "Docker and React",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [],
+      "run_id": "f8a3abda-920e-4d39-8606-f3c4b35ba03d"
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 5,
+      "condition": "WITH_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "proposition contract not fully satisfied"
+      },
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": "",
+        "authoritative_event_count": 5
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n{\"action\": \"tool\", \"tool_name\": \"semantic_search\", \"args\": {\"query\": \"user preferred language for retrieval\"}, \"reason_code\": \"initial_retrieval\"}\n无命中\n{\"query\": \"user preferred language for retr",
+      "tool_query": "user preferred language for retrieval",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [
+        {
+          "run_id": "bc6ab41f-8883-4768-ad21-c78673c57415",
+          "step_id": "0",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "980d3676-1b94-4888-b812-8ff672b9d4bd",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "bc6ab41f-8883-4768-ad21-c78673c57415",
+          "step_id": "1",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "980d3676-1b94-4888-b812-8ff672b9d4bd",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "bc6ab41f-8883-4768-ad21-c78673c57415",
+          "step_id": "2",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "980d3676-1b94-4888-b812-8ff672b9d4bd",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "bc6ab41f-8883-4768-ad21-c78673c57415",
+          "step_id": "3",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "980d3676-1b94-4888-b812-8ff672b9d4bd",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "bc6ab41f-8883-4768-ad21-c78673c57415",
+          "step_id": "4",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "980d3676-1b94-4888-b812-8ff672b9d4bd",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        }
+      ],
+      "run_id": "bc6ab41f-8883-4768-ad21-c78673c57415"
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 5,
+      "condition": "WITHOUT_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": false,
+        "attempted": false,
+        "passed": false,
+        "reason": "N/A for empty memory case"
+      },
+      "L5_TASK_BENEFIT": {
+        "attempted": false,
+        "note": "filled after pairing"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": ""
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"user preferred language for retrieval\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"user preferred language for retrieval\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_sea",
+      "tool_query": "user preferred language for retrieval",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user's preferred language for retrieval"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "user preferred language for retrieval"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [],
+      "run_id": "b8856a61-11bd-4e6b-99d6-3bd3c05646df"
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 5,
+      "condition": "WITH_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "proposition contract not fully satisfied"
+      },
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": "",
+        "authoritative_event_count": 10
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        },
+        {
+          "proposition_id": "prop_cde732737aa05379",
+          "key": "topic",
+          "kind": "topic_preference",
+          "expected_semantic_consequence": "docker",
+          "observed_satisfied": true,
+          "utilized": true
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n{\"action\":\"tool\",\"tool_name\":\"semantic_search\",\"args\":{\"query\":\"Docker and React\"},\"reason_code\":\"initial_retrieval\"}\n无命中\n{\"query\": \"Docker and React\"}\n无命中\n无命中\n无命中\n无命中\n无命中",
+      "tool_query": "Docker and React",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [
+        {
+          "run_id": "f6a3e1f7-5272-40c7-8dc9-6c29652130d1",
+          "step_id": "0",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "11508147-d4ca-439d-b178-3a046ff0e84e",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "f6a3e1f7-5272-40c7-8dc9-6c29652130d1",
+          "step_id": "0",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "232f7286-bd9d-4c4b-a15a-d4dd0e84fdc1",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "f6a3e1f7-5272-40c7-8dc9-6c29652130d1",
+          "step_id": "1",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "11508147-d4ca-439d-b178-3a046ff0e84e",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "f6a3e1f7-5272-40c7-8dc9-6c29652130d1",
+          "step_id": "1",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "232f7286-bd9d-4c4b-a15a-d4dd0e84fdc1",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "f6a3e1f7-5272-40c7-8dc9-6c29652130d1",
+          "step_id": "2",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "11508147-d4ca-439d-b178-3a046ff0e84e",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "f6a3e1f7-5272-40c7-8dc9-6c29652130d1",
+          "step_id": "2",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "232f7286-bd9d-4c4b-a15a-d4dd0e84fdc1",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "f6a3e1f7-5272-40c7-8dc9-6c29652130d1",
+          "step_id": "3",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "11508147-d4ca-439d-b178-3a046ff0e84e",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "f6a3e1f7-5272-40c7-8dc9-6c29652130d1",
+          "step_id": "3",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "232f7286-bd9d-4c4b-a15a-d4dd0e84fdc1",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        },
+        {
+          "run_id": "f6a3e1f7-5272-40c7-8dc9-6c29652130d1",
+          "step_id": "4",
+          "memory_hash": "e857e1496f6c3eb6fcd6e9c1ef46956f547df6d45bdb416bb16e306c7267903c",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "11508147-d4ca-439d-b178-3a046ff0e84e",
+          "proposition_id": null,
+          "memory_key": "topic",
+          "timestamp": null
+        },
+        {
+          "run_id": "f6a3e1f7-5272-40c7-8dc9-6c29652130d1",
+          "step_id": "4",
+          "memory_hash": "3da2fcf3a78af4f2f069ccafbb187ab9c2cdeaa1645ba8445923a5b4c5ab4bcd",
+          "injected_to_context": true,
+          "scope": "run",
+          "source": "planner_prompt_injection",
+          "context_slot": "planner_user_prompt",
+          "channel": "next_action_planner",
+          "memory_id": "232f7286-bd9d-4c4b-a15a-d4dd0e84fdc1",
+          "proposition_id": null,
+          "memory_key": "lang",
+          "timestamp": null
+        }
+      ],
+      "run_id": "f6a3e1f7-5272-40c7-8dc9-6c29652130d1"
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 5,
+      "condition": "WITHOUT_MEMORY",
+      "L1_SEEDED": {
+        "level": "L1_SEEDED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L2_LOADED": {
+        "level": "L2_LOADED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L3_EXPOSED": {
+        "level": "L3_EXPOSED",
+        "eligible": true,
+        "attempted": true,
+        "passed": true,
+        "reason": ""
+      },
+      "L4_UTILIZED": {
+        "level": "L4_UTILIZED",
+        "eligible": false,
+        "attempted": false,
+        "passed": false,
+        "reason": "N/A for empty memory case"
+      },
+      "L5_TASK_BENEFIT": {
+        "attempted": false,
+        "note": "filled after pairing"
+      },
+      "l3_meta": {
+        "l3_source": "MemoryExposureEvent",
+        "l3_event_pass": true,
+        "l3_reason": ""
+      },
+      "proposition_records": [
+        {
+          "proposition_id": "prop_d1e94ebe57991508",
+          "key": "lang",
+          "kind": "language_preference",
+          "expected_semantic_consequence": "en",
+          "observed_satisfied": false,
+          "utilized": false
+        },
+        {
+          "proposition_id": "prop_cde732737aa05379",
+          "key": "topic",
+          "kind": "topic_preference",
+          "expected_semantic_consequence": "docker",
+          "observed_satisfied": true,
+          "utilized": true
+        }
+      ],
+      "task_contract_passed": false,
+      "false_utilization": false,
+      "output_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Docker and React\"}\n```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"Docker and React\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```\n无命中\n{\"query\": \"Doc",
+      "tool_query": "Docker and React",
+      "outcome": {
+        "steps_used": 5,
+        "max_steps": 5,
+        "capped": true,
+        "terminal_action": null,
+        "steps": [
+          {
+            "step_index": 1,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 2,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 3,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 4,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          },
+          {
+            "step_index": 5,
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "Docker and React"
+            },
+            "ok": true
+          }
+        ]
+      },
+      "exposure_events": [],
+      "run_id": "011679f5-3c16-4b4f-9490-28edbe6a3ea0"
+    }
+  ],
+  "paired_counterfactuals": [
+    {
+      "case_id": "GA-9",
+      "trial_index": 1,
+      "with_task_contract": false,
+      "without_task_contract": false,
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      }
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 1,
+      "with_task_contract": false,
+      "without_task_contract": false,
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      }
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 2,
+      "with_task_contract": false,
+      "without_task_contract": false,
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      }
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 2,
+      "with_task_contract": false,
+      "without_task_contract": false,
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      }
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 3,
+      "with_task_contract": false,
+      "without_task_contract": false,
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      }
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 3,
+      "with_task_contract": false,
+      "without_task_contract": false,
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      }
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 4,
+      "with_task_contract": false,
+      "without_task_contract": false,
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      }
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 4,
+      "with_task_contract": false,
+      "without_task_contract": false,
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      }
+    },
+    {
+      "case_id": "GA-9",
+      "trial_index": 5,
+      "with_task_contract": false,
+      "without_task_contract": false,
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      }
+    },
+    {
+      "case_id": "GA-10",
+      "trial_index": 5,
+      "with_task_contract": false,
+      "without_task_contract": false,
+      "L5_TASK_BENEFIT": {
+        "level": "L5_TASK_BENEFIT",
+        "eligible": true,
+        "attempted": true,
+        "passed": false,
+        "reason": "with_memory did not satisfy task contract"
+      }
+    }
+  ],
+  "source_sha256": "6c7c8b06cf36e0ce9ce10900424569d01cb59829ed49359fb06e13cdeca6f94d",
+  "source_artifact": "tests/fixtures/l4_memory_capability/w8-memory-p3-real-capability.json"
+}
