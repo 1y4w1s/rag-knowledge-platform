@@ -1,0 +1,110 @@
+{
+  "schema_version": "l4-tool-p3-offline-ablation-v1",
+  "stage": "TOOL_P3_OFFLINE_REMEDIATION_ABLATION",
+  "p2_lineage_sha": "ba5837bed3a1828363871c2f3c2dd92fd761bbec",
+  "p2_freeze_head": "8e6e133",
+  "p2_primary_score": "0/3",
+  "p2_stability_score": "0/15",
+  "measurement_validity": "TRUSTWORTHY",
+  "lm_studio_rerun": false,
+  "product_remediation": false,
+  "runtime_rollout": false,
+  "production_fix_proven": false,
+  "product_diff": 0,
+  "corpus_fixture": "tests/fixtures/l4_tool_capability/l4-tool-p3-p2-failure-corpus.json",
+  "corpus_trials": 15,
+  "families": {
+    "S": {
+      "name": "TOOL_SELECTION_FAILURE",
+      "cases": [
+        "GQ-131"
+      ],
+      "trials": 5,
+      "taxonomy": "PLANNER_WRONG_TOOL",
+      "best_candidate": "S2",
+      "baseline": {
+        "candidate_id": "S0",
+        "target_recovery": "0/5",
+        "hard_negative_regressions": "0/5",
+        "new_false_behavior": 0,
+        "verdict": "REJECT"
+      },
+      "recommended": {
+        "candidate_id": "S2",
+        "target_recovery": "5/5",
+        "hard_negative_regressions": "0/5",
+        "new_false_behavior": 0,
+        "verdict": "ACCEPT"
+      },
+      "target_recovery": "5/5",
+      "hard_negative_regression": "0/5",
+      "false_positive_hint": 0,
+      "freeze_semantics": {
+        "mode": "advisory_preferred_tool_hint",
+        "deterministic_override": false,
+        "ambiguous": "NO_HINT"
+      },
+      "status": "READY_FOR_PRODUCT_EXPERIMENT"
+    },
+    "T": {
+      "name": "POST_OBSERVATION_TERMINATION_FAILURE",
+      "cases": [
+        "GQ-132",
+        "GQ-149"
+      ],
+      "trials": 10,
+      "taxonomy": "BUDGET_EXHAUSTION",
+      "best_candidate": "T2",
+      "baseline": {
+        "candidate_id": "T0",
+        "target_recovery": "0/10",
+        "hard_negative_regressions": "1/6",
+        "new_false_behavior": 0,
+        "verdict": "REJECT"
+      },
+      "recommended": {
+        "candidate_id": "T2",
+        "target_recovery": "10/10",
+        "hard_negative_regressions": "0/6",
+        "new_false_behavior": 0,
+        "verdict": "ACCEPT"
+      },
+      "target_recovery": "10/10",
+      "hard_negative_regression": "0/6",
+      "false_positive_hint": 0,
+      "freeze_semantics": {
+        "mode": "advisory_task_contract_satisfied_hint",
+        "force_finish": false,
+        "requires": "tool_native_contract_predicate"
+      },
+      "status": "READY_FOR_PRODUCT_EXPERIMENT"
+    }
+  },
+  "recommended_candidates": [
+    "S2",
+    "T2"
+  ],
+  "recommended_next_product_experiments": [
+    "Product prompt/description experiment for S2 only (no ToolResolver semantic change; measure GQ-131 first-action).",
+    "Product post-obs experiment for T2 only (obs-complete / repeat-success; no StopPolicy product patch yet)."
+  ],
+  "ready_for_product_selection_fix": true,
+  "ready_for_product_termination_fix": true,
+  "ready_for_product_ablation": true,
+  "freeze_status": "READY_FOR_PRODUCT_EXPERIMENT",
+  "not_labels": [
+    "NOT PRODUCTION_FIX_PROVEN",
+    "NOT RUNTIME_ROLLOUT"
+  ],
+  "s_target_recovery": "5/5",
+  "s_hard_negative_regression": "0/5",
+  "t_target_recovery": "10/10",
+  "t_hard_negative_regression": "0/6",
+  "state": "PASS",
+  "notes": [
+    "S4 remove-competing-tool is DIAGNOSTIC_ONLY",
+    "T6 StopPolicy path is DIAGNOSTIC_ONLY",
+    "Family T is termination reasoning failure, not evidence-gate correctly blocking finish",
+    "S2/T2 are READY_FOR_PRODUCT_EXPERIMENT — NOT PRODUCTION_FIX_PROVEN"
+  ]
+}

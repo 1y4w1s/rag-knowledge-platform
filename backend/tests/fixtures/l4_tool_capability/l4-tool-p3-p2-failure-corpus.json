@@ -1,0 +1,5349 @@
+{
+  "schema_version": "tool-p3-failure-corpus-v1",
+  "source_report_schema": "tool-p2-real-local-capability-v1",
+  "source_run_id": "a898542f-b900-406d-8ab7-445c4f2b9fe6",
+  "source_head_sha": "ba5837bed3a1828363871c2f3c2dd92fd761bbec",
+  "tool_p2_base_sha": "ba5837bed3a1828363871c2f3c2dd92fd761bbec",
+  "measurement_validity": "TRUSTWORTHY",
+  "model_config": {
+    "model": "zai-org/glm-4.6v-flash",
+    "provider": "lmstudio_openai_compatible",
+    "base_url": "http://127.0.0.1:1234/v1",
+    "endpoint_host": "127.0.0.1",
+    "thinking": "OFF",
+    "context_tokens": 8192,
+    "temperature": 0,
+    "timeout_seconds": 90.0,
+    "lm_studio_version": "CLI commit: 9902c3a",
+    "hardware": "Windows-10-10.0.26200-SP0"
+  },
+  "primary_score": "0/3",
+  "trial_success": "0/15",
+  "per_case_repeat": {
+    "GQ-131": "0/5",
+    "GQ-132": "0/5",
+    "GQ-149": "0/5"
+  },
+  "tna_tracking": {
+    "raw_tool_name_as_action": 10,
+    "recovered_tool_name_as_action": 10,
+    "unrecovered_tool_name_as_action": 0
+  },
+  "safety_metrics": {
+    "unsafe_terminal": 0,
+    "out_of_scope_accept": 0,
+    "invalid_args_accept": 0,
+    "false_observation_success": 0,
+    "failed_tool_marked_success": 0,
+    "schema_unrecovered": 0
+  },
+  "aggregate_metrics": {
+    "case_count": 15,
+    "metrics": [
+      {
+        "metric": "tool_selection_accuracy",
+        "eligible": 15,
+        "attempted": 15,
+        "passed": 10,
+        "rate": 0.6667
+      },
+      {
+        "metric": "tool_args_valid_rate",
+        "eligible": 15,
+        "attempted": 10,
+        "passed": 10,
+        "rate": 1.0
+      },
+      {
+        "metric": "tool_resolver_accept_rate",
+        "eligible": 15,
+        "attempted": 10,
+        "passed": 10,
+        "rate": 1.0
+      },
+      {
+        "metric": "tool_execution_success_rate",
+        "eligible": 15,
+        "attempted": 10,
+        "passed": 10,
+        "rate": 1.0
+      },
+      {
+        "metric": "expected_observation_rate",
+        "eligible": 15,
+        "attempted": 10,
+        "passed": 10,
+        "rate": 1.0
+      },
+      {
+        "metric": "post_observation_decision_valid_rate",
+        "eligible": 15,
+        "attempted": 10,
+        "passed": 10,
+        "rate": 1.0
+      },
+      {
+        "metric": "task_completion_rate",
+        "eligible": 15,
+        "attempted": 15,
+        "passed": 0,
+        "rate": 0.0
+      },
+      {
+        "metric": "safe_termination_rate",
+        "eligible": 15,
+        "attempted": 15,
+        "passed": 0,
+        "rate": 0.0
+      },
+      {
+        "metric": "budget_exhaustion_rate",
+        "eligible": 15,
+        "attempted": 15,
+        "passed": 15,
+        "rate": 1.0
+      },
+      {
+        "metric": "tool_failure_recovery_rate",
+        "eligible": 15,
+        "attempted": 0,
+        "passed": 0,
+        "rate": 0.0
+      }
+    ],
+    "task_completion_count": 0,
+    "false_task_success_count": 0
+  },
+  "trials": [
+    {
+      "case_id": "GQ-131",
+      "trial_index": 1,
+      "panel": "primary",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 2888,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 2888
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 850,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 850
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 652,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 652
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 446,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 446
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 17,
+          "observation": {
+            "total": 0,
+            "summary": "无命中",
+            "items": []
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-131",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "hits": [],
+              "retrieval_ms": 2888
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-131",
+      "trial_index": 2,
+      "panel": "stability",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 456,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 456
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 42,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 42
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 40,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 40
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 47,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 47
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 9,
+          "observation": {
+            "total": 0,
+            "summary": "无命中",
+            "items": []
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-131",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "hits": [],
+              "retrieval_ms": 456
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-131",
+      "trial_index": 3,
+      "panel": "stability",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 119,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 119
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 464,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 464
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 33,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 33
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 32,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 32
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 11,
+          "observation": {
+            "total": 0,
+            "summary": "无命中",
+            "items": []
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-131",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "hits": [],
+              "retrieval_ms": 119
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-131",
+      "trial_index": 4,
+      "panel": "stability",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 49,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 49
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 30,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 30
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 454,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 454
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 32,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 32
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 13,
+          "observation": {
+            "total": 0,
+            "summary": "无命中",
+            "items": []
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-131",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "hits": [],
+              "retrieval_ms": 49
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-131",
+      "trial_index": 5,
+      "panel": "stability",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 49,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 49
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 26,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 26
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 36,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 36
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "semantic_search",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 444,
+          "observation": {
+            "hits": [],
+            "retrieval_ms": 444
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "search documents across knowledge bases"
+          },
+          "ok": true,
+          "summary": "无命中",
+          "latency_ms": 42,
+          "observation": {
+            "total": 0,
+            "summary": "无命中",
+            "items": []
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-131",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "hits": [],
+              "retrieval_ms": 49
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "How to search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "semantic_search",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "semantic_search",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "semantic_search",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "search documents across knowledge bases"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "search documents across knowledge bases"
+          },
+          "tool_success": true,
+          "observation_summary": "无命中",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-132",
+      "trial_index": 1,
+      "panel": "primary",
+      "task_completion": false,
+      "first_failed_stage": "safe_terminal",
+      "failure_taxonomy": "BUDGET_EXHAUSTED",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": null
+          },
+          "ok": true,
+          "summary": "可见库 2 个 · personal",
+          "latency_ms": 224,
+          "observation": {
+            "total": 2,
+            "scope_label": "personal",
+            "summary": "可见库 2 个 · personal",
+            "items": [
+              {
+                "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                "name": "TOOL P2 GQ-132 Main",
+                "document_count": 0
+              },
+              {
+                "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                "name": "TOOL P2 GQ-132 Secondary",
+                "document_count": 0
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 17,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 39,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 7,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "list_knowledge_bases",
+          "args": {},
+          "ok": true,
+          "summary": "可见库 2 个 · personal",
+          "latency_ms": 108,
+          "observation": {
+            "total": 2,
+            "scope_label": "personal",
+            "summary": "可见库 2 个 · personal",
+            "items": [
+              {
+                "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                "name": "TOOL P2 GQ-132 Main",
+                "document_count": 0
+              },
+              {
+                "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                "name": "TOOL P2 GQ-132 Secondary",
+                "document_count": 0
+              }
+            ]
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-132",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "list_knowledge_bases",
+            "tool_args": {
+              "q": null
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "total": 2,
+              "scope_label": "personal",
+              "summary": "可见库 2 个 · personal",
+              "items": [
+                {
+                  "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                  "name": "TOOL P2 GQ-132 Main",
+                  "document_count": 0
+                },
+                {
+                  "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                  "name": "TOOL P2 GQ-132 Secondary",
+                  "document_count": 0
+                }
+              ]
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": null
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": null
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": null
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 2 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": null\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": null,
+          "parsed_tool": null,
+          "parsed_args": {},
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {},
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {},
+          "tool_success": true,
+          "observation_summary": "可见库 2 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"list_knowledge_bases\",\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 1,
+        "recovered": 1,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": true,
+            "recovered": true,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "valid"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "kb identity/count/metadata present"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-132",
+      "trial_index": 2,
+      "panel": "stability",
+      "task_completion": false,
+      "first_failed_stage": "safe_terminal",
+      "failure_taxonomy": "BUDGET_EXHAUSTED",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": null
+          },
+          "ok": true,
+          "summary": "可见库 2 个 · personal",
+          "latency_ms": 78,
+          "observation": {
+            "total": 2,
+            "scope_label": "personal",
+            "summary": "可见库 2 个 · personal",
+            "items": [
+              {
+                "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                "name": "TOOL P2 GQ-132 Main",
+                "document_count": 0
+              },
+              {
+                "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                "name": "TOOL P2 GQ-132 Secondary",
+                "document_count": 0
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 10,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 11,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 5,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "list_knowledge_bases",
+          "args": {},
+          "ok": true,
+          "summary": "可见库 2 个 · personal",
+          "latency_ms": 34,
+          "observation": {
+            "total": 2,
+            "scope_label": "personal",
+            "summary": "可见库 2 个 · personal",
+            "items": [
+              {
+                "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                "name": "TOOL P2 GQ-132 Main",
+                "document_count": 0
+              },
+              {
+                "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                "name": "TOOL P2 GQ-132 Secondary",
+                "document_count": 0
+              }
+            ]
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-132",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "list_knowledge_bases",
+            "tool_args": {
+              "q": null
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "total": 2,
+              "scope_label": "personal",
+              "summary": "可见库 2 个 · personal",
+              "items": [
+                {
+                  "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                  "name": "TOOL P2 GQ-132 Main",
+                  "document_count": 0
+                },
+                {
+                  "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                  "name": "TOOL P2 GQ-132 Secondary",
+                  "document_count": 0
+                }
+              ]
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": null
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": null
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": null
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 2 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": null\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": null,
+          "parsed_tool": null,
+          "parsed_args": {},
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {},
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {},
+          "tool_success": true,
+          "observation_summary": "可见库 2 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"list_knowledge_bases\",\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 1,
+        "recovered": 1,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": true,
+            "recovered": true,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "valid"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "kb identity/count/metadata present"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-132",
+      "trial_index": 3,
+      "panel": "stability",
+      "task_completion": false,
+      "first_failed_stage": "safe_terminal",
+      "failure_taxonomy": "BUDGET_EXHAUSTED",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": null
+          },
+          "ok": true,
+          "summary": "可见库 2 个 · personal",
+          "latency_ms": 95,
+          "observation": {
+            "total": 2,
+            "scope_label": "personal",
+            "summary": "可见库 2 个 · personal",
+            "items": [
+              {
+                "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                "name": "TOOL P2 GQ-132 Main",
+                "document_count": 0
+              },
+              {
+                "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                "name": "TOOL P2 GQ-132 Secondary",
+                "document_count": 0
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 14,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 6,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 7,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "list_knowledge_bases",
+          "args": {},
+          "ok": true,
+          "summary": "可见库 2 个 · personal",
+          "latency_ms": 84,
+          "observation": {
+            "total": 2,
+            "scope_label": "personal",
+            "summary": "可见库 2 个 · personal",
+            "items": [
+              {
+                "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                "name": "TOOL P2 GQ-132 Main",
+                "document_count": 0
+              },
+              {
+                "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                "name": "TOOL P2 GQ-132 Secondary",
+                "document_count": 0
+              }
+            ]
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-132",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "list_knowledge_bases",
+            "tool_args": {
+              "q": null
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "total": 2,
+              "scope_label": "personal",
+              "summary": "可见库 2 个 · personal",
+              "items": [
+                {
+                  "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                  "name": "TOOL P2 GQ-132 Main",
+                  "document_count": 0
+                },
+                {
+                  "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                  "name": "TOOL P2 GQ-132 Secondary",
+                  "document_count": 0
+                }
+              ]
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": null
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": null
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": null
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 2 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": null\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": null,
+          "parsed_tool": null,
+          "parsed_args": {},
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {},
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {},
+          "tool_success": true,
+          "observation_summary": "可见库 2 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"list_knowledge_bases\",\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 1,
+        "recovered": 1,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": true,
+            "recovered": true,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "valid"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "kb identity/count/metadata present"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-132",
+      "trial_index": 4,
+      "panel": "stability",
+      "task_completion": false,
+      "first_failed_stage": "safe_terminal",
+      "failure_taxonomy": "BUDGET_EXHAUSTED",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": null
+          },
+          "ok": true,
+          "summary": "可见库 2 个 · personal",
+          "latency_ms": 36,
+          "observation": {
+            "total": 2,
+            "scope_label": "personal",
+            "summary": "可见库 2 个 · personal",
+            "items": [
+              {
+                "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                "name": "TOOL P2 GQ-132 Main",
+                "document_count": 0
+              },
+              {
+                "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                "name": "TOOL P2 GQ-132 Secondary",
+                "document_count": 0
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 7,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 5,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 5,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "list_knowledge_bases",
+          "args": {},
+          "ok": true,
+          "summary": "可见库 2 个 · personal",
+          "latency_ms": 135,
+          "observation": {
+            "total": 2,
+            "scope_label": "personal",
+            "summary": "可见库 2 个 · personal",
+            "items": [
+              {
+                "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                "name": "TOOL P2 GQ-132 Main",
+                "document_count": 0
+              },
+              {
+                "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                "name": "TOOL P2 GQ-132 Secondary",
+                "document_count": 0
+              }
+            ]
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-132",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "list_knowledge_bases",
+            "tool_args": {
+              "q": null
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "total": 2,
+              "scope_label": "personal",
+              "summary": "可见库 2 个 · personal",
+              "items": [
+                {
+                  "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                  "name": "TOOL P2 GQ-132 Main",
+                  "document_count": 0
+                },
+                {
+                  "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                  "name": "TOOL P2 GQ-132 Secondary",
+                  "document_count": 0
+                }
+              ]
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": null
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": null
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": null
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 2 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": null\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": null,
+          "parsed_tool": null,
+          "parsed_args": {},
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {},
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {},
+          "tool_success": true,
+          "observation_summary": "可见库 2 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"list_knowledge_bases\",\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 1,
+        "recovered": 1,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": true,
+            "recovered": true,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "valid"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "kb identity/count/metadata present"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-132",
+      "trial_index": 5,
+      "panel": "stability",
+      "task_completion": false,
+      "first_failed_stage": "safe_terminal",
+      "failure_taxonomy": "BUDGET_EXHAUSTED",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": null
+          },
+          "ok": true,
+          "summary": "可见库 2 个 · personal",
+          "latency_ms": 37,
+          "observation": {
+            "total": 2,
+            "scope_label": "personal",
+            "summary": "可见库 2 个 · personal",
+            "items": [
+              {
+                "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                "name": "TOOL P2 GQ-132 Main",
+                "document_count": 0
+              },
+              {
+                "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                "name": "TOOL P2 GQ-132 Secondary",
+                "document_count": 0
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 9,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 17,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "list_knowledge_bases",
+          "args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "ok": true,
+          "summary": "可见库 0 个 · personal",
+          "latency_ms": 5,
+          "observation": {
+            "total": 0,
+            "scope_label": "personal",
+            "summary": "可见库 0 个 · personal",
+            "items": []
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "list_knowledge_bases",
+          "args": {},
+          "ok": true,
+          "summary": "可见库 2 个 · personal",
+          "latency_ms": 48,
+          "observation": {
+            "total": 2,
+            "scope_label": "personal",
+            "summary": "可见库 2 个 · personal",
+            "items": [
+              {
+                "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                "name": "TOOL P2 GQ-132 Main",
+                "document_count": 0
+              },
+              {
+                "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                "name": "TOOL P2 GQ-132 Secondary",
+                "document_count": 0
+              }
+            ]
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-132",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "list_knowledge_bases",
+            "tool_args": {
+              "q": null
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "total": 2,
+              "scope_label": "personal",
+              "summary": "可见库 2 个 · personal",
+              "items": [
+                {
+                  "kb_id": "1cc64e24-ca81-40bb-bbce-9930294d2492",
+                  "name": "TOOL P2 GQ-132 Main",
+                  "document_count": 0
+                },
+                {
+                  "kb_id": "96ed2c5d-7256-4330-b334-7c18e533d4b5",
+                  "name": "TOOL P2 GQ-132 Secondary",
+                  "document_count": 0
+                }
+              ]
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": null
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": null
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": null
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 2 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": null\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "list_knowledge_bases",
+          "parsed_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {
+              "q": "List all knowledge bases endpoint"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {
+            "q": "List all knowledge bases endpoint"
+          },
+          "tool_success": true,
+          "observation_summary": "可见库 0 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"list_knowledge_bases\",\n    \"args\": {\n        \"q\": \"List all knowledge bases endpoint\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": null,
+          "parsed_tool": null,
+          "parsed_args": {},
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "list_knowledge_bases",
+            "args": {},
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "list_knowledge_bases",
+          "tool_args": {},
+          "tool_success": true,
+          "observation_summary": "可见库 2 个 · personal",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"list_knowledge_bases\",\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 1,
+        "recovered": 1,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": true,
+            "recovered": true,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "valid"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "kb identity/count/metadata present"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-149",
+      "trial_index": 1,
+      "panel": "primary",
+      "task_completion": false,
+      "first_failed_stage": "safe_terminal",
+      "failure_taxonomy": "BUDGET_EXHAUSTED",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 87,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 10,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 43,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 7,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "content-hidden.pdf",
+            "mode": "filename"
+          },
+          "ok": true,
+          "summary": "文件名匹配 1 篇",
+          "latency_ms": 27,
+          "observation": {
+            "total": 1,
+            "summary": "文件名匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": null
+              }
+            ]
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-149",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "search_documents",
+            "tool_args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "total": 1,
+              "summary": "正文匹配 1 篇",
+              "items": [
+                {
+                  "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                  "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                  "kb_name": "TOOL P2 GQ-149 Main",
+                  "filename": "content-hidden.pdf",
+                  "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+                }
+              ]
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": "search_documents",
+          "parsed_tool": null,
+          "parsed_args": {},
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "content-hidden.pdf",
+              "mode": "filename"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "content-hidden.pdf",
+            "mode": "filename"
+          },
+          "tool_success": true,
+          "observation_summary": "文件名匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"search_documents\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"content-hidden.pdf\",\n        \"mode\": \"filename\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 1,
+        "recovered": 1,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": true,
+            "recovered": true,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "valid"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "document identity/title present"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-149",
+      "trial_index": 2,
+      "panel": "stability",
+      "task_completion": false,
+      "first_failed_stage": "safe_terminal",
+      "failure_taxonomy": "BUDGET_EXHAUSTED",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 34,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 12,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 44,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 7,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "content-hidden.pdf",
+            "mode": "filename"
+          },
+          "ok": true,
+          "summary": "文件名匹配 1 篇",
+          "latency_ms": 5,
+          "observation": {
+            "total": 1,
+            "summary": "文件名匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": null
+              }
+            ]
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-149",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "search_documents",
+            "tool_args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "total": 1,
+              "summary": "正文匹配 1 篇",
+              "items": [
+                {
+                  "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                  "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                  "kb_name": "TOOL P2 GQ-149 Main",
+                  "filename": "content-hidden.pdf",
+                  "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+                }
+              ]
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": "search_documents",
+          "parsed_tool": null,
+          "parsed_args": {},
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "content-hidden.pdf",
+              "mode": "filename"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "content-hidden.pdf",
+            "mode": "filename"
+          },
+          "tool_success": true,
+          "observation_summary": "文件名匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"search_documents\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"content-hidden.pdf\",\n        \"mode\": \"filename\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 1,
+        "recovered": 1,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": true,
+            "recovered": true,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "valid"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "document identity/title present"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-149",
+      "trial_index": 3,
+      "panel": "stability",
+      "task_completion": false,
+      "first_failed_stage": "safe_terminal",
+      "failure_taxonomy": "BUDGET_EXHAUSTED",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 48,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 7,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 24,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 7,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "content-hidden.pdf",
+            "mode": "filename"
+          },
+          "ok": true,
+          "summary": "文件名匹配 1 篇",
+          "latency_ms": 7,
+          "observation": {
+            "total": 1,
+            "summary": "文件名匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": null
+              }
+            ]
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-149",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "search_documents",
+            "tool_args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "total": 1,
+              "summary": "正文匹配 1 篇",
+              "items": [
+                {
+                  "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                  "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                  "kb_name": "TOOL P2 GQ-149 Main",
+                  "filename": "content-hidden.pdf",
+                  "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+                }
+              ]
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": "search_documents",
+          "parsed_tool": null,
+          "parsed_args": {},
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "content-hidden.pdf",
+              "mode": "filename"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "content-hidden.pdf",
+            "mode": "filename"
+          },
+          "tool_success": true,
+          "observation_summary": "文件名匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"search_documents\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"content-hidden.pdf\",\n        \"mode\": \"filename\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 1,
+        "recovered": 1,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": true,
+            "recovered": true,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "valid"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "document identity/title present"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-149",
+      "trial_index": 4,
+      "panel": "stability",
+      "task_completion": false,
+      "first_failed_stage": "safe_terminal",
+      "failure_taxonomy": "BUDGET_EXHAUSTED",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 34,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 6,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 8,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 37,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "content-hidden.pdf",
+            "mode": "filename"
+          },
+          "ok": true,
+          "summary": "文件名匹配 1 篇",
+          "latency_ms": 7,
+          "observation": {
+            "total": 1,
+            "summary": "文件名匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": null
+              }
+            ]
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-149",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "search_documents",
+            "tool_args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "total": 1,
+              "summary": "正文匹配 1 篇",
+              "items": [
+                {
+                  "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                  "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                  "kb_name": "TOOL P2 GQ-149 Main",
+                  "filename": "content-hidden.pdf",
+                  "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+                }
+              ]
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": "search_documents",
+          "parsed_tool": null,
+          "parsed_args": {},
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "content-hidden.pdf",
+              "mode": "filename"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "content-hidden.pdf",
+            "mode": "filename"
+          },
+          "tool_success": true,
+          "observation_summary": "文件名匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"search_documents\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"content-hidden.pdf\",\n        \"mode\": \"filename\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 1,
+        "recovered": 1,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": true,
+            "recovered": true,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "valid"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "document identity/title present"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    },
+    {
+      "case_id": "GQ-149",
+      "trial_index": 5,
+      "panel": "stability",
+      "task_completion": false,
+      "first_failed_stage": "safe_terminal",
+      "failure_taxonomy": "BUDGET_EXHAUSTED",
+      "outcome_steps": [
+        {
+          "step_index": 1,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 55,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 2,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 7,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 3,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 7,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 4,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "ok": true,
+          "summary": "正文匹配 1 篇",
+          "latency_ms": 62,
+          "observation": {
+            "total": 1,
+            "summary": "正文匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+              }
+            ]
+          }
+        },
+        {
+          "step_index": 5,
+          "tool_name": "search_documents",
+          "args": {
+            "query": "content-hidden.pdf",
+            "mode": "filename"
+          },
+          "ok": true,
+          "summary": "文件名匹配 1 篇",
+          "latency_ms": 9,
+          "observation": {
+            "total": 1,
+            "summary": "文件名匹配 1 篇",
+            "items": [
+              {
+                "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                "kb_name": "TOOL P2 GQ-149 Main",
+                "filename": "content-hidden.pdf",
+                "snippet": null
+              }
+            ]
+          }
+        }
+      ],
+      "trajectory": {
+        "case_id": "GQ-149",
+        "terminal_action": null,
+        "terminal_reason": null,
+        "budget_exhausted": true,
+        "safe": false,
+        "steps": [
+          {
+            "selected_tool": "search_documents",
+            "tool_args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "resolver_accepted": true,
+            "execution_succeeded": true,
+            "observation": {
+              "total": 1,
+              "summary": "正文匹配 1 篇",
+              "items": [
+                {
+                  "document_id": "7988f999-eb01-4ea4-b73a-66e51b1f02e9",
+                  "kb_id": "5e0f4925-ff46-4ca8-9649-c6eeb002d134",
+                  "kb_name": "TOOL P2 GQ-149 Main",
+                  "filename": "content-hidden.pdf",
+                  "snippet": "TOOLP2_GQ149_CONTENT_MARKER <mark>search documents by content mode</mark> benchmark"
+                }
+              ]
+            },
+            "post_observation_action": "tool"
+          }
+        ]
+      },
+      "captures": [
+        {
+          "step_index": 0,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 1,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 2,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 3,
+          "parsed_action": "tool",
+          "parsed_tool": "search_documents",
+          "parsed_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "Search documents by content mode",
+              "mode": "content"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "Search documents by content mode",
+            "mode": "content"
+          },
+          "tool_success": true,
+          "observation_summary": "正文匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"Search documents by content mode\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        },
+        {
+          "step_index": 4,
+          "parsed_action": "search_documents",
+          "parsed_tool": null,
+          "parsed_args": {},
+          "planner_decision": {
+            "action": "tool",
+            "tool_name": "search_documents",
+            "args": {
+              "query": "content-hidden.pdf",
+              "mode": "filename"
+            },
+            "reason_code": "initial_retrieval"
+          },
+          "tool_name": "search_documents",
+          "tool_args": {
+            "query": "content-hidden.pdf",
+            "mode": "filename"
+          },
+          "tool_success": true,
+          "observation_summary": "文件名匹配 1 篇",
+          "stop_effect": "passthrough",
+          "raw_excerpt": "```json\n{\n    \"action\": \"search_documents\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"content-hidden.pdf\",\n        \"mode\": \"filename\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```"
+        }
+      ],
+      "tna": {
+        "raw": 1,
+        "recovered": 1,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": true,
+            "recovered": true,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "valid"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": "document identity/title present"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": true,
+          "passed": true,
+          "reason": ""
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ]
+    }
+  ]
+}
