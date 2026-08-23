@@ -157,7 +157,17 @@ def test_ci_workflow_required_jobs_preserved() -> None:
     ci_text = _ci_text()
     jobs_section = ci_text.split("jobs:", 1)[1]
     job_names = set(re.findall(r"^  ([a-z][a-z0-9-]*):", jobs_section, re.MULTILINE))
-    assert job_names == {"test", "alembic-check", "config-wiring", "rag-benchmark", "lint"}
+    # Phase 2 P1: rag-benchmark → rag-golden || rag-enterprise || rag-advanced → gate
+    assert job_names == {
+        "test",
+        "alembic-check",
+        "config-wiring",
+        "rag-golden",
+        "rag-enterprise",
+        "rag-advanced",
+        "benchmark-gate",
+        "lint",
+    }
 
 
 # --- B7.12: baseline thresholds unchanged ---
