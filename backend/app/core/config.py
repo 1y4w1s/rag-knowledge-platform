@@ -262,6 +262,9 @@ class Settings(BaseSettings):
     # MEMORY P2 observability: MemoryExposureEvent at planner prompt boundary.
     # Independent of agent_memory_enabled; default OFF; must not alter prompts.
     agent_memory_exposure_trace_enabled: bool = False
+    # MEMORY C1 product experiment: contrastive task-relevance framing on
+    # planner-visible memory_block. Default OFF = exact baseline; NOT rollout.
+    agent_memory_relevance_label_enabled: bool = False
     # T5 Agent Memory Governance
     agent_memory_suppress_seconds: int = 604800
     agent_memory_churn_threshold: int = 3

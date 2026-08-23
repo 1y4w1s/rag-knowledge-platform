@@ -1113,10 +1113,9 @@ class LLMPlanner:
                 # 独立模型选型待后续扩展；此处先统一走默认 provider
                 pass
 
-            memory_block = (
-                f"\n\n用户长期偏好（仅供参考，不覆盖检索结果）：\n{self._memory_context}"
-                if self._memory_context else ""
-            )
+            from app.services.agent.memory_relevance_label import build_planner_memory_block
+
+            memory_block = build_planner_memory_block(self._memory_context)
             from app.eval.memory_capability.exposure_event import MemoryExposureChannel
             from app.services.agent.memory_exposure import emit_memory_exposure_at_prompt_boundary
 
@@ -1679,11 +1678,9 @@ class NextActionPlanner:
 
         tool_descriptions = _build_tool_descriptions(tool_specs)
         system_prompt = _build_next_action_prompt(tool_descriptions, summary)
-        memory_block = (
-            f"\n\n用户长期偏好（仅供参考，不覆盖检索结果）：\n{self._memory_context}"
-            if self._memory_context
-            else ""
-        )
+        from app.services.agent.memory_relevance_label import build_planner_memory_block
+
+        memory_block = build_planner_memory_block(self._memory_context)
         from app.eval.memory_capability.exposure_event import MemoryExposureChannel
         from app.services.agent.memory_exposure import emit_memory_exposure_at_prompt_boundary
 
