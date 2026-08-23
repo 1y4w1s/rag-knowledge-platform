@@ -2,7 +2,7 @@
   "schema_version": "adversarial-capability-contract-p0-v1",
   "stage": "ADVERSARIAL_CAPABILITY_CONTRACT_P0",
   "artifact": "tests/fixtures/l4_adversarial_capability/adversarial-capability-contract-p0.json",
-  "round_start_master_sha": "838bb0354daeed9dd43c966b7ff400402b3af7c7",
+  "round_start_master_sha": "d3b645fc47d6ee035aa1bed5dba9eca11d6767d1",
   "product_remediation": false,
   "golden_rewrite": false,
   "runtime_rollout": false,

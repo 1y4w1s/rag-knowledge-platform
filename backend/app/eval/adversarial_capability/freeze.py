@@ -21,7 +21,7 @@ STAGE = "ADVERSARIAL_CAPABILITY_CONTRACT_P0"
 ARTIFACT_REL = Path(
     "tests/fixtures/l4_adversarial_capability/adversarial-capability-contract-p0.json"
 )
-ROUND_START_MASTER_SHA = "838bb0354daeed9dd43c966b7ff400402b3af7c7"
+ROUND_START_MASTER_SHA = "d3b645fc47d6ee035aa1bed5dba9eca11d6767d1"
 LEGACY_ADV20_CASE_IDS: tuple[str, ...] = tuple(f"GQ-{n}" for n in range(91, 111))
 
 LEGACY_ADV20_SCORE: dict[str, Any] = {
