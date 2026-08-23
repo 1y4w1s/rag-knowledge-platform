@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from app.eval.adversarial_capability.capability_cases import CapabilityCase
 from app.eval.adversarial_capability.corpus_fixtures import CORPUS_BY_ID
