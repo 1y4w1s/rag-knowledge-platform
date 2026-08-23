@@ -484,6 +484,20 @@ curl http://localhost:8000/health/detailed
 
 ---
 
+## V1.0 状态（2026-08-23）
+
+> master `dffcd52` · **Runtime rollout：NO** · 详报 → [`docs/status/v1-convergence-status-2026-08-23.md`](docs/status/v1-convergence-status-2026-08-23.md) · 驾驶舱 → [`docs/cockpit.html`](docs/cockpit.html)
+
+| 能力线 | 状态 |
+|--------|------|
+| T2 / TOOL selection / MEMORY | CLOSED_FOR_V1_0 |
+| ADVERSARIAL（frozen 4-strata panel） | FROZEN · primary **2/4** · trials **10/20** |
+| 下一主线 | W9 Critic → W10 Multimodal → Final Benchmark → RC |
+
+Known limitations（含 TOOL GQ-131、MEMORY C1、ADV ANS/CON）→ [`docs/status/v1-known-limitations.md`](docs/status/v1-known-limitations.md)
+
+---
+
 ## 项目结构
 
 ```
