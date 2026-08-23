@@ -1,0 +1,5878 @@
+{
+  "schema_version": "w8-tool-s3a-real-revalidation-v1",
+  "stage": "TOOL_S3A_REAL_LOCAL_REVALIDATION",
+  "run_id": "19615855-b9ff-4175-94c1-007803b10206",
+  "started_at": "2026-08-23T06:14:15Z",
+  "finished_at": "2026-08-23T06:36:01Z",
+  "tool_s3a_base_sha": "838bb0354daeed9dd43c966b7ff400402b3af7c7",
+  "head_sha": "838bb0354daeed9dd43c966b7ff400402b3af7c7",
+  "pr_lineage": {
+    "pr34_p4_freeze": true,
+    "pr36_p5_root_freeze": true,
+    "pr41_s3a_product": true,
+    "pr42_t2_phase_b_ok_to_include": true,
+    "confirmed_ancestors": true
+  },
+  "state": "TOOL_S3A_MEASURED",
+  "MODEL_RESIDENCY_BREAK": false,
+  "TOOL_S3A_PRODUCT_ISSUE": [],
+  "frozen_case": {
+    "case_id": "GQ-131",
+    "query": "How to search documents across knowledge bases?",
+    "expected_tool": "search_documents",
+    "note": "query/expected tool/observation/tool set/termination contracts frozen"
+  },
+  "isolation": {
+    "s2": "OFF",
+    "t2": "OFF",
+    "s3a": "OFF vs ON paired",
+    "schedule_seed": "tool-s3a-interleaved-v1"
+  },
+  "model_config": {
+    "model": "zai-org/glm-4.6v-flash",
+    "provider": "lmstudio_openai_compatible",
+    "base_url": "http://127.0.0.1:1234/v1",
+    "endpoint_host": "127.0.0.1",
+    "thinking": "OFF",
+    "context_tokens": 8192,
+    "temperature": 0,
+    "timeout_seconds": 90.0,
+    "lm_studio_version": "CLI commit: 9902c3a",
+    "hardware": "Windows-10-10.0.26200-SP0"
+  },
+  "environment": {
+    "server_warm_state": "warmed",
+    "model_residency_break": false,
+    "isolation": {
+      "s2": false,
+      "t2": false,
+      "s3a": "per-trial"
+    },
+    "production_s3a_default_false": true,
+    "model_reload": {
+      "unload": {
+        "args": [
+          "unload",
+          "--all"
+        ],
+        "returncode": 0,
+        "stdout": "",
+        "stderr": "No models to unload.\n",
+        "elapsed_ms": 365.6
+      },
+      "load": {
+        "args": [
+          "load",
+          "zai-org/glm-4.6v-flash",
+          "-y",
+          "-c",
+          "8192"
+        ],
+        "returncode": 0,
+        "stdout": "lash 73% ⠙\u001b[?25l\nLoading zai-org/glm-4.6v-flash 73% ⠹\u001b[?25l\nLoading zai-org/glm-4.6v-flash 73% ⠹\u001b[?25l\nLoading zai-org/glm-4.6v-flash 73% ⠸\u001b[?25l\nLoading zai-org/glm-4.6v-flash 73% ⠸\u001b[?25l\nLoading zai-org/glm-4.6v-flash 73% ⠼\u001b[?25l\nLoading zai-org/glm-4.6v-flash 73% ⠼\u001b[?25l\nLoading zai-org/glm-4.6v-flash 73% ⠴\u001b[?25l\nLoading zai-org/glm-4.6v-flash 73% ⠦\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠦\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠧\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠧\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠇\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠇\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠏\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠋\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠋\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠙\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠙\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠹\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠸\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠸\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠼\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠼\u001b[?25l\nLoading zai-org/glm-4.6v-flash 74% ⠴\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠴\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠦\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠧\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠧\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠇\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠇\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠏\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠏\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠋\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠙\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠙\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠹\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠹\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠸\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠼\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠼\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠴\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠴\u001b[?25l\nLoading zai-org/glm-4.6v-flash 75% ⠦\u001b[?25l\nLoading zai-org/glm-4.6v-flash 76% ⠦\u001b[?25l\nLoading zai-org/glm-4.6v-flash 100% ⠦\u001b[?25l\nLoading zai-org/glm-4.6v-flash 100% ⠧\n\u001b[K\u001b[?25h",
+        "stderr": "Model loaded successfully in 20.41s.\n(7.41 GiB)\nTo use the model in the API/SDK, use the identifier \"zai-org/glm-4.6v-flash\".\n",
+        "elapsed_ms": 20750.7
+      },
+      "at": "2026-08-23T06:14:38+00:00"
+    },
+    "ready": {
+      "ready": true,
+      "wait_ms": 357.0,
+      "http_status": 200,
+      "model_ids": [
+        "zai-org/glm-4.6v-flash",
+        "qwen/qwen3.5-9b",
+        "google/gemma-4-e4b",
+        "text-embedding-nomic-embed-text-v1.5"
+      ]
+    }
+  },
+  "warmup": {
+    "warmup_count": 3,
+    "warmup_success": 3,
+    "warmup_latency": [
+      42522.0,
+      7319.2,
+      47623.1
+    ],
+    "records": [
+      {
+        "index": 1,
+        "timed_out": false,
+        "latency_ms": 42522.0,
+        "error": null,
+        "excerpt": "OK"
+      },
+      {
+        "index": 2,
+        "timed_out": false,
+        "latency_ms": 7319.2,
+        "error": null,
+        "excerpt": "OK"
+      },
+      {
+        "index": 3,
+        "timed_out": false,
+        "latency_ms": 47623.1,
+        "error": null,
+        "excerpt": "OK"
+      }
+    ]
+  },
+  "trial_schedule": [
+    {
+      "seq": 1,
+      "round": 1,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 1,
+      "panel": "primary"
+    },
+    {
+      "seq": 2,
+      "round": 1,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 1,
+      "panel": "primary"
+    },
+    {
+      "seq": 3,
+      "round": 2,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 2,
+      "panel": "primary"
+    },
+    {
+      "seq": 4,
+      "round": 2,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 2,
+      "panel": "primary"
+    },
+    {
+      "seq": 5,
+      "round": 3,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 3,
+      "panel": "primary"
+    },
+    {
+      "seq": 6,
+      "round": 3,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 3,
+      "panel": "primary"
+    },
+    {
+      "seq": 7,
+      "round": 4,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 4,
+      "panel": "primary"
+    },
+    {
+      "seq": 8,
+      "round": 4,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 4,
+      "panel": "primary"
+    },
+    {
+      "seq": 9,
+      "round": 5,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 5,
+      "panel": "primary"
+    },
+    {
+      "seq": 10,
+      "round": 5,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 5,
+      "panel": "primary"
+    },
+    {
+      "seq": 11,
+      "round": 6,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 6,
+      "panel": "primary"
+    },
+    {
+      "seq": 12,
+      "round": 6,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 6,
+      "panel": "primary"
+    },
+    {
+      "seq": 13,
+      "round": 7,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 7,
+      "panel": "primary"
+    },
+    {
+      "seq": 14,
+      "round": 7,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 7,
+      "panel": "primary"
+    },
+    {
+      "seq": 15,
+      "round": 8,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 8,
+      "panel": "primary"
+    },
+    {
+      "seq": 16,
+      "round": 8,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 8,
+      "panel": "primary"
+    },
+    {
+      "seq": 17,
+      "round": 9,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 9,
+      "panel": "primary"
+    },
+    {
+      "seq": 18,
+      "round": 9,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 9,
+      "panel": "primary"
+    },
+    {
+      "seq": 19,
+      "round": 10,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 10,
+      "panel": "primary"
+    },
+    {
+      "seq": 20,
+      "round": 10,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 10,
+      "panel": "primary"
+    }
+  ],
+  "schedule_seed": "tool-s3a-interleaved-v1",
+  "scored_trials": 20,
+  "selection_metrics": {
+    "primary_metric": "search_documents selected on GQ-131",
+    "S3A_OFF": {
+      "search_documents": "0/10",
+      "semantic_search": "3/10",
+      "other_tool": "0/10",
+      "invalid_decision": "7/10",
+      "selection_correct": "0/10",
+      "full_task_pass": "0/10",
+      "counts": {
+        "search_documents": 0,
+        "semantic_search": 3,
+        "other_tool": 0,
+        "invalid_decision": 7,
+        "selection_correct": 0,
+        "full_task_pass": 0,
+        "n": 10
+      }
+    },
+    "S3A_ON": {
+      "search_documents": "0/10",
+      "semantic_search": "4/10",
+      "other_tool": "0/10",
+      "invalid_decision": "6/10",
+      "selection_correct": "0/10",
+      "full_task_pass": "0/10",
+      "counts": {
+        "search_documents": 0,
+        "semantic_search": 4,
+        "other_tool": 0,
+        "invalid_decision": 6,
+        "selection_correct": 0,
+        "full_task_pass": 0,
+        "n": 10
+      }
+    },
+    "delta_selection_on_minus_off": 0
+  },
+  "schema_tna": {
+    "unrecovered_total": 0,
+    "note": "schema recovery ≠ TOOL capability success",
+    "timeout_as_refuse": 11,
+    "http_error_as_refuse": 2
+  },
+  "safety_metrics": {
+    "out_of_scope_accept": 0,
+    "invalid_args_accept": 0,
+    "exposed_set_mutation": 0,
+    "unsafe_terminal": 0,
+    "premature_finish": 0,
+    "unrecovered_schema": 0,
+    "s3a_false_force_on_ineligible": 0
+  },
+  "hard_negatives": {
+    "frozen_p5_count": 6,
+    "companion_non_retrieval": 1,
+    "required_classes": [
+      "ambiguous",
+      "both_reasonable",
+      "catalog_search",
+      "multi_tool",
+      "non_retrieval",
+      "oos",
+      "semantic_qa"
+    ],
+    "covered_classes": [
+      "ambiguous",
+      "both_reasonable",
+      "catalog_search",
+      "multi_tool",
+      "non_retrieval",
+      "oos",
+      "semantic_qa"
+    ],
+    "classes_complete": true,
+    "proxy_s3a": {
+      "hard_negative_regressions": 0,
+      "hard_negative_count": 6,
+      "target_recovered": 10,
+      "target_count": 10
+    },
+    "product_rows": [
+      {
+        "sample_id": "P5-HN-true-semantic",
+        "intent_class": "semantic_qa",
+        "product_intent": "semantic_qa",
+        "eligible": true,
+        "guidance_emitted": true,
+        "regression": false,
+        "notes": "true semantic_search query"
+      },
+      {
+        "sample_id": "P5-HN-true-catalog",
+        "intent_class": "catalog_search",
+        "product_intent": "catalog_search",
+        "eligible": true,
+        "guidance_emitted": true,
+        "regression": false,
+        "notes": "true search_documents query"
+      },
+      {
+        "sample_id": "P5-HN-ambiguous-retrieval",
+        "intent_class": "ambiguous",
+        "product_intent": "ambiguous",
+        "eligible": false,
+        "guidance_emitted": false,
+        "regression": false,
+        "notes": "ambiguous retrieval"
+      },
+      {
+        "sample_id": "P5-HN-multi-tool",
+        "intent_class": "multi_tool",
+        "product_intent": "multi_tool",
+        "eligible": false,
+        "guidance_emitted": false,
+        "regression": false,
+        "notes": "multi-tool"
+      },
+      {
+        "sample_id": "P5-HN-oos",
+        "intent_class": "oos",
+        "product_intent": "oos",
+        "eligible": false,
+        "guidance_emitted": false,
+        "regression": false,
+        "notes": "out-of-scope"
+      },
+      {
+        "sample_id": "P5-HN-both-reasonable",
+        "intent_class": "both_reasonable",
+        "product_intent": "ambiguous",
+        "eligible": false,
+        "guidance_emitted": false,
+        "regression": false,
+        "notes": "both tools reasonable — avoid hard-routing all retrieval to search_documents"
+      },
+      {
+        "sample_id": "S3A-HN-non-retrieval",
+        "intent_class": "non_retrieval",
+        "product_intent": "ambiguous",
+        "eligible": false,
+        "guidance_emitted": false,
+        "regression": false,
+        "notes": "non-retrieval list_kb — S3A must not rewrite or force search_documents"
+      }
+    ],
+    "regression_count": 0,
+    "regression_target": 0,
+    "pass": true
+  },
+  "latency": {
+    "S3A_OFF": {
+      "n": 10,
+      "mean_wall_ms": 53936.0,
+      "p50_wall_ms": 57873.6,
+      "p95_wall_ms": 90371.2,
+      "mean_model_calls": 2.2,
+      "mean_model_latency_ms": 53530.3,
+      "mean_steps": 1.5
+    },
+    "S3A_ON": {
+      "n": 10,
+      "mean_wall_ms": 64437.1,
+      "p50_wall_ms": 90285.6,
+      "p95_wall_ms": 90893.2,
+      "mean_model_calls": 2.6,
+      "mean_model_latency_ms": 63502.6,
+      "mean_steps": 2.0
+    }
+  },
+  "interpretation": {
+    "capability_label": "NO_MEASURABLE_GAIN",
+    "possible_model_selection_boundary": true,
+    "ready_for_freeze": true,
+    "runtime_rollout": false,
+    "reason": "contemporaneous S3A ON ≈ OFF on GQ-131 selection; do not auto-design S4; POSSIBLE_MODEL_SELECTION_BOUNDARY when equal",
+    "historical_s2_note": "Historical S2 GQ-131 selection was 0/5 under P4; PRIMARY comparison here is contemporaneous S3A OFF vs ON only — do not claim broad TOOL capability as 'S2 0% → S3A X%'.",
+    "full_task_note": "full task pass OFF=0/10 ON=0/10 (selection ≠ whole-task pass)",
+    "timeout_caveat": "Early paired rounds hit LM ReadTimeout under mandatory 90s; OFF/ON remain contemporaneous. Among trials with a tool decision, both arms selected semantic_search only — never search_documents. Not MODEL_RESIDENCY_BREAK (no mid-panel unload/reload)."
+  },
+  "capability_label": "NO_MEASURABLE_GAIN",
+  "POSSIBLE_MODEL_SELECTION_BOUNDARY": true,
+  "ready_for_freeze": true,
+  "runtime_rollout": false,
+  "product_remediation": false,
+  "GPU_LANE_RELEASED": true,
+  "gpu_release": {
+    "args": [
+      "unload",
+      "--all"
+    ],
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "Unloading \"zai-org/glm-4.6v-flash:2\"...\nUnloaded 1 model.\n",
+    "elapsed_ms": 836.6
+  },
+  "forbidden_changes": [
+    "s3a_implementation",
+    "tool_descriptions_outside_experiment",
+    "planner",
+    "tool_resolver",
+    "golden",
+    "parser",
+    "t2",
+    "s2"
+  ],
+  "settings_after_run": {
+    "s3a": false,
+    "s2": false,
+    "t2": false
+  },
+  "trials": [
+    {
+      "seq": 1,
+      "round": 1,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 1,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": ""
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": false,
+        "terminal_action": "refuse"
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": false,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": false,
+        "description_variant": "baseline_product",
+        "rewritten_tools": [],
+        "planner_selected_tool": null,
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "timeout:ReadTimeout",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "invalid_decision",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": false
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 90395.4,
+        "model_call_count": 1,
+        "model_call_latency_ms": 90191.9,
+        "tool_execution_latency_ms": 0,
+        "non_model_time_ms": 203.5,
+        "steps_used": 0
+      },
+      "record": {
+        "started_at": "2026-08-23T06:16:17+00:00",
+        "duration_ms": 90395.4,
+        "outcome": {
+          "run_id": "ab70eb19-3e94-46a1-a493-e22f4ae6e364",
+          "steps_used": 0,
+          "max_steps": 5,
+          "capped": false,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "steps": []
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "timeout:ReadTimeout",
+            "parse_ok": false,
+            "parse_error": "parse_error",
+            "parsed_action": null,
+            "parsed_tool": null,
+            "parsed_args": {},
+            "planner_decision": {
+              "action": "refuse",
+              "tool_name": null,
+              "args": {},
+              "reason_code": "llm_error"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": null,
+            "tool_args": {},
+            "tool_success": null,
+            "observation_summary": "",
+            "timed_out": true,
+            "provider_error": "timeout:ReadTimeout",
+            "latency_ms": 90191.88370002666
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "budget_exhausted": false,
+          "safe": true,
+          "steps": []
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 2,
+      "round": 1,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 1,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": ""
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": false,
+        "terminal_action": "refuse"
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": true,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": true,
+        "description_variant": "contrastive_s3a",
+        "rewritten_tools": [
+          "semantic_search",
+          "search_documents"
+        ],
+        "planner_selected_tool": null,
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "timeout:ReadTimeout",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "invalid_decision",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": false
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 90275.5,
+        "model_call_count": 1,
+        "model_call_latency_ms": 90179.4,
+        "tool_execution_latency_ms": 0,
+        "non_model_time_ms": 96.1,
+        "steps_used": 0
+      },
+      "record": {
+        "started_at": "2026-08-23T06:17:47+00:00",
+        "duration_ms": 90275.5,
+        "outcome": {
+          "run_id": "f9711946-d0c6-48a1-b34a-2704cb5f1cee",
+          "steps_used": 0,
+          "max_steps": 5,
+          "capped": false,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "steps": []
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "timeout:ReadTimeout",
+            "parse_ok": false,
+            "parse_error": "parse_error",
+            "parsed_action": null,
+            "parsed_tool": null,
+            "parsed_args": {},
+            "planner_decision": {
+              "action": "refuse",
+              "tool_name": null,
+              "args": {},
+              "reason_code": "llm_error"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": null,
+            "tool_args": {},
+            "tool_success": null,
+            "observation_summary": "",
+            "timed_out": true,
+            "provider_error": "timeout:ReadTimeout",
+            "latency_ms": 90179.41539996536
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "budget_exhausted": false,
+          "safe": true,
+          "steps": []
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 3,
+      "round": 2,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 2,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": ""
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": false,
+        "terminal_action": "refuse"
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": false,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": false,
+        "description_variant": "baseline_product",
+        "rewritten_tools": [],
+        "planner_selected_tool": null,
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "timeout:ReadTimeout",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "invalid_decision",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": false
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 90297.0,
+        "model_call_count": 1,
+        "model_call_latency_ms": 90188.0,
+        "tool_execution_latency_ms": 0,
+        "non_model_time_ms": 109.0,
+        "steps_used": 0
+      },
+      "record": {
+        "started_at": "2026-08-23T06:19:17+00:00",
+        "duration_ms": 90297.0,
+        "outcome": {
+          "run_id": "55159b63-c2bf-427f-8e94-05d611baa9df",
+          "steps_used": 0,
+          "max_steps": 5,
+          "capped": false,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "steps": []
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "timeout:ReadTimeout",
+            "parse_ok": false,
+            "parse_error": "parse_error",
+            "parsed_action": null,
+            "parsed_tool": null,
+            "parsed_args": {},
+            "planner_decision": {
+              "action": "refuse",
+              "tool_name": null,
+              "args": {},
+              "reason_code": "llm_error"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": null,
+            "tool_args": {},
+            "tool_success": null,
+            "observation_summary": "",
+            "timed_out": true,
+            "provider_error": "timeout:ReadTimeout",
+            "latency_ms": 90188.01159999566
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "budget_exhausted": false,
+          "safe": true,
+          "steps": []
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 4,
+      "round": 2,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 2,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": ""
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": false,
+        "terminal_action": "refuse"
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": true,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": true,
+        "description_variant": "contrastive_s3a",
+        "rewritten_tools": [
+          "semantic_search",
+          "search_documents"
+        ],
+        "planner_selected_tool": null,
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "timeout:ReadTimeout",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "invalid_decision",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": false
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 90304.6,
+        "model_call_count": 1,
+        "model_call_latency_ms": 90205.0,
+        "tool_execution_latency_ms": 0,
+        "non_model_time_ms": 99.6,
+        "steps_used": 0
+      },
+      "record": {
+        "started_at": "2026-08-23T06:20:48+00:00",
+        "duration_ms": 90304.6,
+        "outcome": {
+          "run_id": "e20aa086-b123-4876-b91a-ac17b9f447e8",
+          "steps_used": 0,
+          "max_steps": 5,
+          "capped": false,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "steps": []
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "timeout:ReadTimeout",
+            "parse_ok": false,
+            "parse_error": "parse_error",
+            "parsed_action": null,
+            "parsed_tool": null,
+            "parsed_args": {},
+            "planner_decision": {
+              "action": "refuse",
+              "tool_name": null,
+              "args": {},
+              "reason_code": "llm_error"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": null,
+            "tool_args": {},
+            "tool_success": null,
+            "observation_summary": "",
+            "timed_out": true,
+            "provider_error": "timeout:ReadTimeout",
+            "latency_ms": 90204.96059994912
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "budget_exhausted": false,
+          "safe": true,
+          "steps": []
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 5,
+      "round": 3,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 3,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": ""
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": false,
+        "terminal_action": "refuse"
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": false,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": false,
+        "description_variant": "baseline_product",
+        "rewritten_tools": [],
+        "planner_selected_tool": null,
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "timeout:ReadTimeout",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "invalid_decision",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": false
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 90281.0,
+        "model_call_count": 1,
+        "model_call_latency_ms": 90171.4,
+        "tool_execution_latency_ms": 0,
+        "non_model_time_ms": 109.6,
+        "steps_used": 0
+      },
+      "record": {
+        "started_at": "2026-08-23T06:22:18+00:00",
+        "duration_ms": 90281.0,
+        "outcome": {
+          "run_id": "8e89f05d-06f6-4169-9d9e-f4ef16e21567",
+          "steps_used": 0,
+          "max_steps": 5,
+          "capped": false,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "steps": []
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "timeout:ReadTimeout",
+            "parse_ok": false,
+            "parse_error": "parse_error",
+            "parsed_action": null,
+            "parsed_tool": null,
+            "parsed_args": {},
+            "planner_decision": {
+              "action": "refuse",
+              "tool_name": null,
+              "args": {},
+              "reason_code": "llm_error"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": null,
+            "tool_args": {},
+            "tool_success": null,
+            "observation_summary": "",
+            "timed_out": true,
+            "provider_error": "timeout:ReadTimeout",
+            "latency_ms": 90171.43460002262
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "budget_exhausted": false,
+          "safe": true,
+          "steps": []
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 6,
+      "round": 3,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 3,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": ""
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": false,
+        "terminal_action": "refuse"
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": true,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": true,
+        "description_variant": "contrastive_s3a",
+        "rewritten_tools": [
+          "semantic_search",
+          "search_documents"
+        ],
+        "planner_selected_tool": null,
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "timeout:ReadTimeout",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "invalid_decision",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": false
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 90330.4,
+        "model_call_count": 1,
+        "model_call_latency_ms": 90221.5,
+        "tool_execution_latency_ms": 0,
+        "non_model_time_ms": 108.9,
+        "steps_used": 0
+      },
+      "record": {
+        "started_at": "2026-08-23T06:23:48+00:00",
+        "duration_ms": 90330.4,
+        "outcome": {
+          "run_id": "52a09acd-4c5a-4638-99db-93f0beb8447f",
+          "steps_used": 0,
+          "max_steps": 5,
+          "capped": false,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "steps": []
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "timeout:ReadTimeout",
+            "parse_ok": false,
+            "parse_error": "parse_error",
+            "parsed_action": null,
+            "parsed_tool": null,
+            "parsed_args": {},
+            "planner_decision": {
+              "action": "refuse",
+              "tool_name": null,
+              "args": {},
+              "reason_code": "llm_error"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": null,
+            "tool_args": {},
+            "tool_success": null,
+            "observation_summary": "",
+            "timed_out": true,
+            "provider_error": "timeout:ReadTimeout",
+            "latency_ms": 90221.51529998519
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "budget_exhausted": false,
+          "safe": true,
+          "steps": []
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 7,
+      "round": 4,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 4,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": ""
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": false,
+        "terminal_action": "refuse"
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": false,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": false,
+        "description_variant": "baseline_product",
+        "rewritten_tools": [],
+        "planner_selected_tool": null,
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "timeout:ReadTimeout",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "invalid_decision",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": false
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 90341.7,
+        "model_call_count": 1,
+        "model_call_latency_ms": 90204.4,
+        "tool_execution_latency_ms": 0,
+        "non_model_time_ms": 137.3,
+        "steps_used": 0
+      },
+      "record": {
+        "started_at": "2026-08-23T06:25:18+00:00",
+        "duration_ms": 90341.7,
+        "outcome": {
+          "run_id": "02b55d76-5db0-4fba-a420-191f0b6b3e67",
+          "steps_used": 0,
+          "max_steps": 5,
+          "capped": false,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "steps": []
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "timeout:ReadTimeout",
+            "parse_ok": false,
+            "parse_error": "parse_error",
+            "parsed_action": null,
+            "parsed_tool": null,
+            "parsed_args": {},
+            "planner_decision": {
+              "action": "refuse",
+              "tool_name": null,
+              "args": {},
+              "reason_code": "llm_error"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": null,
+            "tool_args": {},
+            "tool_success": null,
+            "observation_summary": "",
+            "timed_out": true,
+            "provider_error": "timeout:ReadTimeout",
+            "latency_ms": 90204.37380002113
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "budget_exhausted": false,
+          "safe": true,
+          "steps": []
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 8,
+      "round": 4,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 4,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": ""
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": false,
+        "terminal_action": "refuse"
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": true,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": true,
+        "description_variant": "contrastive_s3a",
+        "rewritten_tools": [
+          "semantic_search",
+          "search_documents"
+        ],
+        "planner_selected_tool": null,
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "timeout:ReadTimeout",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "invalid_decision",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": false
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 90348.8,
+        "model_call_count": 1,
+        "model_call_latency_ms": 90242.0,
+        "tool_execution_latency_ms": 0,
+        "non_model_time_ms": 106.8,
+        "steps_used": 0
+      },
+      "record": {
+        "started_at": "2026-08-23T06:26:49+00:00",
+        "duration_ms": 90348.8,
+        "outcome": {
+          "run_id": "1c2092a4-acb4-401c-bd47-bb0a847733f6",
+          "steps_used": 0,
+          "max_steps": 5,
+          "capped": false,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "steps": []
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "timeout:ReadTimeout",
+            "parse_ok": false,
+            "parse_error": "parse_error",
+            "parsed_action": null,
+            "parsed_tool": null,
+            "parsed_args": {},
+            "planner_decision": {
+              "action": "refuse",
+              "tool_name": null,
+              "args": {},
+              "reason_code": "llm_error"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": null,
+            "tool_args": {},
+            "tool_success": null,
+            "observation_summary": "",
+            "timed_out": true,
+            "provider_error": "timeout:ReadTimeout",
+            "latency_ms": 90242.0289000147
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "budget_exhausted": false,
+          "safe": true,
+          "steps": []
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 9,
+      "round": 5,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 5,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": ""
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": false,
+        "terminal_action": "refuse"
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": false,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": false,
+        "description_variant": "baseline_product",
+        "rewritten_tools": [],
+        "planner_selected_tool": null,
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "timeout:ReadTimeout",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "invalid_decision",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": false
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 90274.4,
+        "model_call_count": 1,
+        "model_call_latency_ms": 90177.5,
+        "tool_execution_latency_ms": 0,
+        "non_model_time_ms": 96.9,
+        "steps_used": 0
+      },
+      "record": {
+        "started_at": "2026-08-23T06:28:19+00:00",
+        "duration_ms": 90274.4,
+        "outcome": {
+          "run_id": "02cfcc82-842b-4fe0-ba9b-be7e15d61d0f",
+          "steps_used": 0,
+          "max_steps": 5,
+          "capped": false,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "steps": []
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "timeout:ReadTimeout",
+            "parse_ok": false,
+            "parse_error": "parse_error",
+            "parsed_action": null,
+            "parsed_tool": null,
+            "parsed_args": {},
+            "planner_decision": {
+              "action": "refuse",
+              "tool_name": null,
+              "args": {},
+              "reason_code": "llm_error"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": null,
+            "tool_args": {},
+            "tool_success": null,
+            "observation_summary": "",
+            "timed_out": true,
+            "provider_error": "timeout:ReadTimeout",
+            "latency_ms": 90177.45000001742
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "budget_exhausted": false,
+          "safe": true,
+          "steps": []
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 10,
+      "round": 5,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 5,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": ""
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": false,
+        "terminal_action": "refuse"
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": true,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": true,
+        "description_variant": "contrastive_s3a",
+        "rewritten_tools": [
+          "semantic_search",
+          "search_documents"
+        ],
+        "planner_selected_tool": null,
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "timeout:ReadTimeout",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "invalid_decision",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": false
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 90295.7,
+        "model_call_count": 1,
+        "model_call_latency_ms": 90199.2,
+        "tool_execution_latency_ms": 0,
+        "non_model_time_ms": 96.5,
+        "steps_used": 0
+      },
+      "record": {
+        "started_at": "2026-08-23T06:29:49+00:00",
+        "duration_ms": 90295.7,
+        "outcome": {
+          "run_id": "ef841ce0-5b62-4a05-8b33-bc3d6b19a2a7",
+          "steps_used": 0,
+          "max_steps": 5,
+          "capped": false,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "steps": []
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "timeout:ReadTimeout",
+            "parse_ok": false,
+            "parse_error": "parse_error",
+            "parsed_action": null,
+            "parsed_tool": null,
+            "parsed_args": {},
+            "planner_decision": {
+              "action": "refuse",
+              "tool_name": null,
+              "args": {},
+              "reason_code": "llm_error"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": null,
+            "tool_args": {},
+            "tool_success": null,
+            "observation_summary": "",
+            "timed_out": true,
+            "provider_error": "timeout:ReadTimeout",
+            "latency_ms": 90199.21729998896
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "budget_exhausted": false,
+          "safe": true,
+          "steps": []
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 11,
+      "round": 6,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 6,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": ""
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": false,
+        "terminal_action": "refuse"
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": false,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": false,
+        "description_variant": "baseline_product",
+        "rewritten_tools": [],
+        "planner_selected_tool": null,
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "http_400",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "invalid_decision",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": false
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 25472.7,
+        "model_call_count": 1,
+        "model_call_latency_ms": 25389.4,
+        "tool_execution_latency_ms": 0,
+        "non_model_time_ms": 83.3,
+        "steps_used": 0
+      },
+      "record": {
+        "started_at": "2026-08-23T06:31:20+00:00",
+        "duration_ms": 25472.7,
+        "outcome": {
+          "run_id": "9dd86c66-8e69-496e-b954-bdf94121e367",
+          "steps_used": 0,
+          "max_steps": 5,
+          "capped": false,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "steps": []
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "http_400",
+            "parse_ok": false,
+            "parse_error": "parse_error",
+            "parsed_action": null,
+            "parsed_tool": null,
+            "parsed_args": {},
+            "planner_decision": {
+              "action": "refuse",
+              "tool_name": null,
+              "args": {},
+              "reason_code": "llm_error"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": null,
+            "tool_args": {},
+            "tool_success": null,
+            "observation_summary": "",
+            "timed_out": false,
+            "provider_error": "http_400",
+            "latency_ms": 25389.358399959747
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "budget_exhausted": false,
+          "safe": true,
+          "steps": []
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 12,
+      "round": 6,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 6,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": ""
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": false,
+        "terminal_action": "refuse"
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": true,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": true,
+        "description_variant": "contrastive_s3a",
+        "rewritten_tools": [
+          "semantic_search",
+          "search_documents"
+        ],
+        "planner_selected_tool": null,
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "timeout:ReadTimeout",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "invalid_decision",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": false
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 91338.7,
+        "model_call_count": 1,
+        "model_call_latency_ms": 90573.9,
+        "tool_execution_latency_ms": 0,
+        "non_model_time_ms": 764.8,
+        "steps_used": 0
+      },
+      "record": {
+        "started_at": "2026-08-23T06:31:45+00:00",
+        "duration_ms": 91338.7,
+        "outcome": {
+          "run_id": "e3b86c7f-83d2-4ddd-815d-232722a38326",
+          "steps_used": 0,
+          "max_steps": 5,
+          "capped": false,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "steps": []
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "timeout:ReadTimeout",
+            "parse_ok": false,
+            "parse_error": "parse_error",
+            "parsed_action": null,
+            "parsed_tool": null,
+            "parsed_args": {},
+            "planner_decision": {
+              "action": "refuse",
+              "tool_name": null,
+              "args": {},
+              "reason_code": "llm_error"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": null,
+            "tool_args": {},
+            "tool_success": null,
+            "observation_summary": "",
+            "timed_out": true,
+            "provider_error": "timeout:ReadTimeout",
+            "latency_ms": 90573.93310003681
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "budget_exhausted": false,
+          "safe": true,
+          "steps": []
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 13,
+      "round": 7,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 7,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": ""
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": false,
+        "terminal_action": "refuse"
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": false,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": false,
+        "description_variant": "baseline_product",
+        "rewritten_tools": [],
+        "planner_selected_tool": null,
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "http_400",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "invalid_decision",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": false
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 7824.9,
+        "model_call_count": 1,
+        "model_call_latency_ms": 7472.7,
+        "tool_execution_latency_ms": 0,
+        "non_model_time_ms": 352.2,
+        "steps_used": 0
+      },
+      "record": {
+        "started_at": "2026-08-23T06:33:17+00:00",
+        "duration_ms": 7824.9,
+        "outcome": {
+          "run_id": "f518e41d-7d76-49db-beab-978f80b08fec",
+          "steps_used": 0,
+          "max_steps": 5,
+          "capped": false,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "steps": []
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "http_400",
+            "parse_ok": false,
+            "parse_error": "parse_error",
+            "parsed_action": null,
+            "parsed_tool": null,
+            "parsed_args": {},
+            "planner_decision": {
+              "action": "refuse",
+              "tool_name": null,
+              "args": {},
+              "reason_code": "llm_error"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": null,
+            "tool_args": {},
+            "tool_success": null,
+            "observation_summary": "",
+            "timed_out": false,
+            "provider_error": "http_400",
+            "latency_ms": 7472.698300029151
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": "refuse",
+          "terminal_reason": "llm_error",
+          "budget_exhausted": false,
+          "safe": true,
+          "steps": []
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 14,
+      "round": 7,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 7,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": true,
+        "terminal_action": null
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": true,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": true,
+        "description_variant": "contrastive_s3a",
+        "rewritten_tools": [
+          "semantic_search",
+          "search_documents"
+        ],
+        "planner_selected_tool": "semantic_search",
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "semantic_search",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 43647.8,
+        "model_call_count": 5,
+        "model_call_latency_ms": 38194.4,
+        "tool_execution_latency_ms": 4501.0,
+        "non_model_time_ms": 5453.4,
+        "steps_used": 5
+      },
+      "record": {
+        "started_at": "2026-08-23T06:33:24+00:00",
+        "duration_ms": 43647.8,
+        "outcome": {
+          "run_id": "15117110-d4de-41b0-b27f-53aa592ce0fd",
+          "steps_used": 5,
+          "max_steps": 5,
+          "capped": true,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": null,
+          "terminal_reason": null,
+          "steps": [
+            {
+              "step_index": 1,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 4411,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 4404
+              }
+            },
+            {
+              "step_index": 2,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 37,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 37
+              }
+            },
+            {
+              "step_index": 3,
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 32,
+              "observation": {
+                "total": 0,
+                "summary": "无命中",
+                "items": []
+              }
+            },
+            {
+              "step_index": 4,
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 14,
+              "observation": {
+                "total": 0,
+                "summary": "无命中",
+                "items": []
+              }
+            },
+            {
+              "step_index": 5,
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 7,
+              "observation": {
+                "total": 0,
+                "summary": "无命中",
+                "items": []
+              }
+            }
+          ]
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 21334.05689999927
+          },
+          {
+            "step_index": 1,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 4820.846399990842
+          },
+          {
+            "step_index": 2,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases?\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "search_documents",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "search_documents",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 4036.245900031645
+          },
+          {
+            "step_index": 3,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases?\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "search_documents",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "search_documents",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3958.1640000105835
+          },
+          {
+            "step_index": 4,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases?\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "search_documents",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "search_documents",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 4045.1060999766923
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": null,
+          "terminal_reason": null,
+          "budget_exhausted": true,
+          "safe": false,
+          "steps": [
+            {
+              "selected_tool": "semantic_search",
+              "tool_args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "resolver_accepted": true,
+              "execution_succeeded": true,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 4404
+              },
+              "post_observation_action": "tool"
+            }
+          ]
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 15,
+      "round": 8,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 8,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": true,
+        "terminal_action": null
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": false,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": false,
+        "description_variant": "baseline_product",
+        "rewritten_tools": [],
+        "planner_selected_tool": "semantic_search",
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "semantic_search",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 18626.0,
+        "model_call_count": 5,
+        "model_call_latency_ms": 17160.7,
+        "tool_execution_latency_ms": 510.0,
+        "non_model_time_ms": 1465.3,
+        "steps_used": 5
+      },
+      "record": {
+        "started_at": "2026-08-23T06:34:08+00:00",
+        "duration_ms": 18626.0,
+        "outcome": {
+          "run_id": "906f607d-0841-4b2d-a6fe-cfdeafc168a8",
+          "steps_used": 5,
+          "max_steps": 5,
+          "capped": true,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": null,
+          "terminal_reason": null,
+          "steps": [
+            {
+              "step_index": 1,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 42,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 42
+              }
+            },
+            {
+              "step_index": 2,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 318,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 318
+              }
+            },
+            {
+              "step_index": 3,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 43,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 43
+              }
+            },
+            {
+              "step_index": 4,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 47,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 47
+              }
+            },
+            {
+              "step_index": 5,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 60,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 60
+              }
+            }
+          ]
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3329.6426000306383
+          },
+          {
+            "step_index": 1,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3463.212500035297
+          },
+          {
+            "step_index": 2,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3461.926600022707
+          },
+          {
+            "step_index": 3,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3453.6572999786586
+          },
+          {
+            "step_index": 4,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3452.282299986109
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": null,
+          "terminal_reason": null,
+          "budget_exhausted": true,
+          "safe": false,
+          "steps": [
+            {
+              "selected_tool": "semantic_search",
+              "tool_args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "resolver_accepted": true,
+              "execution_succeeded": true,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 42
+              },
+              "post_observation_action": "tool"
+            }
+          ]
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 16,
+      "round": 8,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 8,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": true,
+        "terminal_action": null
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": true,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": true,
+        "description_variant": "contrastive_s3a",
+        "rewritten_tools": [
+          "semantic_search",
+          "search_documents"
+        ],
+        "planner_selected_tool": "semantic_search",
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "semantic_search",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 19732.4,
+        "model_call_count": 5,
+        "model_call_latency_ms": 18399.3,
+        "tool_execution_latency_ms": 282.0,
+        "non_model_time_ms": 1333.1,
+        "steps_used": 5
+      },
+      "record": {
+        "started_at": "2026-08-23T06:34:27+00:00",
+        "duration_ms": 19732.4,
+        "outcome": {
+          "run_id": "4babdc36-f753-483d-88c8-6c55611948ac",
+          "steps_used": 5,
+          "max_steps": 5,
+          "capped": true,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": null,
+          "terminal_reason": null,
+          "steps": [
+            {
+              "step_index": 1,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 37,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 37
+              }
+            },
+            {
+              "step_index": 2,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 40,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 40
+              }
+            },
+            {
+              "step_index": 3,
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 19,
+              "observation": {
+                "total": 0,
+                "summary": "无命中",
+                "items": []
+              }
+            },
+            {
+              "step_index": 4,
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 14,
+              "observation": {
+                "total": 0,
+                "summary": "无命中",
+                "items": []
+              }
+            },
+            {
+              "step_index": 5,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "how to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 172,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 172
+              }
+            }
+          ]
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3557.2172999964096
+          },
+          {
+            "step_index": 1,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3552.894600026775
+          },
+          {
+            "step_index": 2,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases?\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "search_documents",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "search_documents",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3907.4343999964185
+          },
+          {
+            "step_index": 3,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases?\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "search_documents",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "search_documents",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3870.0769999995828
+          },
+          {
+            "step_index": 4,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"how to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "how to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "how to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "how to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3511.666400008835
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": null,
+          "terminal_reason": null,
+          "budget_exhausted": true,
+          "safe": false,
+          "steps": [
+            {
+              "selected_tool": "semantic_search",
+              "tool_args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "resolver_accepted": true,
+              "execution_succeeded": true,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 37
+              },
+              "post_observation_action": "tool"
+            }
+          ]
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 17,
+      "round": 9,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 9,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": true,
+        "terminal_action": null
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": false,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": false,
+        "description_variant": "baseline_product",
+        "rewritten_tools": [],
+        "planner_selected_tool": "semantic_search",
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "semantic_search",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 17875.1,
+        "model_call_count": 5,
+        "model_call_latency_ms": 17129.7,
+        "tool_execution_latency_ms": 183.0,
+        "non_model_time_ms": 745.4,
+        "steps_used": 5
+      },
+      "record": {
+        "started_at": "2026-08-23T06:34:46+00:00",
+        "duration_ms": 17875.1,
+        "outcome": {
+          "run_id": "bf3fd42c-f824-4a6e-a610-5c6bd2e76c45",
+          "steps_used": 5,
+          "max_steps": 5,
+          "capped": true,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": null,
+          "terminal_reason": null,
+          "steps": [
+            {
+              "step_index": 1,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 27,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 27
+              }
+            },
+            {
+              "step_index": 2,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 48,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 48
+              }
+            },
+            {
+              "step_index": 3,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 63,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 63
+              }
+            },
+            {
+              "step_index": 4,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 23,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 23
+              }
+            },
+            {
+              "step_index": 5,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 22,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 22
+              }
+            }
+          ]
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3472.583700029645
+          },
+          {
+            "step_index": 1,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3486.4491999614984
+          },
+          {
+            "step_index": 2,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3406.311300001107
+          },
+          {
+            "step_index": 3,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3385.3291000123136
+          },
+          {
+            "step_index": 4,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3379.007100011222
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": null,
+          "terminal_reason": null,
+          "budget_exhausted": true,
+          "safe": false,
+          "steps": [
+            {
+              "selected_tool": "semantic_search",
+              "tool_args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "resolver_accepted": true,
+              "execution_succeeded": true,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 27
+              },
+              "post_observation_action": "tool"
+            }
+          ]
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 18,
+      "round": 9,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 9,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": true,
+        "terminal_action": null
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": true,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": true,
+        "description_variant": "contrastive_s3a",
+        "rewritten_tools": [
+          "semantic_search",
+          "search_documents"
+        ],
+        "planner_selected_tool": "semantic_search",
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "semantic_search",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 18999.6,
+        "model_call_count": 5,
+        "model_call_latency_ms": 18412.8,
+        "tool_execution_latency_ms": 139.0,
+        "non_model_time_ms": 586.8,
+        "steps_used": 5
+      },
+      "record": {
+        "started_at": "2026-08-23T06:35:04+00:00",
+        "duration_ms": 18999.6,
+        "outcome": {
+          "run_id": "2ac20b7c-1256-4abf-b6f1-992f014c90b1",
+          "steps_used": 5,
+          "max_steps": 5,
+          "capped": true,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": null,
+          "terminal_reason": null,
+          "steps": [
+            {
+              "step_index": 1,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 31,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 31
+              }
+            },
+            {
+              "step_index": 2,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 31,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 31
+              }
+            },
+            {
+              "step_index": 3,
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 25,
+              "observation": {
+                "total": 0,
+                "summary": "无命中",
+                "items": []
+              }
+            },
+            {
+              "step_index": 4,
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 11,
+              "observation": {
+                "total": 0,
+                "summary": "无命中",
+                "items": []
+              }
+            },
+            {
+              "step_index": 5,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "how to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 41,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 41
+              }
+            }
+          ]
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3558.1136000109836
+          },
+          {
+            "step_index": 1,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3546.729299996514
+          },
+          {
+            "step_index": 2,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases?\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "search_documents",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "search_documents",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3955.2584999473765
+          },
+          {
+            "step_index": 3,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases?\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "search_documents",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "search_documents",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3853.5117999999784
+          },
+          {
+            "step_index": 4,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"how to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "how to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "how to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "how to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3499.1721999831498
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": null,
+          "terminal_reason": null,
+          "budget_exhausted": true,
+          "safe": false,
+          "steps": [
+            {
+              "selected_tool": "semantic_search",
+              "tool_args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "resolver_accepted": true,
+              "execution_succeeded": true,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 31
+              },
+              "post_observation_action": "tool"
+            }
+          ]
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 19,
+      "round": 10,
+      "case_id": "GQ-131",
+      "condition": "S3A_OFF",
+      "s3a_enabled": false,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 10,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": true,
+        "terminal_action": null
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": false,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": false,
+        "description_variant": "baseline_product",
+        "rewritten_tools": [],
+        "planner_selected_tool": "semantic_search",
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "semantic_search",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 17971.6,
+        "model_call_count": 5,
+        "model_call_latency_ms": 17217.1,
+        "tool_execution_latency_ms": 196.0,
+        "non_model_time_ms": 754.5,
+        "steps_used": 5
+      },
+      "record": {
+        "started_at": "2026-08-23T06:35:23+00:00",
+        "duration_ms": 17971.6,
+        "outcome": {
+          "run_id": "94bf1cf7-538d-415f-b2d7-8cfdecd46134",
+          "steps_used": 5,
+          "max_steps": 5,
+          "capped": true,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": null,
+          "terminal_reason": null,
+          "steps": [
+            {
+              "step_index": 1,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 85,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 85
+              }
+            },
+            {
+              "step_index": 2,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 30,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 30
+              }
+            },
+            {
+              "step_index": 3,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 29,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 29
+              }
+            },
+            {
+              "step_index": 4,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 23,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 23
+              }
+            },
+            {
+              "step_index": 5,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 29,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 29
+              }
+            }
+          ]
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3580.6899000308476
+          },
+          {
+            "step_index": 1,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3400.8479999611154
+          },
+          {
+            "step_index": 2,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3385.745500039775
+          },
+          {
+            "step_index": 3,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3386.9502000161447
+          },
+          {
+            "step_index": 4,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3462.839099986013
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": null,
+          "terminal_reason": null,
+          "budget_exhausted": true,
+          "safe": false,
+          "steps": [
+            {
+              "selected_tool": "semantic_search",
+              "tool_args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "resolver_accepted": true,
+              "execution_succeeded": true,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 85
+              },
+              "post_observation_action": "tool"
+            }
+          ]
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    },
+    {
+      "seq": 20,
+      "round": 10,
+      "case_id": "GQ-131",
+      "condition": "S3A_ON",
+      "s3a_enabled": true,
+      "s2_enabled": false,
+      "t2_enabled": false,
+      "trial_index": 10,
+      "panel": "primary",
+      "query": "How to search documents across knowledge bases?",
+      "task_completion": false,
+      "first_failed_stage": "planner_tool_selected",
+      "failure_taxonomy": "WRONG_OR_MISSING_TOOL",
+      "stages": [
+        {
+          "stage": "planner_tool_selected",
+          "eligible": true,
+          "attempted": true,
+          "passed": false,
+          "reason": "wrong or missing tool selection"
+        },
+        {
+          "stage": "tool_args_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: tool not selected"
+        },
+        {
+          "stage": "tool_resolver_accepted",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: invalid args"
+        },
+        {
+          "stage": "tool_execution_succeeded",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: resolver did not accept"
+        },
+        {
+          "stage": "expected_observation_present",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: execution did not succeed"
+        },
+        {
+          "stage": "post_observation_decision_valid",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "skipped: expected observation absent"
+        },
+        {
+          "stage": "safe_terminal",
+          "eligible": true,
+          "attempted": false,
+          "passed": false,
+          "reason": "unsafe or budget-exhausted terminal"
+        }
+      ],
+      "full_contract": {
+        "planner_tool_selected": false,
+        "tool_args_valid": false,
+        "tool_resolver_accepted": false,
+        "tool_execution_succeeded": false,
+        "expected_observation_present": false,
+        "post_observation_decision_valid": false,
+        "safe_terminal": false,
+        "budget_exhausted": true,
+        "terminal_action": null
+      },
+      "s3a_telemetry": {
+        "s3a_enabled": true,
+        "intent_classification": "catalog_search",
+        "contrastive_guidance_eligible": true,
+        "guidance_emitted": true,
+        "description_variant": "contrastive_s3a",
+        "rewritten_tools": [
+          "semantic_search",
+          "search_documents"
+        ],
+        "planner_selected_tool": "semantic_search",
+        "expected_tool": "search_documents",
+        "selection_correct": false,
+        "raw_model_decision": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+        "canonicalization_used": false,
+        "s2_enabled": false,
+        "t2_enabled": false
+      },
+      "selection_bucket": "semantic_search",
+      "tna": {
+        "raw": 0,
+        "recovered": 0,
+        "unrecovered": 0,
+        "per_capture": [
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          },
+          {
+            "raw_tool_name_as_action": false,
+            "recovered": false,
+            "unrecovered": false,
+            "parse_ok": true
+          }
+        ]
+      },
+      "safety": {
+        "out_of_scope_accept": 0,
+        "invalid_args_accept": 0,
+        "exposed_set_mutation": 0,
+        "unsafe_terminal": 0,
+        "premature_finish": 0,
+        "unrecovered_schema": 0,
+        "s3a_false_force_on_ineligible": 0
+      },
+      "latency": {
+        "trajectory_wall_ms": 19097.4,
+        "model_call_count": 5,
+        "model_call_latency_ms": 18398.9,
+        "tool_execution_latency_ms": 201.0,
+        "non_model_time_ms": 698.5,
+        "steps_used": 5
+      },
+      "record": {
+        "started_at": "2026-08-23T06:35:41+00:00",
+        "duration_ms": 19097.4,
+        "outcome": {
+          "run_id": "f148b32c-837f-4973-a450-b31c14f2ab55",
+          "steps_used": 5,
+          "max_steps": 5,
+          "capped": true,
+          "timed_out": false,
+          "low_confidence": false,
+          "terminal_action": null,
+          "terminal_reason": null,
+          "steps": [
+            {
+              "step_index": 1,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 33,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 33
+              }
+            },
+            {
+              "step_index": 2,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 27,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 27
+              }
+            },
+            {
+              "step_index": 3,
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 29,
+              "observation": {
+                "total": 0,
+                "summary": "无命中",
+                "items": []
+              }
+            },
+            {
+              "step_index": 4,
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 67,
+              "observation": {
+                "total": 0,
+                "summary": "无命中",
+                "items": []
+              }
+            },
+            {
+              "step_index": 5,
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "how to search documents across knowledge bases"
+              },
+              "ok": true,
+              "summary": "无命中",
+              "latency_ms": 45,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 45
+              }
+            }
+          ]
+        },
+        "captures": [
+          {
+            "step_index": 0,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3589.345700049307
+          },
+          {
+            "step_index": 1,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3553.115600021556
+          },
+          {
+            "step_index": 2,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases?\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "search_documents",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "search_documents",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3937.97850003466
+          },
+          {
+            "step_index": 3,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"search_documents\",\n    \"args\": {\n        \"query\": \"How to search documents across knowledge bases?\",\n        \"mode\": \"content\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "search_documents",
+            "parsed_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "search_documents",
+              "args": {
+                "query": "How to search documents across knowledge bases?",
+                "mode": "content"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "search_documents",
+            "tool_args": {
+              "query": "How to search documents across knowledge bases?",
+              "mode": "content"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3898.462000011932
+          },
+          {
+            "step_index": 4,
+            "raw_excerpt": "```json\n{\n    \"action\": \"tool\",\n    \"tool_name\": \"semantic_search\",\n    \"args\": {\n        \"query\": \"how to search documents across knowledge bases\"\n    },\n    \"reason_code\": \"initial_retrieval\"\n}\n```",
+            "parse_ok": true,
+            "parse_error": null,
+            "parsed_action": "tool",
+            "parsed_tool": "semantic_search",
+            "parsed_args": {
+              "query": "how to search documents across knowledge bases"
+            },
+            "planner_decision": {
+              "action": "tool",
+              "tool_name": "semantic_search",
+              "args": {
+                "query": "how to search documents across knowledge bases"
+              },
+              "reason_code": "initial_retrieval"
+            },
+            "stop_effect": "passthrough",
+            "tool_name": "semantic_search",
+            "tool_args": {
+              "query": "how to search documents across knowledge bases"
+            },
+            "tool_success": true,
+            "observation_summary": "无命中",
+            "timed_out": false,
+            "provider_error": null,
+            "latency_ms": 3420.0095999985933
+          }
+        ],
+        "trajectory": {
+          "case_id": "GQ-131",
+          "terminal_action": null,
+          "terminal_reason": null,
+          "budget_exhausted": true,
+          "safe": false,
+          "steps": [
+            {
+              "selected_tool": "semantic_search",
+              "tool_args": {
+                "query": "How to search documents across knowledge bases"
+              },
+              "resolver_accepted": true,
+              "execution_succeeded": true,
+              "observation": {
+                "hits": [],
+                "retrieval_ms": 33
+              },
+              "post_observation_action": "tool"
+            }
+          ]
+        },
+        "seeded": {
+          "user_id": "6fd70347-0acd-4d91-af03-3cb2e1a68e49",
+          "kb_ids": [
+            "4b11382f-7319-4322-878d-80c69d76e677",
+            "898db65e-8502-46ef-bd8e-b6479b4417ab"
+          ],
+          "markers": {
+            "filename": "TOOLP2_GQ131_SEARCH_MARKER"
+          }
+        }
+      }
+    }
+  ],
+  "output_path": "D:\\MyPrograms\\rag-knowledge-platform\\backend\\artifacts\\benchmarks\\tmp\\reports\\w8-tool-s3a-real-revalidation.json",
+  "measurement_notes": {
+    "planner_timeout_trials": 11,
+    "http_error_trials": 2,
+    "timeout_seconds_contract": 90,
+    "note": "Early paired rounds hit LM ReadTimeout under mandatory 90s; OFF/ON remain contemporaneous. Among trials with a tool decision, both arms selected semantic_search only — never search_documents. Not MODEL_RESIDENCY_BREAK (no mid-panel unload/reload)."
+  }
+}
