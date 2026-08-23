@@ -1,48 +1,38 @@
-﻿"""ADVERSARIAL P4 real local agent capability measurement."""
+"""ADVERSARIAL P4 real local agent capability measurement."""
 
 from __future__ import annotations
 
-import os
-from pathlib import Path as _Path
+from app.eval.adversarial_capability import p4_local_env  # noqa: F401
 
-
-def _bootstrap_local_database_url() -> None:
-    if os.environ.get("DATABASE_URL"):
-        return
-    root = _Path(__file__).resolve().parents[4]
-    env_file = root / ".env"
-    if not env_file.is_file():
-        return
-    for line in env_file.read_text(encoding="utf-8", errors="ignore").splitlines():
-        if line.startswith("POSTGRES_PASSWORD=") and not line.startswith("#"):
-            pw = line.split("=", 1)[1].strip()
-            if pw:
-                os.environ["DATABASE_URL"] = f"postgresql+asyncpg://ruige:{pw}@localhost:5432/ruige"
-            break
-
-
-_bootstrap_local_database_url()
 
 import asyncio
 import json
-import subprocess
 import tempfile
-import time
 from pathlib import Path
 from typing import Any
 
 from app.eval.adversarial_capability.capability_cases import CAPABILITY_CASE_BY_ID
-from app.eval.adversarial_capability.p2_design import MODEL_CONFIG, PRIMARY_CAPABILITY_CASE_IDS
+from app.eval.adversarial_capability.p2_design import (
+    MODEL_CONFIG,
+    PRIMARY_CAPABILITY_CASE_IDS,
+)
 
 from app.eval.adversarial_capability.p4_execute import _ensure_user, run_adv_p4_trial
 from app.eval.local_agent_trajectory.injection import RecordingAdapter
-from app.eval.local_agent_trajectory.runner import WARMUP_MESSAGES, git_sha, reload_model, wait_ready
+from app.eval.local_agent_trajectory.runner import (
+    WARMUP_MESSAGES,
+    git_sha,
+    reload_model,
+    wait_ready,
+)
 from app.eval.local_model_profile.adapter import OpenAICompatibleAdapter
 from app.eval.local_model_profile.schema import ThinkingMode
 
 STAGE = "ADVERSARIAL_P4_REAL_LOCAL_CAPABILITY"
 SCHEMA_VERSION = "w8-adversarial-p4-real-local-v1"
-REPORT_REL = Path("tests/fixtures/l4_adversarial_capability/w8-adversarial-p4-real-local.json")
+REPORT_REL = Path(
+    "tests/fixtures/l4_adversarial_capability/w8-adversarial-p4-real-local.json"
+)
 TRIALS_PER_CASE = 5
 
 
@@ -65,7 +55,9 @@ def _warmup(adapter: RecordingAdapter, n: int) -> None:
 
 def _aggregate(trajectories: list[dict[str, Any]]) -> dict[str, Any]:
     primary: dict[str, bool] = {cid: False for cid in PRIMARY_CAPABILITY_CASE_IDS}
-    per_case_trials: dict[str, list[bool]] = {cid: [] for cid in PRIMARY_CAPABILITY_CASE_IDS}
+    per_case_trials: dict[str, list[bool]] = {
+        cid: [] for cid in PRIMARY_CAPABILITY_CASE_IDS
+    }
     stage_fails: dict[str, int] = {}
     for row in trajectories:
         cid = row["case_id"]
@@ -83,7 +75,8 @@ def _aggregate(trajectories: list[dict[str, Any]]) -> dict[str, Any]:
         "trial_pass": f"{passed_trials}/{len(trajectories)}",
         "per_case_any_pass": {cid: primary[cid] for cid in PRIMARY_CAPABILITY_CASE_IDS},
         "per_case_trial_pass": {
-            cid: f"{sum(per_case_trials[cid])}/{len(per_case_trials[cid])}" for cid in PRIMARY_CAPABILITY_CASE_IDS
+            cid: f"{sum(per_case_trials[cid])}/{len(per_case_trials[cid])}"
+            for cid in PRIMARY_CAPABILITY_CASE_IDS
         },
         "first_failed_stage_counts": stage_fails,
     }
@@ -134,10 +127,15 @@ async def run_adversarial_p4_benchmark(
         except Exception as exc:  # noqa: BLE001
             errors.append(f"{cid}#{trial}: {exc}")
     metrics = _aggregate(trajectories) if trajectories else {}
-    p3_path = _repo_root() / "backend/tests/fixtures/l4_adversarial_capability/w8-adversarial-p3-real-retrieval.json"
+    p3_path = (
+        _repo_root()
+        / "backend/tests/fixtures/l4_adversarial_capability/w8-adversarial-p3-real-retrieval.json"
+    )
     p3_ready = False
     if p3_path.is_file():
-        p3_ready = json.loads(p3_path.read_text(encoding="utf-8")).get("ready_for_p4") is True
+        p3_ready = (
+            json.loads(p3_path.read_text(encoding="utf-8")).get("ready_for_p4") is True
+        )
     valid = p3_ready and len(trajectories) == len(schedule) and not errors
     ready_for_p5 = valid and len(schedule) >= 20
     payload: dict[str, Any] = {
@@ -152,26 +150,29 @@ async def run_adversarial_p4_benchmark(
         "trajectories": trajectories,
         "metrics_c17": metrics,
         "errors": errors,
-        "measurement_validity": "VALID" if valid else ("PARTIAL" if trajectories else "INVALID"),
+        "measurement_validity": "VALID"
+        if valid
+        else ("PARTIAL" if trajectories else "INVALID"),
         "ready_for_p5": ready_for_p5,
         "probe_only": probe_only,
         "product_remediation": False,
     }
     out = _repo_root() / "backend" / REPORT_REL
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    out.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     payload["output_path"] = str(out)
     return payload
 
 
 def main() -> int:
     payload = asyncio.run(run_adversarial_p4_benchmark())
-    print(f"validity={payload['measurement_validity']} ready_for_p5={payload['ready_for_p5']}")
+    print(
+        f"validity={payload['measurement_validity']} ready_for_p5={payload['ready_for_p5']}"
+    )
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
-
-

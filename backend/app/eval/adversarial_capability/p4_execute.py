@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import tempfile
 import time
 import uuid
 from pathlib import Path
@@ -33,7 +32,11 @@ from app.services.auth.password import hash_password
 from app.services.ingestion.pipeline import process_document_ingestion
 from app.services.knowledge_base.crud import create_knowledge_base
 from app.services.rag.thread_persistence import create_kb_thread
-from app.services.workspace.scope import WorkspaceKind, WorkspaceScope, resolve_workspace
+from app.services.workspace.scope import (
+    WorkspaceKind,
+    WorkspaceScope,
+    resolve_workspace,
+)
 
 
 def _corpus_markdown(case: CapabilityCase) -> str:
@@ -72,7 +75,9 @@ async def _create_kb(user_id: UUID, case_id: str, trial_index: int) -> UUID:
         kb = await create_knowledge_base(
             db,
             current,
-            KnowledgeBaseCreate(name=f"ADV-P4 {case_id} t{trial_index} {uuid.uuid4().hex[:12]}"),
+            KnowledgeBaseCreate(
+                name=f"ADV-P4 {case_id} t{trial_index} {uuid.uuid4().hex[:12]}"
+            ),
             workspace,
         )
         kb_id = kb.id if isinstance(kb.id, UUID) else UUID(str(kb.id))
@@ -80,7 +85,9 @@ async def _create_kb(user_id: UUID, case_id: str, trial_index: int) -> UUID:
         return kb_id
 
 
-async def _ingest_corpus(*, kb_id: UUID, user_id: UUID, case: CapabilityCase, upload_dir: Path) -> None:
+async def _ingest_corpus(
+    *, kb_id: UUID, user_id: UUID, case: CapabilityCase, upload_dir: Path
+) -> None:
     text = _corpus_markdown(case)
     doc_id = uuid.uuid4()
     storage_dir = upload_dir / str(kb_id) / str(doc_id)
@@ -103,7 +110,9 @@ async def _ingest_corpus(*, kb_id: UUID, user_id: UUID, case: CapabilityCase, up
     await process_document_ingestion(doc_id)
 
 
-def _trajectory_from_outcome(case: CapabilityCase, outcome, captures: list) -> MockTrajectory:
+def _trajectory_from_outcome(
+    case: CapabilityCase, outcome, captures: list
+) -> MockTrajectory:
     terminal = "refuse"
     if outcome.terminal_decision is not None:
         terminal = outcome.terminal_decision.action.value
@@ -122,7 +131,11 @@ def _trajectory_from_outcome(case: CapabilityCase, outcome, captures: list) -> M
     facts_after = getattr(cap, "facts_after", {}) or {} if cap else {}
     evidence_state = "insufficient"
     if case.answerability_class == "ANSWERABLE":
-        evidence_state = "sufficient" if any(v == "supported" for v in facts_after.values()) else "insufficient"
+        evidence_state = (
+            "sufficient"
+            if any(v == "supported" for v in facts_after.values())
+            else "insufficient"
+        )
     elif case.answerability_class == "UNANSWERABLE_IN_CORPUS":
         evidence_state = "absent"
     elif case.answerability_class == "INSUFFICIENT_EVIDENCE":
@@ -153,7 +166,7 @@ async def run_adv_p4_trial(
     saved = apply_research_flags()
     captures: list = []
     stop_wrapped = wrap_stop_policy(captures)
-    from app.services.agent import matcher_runtime, stop_policy
+    from app.services.agent import stop_policy
 
     orig_stop = stop_policy.apply_stop_policy_decision
     stop_policy.apply_stop_policy_decision = stop_wrapped  # type: ignore[method-assign]
@@ -165,7 +178,9 @@ async def run_adv_p4_trial(
         thread = await create_kb_thread(db, user_id=user_id, kb_id=kb_id)
         await db.commit()
         thread_id = thread.id
-    workspace = WorkspaceScope(kind=WorkspaceKind.personal, user_id=user_id, org_id=None)
+    workspace = WorkspaceScope(
+        kind=WorkspaceKind.personal, user_id=user_id, org_id=None
+    )
     tool_scope = AgentToolScope(visible_kb_ids=frozenset({kb_id}), default_kb_id=kb_id)
     planner = TracingPlanner(case.question, adapter=adapter, captures=captures)
     try:
@@ -198,9 +213,7 @@ async def run_adv_p4_trial(
         "passed": evaluation.passed,
         "first_failed_stage": evaluation.first_failed_stage,
         "stages": [
-            {"stage": s.stage, "passed": s.passed, "detail": s.detail} for s in evaluation.stages
+            {"stage": s.stage, "passed": s.passed, "detail": s.detail}
+            for s in evaluation.stages
         ],
     }
-
-
-
