@@ -1,0 +1,99 @@
+{
+  "schema_version": "adversarial-real-measurement-protocol-p2-freeze-v1",
+  "stage": "ADVERSARIAL_REAL_MEASUREMENT_PROTOCOL_P2_FREEZE",
+  "round_start_master_sha": "32c8830e92990a00d7824f0145c7cda3ba639fd7",
+  "p1_merge_sha": "1fd6e26fee82cb69a9b1d2cfaa66d80251145e14",
+  "p1_denominator": 4,
+  "CAPABILITY_VALID_DENOMINATOR": 4,
+  "primary_capability_cases": [
+    "ADV-P1-ANS-001",
+    "ADV-P1-UNA-001",
+    "ADV-P1-PART-001",
+    "ADV-P1-CON-001"
+  ],
+  "state": "FROZEN",
+  "adv_p2": "PASS/FROZEN",
+  "ready_for_real_run": true,
+  "real_run_executed_in_pr": false,
+  "runtime_rollout": false,
+  "product_remediation": false,
+  "answerability_invariant": {
+    "source": "ANSWERABILITY_TRUTH",
+    "derived_from": [
+      "frozen fact registry",
+      "corpus contract (fingerprint + absent propositions)"
+    ],
+    "not_derived_from": [
+      "top-k retrieval hits",
+      "embedding scores",
+      "model outputs",
+      "retriever rank alone"
+    ]
+  },
+  "pipeline": [
+    "VALID_CORPUS (P1 frozen fixtures)",
+    "REAL_RETRIEVAL (Layer R)",
+    "REAL_LOCAL_AGENT (Layer A, GLM-4.6V-Flash Thinking OFF)",
+    "P0_STAGE_EVALUATOR (first_failed_stage)"
+  ],
+  "layer_R": {
+    "name": "REAL_RETRIEVAL_VALIDATION",
+    "engine": "production hybrid retriever against frozen P1 corpus fixtures",
+    "readiness": "READY",
+    "requirements": [
+      "corpus_fingerprint match before run",
+      "scoped kb_id per corpus_fixture_id",
+      "index + embed + chunker config frozen in sidecar manifest",
+      "retrieval behavior logged independently of answerability label"
+    ],
+    "forbidden_claims": [
+      "always_topk_hit_equals_retriever_false_positive",
+      "empty_hit_equals_capability_pass"
+    ]
+  },
+  "layer_A": {
+    "name": "REAL_LOCAL_AGENT_CAPABILITY",
+    "model": "zai-org/glm-4.6v-flash",
+    "thinking": "OFF",
+    "readiness": "READY_AFTER_R",
+    "runner_profile": "local_agent_trajectory harness (same family as MEMORY P3)",
+    "requirements": [
+      "P1 CAPABILITY_VALID_DENOMINATOR > 0",
+      "P0 8-stage evaluator with first_failed_stage",
+      "no product remediation during measurement"
+    ]
+  },
+  "controls": [
+    "HC-ALWAYS-REFUSE",
+    "HC-ALWAYS-ANSWER",
+    "HC-ALWAYS-RETRIEVE",
+    "HC-NO-RETRIEVAL"
+  ],
+  "controls_role": "evaluator_sanity_checks_not_primary_denominator",
+  "success_labels": {
+    "case_pass": "all applicable P0 stages pass (first_failed_stage=null)",
+    "aggregate": "passed / CAPABILITY_VALID_DENOMINATOR",
+    "blocked_when": "CAPABILITY_VALID_DENOMINATOR=0"
+  },
+  "sample_policy": {
+    "deterministic_first": true,
+    "full_denominator_before_sampling": true,
+    "min_per_corpus_class": 1
+  },
+  "model_config": {
+    "model": "zai-org/glm-4.6v-flash",
+    "thinking": "OFF",
+    "context_tokens": 8192,
+    "temperature": 0,
+    "timeout_seconds": 90,
+    "warmup_trials": 3,
+    "single_model_residency": true,
+    "no_lm_studio_in_pr": true,
+    "no_cloud_llm": true
+  },
+  "non_goals": [
+    "no remediation design",
+    "no Golden rewrite",
+    "no runtime rollout"
+  ]
+}
