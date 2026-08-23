@@ -37,7 +37,7 @@ RUNTIME_MEMORY_PIPELINE: tuple[dict[str, str], ...] = (
             "then passed to llm_complete_with_usage — TRUE model-visible exposure"
         ),
         "observable": (
-            "prompt content at LLM call; currently NO structured MemoryExposureEvent "
+            "prompt content at LLM call; flag-gated MemoryExposureEvent emit available (default OFF) "
             "(see exposure_audit.py / MemoryExposureEvent contract)"
         ),
     },
@@ -51,7 +51,7 @@ RUNTIME_MEMORY_PIPELINE: tuple[dict[str, str], ...] = (
 
 L3_OBSERVABILITY_GAP: dict[str, Any] = {
     "gap_id": "L3_OBSERVABILITY_GAP",
-    "status": "CONFIRMED",
+    "status": "INSTRUMENTATION_AVAILABLE",
     "description": (
         "Runtime exposes memory at planner prompt assembly but does not "
         "emit a structured MemoryExposureEvent confirming which memory hashes reached "
@@ -78,7 +78,7 @@ RUNTIME_MAPPING_AUDIT: dict[str, Any] = {
     "l3_observability_gap": L3_OBSERVABILITY_GAP,
     "memory_loaded_not_memory_used": True,
     "keyword_overlap_not_semantic_utilization": True,
-    "product_code_modified": False,
+    "product_code_modified": True,
 }
 
 

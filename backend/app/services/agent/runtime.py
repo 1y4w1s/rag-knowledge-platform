@@ -1030,6 +1030,10 @@ async def _run_l3_next_action_loop(
         memories = await load_active_memories(db, user_id)
         memory_ctx = format_memory_context(memories)
         planner._memory_context = memory_ctx
+        from app.services.agent.memory_exposure import build_memory_exposure_records
+
+        planner._memory_exposure_records = build_memory_exposure_records(memories)
+        planner._exposure_run_id = str(run.id)
 
     # L4：FactDecomposer → init（默认关 → 空 ledger，与接线前一致）
     from app.services.agent.decomposer import maybe_fact_goals_for_init
@@ -1356,6 +1360,10 @@ async def _run_react_loop_until_outcome(
         memories = await load_active_memories(db, user_id)
         memory_ctx = format_memory_context(memories)
         planner._memory_context = memory_ctx
+        from app.services.agent.memory_exposure import build_memory_exposure_records
+
+        planner._memory_exposure_records = build_memory_exposure_records(memories)
+        planner._exposure_run_id = str(run.id)
 
     # W2：先预注册工具 breaker，确保 web_search 的 2/15 override 在惰性创建前生效。
     ensure_agent_tool_breakers()

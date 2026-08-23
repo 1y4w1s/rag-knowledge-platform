@@ -18,7 +18,7 @@ MINIMAL_L3_TRACE_FIELDS: tuple[str, ...] = tuple(MEMORY_EXPOSURE_EVENT_FIELDS)
 L3_OBSERVABILITY_RECOMMENDATION: dict[str, Any] = {
     "need_product_instrumentation": NEED_L3_PRODUCT_INSTRUMENTATION,
     "gap_id": "L3_OBSERVABILITY_GAP",
-    "gap_status": "CONFIRMED",
+    "gap_status": "INSTRUMENTATION_AVAILABLE",
     "minimal_fields": list(MINIMAL_L3_TRACE_FIELDS),
     "true_exposure_boundary": TRUE_EXPOSURE_BOUNDARY,
     "recommended_instrumentation_option": RECOMMENDED_OPTION,
@@ -29,7 +29,7 @@ L3_OBSERVABILITY_RECOMMENDATION: dict[str, Any] = {
         "(LLMPlanner._call_llm_for_plan / NextActionPlanner._call_llm); "
         "planner._memory_context assignment alone is not structured telemetry."
     ),
-    "product_remediation_in_this_task": False,
+    "product_remediation_in_this_task": True,
     "evaluator_interface": "READY",
     "ready_for_instrumentation_implementation": True,
 }

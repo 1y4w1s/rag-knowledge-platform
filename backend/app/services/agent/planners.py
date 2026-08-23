@@ -986,6 +986,7 @@ class LLMPlanner:
         if self._cached_plan is None:  # 第一步：调用 LLM
             # runtime E2 low_recall 直接置 None 重规划时，同步复位消费游标
             self._plan_cursor = 0
+            self._exposure_step_id = str(step_index)
             result = await self._call_llm_for_plan(
                 query,
                 context={},
@@ -1115,6 +1116,16 @@ class LLMPlanner:
             memory_block = (
                 f"\n\n用户长期偏好（仅供参考，不覆盖检索结果）：\n{self._memory_context}"
                 if self._memory_context else ""
+            )
+            from app.eval.memory_capability.exposure_event import MemoryExposureChannel
+            from app.services.agent.memory_exposure import emit_memory_exposure_at_prompt_boundary
+
+            emit_memory_exposure_at_prompt_boundary(
+                memory_block=memory_block,
+                channel=MemoryExposureChannel.llm_planner,
+                run_id=getattr(self, "_exposure_run_id", None),
+                step_id=getattr(self, "_exposure_step_id", None),
+                records=getattr(self, "_memory_exposure_records", None) or (),
             )
             failure_block = ""
             if self._failure_context is not None:
@@ -1572,6 +1583,7 @@ class NextActionPlanner:
         from app.services.agent.planner_fact_hints import apply_observation_fact_hints
 
         summary = apply_observation_fact_hints(summary, state.evidence)
+        self._exposure_step_id = str(state.steps_used)
         parsed = await self._call_llm(summary, available)
         self._planner_calls += 1
 
@@ -1640,6 +1652,16 @@ class NextActionPlanner:
             f"\n\n用户长期偏好（仅供参考，不覆盖检索结果）：\n{self._memory_context}"
             if self._memory_context
             else ""
+        )
+        from app.eval.memory_capability.exposure_event import MemoryExposureChannel
+        from app.services.agent.memory_exposure import emit_memory_exposure_at_prompt_boundary
+
+        emit_memory_exposure_at_prompt_boundary(
+            memory_block=memory_block,
+            channel=MemoryExposureChannel.next_action_planner,
+            run_id=getattr(self, "_exposure_run_id", None),
+            step_id=getattr(self, "_exposure_step_id", None),
+            records=getattr(self, "_memory_exposure_records", None) or (),
         )
         prompt = f"{system_prompt}{memory_block}"
 
