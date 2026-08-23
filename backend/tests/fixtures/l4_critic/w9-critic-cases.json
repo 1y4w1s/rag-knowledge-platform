@@ -1,0 +1,407 @@
+{
+  "protocol": "w9_critic_model_inputs_v1",
+  "description": "Model-facing W9 critic inputs. This file intentionally contains no expected status, action, reason code, or denominator labels.",
+  "cases": [
+    {
+      "case_id": "C01-fully-supported-exact",
+      "query": "生产备份保留多久？",
+      "answer": "生产备份保留 30 天[片段1]。",
+      "scope": {
+        "run_id": "w9-c01",
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": ["kb-main"],
+        "retrieval_scope_exhausted": true
+      },
+      "citations": [
+        {"citation_id": "片段1", "marker": "[片段1]", "evidence_id": "E1"}
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "workspace_id": "ws-main",
+          "kb_id": "kb-main",
+          "document": "备份策略.md",
+          "location": "第 2 节",
+          "excerpt": "生产环境备份的保留期限为 30 天。",
+          "provenance": "current_run_retrieval"
+        }
+      ],
+      "deterministic_context": {
+        "citation_syntax_valid": true,
+        "citation_ids_valid": true,
+        "known_conflict": false,
+        "required_fact_missing": false,
+        "retrieval_scope_exhausted": true
+      }
+    },
+    {
+      "case_id": "C02-supported-paraphrase-low-lexical",
+      "query": "报销申请最迟什么时候提交？",
+      "answer": "报销申请须在费用发生后的一个月内提交[片段1]。",
+      "scope": {
+        "run_id": "w9-c02",
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": ["kb-main"],
+        "retrieval_scope_exhausted": true
+      },
+      "citations": [
+        {"citation_id": "片段1", "marker": "[片段1]", "evidence_id": "E1"}
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "workspace_id": "ws-main",
+          "kb_id": "kb-main",
+          "document": "费用制度.md",
+          "location": "4.1",
+          "excerpt": "员工应于费用发生之日起 30 日内提交报销申请。",
+          "provenance": "current_run_retrieval"
+        }
+      ],
+      "deterministic_context": {
+        "citation_syntax_valid": true,
+        "citation_ids_valid": true,
+        "known_conflict": false,
+        "required_fact_missing": false,
+        "retrieval_scope_exhausted": true
+      }
+    },
+    {
+      "case_id": "C03-one-unsupported-among-supported",
+      "query": "基础版的存储和电话支持是什么？",
+      "answer": "基础版支持 5 GB 存储[片段1]，并提供无限次电话支持[片段1]。",
+      "scope": {
+        "run_id": "w9-c03",
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": ["kb-main"],
+        "retrieval_scope_exhausted": true
+      },
+      "citations": [
+        {"citation_id": "片段1", "marker": "[片段1]", "evidence_id": "E1"}
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "workspace_id": "ws-main",
+          "kb_id": "kb-main",
+          "document": "版本比较.md",
+          "location": "基础版",
+          "excerpt": "基础版包含 5 GB 存储空间，支持渠道为电子邮件。",
+          "provenance": "current_run_retrieval"
+        }
+      ],
+      "deterministic_context": {
+        "citation_syntax_valid": true,
+        "citation_ids_valid": true,
+        "known_conflict": false,
+        "required_fact_missing": false,
+        "retrieval_scope_exhausted": true
+      }
+    },
+    {
+      "case_id": "C04-valid-citation-wrong-evidence",
+      "query": "管理员初始密码是什么？",
+      "answer": "管理员初始密码是 Admin@123[片段1]。",
+      "scope": {
+        "run_id": "w9-c04",
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": ["kb-main"],
+        "retrieval_scope_exhausted": true
+      },
+      "citations": [
+        {"citation_id": "片段1", "marker": "[片段1]", "evidence_id": "E1"}
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "workspace_id": "ws-main",
+          "kb_id": "kb-main",
+          "document": "密码策略.md",
+          "location": "第 1 节",
+          "excerpt": "系统不设置通用默认密码；管理员首次登录须通过一次性链接创建密码。",
+          "provenance": "current_run_retrieval"
+        }
+      ],
+      "deterministic_context": {
+        "citation_syntax_valid": true,
+        "citation_ids_valid": true,
+        "known_conflict": false,
+        "required_fact_missing": false,
+        "retrieval_scope_exhausted": true
+      }
+    },
+    {
+      "case_id": "C05-known-conflict-overcertain",
+      "query": "生产备份统一保留多久？",
+      "answer": "生产备份统一保留 30 天[片段1]。",
+      "scope": {
+        "run_id": "w9-c05",
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": ["kb-main"],
+        "retrieval_scope_exhausted": true
+      },
+      "citations": [
+        {"citation_id": "片段1", "marker": "[片段1]", "evidence_id": "E1"}
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "workspace_id": "ws-main",
+          "kb_id": "kb-main",
+          "document": "备份策略.md",
+          "location": "第 2 节",
+          "excerpt": "生产环境备份保留 30 天。",
+          "provenance": "current_run_retrieval"
+        },
+        {
+          "evidence_id": "E2",
+          "workspace_id": "ws-main",
+          "kb_id": "kb-main",
+          "document": "灾备补充规定.md",
+          "location": "第 3 条",
+          "excerpt": "生产环境备份保留 90 天。",
+          "provenance": "current_run_retrieval"
+        }
+      ],
+      "deterministic_context": {
+        "citation_syntax_valid": true,
+        "citation_ids_valid": true,
+        "known_conflict": true,
+        "required_fact_missing": false,
+        "retrieval_scope_exhausted": true
+      }
+    },
+    {
+      "case_id": "C06-required-fact-missing",
+      "query": "企业版最多支持多少成员？",
+      "answer": "企业版支持 200 个成员[片段1]。",
+      "scope": {
+        "run_id": "w9-c06",
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": ["kb-main"],
+        "retrieval_scope_exhausted": false
+      },
+      "citations": [
+        {"citation_id": "片段1", "marker": "[片段1]", "evidence_id": "E1"}
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "workspace_id": "ws-main",
+          "kb_id": "kb-main",
+          "document": "企业版概览.md",
+          "location": "成员管理",
+          "excerpt": "企业版的成员数量可由管理员配置。本文未列出数量上限。",
+          "provenance": "current_run_retrieval"
+        }
+      ],
+      "deterministic_context": {
+        "citation_syntax_valid": true,
+        "citation_ids_valid": true,
+        "known_conflict": false,
+        "required_fact_missing": true,
+        "retrieval_scope_exhausted": false
+      }
+    },
+    {
+      "case_id": "C07-correct-insufficiency-refusal",
+      "query": "管理员初始密码是什么？",
+      "answer": "当前已取得的资料未说明管理员初始密码，因此无法据此回答。",
+      "scope": {
+        "run_id": "w9-c07",
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": ["kb-main"],
+        "retrieval_scope_exhausted": true
+      },
+      "citations": [],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "workspace_id": "ws-main",
+          "kb_id": "kb-main",
+          "document": "密码策略.md",
+          "location": "第 1 节",
+          "excerpt": "系统不设置通用默认密码。",
+          "provenance": "current_run_retrieval"
+        }
+      ],
+      "deterministic_context": {
+        "citation_syntax_valid": true,
+        "citation_ids_valid": true,
+        "known_conflict": false,
+        "required_fact_missing": true,
+        "retrieval_scope_exhausted": true
+      }
+    },
+    {
+      "case_id": "C08-nonassertive-preface-supported-fact",
+      "query": "企业版 API 调用上限是多少？",
+      "answer": "建议先核对适用版本。企业版 API 调用上限为每分钟 5000 次[片段1]。",
+      "scope": {
+        "run_id": "w9-c08",
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": ["kb-main"],
+        "retrieval_scope_exhausted": true
+      },
+      "citations": [
+        {"citation_id": "片段1", "marker": "[片段1]", "evidence_id": "E1"}
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "workspace_id": "ws-main",
+          "kb_id": "kb-main",
+          "document": "API 限额.md",
+          "location": "企业版",
+          "excerpt": "企业版租户的 API 速率上限为每分钟 5000 次。",
+          "provenance": "current_run_retrieval"
+        }
+      ],
+      "deterministic_context": {
+        "citation_syntax_valid": true,
+        "citation_ids_valid": true,
+        "known_conflict": false,
+        "required_fact_missing": false,
+        "retrieval_scope_exhausted": true
+      }
+    },
+    {
+      "case_id": "C09-supported-plus-unverifiable",
+      "query": "维护窗口是什么时候，未来会不会变？",
+      "answer": "系统维护窗口为每周日 02:00 至 04:00[片段1]，下季度一定不会变更。",
+      "scope": {
+        "run_id": "w9-c09",
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": ["kb-main"],
+        "retrieval_scope_exhausted": true
+      },
+      "citations": [
+        {"citation_id": "片段1", "marker": "[片段1]", "evidence_id": "E1"}
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "workspace_id": "ws-main",
+          "kb_id": "kb-main",
+          "document": "维护公告.md",
+          "location": "固定窗口",
+          "excerpt": "当前固定维护窗口为每周日 02:00 至 04:00；后续安排以新公告为准。",
+          "provenance": "current_run_retrieval"
+        }
+      ],
+      "deterministic_context": {
+        "citation_syntax_valid": true,
+        "citation_ids_valid": true,
+        "known_conflict": false,
+        "required_fact_missing": false,
+        "retrieval_scope_exhausted": true
+      }
+    },
+    {
+      "case_id": "C10-supported-multiclaim-multicitation",
+      "query": "免费版和企业版的 API 限额分别是多少？",
+      "answer": "免费版每分钟最多 100 次请求[片段1]；企业版每分钟最多 5000 次请求[片段2]。",
+      "scope": {
+        "run_id": "w9-c10",
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": ["kb-main"],
+        "retrieval_scope_exhausted": true
+      },
+      "citations": [
+        {"citation_id": "片段1", "marker": "[片段1]", "evidence_id": "E1"},
+        {"citation_id": "片段2", "marker": "[片段2]", "evidence_id": "E2"}
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "workspace_id": "ws-main",
+          "kb_id": "kb-main",
+          "document": "API 限额.md",
+          "location": "免费版",
+          "excerpt": "免费版 API 速率上限为每分钟 100 次。",
+          "provenance": "current_run_retrieval"
+        },
+        {
+          "evidence_id": "E2",
+          "workspace_id": "ws-main",
+          "kb_id": "kb-main",
+          "document": "API 限额.md",
+          "location": "企业版",
+          "excerpt": "企业版 API 速率上限为每分钟 5000 次。",
+          "provenance": "current_run_retrieval"
+        }
+      ],
+      "deterministic_context": {
+        "citation_syntax_valid": true,
+        "citation_ids_valid": true,
+        "known_conflict": false,
+        "required_fact_missing": false,
+        "retrieval_scope_exhausted": true
+      }
+    },
+    {
+      "case_id": "C11-citation-format-only-defect",
+      "query": "生产备份保留多久？",
+      "answer": "生产备份保留 30 天[1]。",
+      "scope": {
+        "run_id": "w9-c11",
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": ["kb-main"],
+        "retrieval_scope_exhausted": true
+      },
+      "citations": [
+        {"citation_id": "1", "marker": "[1]", "evidence_id": "E1"}
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E1",
+          "workspace_id": "ws-main",
+          "kb_id": "kb-main",
+          "document": "备份策略.md",
+          "location": "第 2 节",
+          "excerpt": "生产环境备份的保留期限为 30 天。",
+          "provenance": "current_run_retrieval"
+        }
+      ],
+      "deterministic_context": {
+        "citation_syntax_valid": false,
+        "citation_ids_valid": true,
+        "known_conflict": false,
+        "required_fact_missing": false,
+        "retrieval_scope_exhausted": true
+      }
+    },
+    {
+      "case_id": "C12-out-of-scope-provenance",
+      "query": "企业版是否可导出完整审计日志？",
+      "answer": "企业版可导出完整审计日志[片段1]。",
+      "scope": {
+        "run_id": "w9-c12",
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": ["kb-main"],
+        "retrieval_scope_exhausted": false
+      },
+      "citations": [
+        {"citation_id": "片段1", "marker": "[片段1]", "evidence_id": "E-OUT"}
+      ],
+      "evidence": [
+        {
+          "evidence_id": "E-OUT",
+          "workspace_id": "ws-other",
+          "kb_id": "kb-other",
+          "document": "其他租户审计功能.md",
+          "location": "导出",
+          "excerpt": "企业版可导出完整审计日志。",
+          "provenance": "foreign_workspace_fixture"
+        }
+      ],
+      "deterministic_context": {
+        "citation_syntax_valid": true,
+        "citation_ids_valid": true,
+        "known_conflict": false,
+        "required_fact_missing": false,
+        "retrieval_scope_exhausted": false
+      }
+    }
+  ]
+}

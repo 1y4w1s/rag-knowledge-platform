@@ -1,0 +1,250 @@
+{
+  "protocol": "w9_critic_architecture_audit_v1",
+  "base_sha": "33e7c551081eaa22db2eb5c7f9fec1f0585f4976",
+  "audit_mode": "CPU/deterministic read-only repository audit; no model execution",
+  "state": "PARTIAL",
+  "verdicts": {
+    "existing_critic_present": "YES",
+    "w9_semantic_claim_critic_capability": "PARTIAL",
+    "duplicate_reflection_risk": "HIGH",
+    "ready_for_product_experiment": "NO",
+    "ready_for_real_local_measurement": "NO",
+    "runtime_rollout": "NO"
+  },
+  "loop_counts": {
+    "implemented_runtime_reflection_owners": 2,
+    "implemented_generation_revision_owners": 1,
+    "implemented_or_enablable_correction_owners_total": 3,
+    "default_active_count_is_path_dependent": true,
+    "default_active_fast_chat_generation_mutation_owners": 1,
+    "notes": [
+      "Legacy E2 and L3/W6b are selected by different planner classes and are mutually exclusive within one run.",
+      "Citation-density/section regeneration is default-active on the fast Chat path; critic, self-verify, W7 recovery, and L4 reflection recovery are default-off.",
+      "Low-level tool retry can hide up to three dispatch attempts inside one agent step but is counted as call amplification, not a reflection owner."
+    ]
+  },
+  "current_architecture": {
+    "fast_chat_path": [
+      "generation",
+      "output safety on initial content",
+      "rules/LLM critic when enabled",
+      "self verification when enabled",
+      "citation-density or section-coverage regeneration, maximum one",
+      "citation alignment",
+      "persist/cache"
+    ],
+    "agent_path": [
+      "planner factory selects exactly one of legacy E2, L3/W6b, or thorough-read execution",
+      "runtime produces AgentRunOutcome",
+      "prepare_agent_generation reloads and gates step chunks",
+      "generation buffers a draft",
+      "critic runs when enabled",
+      "critic failure may directly retrieve, regenerate, and re-critic once",
+      "persist/finalize"
+    ],
+    "critical_boundary_findings": [
+      "Fast Chat critic runs before a later content mutation, so it does not certify the final answer.",
+      "Agent critic-directed retrieval occurs after AgentRunOutcome formation and is absent from outcome.steps, EvidenceState, normal step audit, and retrieval duration accounting.",
+      "prepare_agent_generation receives AgentRunOutcome but currently discards it, so terminal/refuse/clarify and low_confidence do not directly govern generation.",
+      "Fast-cache hits can bypass critic and the cache key does not isolate critic/self-verify settings."
+    ]
+  },
+  "mechanisms": [
+    {
+      "id": "legacy-e2-reflection",
+      "component": "backend/app/services/agent/runtime.py::_detect_reflection_signal and _run_react_loop_until_outcome",
+      "references": ["runtime.py:454-478", "runtime.py:1571-1797", "planners.py:1214-1264"],
+      "trigger": "low recall or a first-round complex query on the LLMPlanner path",
+      "input": "query, tool observations, remaining agent budget",
+      "output": "query rewrite or decomposed sub-query search plan",
+      "llm_owned": true,
+      "deterministic_owned": false,
+      "retry_or_replan": "rewrite/decompose, optional drift recovery, evidence-insufficiency recovery, or LLM replan after failure",
+      "budget_owner": "shared steps_used/max_steps plus agent_max_reflections; rewrite/decompose LLM calls are not agent steps",
+      "feature_flags": ["agent_max_reflections", "agent_decompose_drift_recovery", "agent_evidence_strategy_enabled"],
+      "audit_and_tests": ["agent.reflection", "test_agent_e2_reflection.py", "test_p2_a1_reflection_budget.py"],
+      "failure_semantics": "bounded but nested recovery can amplify LLM/tool calls; unchanged rewrites may consume reflection budget"
+    },
+    {
+      "id": "l3-observation-loop-w6b",
+      "component": "backend/app/services/agent/runtime.py::_run_l3_next_action_loop",
+      "references": ["runtime.py:1006-1305", "reflection_recovery.py:56-264", "state.py:61-178"],
+      "trigger": "NextActionPlanner observations, tool failures, missing FactGoals, low recall, or conflict",
+      "input": "AgentState, FactGoals, EvidenceState, trajectory",
+      "output": "finish, retrieve, fill-gap, fallback, clarify, or refuse decision",
+      "llm_owned": "NextActionPlanner decisions only",
+      "deterministic_owned": "W6/W6b ReflectionRecovery and EvidenceState gates",
+      "retry_or_replan": "each observation returns to the same bounded loop",
+      "budget_owner": "shared state.steps_used/max_steps and agent_max_reflections",
+      "feature_flags": ["agent_l3_next_action_enabled", "agent_l3_evidence_state_enabled", "agent_l4_reflection_recovery_enabled"],
+      "audit_and_tests": ["trajectory reason codes", "test_agent_l3_runtime.py", "test_agent_l4_recovery_runtime.py"],
+      "failure_semantics": "W6b reflection reason/count lacks a dedicated structured audit event"
+    },
+    {
+      "id": "l3-evidence-state-gate",
+      "component": "backend/app/services/agent/evidence_gate.py and rag/evidence.py",
+      "references": ["evidence_gate.py:12-72", "rag/evidence.py:25-119", "types.py:225-238"],
+      "trigger": "retrieval hit/score/diversity/document coverage sufficiency",
+      "input": "EvidenceState derived from retrieval observations",
+      "output": "finish, retrieve, or refuse decision",
+      "llm_owned": false,
+      "deterministic_owned": true,
+      "retry_or_replan": "may request another retrieval while shared budget remains",
+      "budget_owner": "shared agent step budget",
+      "feature_flags": ["agent_l3_evidence_state_enabled"],
+      "audit_and_tests": ["test_agent_l3_evidence.py", "test_agent_l3_runtime.py"],
+      "failure_semantics": "retrieval sufficiency is not claim/evidence semantic support; original_query is not used by the sufficiency calculation"
+    },
+    {
+      "id": "w6-conflict-recovery-stop-policy",
+      "component": "reflection_recovery.py::evaluate_recovery and stop_policy.py::apply_stop_policy_decision",
+      "references": ["runtime.py:1063-1076", "stop_policy.py:93-101", "stop_policy.py:224-225"],
+      "trigger": "structured fact conflict",
+      "input": "EvidenceState conflict flags and remaining reflection budget",
+      "output": "W6 proposes retrieval, then StopPolicy may replace it with refuse",
+      "llm_owned": false,
+      "deterministic_owned": true,
+      "retry_or_replan": "no combined owner",
+      "budget_owner": "agent reflection and step budgets",
+      "feature_flags": ["agent_l4_reflection_recovery_enabled", "agent_l4_contradiction_enabled", "agent_l4_stop_policy_enabled"],
+      "audit_and_tests": ["separate W6 and StopPolicy tests; no three-flag integration test"],
+      "failure_semantics": "with all three flags enabled, StopPolicy makes the W6 conflict recovery branch unreachable"
+    },
+    {
+      "id": "tool-retry-and-replan",
+      "component": "runtime.py::_execute_step, core/retry.py::async_retry, planners.py::replan_after_failure",
+      "references": ["runtime.py:345-439", "core/retry.py:74-124", "planners.py:1027-1054"],
+      "trigger": "retryable exception or classified tool failure",
+      "input": "one planned tool step and failure classification",
+      "output": "retried dispatch, equivalent fallback, or replanned tool",
+      "llm_owned": "legacy replan only",
+      "deterministic_owned": "retry and equivalent fallback policy",
+      "retry_or_replan": "initial dispatch plus up to two retry attempts; at most two tool replans",
+      "budget_owner": "one visible agent step for internal retries; replanned/fallback steps use shared step budget",
+      "feature_flags": ["retry_max_attempts", "agent_max_tool_replans"],
+      "audit_and_tests": ["agent.tool_executed", "agent.tool_replanned", "test_agent_tool_fallback_replan.py"],
+      "failure_semantics": "per-attempt dispatch is not individually represented in steps, budget hooks, or tool audit"
+    },
+    {
+      "id": "rules-and-llm-critic",
+      "component": "backend/app/services/rag/critic.py::run_critic",
+      "references": ["critic.py:45-64", "critic.py:200-238", "critic.py:258-339"],
+      "trigger": "post-generation critic feature flag",
+      "input": "answer and retrieved chunks",
+      "output": "binary CriticResult with ClaimCheck issues",
+      "llm_owned": "LLM mode delegates to generation.verify_answer",
+      "deterministic_owned": "citation presence/range and shallow lexical overlap rules",
+      "retry_or_replan": "LLM verification failure can produce a corrected answer",
+      "budget_owner": "critic claim cap; no shared runtime reflection budget",
+      "feature_flags": ["rag_critic_enabled", "rag_critic_mode", "rag_critic_fail_closed"],
+      "audit_and_tests": ["test_critic_g1w1.py", "test_g1_critic_falsekill.py", "test_agent_l3_critic.py"],
+      "failure_semantics": "refusal or empty chunks can pass; shallow overlap can miss wrong evidence; max-claim truncation has no unevaluated signal"
+    },
+    {
+      "id": "whole-answer-self-verification",
+      "component": "backend/app/services/rag/generation.py::verify_answer",
+      "references": ["generation.py:758-839", "generation.py::_correct_answer"],
+      "trigger": "self-verify or LLM critic mode",
+      "input": "whole answer and at most five truncated chunks",
+      "output": "binary verified flag and optional corrected answer",
+      "llm_owned": true,
+      "deterministic_owned": false,
+      "retry_or_replan": "one correction generation on verification failure; correction is not reverified here",
+      "budget_owner": "independent generation helper, not shared agent steps",
+      "feature_flags": ["rag_self_verify_enabled", "rag_self_verify_fail_closed"],
+      "audit_and_tests": ["test_generation_verify_fail_closed_p2_04.py"],
+      "failure_semantics": "missing key, invalid JSON, missing verified field, or exception can fail open; future contract maps this to UNVERIFIABLE/degraded"
+    },
+    {
+      "id": "chat-citation-regeneration",
+      "component": "backend/app/services/rag/engine.py chat generation pipeline",
+      "references": ["engine.py:316-469", "core/config.py:188-195"],
+      "trigger": "citation density or section coverage check after critic/self-verify",
+      "input": "already verified draft and retrieved chunks",
+      "output": "mutated regenerated answer",
+      "llm_owned": true,
+      "deterministic_owned": "density/coverage trigger only",
+      "retry_or_replan": "at most one regeneration",
+      "budget_owner": "generation-local maximum, not agent reflection budget",
+      "feature_flags": ["rag_citation_regeneration_enabled"],
+      "audit_and_tests": ["generation metrics and citation tests"],
+      "failure_semantics": "final content may differ from the content inspected by critic and safety"
+    },
+    {
+      "id": "agent-critic-directed-retrieve-revise",
+      "component": "backend/app/services/agent/stream.py::_maybe_critic_retrieve_and_revise",
+      "references": ["stream.py:369-417", "stream.py:480-589", "runtime.py:614-656", "stream.py:647-669"],
+      "trigger": "agent draft critic failure",
+      "input": "failed CriticResult, original outcome steps, gated chunks",
+      "output": "one direct semantic search, merged chunks, regenerated answer, and second critic result",
+      "llm_owned": "generation and optional LLM critic",
+      "deterministic_owned": "bounded action plan",
+      "retry_or_replan": "retrieve then revise then re-critic once",
+      "budget_owner": "local CRITIC_RETRIEVAL_MAX=1 check against original steps_used; recovery does not increment outcome steps",
+      "feature_flags": ["agent_l3_critic_retrieval_enabled", "rag_critic_enabled"],
+      "audit_and_tests": ["test_agent_l3_critic.py"],
+      "failure_semantics": "recovery search is absent from outcome.steps, EvidenceState, DB step/audit, retrieval_duration_ms, and shared budget accounting"
+    },
+    {
+      "id": "agent-finalize-boundary",
+      "component": "backend/app/services/agent/finalize.py::prepare_agent_generation",
+      "references": ["finalize.py:73-181", "stream.py:663-669"],
+      "trigger": "completed/capped/failed AgentRunOutcome",
+      "input": "runtime steps and outcome",
+      "output": "AgentGenerationPlan gated_chunks, citations, refusal",
+      "llm_owned": false,
+      "deterministic_owned": true,
+      "retry_or_replan": "none",
+      "budget_owner": "none",
+      "feature_flags": [],
+      "audit_and_tests": ["test_agent_finalize.py"],
+      "failure_semantics": "outcome is discarded; chunk reload verifies document/kb relation but relies on upstream scope enforcement"
+    }
+  ],
+  "target_reflection_architecture": {
+    "single_orchestration_owner": true,
+    "ordered_pipeline": [
+      "scoped retrieval/runtime correction under shared agent budget",
+      "freeze the exact prompt-visible evidence snapshot",
+      "complete all answer content mutations",
+      "run deterministic syntax/id/provenance/conflict/missing-fact checks",
+      "run semantic claim-evidence critic only for eligible claims",
+      "return one bounded advisory action to the outer orchestration owner",
+      "if a single explicitly budgeted revision occurs, pass it through the same deterministic and semantic boundary once",
+      "final citation alignment",
+      "final output safety",
+      "persist/cache/finalize"
+    ],
+    "critic_budget": {
+      "initial_invocations": 1,
+      "optional_post_revision_validation": 1,
+      "critic_executes_actions": false,
+      "retrieval_uses_original_shared_steps_used_max_steps": true,
+      "hidden_retry_count_allowed": 0
+    },
+    "legal_evidence_boundary": "The critic consumes only the same-run AgentGenerationPlan.gated_chunks and synchronized citations, with optional read-only same-run EvidenceState metadata. It must never reload arbitrary chunk identifiers or broaden scope.",
+    "no_parallel_critic": "Harden or replace the existing generation critic path; do not add a second independent reflection/revision loop."
+  },
+  "stop_conditions_triggered": [
+    "An existing critic is already integrated in both Chat and Agent generation paths.",
+    "Agent generation already contains a retrieve-revise-recritic loop with incomplete budget/provenance accounting.",
+    "Chat generation can mutate content after critic/self-verification.",
+    "Current fail-open verification cannot support a product experiment without semantic degraded-state handling.",
+    "Cache/settings isolation and final-output boundary are not yet contract-safe."
+  ],
+  "audited_files": [
+    "backend/app/services/rag/critic.py",
+    "backend/app/services/rag/generation.py",
+    "backend/app/services/rag/engine.py",
+    "backend/app/services/rag/cache.py",
+    "backend/app/services/agent/runtime.py",
+    "backend/app/services/agent/planners.py",
+    "backend/app/services/agent/state.py",
+    "backend/app/services/agent/evidence_gate.py",
+    "backend/app/services/agent/reflection_recovery.py",
+    "backend/app/services/agent/stop_policy.py",
+    "backend/app/services/agent/finalize.py",
+    "backend/app/services/agent/stream.py",
+    "backend/app/core/config.py"
+  ]
+}
