@@ -394,7 +394,6 @@ async def _stream_generation_phase(
     ):
         from app.services.rag.confidence_reply import with_partial_disclaimer
         from app.services.rag.critic import (
-            METHOD_LLM_VERIFY_V1,
             CriticAction,
             CriticResult,
             run_critic,
@@ -537,7 +536,6 @@ async def _stream_generation_phase(
             not critic_result.ok
             and critic_result.recommended_action
             is CriticAction.REVISE_FROM_EXISTING_EVIDENCE
-            and critic_result.method == METHOD_LLM_VERIFY_V1
             and getattr(outcome, "critic_revision_count", 0) < 1
         ):
             issues = critic_result.metadata.get("critic.issues") or [
