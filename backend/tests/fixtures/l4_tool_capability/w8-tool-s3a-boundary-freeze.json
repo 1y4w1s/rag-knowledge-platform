@@ -1,0 +1,107 @@
+{
+  "schema_version": "w8-tool-s3a-boundary-freeze-v1",
+  "stage": "TOOL_S3A_REAL_LOCAL_BOUNDARY_FREEZE",
+  "audit_name": "TOOL S3A Real Result + V1.0 Selection Boundary Freeze",
+  "round_start_master_sha": "838bb0354daeed9dd43c966b7ff400402b3af7c7",
+  "real_run_lineage": "VALID",
+  "lineage_note": "Real S3A panel head_sha/tool_s3a_base_sha equals round_start_master_sha; no semantic drift in S3A product semantics, GQ-131 contract, tool descriptions, Planner, ToolResolver, or parser since the real run. RERUN_REQUIRED not triggered; do not auto-run models.",
+  "product_diff": 0,
+  "golden_diff": 0,
+  "workflow_diff": 0,
+  "runtime_rollout": false,
+  "product_change": false,
+  "b1_audit": {
+    "source_commit": "4218eef8522fa936b3c90302dd8719001b996ff7",
+    "product_diff": 0,
+    "golden_diff": 0,
+    "workflow_diff": 0,
+    "note": "4218eef is harness/artifact only under backend/app/eval/tool_capability and backend/tests; no product/runtime/Golden/Workflow mutation."
+  },
+  "real_run_reference": {
+    "artifact": "tests/fixtures/l4_tool_capability/w8-tool-s3a-real-revalidation.json",
+    "schema_version": "w8-tool-s3a-real-revalidation-v1",
+    "run_id": "19615855-b9ff-4175-94c1-007803b10206",
+    "head_sha": "838bb0354daeed9dd43c966b7ff400402b3af7c7",
+    "tool_s3a_base_sha": "838bb0354daeed9dd43c966b7ff400402b3af7c7",
+    "frozen_case": "GQ-131",
+    "model": "zai-org/glm-4.6v-flash",
+    "thinking": "OFF",
+    "gpu_rule": "CPU/deterministic/audit freeze only; no LM Studio / real-local / cloud LLM benchmark in this freeze window"
+  },
+  "measured_results": {
+    "S3A_REAL_LOCAL": "NO_MEASURABLE_GAIN",
+    "selection": {
+      "S3A_OFF": "0/10",
+      "S3A_ON": "0/10"
+    },
+    "full_task": {
+      "S3A_OFF": "0/10",
+      "S3A_ON": "0/10"
+    },
+    "hard_negative_regression": 0,
+    "safety_regression": 0,
+    "delta_selection_on_minus_off": 0
+  },
+  "chronology": {
+    "S2": {
+      "offline": "positive",
+      "real_selection": "0/5",
+      "mechanism": "advisory preferred_tool_hint",
+      "p4_anchor": "tests/fixtures/l4_tool_capability/l4-tool-p4-real-ablation.manifest.json"
+    },
+    "S3A": {
+      "design": "contrastive",
+      "real_selection": "0/10",
+      "mechanism": "contrastive tool-description framing",
+      "real_artifact": "tests/fixtures/l4_tool_capability/w8-tool-s3a-real-revalidation.json"
+    },
+    "interpretation": "two successive non-deterministic guidance strategies failed to alter GQ-131 tool-selection for current local model."
+  },
+  "boundary": {
+    "label": "POSSIBLE_MODEL_SELECTION_BOUNDARY ON_FROZEN_GQ131 FOR_CURRENT_LOCAL_MODEL",
+    "kind": "POSSIBLE_MODEL_SELECTION_BOUNDARY",
+    "scope": "ON_FROZEN_GQ131",
+    "model_scope": "FOR_CURRENT_LOCAL_MODEL",
+    "not_label": "PROVEN UNIVERSAL MODEL BOUNDARY",
+    "auto_enter_s3b_s4": false,
+    "auto_prompt_escalation": false,
+    "auto_deterministic_router": false,
+    "reopen_gate": "future evidence only; do not auto-enter S3B/S4/stronger prompt escalation/deterministic router"
+  },
+  "v1_0_remediation": {
+    "decision": "STOP",
+    "V1_0_REMEDIATION_DECISION": "STOP",
+    "runtime_rollout": "NO",
+    "reopen_requires": "future_evidence",
+    "note": "Second real non-deterministic guidance experiment (S3A) still produced no measurable GQ-131 tool-selection gain after S2 0/5."
+  },
+  "s3b": {
+    "historical_role": "FALLBACK_CANDIDATE",
+    "v1_0_status": "NOT_PURSUED_IN_V1_0",
+    "historical_artifact_deleted": false,
+    "historical_p5_manifest": "tests/fixtures/l4_tool_capability/l4-tool-p5-offline-characterization.manifest.json",
+    "reason": "second real guidance experiment still no gain; prompt ladder marginal evidence insufficient"
+  },
+  "claim_language": {
+    "allowed": "For frozen GQ-131 with GLM-4.6V-Flash Thinking OFF, neither S2 advisory preference nor S3A contrastive selection framing produced measurable tool-selection gain.",
+    "forbidden": "GLM cannot select tools."
+  },
+  "forbidden_claims": [
+    "PROVEN UNIVERSAL MODEL BOUNDARY",
+    "GLM cannot select tools.",
+    "GLM cannot select tools",
+    "UNIVERSAL_MODEL_BOUNDARY",
+    "FIXED",
+    "PRODUCTION_READY",
+    "RUNTIME_ROLLOUT_YES"
+  ],
+  "freeze_verdict": {
+    "TOOL_S3A": "PASS/FROZEN",
+    "Result": "NO_MEASURABLE_GAIN",
+    "V1_0_remediation": "STOP",
+    "Boundary": "POSSIBLE_MODEL_SELECTION_BOUNDARY",
+    "S3B": "NOT_PURSUED_IN_V1_0",
+    "runtime_rollout": "NO",
+    "REAL_RUN_LINEAGE": "VALID"
+  }
+}
