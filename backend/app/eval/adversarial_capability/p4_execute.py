@@ -1,4 +1,4 @@
-﻿"""Run one ADVERSARIAL P4 trial through product run_react_loop."""
+"""Run one ADVERSARIAL P4 trial through product run_react_loop."""
 
 from __future__ import annotations
 
@@ -29,7 +29,6 @@ from app.schemas.auth import UserPublic
 from app.schemas.knowledge_base import KnowledgeBaseCreate
 from app.services.agent.runtime import run_react_loop
 from app.services.agent.tools.scope import AgentToolScope
-from app.services.agent.types import AgentActionKind, FactStatus
 from app.services.auth.password import hash_password
 from app.services.ingestion.pipeline import process_document_ingestion
 from app.services.knowledge_base.crud import create_knowledge_base
@@ -59,7 +58,7 @@ async def _ensure_user() -> UUID:
         return user.id
 
 
-async def _create_kb(user_id: UUID, case_id: str) -> UUID:
+async def _create_kb(user_id: UUID, case_id: str, trial_index: int) -> UUID:
     async with SessionLocal() as db:
         row = await db.get(User, user_id)
         current = UserPublic(
@@ -73,7 +72,7 @@ async def _create_kb(user_id: UUID, case_id: str) -> UUID:
         kb = await create_knowledge_base(
             db,
             current,
-            KnowledgeBaseCreate(name=f"ADV-P4 {case_id} {uuid.uuid4().hex[:8]}"),
+            KnowledgeBaseCreate(name=f"ADV-P4 {case_id} t{trial_index} {uuid.uuid4().hex[:12]}"),
             workspace,
         )
         kb_id = kb.id if isinstance(kb.id, UUID) else UUID(str(kb.id))
@@ -108,13 +107,11 @@ def _trajectory_from_outcome(case: CapabilityCase, outcome, captures: list) -> M
     terminal = "refuse"
     if outcome.terminal_decision is not None:
         terminal = outcome.terminal_decision.action.value
-    retrieval_attempted = any(
-        s.decision.action == AgentActionKind.tool for s in outcome.steps
-    )
+    retrieval_attempted = any(bool(s.tool_name) for s in outcome.steps)
     hits: set[str] = set()
     for step in outcome.steps:
-        if step.execution and step.execution.data:
-            data = step.execution.data
+        if step.data:
+            data = step.data if isinstance(step.data, dict) else {}
             for hit in data.get("hits") or data.get("chunks") or []:
                 if isinstance(hit, dict):
                     cid = hit.get("chunk_id") or hit.get("id")
@@ -162,7 +159,7 @@ async def run_adv_p4_trial(
     stop_policy.apply_stop_policy_decision = stop_wrapped  # type: ignore[method-assign]
     patch_planner_llm(adapter)
     started = time.perf_counter()
-    kb_id = await _create_kb(user_id, case.case_id)
+    kb_id = await _create_kb(user_id, case.case_id, trial_index)
     await _ingest_corpus(kb_id=kb_id, user_id=user_id, case=case, upload_dir=upload_dir)
     async with SessionLocal() as db:
         thread = await create_kb_thread(db, user_id=user_id, kb_id=kb_id)
