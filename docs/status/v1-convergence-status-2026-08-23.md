@@ -109,7 +109,7 @@ Model：`zai-org/glm-4.6v-flash` · Thinking OFF · ctx 8192 · T=0
 
 | # | 阶段 | 状态 |
 |---|------|------|
-| 1 | **W9 Critic Hardening** | **NEXT** |
+| 1 | **W9 Critic Hardening** | **P0 PARTIAL / P1 NEXT** |
 | 2 | **W10 Multimodal Vertical Slice** | QUEUED |
 | 3 | **Final Frozen Benchmark** | QUEUED |
 | 4 | **Feature Flag / Default / Rollout Audit** | QUEUED |

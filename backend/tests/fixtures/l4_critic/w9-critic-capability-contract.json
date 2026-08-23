@@ -1,0 +1,431 @@
+{
+  "protocol": "w9_critic_capability_contract_v1",
+  "base_sha": "33e7c551081eaa22db2eb5c7f9fec1f0585f4976",
+  "state": "PARTIAL",
+  "capability_valid_denominator": 12,
+  "identity_scheme": "sha256 of the stable case-scoped claim key; exact claim text remains an independently compared field",
+  "verdicts": {
+    "existing_critic_present": "YES",
+    "w9_semantic_claim_critic_capability": "PARTIAL",
+    "duplicate_reflection_risk": "HIGH",
+    "deterministic_layer_defined": "YES",
+    "semantic_layer_defined": "YES",
+    "ready_for_product_experiment": "NO",
+    "ready_for_real_local_measurement": "NO",
+    "runtime_rollout": "NO"
+  },
+  "report_contract": {
+    "finding_statuses": [
+      "SUPPORTED",
+      "UNSUPPORTED",
+      "CONFLICTED",
+      "INSUFFICIENT_EVIDENCE",
+      "UNVERIFIABLE"
+    ],
+    "evaluation_states": ["JUDGED", "BLOCKED_BY_DETERMINISTIC"],
+    "decision_owners": ["DETERMINISTIC", "SEMANTIC"],
+    "recommended_actions": [
+      "ACCEPT",
+      "REVISE_FROM_EXISTING_EVIDENCE",
+      "RETRIEVE_MISSING_EVIDENCE",
+      "CLARIFY",
+      "REFUSE"
+    ],
+    "critic_is_advisory_only": true,
+    "claim_identity_is_case_scoped": true,
+    "semantic_status_is_null_when_blocked": true,
+    "reason_code_is_required": true,
+    "no_chain_of_thought": true
+  },
+  "evidence_discipline": {
+    "allowed_input": [
+      "current run query",
+      "fully buffered final draft after all content mutations",
+      "AgentGenerationPlan.gated_chunks",
+      "citations synchronized to those gated chunks",
+      "optional read-only EvidenceState metadata from the same run"
+    ],
+    "forbidden_input_or_action": [
+      "oracle labels or expected actions",
+      "self-querying the database",
+      "expanding workspace or kb scope",
+      "silent web retrieval",
+      "memory as factual authority",
+      "executing retrieve, revise, clarify, refuse, or accept"
+    ],
+    "scope_rule": "Every evidence reference must resolve to the frozen prompt-visible evidence snapshot for the same run, workspace, and allowed knowledge base."
+  },
+  "layer_ownership": {
+    "deterministic_first": [
+      "citation syntax",
+      "citation identifier existence",
+      "evidence provenance and workspace/kb/run scope",
+      "missing citation on a factual claim",
+      "known structured conflict",
+      "known required fact missing"
+    ],
+    "semantic_only": [
+      "claim detection after non-assertive span exclusion",
+      "claim-to-evidence entailment",
+      "semantic contradiction not already represented structurally",
+      "unsupported or unverifiable factual assertion"
+    ],
+    "explicit_non_rule": "Shallow lexical overlap is a heuristic semantic signal, not deterministic proof of support.",
+    "degraded_rule": "Missing model access, invalid structured output, timeout, or exception is UNVERIFIABLE/degraded, never a semantic pass."
+  },
+  "stage_order": [
+    "fixture_contract_valid",
+    "report_schema_valid",
+    "claim_detection_valid",
+    "evidence_scope_valid",
+    "deterministic_layer_valid",
+    "semantic_critic_valid",
+    "report_aggregation_valid",
+    "action_recommendation_valid",
+    "advisory_budget_valid"
+  ],
+  "failure_taxonomy": [
+    "INVALID_FIXTURE_CONTRACT",
+    "REPORT_SCHEMA_INVALID",
+    "CLAIM_DETECTION_MISS",
+    "CLAIM_DETECTION_FALSE_POSITIVE",
+    "CLAIM_IDENTITY_MISMATCH",
+    "EVIDENCE_REF_INVALID",
+    "EVIDENCE_OUT_OF_SCOPE",
+    "EVIDENCE_FABRICATED",
+    "MEMORY_AS_AUTHORITY",
+    "CITATION_SYNTAX_INVALID",
+    "CITATION_ID_INVALID",
+    "MISSING_CITATION_MISSED",
+    "KNOWN_CONFLICT_MISSED",
+    "REQUIRED_FACT_MISSING_MISSED",
+    "DETERMINISTIC_DELEGATION_VIOLATION",
+    "SUPPORTED_FALSE_ALARM",
+    "UNSUPPORTED_MISSED",
+    "CONFLICT_STATUS_MISSED",
+    "INSUFFICIENT_STATUS_MISSED",
+    "UNVERIFIABLE_STATUS_MISSED",
+    "REPORT_COUNT_MISMATCH",
+    "CRITIC_PASS_MISMATCH",
+    "UNSAFE_ACCEPT",
+    "UNNECESSARY_REVISE",
+    "UNNECESSARY_RETRIEVE",
+    "WRONG_ACTION",
+    "CRITIC_EXECUTED_ACTION",
+    "CRITIC_BUDGET_EXCEEDED",
+    "HIDDEN_RETRY_AMPLIFICATION",
+    "NONE"
+  ],
+  "metrics": {
+    "aggregation": "No weighted aggregate is allowed; every metric reports numerator, denominator, rate, and N/A reason.",
+    "claim_metrics": [
+      "claim_detection_precision",
+      "claim_detection_recall",
+      "nonassertive_exclusion_rate",
+      "supported_claim_precision",
+      "supported_claim_recall",
+      "unsupported_claim_recall",
+      "conflict_detection",
+      "insufficient_detection",
+      "unverifiable_detection",
+      "false_critic_alarm",
+      "missed_unsupported_claim"
+    ],
+    "action_metrics": [
+      "action_recommendation_correct",
+      "safe_accept_precision",
+      "safe_accept_rate",
+      "necessary_accept_rate",
+      "unsafe_accept_rate",
+      "unnecessary_intervention_rate",
+      "unnecessary_retrieve_rate"
+    ],
+    "zero_tolerance_counts": [
+      "evidence_scope_violation_count",
+      "semantic_called_on_deterministic_block_count",
+      "critic_action_execution_count",
+      "retry_amplification_count"
+    ]
+  },
+  "hard_negative_controls": {
+    "controls_are_evaluator_sanity_only": true,
+    "controls_are_not_in_capability_denominator": true,
+    "uniform_policy_maximum_action_accuracy": {
+      "ALWAYS_ACCEPT": "5/12",
+      "ALWAYS_REVISE": "3/12",
+      "ALWAYS_RETRIEVE": "2/12",
+      "ALWAYS_CLARIFY": "1/12",
+      "ALWAYS_REFUSE": "1/12"
+    },
+    "pass_rule": "Every uniform policy must fail at least one hard gate; unsafe accept, unnecessary intervention, and zero-prediction semantic degeneracy cannot be hidden by an aggregate score."
+  },
+  "local_model_protocol": {
+    "future_model": "zai-org/glm-4.6v-flash",
+    "thinking": "OFF",
+    "output": "short structured JSON only",
+    "p0_execution": "NOT_RUN",
+    "lm_studio": "PROHIBITED_IN_P0"
+  },
+  "oracle_cases": [
+    {
+      "case_id": "C01-fully-supported-exact",
+      "input_sha256": "1d7f543ff0f33234a27b9d1f3affb900a18609490d0d5a711b21a306aa7979be",
+      "in_capability_denominator": true,
+      "critic_pass": true,
+      "expected_action": "ACCEPT",
+      "expected_reason_code": "ALL_CLAIMS_SUPPORTED",
+      "claims": [
+        {
+          "claim_id": "C01-CL1",
+          "identity": "sha256:c2c3c32252ff41d1d154e22a097cc9ae5cd9fa7c4062563c648adda084d96688",
+          "text": "生产备份保留 30 天。",
+          "evidence_references": ["E1"],
+          "status": "SUPPORTED",
+          "evaluation_state": "JUDGED",
+          "decision_owner": "SEMANTIC",
+          "reason_code": "EVIDENCE_ENTAILS_CLAIM"
+        }
+      ]
+    },
+    {
+      "case_id": "C02-supported-paraphrase-low-lexical",
+      "input_sha256": "a614711be383e70f113cce70a95bb429f4ad5ece993e801a57eebb2edb60769f",
+      "in_capability_denominator": true,
+      "critic_pass": true,
+      "expected_action": "ACCEPT",
+      "expected_reason_code": "ALL_CLAIMS_SUPPORTED",
+      "claims": [
+        {
+          "claim_id": "C02-CL1",
+          "identity": "sha256:c46631e765ccf97003545b097a0d95201ac4ee0fe86c1583c9ab15acd92fcba9",
+          "text": "报销申请须在费用发生后的一个月内提交。",
+          "evidence_references": ["E1"],
+          "status": "SUPPORTED",
+          "evaluation_state": "JUDGED",
+          "decision_owner": "SEMANTIC",
+          "reason_code": "EVIDENCE_ENTAILS_PARAPHRASE"
+        }
+      ]
+    },
+    {
+      "case_id": "C03-one-unsupported-among-supported",
+      "input_sha256": "0532f855bc3cdc1b421bfde243549eece660219de28ec205f2d438784d084f7e",
+      "in_capability_denominator": true,
+      "critic_pass": false,
+      "expected_action": "REVISE_FROM_EXISTING_EVIDENCE",
+      "expected_reason_code": "REMOVE_UNSUPPORTED_CLAIM",
+      "claims": [
+        {
+          "claim_id": "C03-CL1",
+          "identity": "sha256:bb1e759699dfcf0fe0b933e3ccf0c339b7d913f94542bfa1c6710d2ecbc9d347",
+          "text": "基础版支持 5 GB 存储。",
+          "evidence_references": ["E1"],
+          "status": "SUPPORTED",
+          "evaluation_state": "JUDGED",
+          "decision_owner": "SEMANTIC",
+          "reason_code": "EVIDENCE_ENTAILS_CLAIM"
+        },
+        {
+          "claim_id": "C03-CL2",
+          "identity": "sha256:d5e0350a57471b7703b58fd91145906fc7ea3c28349ee46a2af78a1dbc45aa89",
+          "text": "基础版提供无限次电话支持。",
+          "evidence_references": ["E1"],
+          "status": "UNSUPPORTED",
+          "evaluation_state": "JUDGED",
+          "decision_owner": "SEMANTIC",
+          "reason_code": "EVIDENCE_DOES_NOT_SUPPORT_CLAIM"
+        }
+      ]
+    },
+    {
+      "case_id": "C04-valid-citation-wrong-evidence",
+      "input_sha256": "ec41509215214cca76ec48a4a958f47dd2d6d4d9b2c1cb8dc7bed9b938ec6d45",
+      "in_capability_denominator": true,
+      "critic_pass": false,
+      "expected_action": "REFUSE",
+      "expected_reason_code": "UNSUPPORTED_AND_SCOPE_EXHAUSTED",
+      "claims": [
+        {
+          "claim_id": "C04-CL1",
+          "identity": "sha256:a9a968b37fb0c7eff73ecb338a34bd9389b0a793aedb220faf3c699f8d612802",
+          "text": "管理员初始密码是 Admin@123。",
+          "evidence_references": ["E1"],
+          "status": "UNSUPPORTED",
+          "evaluation_state": "JUDGED",
+          "decision_owner": "SEMANTIC",
+          "reason_code": "CITATION_POINTS_TO_WRONG_EVIDENCE"
+        }
+      ]
+    },
+    {
+      "case_id": "C05-known-conflict-overcertain",
+      "input_sha256": "3229bbd34a59156cb4b34c66d805089f2bae92a1bd3feaec601d6b8179f78a70",
+      "in_capability_denominator": true,
+      "critic_pass": false,
+      "expected_action": "CLARIFY",
+      "expected_reason_code": "KNOWN_CONFLICT_REQUIRES_CLARIFICATION",
+      "claims": [
+        {
+          "claim_id": "C05-CL1",
+          "identity": "sha256:01c1aad6370ca1c75849d7d8c5162082a67a19bc228193d0abd72926d8ff6598",
+          "text": "生产备份统一保留 30 天。",
+          "evidence_references": ["E1", "E2"],
+          "status": "CONFLICTED",
+          "evaluation_state": "JUDGED",
+          "decision_owner": "DETERMINISTIC",
+          "reason_code": "KNOWN_STRUCTURED_CONFLICT"
+        }
+      ]
+    },
+    {
+      "case_id": "C06-required-fact-missing",
+      "input_sha256": "c0f97151a72208f34752e13b08004c98e95791c2bb0f8cab11b3dca5ff423694",
+      "in_capability_denominator": true,
+      "critic_pass": false,
+      "expected_action": "RETRIEVE_MISSING_EVIDENCE",
+      "expected_reason_code": "REQUIRED_FACT_MISSING_RETRIEVAL_AVAILABLE",
+      "claims": [
+        {
+          "claim_id": "C06-CL1",
+          "identity": "sha256:a3ffb636a432a9049076d270c45e8855a0b562eab09f3ebe861a087da1f50d17",
+          "text": "企业版支持 200 个成员。",
+          "evidence_references": ["E1"],
+          "status": "INSUFFICIENT_EVIDENCE",
+          "evaluation_state": "JUDGED",
+          "decision_owner": "DETERMINISTIC",
+          "reason_code": "KNOWN_REQUIRED_FACT_MISSING"
+        }
+      ]
+    },
+    {
+      "case_id": "C07-correct-insufficiency-refusal",
+      "input_sha256": "0e56669e6055c670407d3f85b41f86816cf10525323d5efdfc40f9dd5e543c0d",
+      "in_capability_denominator": true,
+      "critic_pass": true,
+      "expected_action": "ACCEPT",
+      "expected_reason_code": "SAFE_INSUFFICIENCY_RESPONSE",
+      "claims": []
+    },
+    {
+      "case_id": "C08-nonassertive-preface-supported-fact",
+      "input_sha256": "da512be81df133c91548b648fd7f5bd9a8c646b811f746a80c4824cba41b3787",
+      "in_capability_denominator": true,
+      "critic_pass": true,
+      "expected_action": "ACCEPT",
+      "expected_reason_code": "NONASSERTIVE_PREFACE_EXCLUDED",
+      "excluded_non_claims": ["建议先核对适用版本。"],
+      "claims": [
+        {
+          "claim_id": "C08-CL1",
+          "identity": "sha256:8dbaf0ad9222a4fafd6c98979d99850a7d55bd41eac2720e9fd63c9ea441d00e",
+          "text": "企业版 API 调用上限为每分钟 5000 次。",
+          "evidence_references": ["E1"],
+          "status": "SUPPORTED",
+          "evaluation_state": "JUDGED",
+          "decision_owner": "SEMANTIC",
+          "reason_code": "EVIDENCE_ENTAILS_CLAIM"
+        }
+      ]
+    },
+    {
+      "case_id": "C09-supported-plus-unverifiable",
+      "input_sha256": "61624350d727d3cf02d7bdfefb03d01d7613bea6742a5e2ef816ebd98017e451",
+      "in_capability_denominator": true,
+      "critic_pass": false,
+      "expected_action": "REVISE_FROM_EXISTING_EVIDENCE",
+      "expected_reason_code": "REMOVE_UNVERIFIABLE_CLAIM",
+      "claims": [
+        {
+          "claim_id": "C09-CL1",
+          "identity": "sha256:c951019c1555f76da91d650856e3d1c581813619455457c8fbe73a5bc8a80ee8",
+          "text": "系统维护窗口为每周日 02:00 至 04:00。",
+          "evidence_references": ["E1"],
+          "status": "SUPPORTED",
+          "evaluation_state": "JUDGED",
+          "decision_owner": "SEMANTIC",
+          "reason_code": "EVIDENCE_ENTAILS_CLAIM"
+        },
+        {
+          "claim_id": "C09-CL2",
+          "identity": "sha256:9f1df0ab9d40e0c52e7fdce4f57eedcb0c7514314200b8891ca7f588597a8487",
+          "text": "下季度一定不会变更。",
+          "evidence_references": [],
+          "status": "UNVERIFIABLE",
+          "evaluation_state": "JUDGED",
+          "decision_owner": "SEMANTIC",
+          "reason_code": "FUTURE_ASSERTION_NOT_VERIFIABLE"
+        }
+      ]
+    },
+    {
+      "case_id": "C10-supported-multiclaim-multicitation",
+      "input_sha256": "b25a599caaf716656f52ef4157ebafad7035394b8f36fbfce954b38b15ad8653",
+      "in_capability_denominator": true,
+      "critic_pass": true,
+      "expected_action": "ACCEPT",
+      "expected_reason_code": "ALL_CLAIMS_SUPPORTED",
+      "claims": [
+        {
+          "claim_id": "C10-CL1",
+          "identity": "sha256:4ca2437ba148ccb748551d7c3ef24e200621fe3900e4c9e69f0767ccf0b72dc5",
+          "text": "免费版每分钟最多 100 次请求。",
+          "evidence_references": ["E1"],
+          "status": "SUPPORTED",
+          "evaluation_state": "JUDGED",
+          "decision_owner": "SEMANTIC",
+          "reason_code": "EVIDENCE_ENTAILS_CLAIM"
+        },
+        {
+          "claim_id": "C10-CL2",
+          "identity": "sha256:8cbbed335c0c477668e424c9c8494fea7bbb6648fe19d260d26ddc1063817077",
+          "text": "企业版每分钟最多 5000 次请求。",
+          "evidence_references": ["E2"],
+          "status": "SUPPORTED",
+          "evaluation_state": "JUDGED",
+          "decision_owner": "SEMANTIC",
+          "reason_code": "EVIDENCE_ENTAILS_CLAIM"
+        }
+      ]
+    },
+    {
+      "case_id": "C11-citation-format-only-defect",
+      "input_sha256": "201b467ce0320284c061bb2120fa559219a2f0825fbc73e620c17aac56dcb3f2",
+      "in_capability_denominator": true,
+      "critic_pass": false,
+      "expected_action": "REVISE_FROM_EXISTING_EVIDENCE",
+      "expected_reason_code": "CITATION_SYNTAX_INVALID",
+      "claims": [
+        {
+          "claim_id": "C11-CL1",
+          "identity": "sha256:add7560f26a324e8c4ace455e2dc7c93aee5a75e21974da1265083c9f8e00a3b",
+          "text": "生产备份保留 30 天。",
+          "evidence_references": ["E1"],
+          "status": null,
+          "evaluation_state": "BLOCKED_BY_DETERMINISTIC",
+          "decision_owner": "DETERMINISTIC",
+          "reason_code": "CITATION_SYNTAX_INVALID"
+        }
+      ]
+    },
+    {
+      "case_id": "C12-out-of-scope-provenance",
+      "input_sha256": "93563242f5fd5f13d0292258f6f6d5380714fb24737bd1edd44fa5ff6b1879bc",
+      "in_capability_denominator": true,
+      "critic_pass": false,
+      "expected_action": "RETRIEVE_MISSING_EVIDENCE",
+      "expected_reason_code": "SCOPE_VIOLATION",
+      "claims": [
+        {
+          "claim_id": "C12-CL1",
+          "identity": "sha256:3524a37e988edc63b0c63aaa4ca9ead941603ff6ced48a40372f8f95f9a96ee6",
+          "text": "企业版可导出完整审计日志。",
+          "evidence_references": ["E-OUT"],
+          "status": null,
+          "evaluation_state": "BLOCKED_BY_DETERMINISTIC",
+          "decision_owner": "DETERMINISTIC",
+          "reason_code": "SCOPE_VIOLATION"
+        }
+      ]
+    }
+  ]
+}

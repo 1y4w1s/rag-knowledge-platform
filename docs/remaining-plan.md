@@ -20,7 +20,7 @@
 
 ### 下一 V1.0 主线（active）
 
-1. **W9 Critic Hardening** — NEXT
+1. **W9 Critic Hardening** — P0 PARTIAL / P1 NEXT（contract/evaluator ready；product experiment 与 runtime rollout 均 NO）
 2. W10 Multimodal Vertical Slice
 3. Final Frozen Benchmark
 4. Feature Flag / Default / Rollout Audit
