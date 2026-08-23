@@ -18,7 +18,7 @@ from app.eval.local_agent_trajectory.injection import (
     wrap_stop_policy,
 )
 from app.eval.local_agent_trajectory.schema import utc_now_iso
-from app.eval.memory_capability.p3_flags import apply_memory_p3_flags, restore_memory_p3_flags
+from app.eval.memory_capability.c1_flags import apply_memory_c1_flags, restore_memory_c1_flags
 from app.eval.memory_capability.proposition import analyze_utilization, seeds_equivalent
 from app.eval.memory_capability.schema import MemorySeed, MemoryTrajectoryInput
 from app.models.enums import AccountType
@@ -295,8 +295,13 @@ async def run_memory_p3_trial(
     thinking_mode: str,
     run_timeout_seconds: float = 90.0,
     max_steps: int = 5,
+    c1_relevance_enabled: bool = False,
 ) -> MemoryP3TrialRecord:
-    """Execute one independent trial. condition controls memory injection."""
+    """Execute one independent trial. condition controls memory injection.
+
+    c1_relevance_enabled toggles agent_memory_relevance_label_enabled for this
+    trial only (eval/benchmark). Default False preserves P3 baseline identity.
+    """
     from app.services.agent import decomposer as decomposer_mod
     from app.services.agent import matcher_runtime, stop_policy
     from app.services.agent.decomposer import maybe_fact_goals_for_init as real_goals
@@ -304,11 +309,19 @@ async def run_memory_p3_trial(
     empty_case = case.case_id in {"GA-11", "GA-12"} or not case.pre_seed_memories
     # WITH: seed + load. WITHOUT / EMPTY: no seed; memory load path still ON
     # so counterfactual isolates presence of seeded preference, not flag plumbing.
-    should_seed = condition == "WITH_MEMORY" and not empty_case
+    should_seed = condition in {"WITH_MEMORY", "OFF_WITH_MEMORY", "ON_WITH_MEMORY"} and (
+        not empty_case
+    )
+    # Normalize legacy/alias conditions to seed presence.
+    if condition in {"OFF_WITH_MEMORY", "ON_WITH_MEMORY"}:
+        # Keep trajectory labeling via caller; seed path matches WITH_MEMORY.
+        pass
     memory_enabled = True
 
     clear_memory_exposure_events()
-    saved_flags = apply_memory_p3_flags(memory_enabled=memory_enabled)
+    # C1 gate: ON_WITH forces True; explicit kwarg otherwise; never changes prod default.
+    c1_on = bool(c1_relevance_enabled) or condition == "ON_WITH_MEMORY"
+    saved_flags = apply_memory_c1_flags(memory_enabled=memory_enabled, c1_enabled=c1_on)
     captures: list[RoundCapture] = []
 
     async def _goals(_query: str):
@@ -434,7 +447,12 @@ async def run_memory_p3_trial(
         )
 
         # Trajectory mirrors condition: WITHOUT modeled as empty seed set (counterfactual).
-        traj_seeds = tuple(seeded) if condition == "WITH_MEMORY" else ()
+        with_memory_like = condition in {
+            "WITH_MEMORY",
+            "OFF_WITH_MEMORY",
+            "ON_WITH_MEMORY",
+        }
+        traj_seeds = tuple(seeded) if with_memory_like else ()
         traj_empty = empty_case or condition == "WITHOUT_MEMORY"
         if traj_empty:
             l1_ok = seed_succeeded and not traj_seeds
@@ -449,11 +467,11 @@ async def run_memory_p3_trial(
             query=case.query,
             seeded_memories=traj_seeds,
             seed_succeeded=l1_ok,
-            loaded_memories=tuple(loaded_seeds) if condition == "WITH_MEMORY" else (),
-            exposed_context=exposed_context if condition == "WITH_MEMORY" else "",
+            loaded_memories=tuple(loaded_seeds) if with_memory_like else (),
+            exposed_context=exposed_context if with_memory_like else "",
             output_text=output_text,
             tool_query=tool_query,
-            empty_memory_case=traj_empty if condition != "WITH_MEMORY" else empty_case,
+            empty_memory_case=traj_empty if not with_memory_like else empty_case,
             safe_termination=_safe_termination(outcome),
             no_fabricated_memory=_no_fabricated_memory(
                 output_text, empty_case=traj_empty or empty_case
@@ -494,5 +512,5 @@ async def run_memory_p3_trial(
         stop_policy.apply_stop_policy_decision = orig_stop  # type: ignore[method-assign]
         matcher_runtime.maybe_apply_evidence_match_after_tool = orig_match  # type: ignore[method-assign]
         restore_planner_llm()
-        restore_memory_p3_flags(saved_flags)
+        restore_memory_c1_flags(saved_flags)
         clear_memory_exposure_events()
