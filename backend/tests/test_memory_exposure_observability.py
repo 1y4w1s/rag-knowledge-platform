@@ -34,6 +34,7 @@ from app.eval.memory_capability.exposure_semantics import (
     is_authoritative_exposure,
 )
 from app.eval.memory_capability.instrumentation_options import (
+    FLAG_CONTRACT,
     PRODUCT_PATCH_BUDGET,
     RECOMMENDED_OPTION,
     instrumentation_design,
@@ -179,6 +180,12 @@ def test_instrumentation_recommends_option_b_not_implemented() -> None:
     assert PRODUCT_PATCH_BUDGET["behavior_change"] == "NONE"
     assert PRODUCT_PATCH_BUDGET["migration"] is False
     assert PRODUCT_PATCH_BUDGET["flag_default"] is False
+    assert design["flag_contract"] is FLAG_CONTRACT
+    assert FLAG_CONTRACT["instrumentation_flag"] == "agent_memory_exposure_trace_enabled"
+    assert FLAG_CONTRACT["instrumentation_flag_default"] is False
+    assert FLAG_CONTRACT["agent_behavior_flag"] == "agent_memory_enabled"
+    assert FLAG_CONTRACT["behavior_change_when_flag_on"] == "NONE"
+    assert "change_prompt_content" in FLAG_CONTRACT["enabling_observability_must_not"]
 
 
 def test_evaluator_interface_ready_without_runtime_emit() -> None:

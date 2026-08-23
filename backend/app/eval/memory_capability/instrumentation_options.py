@@ -48,6 +48,28 @@ INSTRUMENTATION_OPTIONS: dict[str, dict[str, Any]] = {
 
 RECOMMENDED_OPTION = "B"
 
+FLAG_CONTRACT: dict[str, Any] = {
+    "instrumentation_flag": "agent_memory_exposure_trace_enabled",
+    "instrumentation_flag_default": False,
+    "agent_behavior_flag": "agent_memory_enabled",
+    "distinction": (
+        "agent_memory_enabled controls whether memory is loaded/formatted/injected "
+        "(product agent behavior). agent_memory_exposure_trace_enabled ONLY gates "
+        "structured MemoryExposureEvent emit; it must not alter planner decisions, "
+        "prompt content, memory selection, or ranking."
+    ),
+    "option_b_gate": True,
+    "enabling_observability_may_only": ["add_trace", "add_MemoryExposureEvent"],
+    "enabling_observability_must_not": [
+        "change_planner_decision",
+        "change_prompt_content",
+        "change_memory_selection",
+        "change_memory_ranking",
+    ],
+    "behavior_change_when_flag_on": "NONE",
+}
+
+
 PRODUCT_PATCH_BUDGET: dict[str, Any] = {
     "ideal": "observability-only",
     "behavior_change": "NONE",
@@ -79,5 +101,6 @@ def instrumentation_design() -> dict[str, Any]:
             "hook_points"
         ],
         "product_patch_budget": PRODUCT_PATCH_BUDGET,
+        "flag_contract": FLAG_CONTRACT,
         "implemented_in_this_task": False,
     }
