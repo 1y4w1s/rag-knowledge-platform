@@ -1,0 +1,18 @@
+{
+  "protocol": "w9_critic_p2_injected_reports_v1",
+  "source_contract": "w9-critic-capability-contract.json",
+  "reports": [
+    {"case_id": "C01-fully-supported-exact", "ok": true, "method": "llm_verify_v1", "recommended_action": "ACCEPT"},
+    {"case_id": "C02-supported-paraphrase-low-lexical", "ok": true, "method": "llm_verify_v1", "recommended_action": "ACCEPT"},
+    {"case_id": "C03-one-unsupported-among-supported", "ok": false, "method": "llm_verify_v1", "recommended_action": "REVISE_FROM_EXISTING_EVIDENCE"},
+    {"case_id": "C04-valid-citation-wrong-evidence", "ok": false, "method": "llm_verify_v1", "recommended_action": "REFUSE"},
+    {"case_id": "C05-known-conflict-overcertain", "ok": false, "method": "rules_v1", "recommended_action": "CLARIFY"},
+    {"case_id": "C06-required-fact-missing", "ok": false, "method": "rules_v1", "recommended_action": "RETRIEVE_MISSING_EVIDENCE"},
+    {"case_id": "C07-correct-insufficiency-refusal", "ok": true, "method": "llm_verify_v1", "recommended_action": "ACCEPT"},
+    {"case_id": "C08-nonassertive-preface-supported-fact", "ok": true, "method": "llm_verify_v1", "recommended_action": "ACCEPT"},
+    {"case_id": "C09-supported-plus-unverifiable", "ok": false, "method": "llm_verify_v1", "recommended_action": "REVISE_FROM_EXISTING_EVIDENCE"},
+    {"case_id": "C10-supported-multiclaim-multicitation", "ok": true, "method": "llm_verify_v1", "recommended_action": "ACCEPT"},
+    {"case_id": "C11-citation-format-only-defect", "ok": false, "method": "rules_v1", "recommended_action": "REVISE_FROM_EXISTING_EVIDENCE"},
+    {"case_id": "C12-out-of-scope-provenance", "ok": false, "method": "rules_v1", "recommended_action": "RETRIEVE_MISSING_EVIDENCE"}
+  ]
+}
