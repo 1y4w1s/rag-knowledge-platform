@@ -40,7 +40,7 @@ $w9Jwt=(Get-Content -LiteralPath ..\.env | Where-Object { $_ -like 'JWT_SECRET=*
 git diff --check
 ```
 
-## 冻结结果（2026-08-24）
+## Provisional 冻结结果（已被独立复核更正）
 
 - 结果：`VALID / PARTIAL / FROZEN`；冻结 denominator 12，执行 12，通过 11，invalid 0。
 - 首个产品失败：`C12-out-of-scope-provenance`；首败阶段
@@ -54,5 +54,19 @@ git diff --check
 - 产品运行时改动 0；Golden diff 0；workflow diff 0；外部模型执行 NO；runtime rollout NO。
 
 结果 artifact：`backend/tests/fixtures/l4_critic/w9-critic-p2-r1-offline-product.json`。
+
+## 独立复核更正（最终 verdict）
+
+- P2-R1：`BLOCKED / MEASUREMENT_PROTOCOL_MISMATCH`；当前不能证明 `PRODUCT_CONTROL_PLANE_FAILURE`。
+- C12 harness 绕过生产 `prepare_agent_generation + real AgentToolScope`，直接向内部 generation phase 注入 foreign chunk；
+  这改变了 product-path eligibility，不属于可修补后继续的 trivial plumbing。
+- Provisional safe scorer 只比较正文变化，未验证最终 citation scope；raw C12 citation 实际仍指向 foreign KB，
+  因此 provisional `safe_outcome=true` 不能作为产品安全结论。
+- 11 个 product-path-valid case 全通过；C12 标为 1 个 invalid case；P3、anti-degenerate controls 与产品 remediation
+  均不得启动。
+
+最终 correction artifact：
+`backend/tests/fixtures/l4_critic/w9-critic-p2-r1-independent-review.json`。
+只读分析：`docs/tasks/rag/w9-critic-p2-r1-next-remediation-analysis.md`。
 
 通过口径严格使用 mission 的 P2-R1 PASS gate；若未满足，不得宣称 PASS、P3 ready 或任何模型能力。

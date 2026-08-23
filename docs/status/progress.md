@@ -7,7 +7,20 @@
 
 ---
 
-## W9 P2-R1 · Full Frozen Offline Product Rerun（2026-08-24）⚠️ **VALID / PARTIAL / FROZEN**
+## W9 P2-R1 · Independent Review Correction（2026-08-24）⛔ **BLOCKED**
+
+- **最终分类**：`MEASUREMENT_PROTOCOL_MISMATCH / HARNESS_INTEGRATION_FAILURE_NON_TRIVIAL`；当前未证明
+  `PRODUCT_CONTROL_PLANE_FAILURE`。
+- **有效性**：frozen/executed = **12/12**；product-path-valid = **11**，invalid = **1（C12）**；
+  11 个有效 case 均通过，但不得外推为完整 P2-R1 PASS。
+- **原因**：C12 harness 绕过生产 plan construction 与真实 scope dispatch，直接把 foreign chunk 注入内部 generation phase；
+  同时 provisional safe scorer 未检查最终 citation scope，形成 1 个 false pass。
+- **门禁**：P2-R1 BLOCKED；anti-degenerate controls NOT_RUN；P3 NO；产品 remediation NO；外部模型 NO；rollout NO。
+- **下一唯一任务**：只读决定 scope/provenance invariant owner；未决前不得修协议或产品。
+
+最终 correction：`backend/tests/fixtures/l4_critic/w9-critic-p2-r1-independent-review.json`。
+
+## W9 P2-R1 · Provisional Raw Observation（2026-08-24）⚠️ **SUPERSEDED BY INDEPENDENT REVIEW**
 
 - **证据链**：原始 P2 `VALID / PARTIAL / FROZEN`（C11 `skipped_unavailable`）→ P2b PR #55
   `PASS`（merge `0609f225`）→ P2-R1 独立复测；历史 artifact 未改写。

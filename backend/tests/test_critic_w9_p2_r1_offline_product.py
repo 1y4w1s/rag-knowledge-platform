@@ -18,11 +18,12 @@ from tests.w9_critic_p2_r1_harness import (
 
 FIXTURES = Path(__file__).parent / "fixtures" / "l4_critic"
 ARTIFACT_PATH = FIXTURES / "w9-critic-p2-r1-offline-product.json"
+CORRECTION_PATH = FIXTURES / "w9-critic-p2-r1-independent-review.json"
 HISTORICAL_P2_PATH = FIXTURES / "w9-critic-p2-offline-product.json"
 
 
 @pytest.mark.asyncio
-async def test_p2_r1_live_measurement_reaches_frozen_stop(
+async def test_p2_r1_live_measurement_reaches_protocol_stop(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     suite = load_frozen_suite()
@@ -38,7 +39,7 @@ async def test_p2_r1_live_measurement_reaches_frozen_stop(
             observed, suite.oracle[case_id], suite.reports[case_id]
         )
         for key, value in scored.items():
-            if key != "stage_results":
+            if key != "stage_results" and case_id != "C12-out-of-scope-provenance":
                 assert frozen_results[case_id][key] == value
         results.append(scored)
         if not scored["pass"]:
@@ -47,12 +48,14 @@ async def test_p2_r1_live_measurement_reaches_frozen_stop(
     assert len(results) == 12
     assert all(item["pass"] for item in results[:11])
     assert results[-1]["case_id"] == "C12-out-of-scope-provenance"
-    assert results[-1]["first_failed_stage"] == STAGES[6]
-    assert results[-1]["classification"] == "PRODUCT_CONTROL_PLANE_FAILURE"
+    correction = json.loads(CORRECTION_PATH.read_text(encoding="utf-8"))
+    assert correction["state"] == "BLOCKED"
+    assert correction["classification"] == "MEASUREMENT_PROTOCOL_MISMATCH"
+    assert correction["product_control_plane_failure_proven"] is False
 
 
 @pytest.mark.asyncio
-async def test_c12_targeted_regression_reproduces_foreign_chunk_retention(
+async def test_c12_probe_exposes_invalid_path_and_safe_scorer_false_pass(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     suite = load_frozen_suite()
@@ -73,6 +76,8 @@ async def test_c12_targeted_regression_reproduces_foreign_chunk_retention(
     assert initial_scope - {observed["allowed_kb_id"]}
     assert observed["allowed_kb_id"] in post_recovery_scope
     assert initial_scope.issubset(post_recovery_scope)
+    citation_scope = {str(item["kb_id"]) for item in observed["citations"]}
+    assert citation_scope == initial_scope
     assert scored["first_failed_stage"] == STAGES[6]
     assert scored["safe_outcome"] is True
 
@@ -99,32 +104,27 @@ def test_frozen_inputs_and_historical_p2_are_unchanged() -> None:
     }
 
 
-def test_p2_r1_artifact_freezes_partial_without_model_or_rollout() -> None:
+def test_independent_review_supersedes_provisional_product_verdict() -> None:
     artifact = json.loads(ARTIFACT_PATH.read_text(encoding="utf-8"))
+    correction = json.loads(CORRECTION_PATH.read_text(encoding="utf-8"))
     assert artifact["state"] == "PARTIAL"
-    assert artifact["frozen_case_count"] == artifact["executed_case_count"] == 12
-    assert artifact["passed_case_count"] == 11
-    assert artifact["invalid_case_count"] == 0
-    assert artifact["first_product_failure"] == "C12-out-of-scope-provenance"
-    assert artifact["case_results"][-1]["first_failed_stage"] == STAGES[6]
-    assert artifact["external_call_attempted"] is False
-    assert artifact["model_result_obtained"] is False
-    assert artifact["default_behavior_changed"] is False
-    assert artifact["runtime_rollout"] is False
-    assert artifact["product_runtime_diff"] == 0
-    assert artifact["verdicts"]["DEGENERATE_POLICY_CONTROLS"] == (
-        "NOT_RUN_PRODUCT_STOP_CONDITION"
-    )
-    metrics = artifact["metrics"]
+    assert correction["supersedes_for_final_verdict"] == ARTIFACT_PATH.name
+    assert correction["state"] == "BLOCKED"
+    assert correction["measurement_validity"] == "BLOCKED"
+    assert correction["frozen_case_count"] == correction["executed_case_count"] == 12
+    assert correction["product_path_valid_case_count"] == 11
+    assert correction["invalid_case_count"] == 1
+    assert correction["first_product_failure"] is None
+    assert correction["product_control_plane_failure_proven"] is False
+    assert correction["external_model_execution"] is False
+    assert correction["runtime_rollout"] is False
+    assert correction["product_runtime_diff"] == 0
+    metrics = correction["metrics"]
     assert metrics["product_case_pass_rate"] == {
         "numerator": 11,
-        "denominator": 12,
-        "rate": 0.9166666667,
-    }
-    assert metrics["scope_provenance_valid_rate"] == {
-        "numerator": 11,
-        "denominator": 12,
-        "rate": 0.9166666667,
+        "denominator": 11,
+        "rate": 1.0,
+        "excluded_invalid_cases": 1,
     }
     for name in (
         "action_mapping_accuracy",
@@ -136,11 +136,18 @@ def test_p2_r1_artifact_freezes_partial_without_model_or_rollout() -> None:
         "terminal_outcome_accuracy",
         "safe_outcome_rate",
     ):
-        assert metrics[name] == {"numerator": 12, "denominator": 12, "rate": 1.0}
+        assert metrics[name] == {
+            "numerator": 11,
+            "denominator": 11,
+            "rate": 1.0,
+            "excluded_invalid_cases": 1,
+        }
     assert metrics["unsafe_accept_count"] == 0
     assert metrics["hidden_recovery_count"] == 0
     assert metrics["unaccounted_recovery_count"] == 0
     assert metrics["post_critic_mutation_without_revalidation_count"] == 0
+    assert metrics["raw_invalid_path_foreign_citation_count"] == 1
+    assert metrics["safe_outcome_false_pass_count"] == 1
 
 
 def test_c11_executes_after_p2b_while_history_remains_frozen() -> None:
@@ -164,7 +171,7 @@ def test_c11_executes_after_p2b_while_history_remains_frozen() -> None:
 
 
 def test_anti_degenerate_controls_are_not_misreported_after_product_stop() -> None:
-    artifact = json.loads(ARTIFACT_PATH.read_text(encoding="utf-8"))
+    artifact = json.loads(CORRECTION_PATH.read_text(encoding="utf-8"))
     controls = artifact["anti_degenerate_controls"]
     assert set(controls) == {
         "ALWAYS_ACCEPT",
@@ -173,5 +180,5 @@ def test_anti_degenerate_controls_are_not_misreported_after_product_stop() -> No
         "ALWAYS_CLARIFY",
         "ALWAYS_REFUSE",
     }
-    assert all(item["status"] == "NOT_RUN_PRODUCT_STOP_CONDITION" for item in controls.values())
+    assert all(item["status"] == "NOT_RUN_MEASUREMENT_BLOCKER" for item in controls.values())
     assert artifact["metrics"]["degenerate_policy_false_pass_count"] is None
