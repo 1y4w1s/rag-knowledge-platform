@@ -1,0 +1,69 @@
+{
+  "schema_version": "l4-tool-p5-offline-characterization-v1",
+  "stage": "TOOL_SELECTION_P5_S2_FAILURE_CHARACTERIZATION",
+  "origin_master_sha": "e4359a8e1262fa7a04f78899eebb7d10d796f89f",
+  "convergence_round_start_master_sha": "e4359a8e1262fa7a04f78899eebb7d10d796f89f",
+  "product_diff": 0,
+  "golden_diff": 0,
+  "workflow_diff": 0,
+  "recommendation": {
+    "primary": "S3A",
+    "fallback": "S3B",
+    "rejected": [
+      "S0",
+      "S3C",
+      "S3D"
+    ],
+    "diagnostic_only": [
+      "S3E",
+      "S3F"
+    ],
+    "ready_for_product_experiment": true,
+    "candidate_status": "READY_FOR_PRODUCT_EXPERIMENT",
+    "never_claim": [
+      "FIXED",
+      "REAL_VALIDATED",
+      "PRODUCTION_READY"
+    ],
+    "note": "At most one primary + one fallback. S3A/S3B are READY_FOR_PRODUCT_EXPERIMENT only — never FIXED / REAL_VALIDATED / PRODUCTION_READY. S3E never product-implement in P5. S3F diagnostic bias control only."
+  },
+  "d11": {
+    "tool_selection_p5_state": "PASS",
+    "root_cause": "S2 advisory preferred_tool_hint is correctly emitted but non-binding; planner retains a semantic_search-first prior (reason_code=initial_retrieval) reinforced by tool ordering and content-retrieval framing of descriptions. Failure mode = A+E+F primary, with C+D contributing; B only partial.",
+    "frozen_roots": {
+      "A": "hint is advisory / non-binding (saw hint but did not follow)",
+      "E": "model interprets preferred_tool as recommendation rather than selection contract",
+      "F": "semantic_search-first prior / ordering bias remains dominant"
+    },
+    "s2_failure_explanation": "NO_MEASURABLE_GAIN is explained by mechanism, not missing emission: hint_emitted=10/10 and hint_correct=10/10 under conditions 10/11, yet first_tool=semantic_search 10/10 and planner_followed_hint=0/10. S2 changes prompt context but not first-action distribution. Therefore HINT_DELIVERY_SUCCESS != TOOL_SELECTION_SUCCESS.",
+    "hint_delivery_ne_tool_selection": true,
+    "best_candidate": "S3A",
+    "target_recovery": "10/10",
+    "hard_negative_regression": "0/6",
+    "autonomy_impact": "low",
+    "fallback": "S3B",
+    "ready_for_product_experiment": "YES",
+    "runtime_rollout": "NO",
+    "product_diff": 0,
+    "golden_diff": 0,
+    "workflow_diff": 0
+  },
+  "s3a_freeze": {
+    "status": "READY_FOR_PRODUCT_EXPERIMENT",
+    "target_recovery": "10/10",
+    "regressions": "0/6"
+  },
+  "s3b_freeze": {
+    "status": "READY_FOR_PRODUCT_EXPERIMENT",
+    "role": "FALLBACK"
+  },
+  "candidate_verdicts": {
+    "S0": "REJECT",
+    "S3A": "PRIMARY",
+    "S3B": "FALLBACK",
+    "S3C": "REJECT",
+    "S3D": "REJECT",
+    "S3E": "DIAGNOSTIC_ONLY",
+    "S3F": "DIAGNOSTIC_ONLY"
+  }
+}
