@@ -121,8 +121,66 @@ def test_p4_freeze_manifest_matches_measured_panel() -> None:
     data = load_p4_manifest()
     assert data["s2_selection_improvement_gq131"]["10"] == "0/5"
     assert data["t2_termination_improvement_gq132_149"]["01"] == "10/10"
+    assert data["s2_validation"] == "NO_MEASURABLE_GAIN"
+    assert data["t2_validation"] == "REAL_VALIDATED_ON_FROZEN_SUBSET"
+    assert data["interaction"]["condition_11"] == "NO_INTERACTION/T2-DOMINANT"
     assert data["safety_metrics"]["unsafe_terminal"] == 0
+    assert data["safety_metrics"]["premature_finish"] == 0
+    assert data["safety_metrics"]["false_task_satisfied_hint"] == 0
+    assert data["safety_metrics"]["wrong_preferred_tool_hint"] == 0
+    assert data["safety_metrics"]["out_of_scope_tool_accept"] == 0
+    assert data["safety_metrics"]["schema_unrecovered"] == 0
     assert data["tna_tracking"]["unrecovered_tool_name_as_action"] == 0
+    assert data["ready_for_runtime_rollout"] is False
+    assert data["feature_flag_defaults"]["agent_l4_tool_preferred_hint_enabled"] is False
+    assert data["feature_flag_defaults"]["agent_l4_task_satisfied_hint_enabled"] is False
+
+
+def test_interpret_t2_dominant_no_interaction() -> None:
+    """00=0, 10=0, 01=10, 11=10 → T2-only gain; not ADDITIVE."""
+    by = {
+        "00": {
+            "stability_pass": 0,
+            "per_case_pass": {"GQ-131": 0, "GQ-132": 0, "GQ-149": 0},
+        },
+        "10": {
+            "stability_pass": 0,
+            "per_case_pass": {"GQ-131": 0, "GQ-132": 0, "GQ-149": 0},
+        },
+        "01": {
+            "stability_pass": 10,
+            "per_case_pass": {"GQ-131": 0, "GQ-132": 5, "GQ-149": 5},
+        },
+        "11": {
+            "stability_pass": 10,
+            "per_case_pass": {"GQ-131": 0, "GQ-132": 5, "GQ-149": 5},
+        },
+    }
+    out = _interpret(
+        by_condition=by,
+        safety_totals={
+            "unsafe_terminal": 0,
+            "premature_finish": 0,
+            "false_task_satisfied_hint": 0,
+            "wrong_preferred_tool_hint": 0,
+            "out_of_scope_tool_accept": 0,
+            "invalid_args_accept": 0,
+            "failed_tool_marked_success": 0,
+            "matcher_false_positive": 0,
+            "failed_tool_coverage_pollution": 0,
+            "schema_unrecovered": 0,
+        },
+        unrecovered_tna=0,
+        measurement_valid=True,
+    )
+    ix = out["interaction"]
+    assert ix["condition_11"] == "NO_INTERACTION/T2-DOMINANT"
+    assert ix["s2_effect"] == 0
+    assert ix["t2_effect"] == 10
+    assert ix["s2_x_t2_interaction"] == 0
+    assert out["case"] == "Case1"
+    assert out["s2_validation"] == "NO_MEASURABLE_GAIN"
+    assert out["t2_validation"] == "REAL_VALIDATED_ON_FROZEN_SUBSET"
 
 
 def test_interpret_regression_on_safety() -> None:

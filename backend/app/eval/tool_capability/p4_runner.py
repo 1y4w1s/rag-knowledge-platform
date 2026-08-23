@@ -258,11 +258,30 @@ def _interpret(
     b01 = by_condition["01"]["stability_pass"]
     b11 = by_condition["11"]["stability_pass"]
 
-    s2_gain = b10 > b00
-    t2_gain = b01 > b00
-    additive = b11 >= max(b10, b01) and b11 > b00
-    interfering = b11 < max(b10, b01) and (s2_gain or t2_gain)
+    # 2×2 factorial effects on stability (vs contemporaneous 00).
+    # interaction_term = b11 - b00 - (b10-b00) - (b01-b00) = b11 - b10 - b01 + b00
+    s2_effect = b10 - b00
+    t2_effect = b01 - b00
+    s2_x_t2_interaction = b11 - b10 - b01 + b00
+    s2_gain = s2_effect > 0
+    t2_gain = t2_effect > 0
     any_gain = s2_gain or t2_gain or b11 > b00
+
+    # Do NOT call 11≈01 with S2≈0 "additive" — that is T2-dominant, interaction≈0.
+    if s2_x_t2_interaction < 0 and (s2_gain or t2_gain):
+        condition_11 = "INTERFERING"
+    elif s2_effect == 0 and t2_effect > 0 and b11 == b01:
+        condition_11 = "NO_INTERACTION/T2-DOMINANT"
+    elif t2_effect == 0 and s2_effect > 0 and b11 == b10:
+        condition_11 = "NO_INTERACTION/S2-DOMINANT"
+    elif s2_effect > 0 and t2_effect > 0 and s2_x_t2_interaction == 0:
+        condition_11 = "ADDITIVE"
+    elif s2_effect > 0 and t2_effect > 0 and s2_x_t2_interaction > 0:
+        condition_11 = "SUPER_ADDITIVE"
+    elif not any_gain:
+        condition_11 = "NEUTRAL"
+    else:
+        condition_11 = "MIXED"
 
     # Family hypotheses (not hard gates)
     s2_fixes_s = by_condition["10"]["per_case_pass"].get("GQ-131", 0) > by_condition["00"][
@@ -282,21 +301,42 @@ def _interpret(
         "cross_effects_observed": bool(
             (s2_gain and not s2_fixes_s) or (t2_gain and not t2_fixes_t)
         ),
-        "condition_11": (
-            "additive" if additive else ("interfering" if interfering else "neutral")
-        ),
+        "condition_11": condition_11,
+        "s2_effect": s2_effect,
+        "t2_effect": t2_effect,
+        "s2_x_t2_interaction": s2_x_t2_interaction,
         "stability_deltas_vs_00": {
-            "10": b10 - b00,
-            "01": b01 - b00,
+            "10": s2_effect,
+            "01": t2_effect,
             "11": b11 - b00,
         },
+        "causal_note": (
+            "Gain attributed to single factor when the other effect is 0 and "
+            "11 matches the effective single-factor cell (interaction≈0)."
+        ),
     }
+
+    # Factor-level labels (discipline): never mark S2 REAL_VALIDATED when effect≈0.
+    s2_validation = (
+        "REAL_VALIDATED_ON_FROZEN_SUBSET"
+        if s2_gain and s2_fixes_s
+        else "NO_MEASURABLE_GAIN"
+    )
+    t2_validation = (
+        "REAL_VALIDATED_ON_FROZEN_SUBSET"
+        if t2_gain and t2_fixes_t
+        else "NO_MEASURABLE_GAIN"
+    )
 
     if any_gain and (s2_fixes_s or t2_fixes_t) and b11 >= b00:
         return {
             "case": "Case1",
             "label": "PASS + REAL_VALIDATED_ON_FROZEN_SUBSET",
+            # Overall panel label reflects measurable frozen-subset gain (here T2-driven).
+            # Factor labels below are authoritative for S2 vs T2 claims.
             "real_validation": "REAL_VALIDATED_ON_FROZEN_SUBSET",
+            "s2_validation": s2_validation,
+            "t2_validation": t2_validation,
             "ready_for_p4_freeze": True,
             "ready_for_runtime_rollout": False,
             "defaults_remain_off": True,
@@ -309,6 +349,8 @@ def _interpret(
             "case": "Case2",
             "label": "PASS/CONDITIONAL",
             "real_validation": "CONDITIONAL",
+            "s2_validation": s2_validation,
+            "t2_validation": t2_validation,
             "ready_for_p4_freeze": True,
             "ready_for_runtime_rollout": False,
             "defaults_remain_off": True,
@@ -320,6 +362,8 @@ def _interpret(
         "case": "Case3",
         "label": "PASS/NO_MEASURABLE_GAIN",
         "real_validation": "NO_MEASURABLE_GAIN",
+        "s2_validation": s2_validation,
+        "t2_validation": t2_validation,
         "ready_for_p4_freeze": True,
         "ready_for_runtime_rollout": False,
         "defaults_remain_off": True,

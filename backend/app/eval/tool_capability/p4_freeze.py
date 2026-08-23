@@ -16,6 +16,9 @@ CASE_IDS = ("GQ-131", "GQ-132", "GQ-149")
 PRIMARY = {"00": "0/3", "10": "0/3", "01": "2/3", "11": "2/3"}
 STABILITY = {"00": "0/15", "10": "0/15", "01": "10/15", "11": "10/15"}
 CLASSIFICATION = "Case1 PASS + REAL_VALIDATED_ON_FROZEN_SUBSET"
+S2_VALIDATION = "NO_MEASURABLE_GAIN"
+T2_VALIDATION = "REAL_VALIDATED_ON_FROZEN_SUBSET"
+INTERACTION_11 = "NO_INTERACTION/T2-DOMINANT"
 READY_FOR_RUNTIME_ROLLOUT = False
 
 
@@ -35,4 +38,9 @@ def assert_manifest_matches_constants(data: dict[str, Any]) -> None:
     assert data["stability"] == STABILITY
     assert data["ready_for_runtime_rollout"] is READY_FOR_RUNTIME_ROLLOUT
     assert data["classification"] == CLASSIFICATION
+    assert data["s2_validation"] == S2_VALIDATION
+    assert data["t2_validation"] == T2_VALIDATION
+    assert data["interaction"]["condition_11"] == INTERACTION_11
+    assert data["s2_validation"] != "REAL_VALIDATED_ON_FROZEN_SUBSET"
+    assert data["s2_validation"] != "FIXED"
     assert list(data["frozen_subset"]) == list(CASE_IDS)

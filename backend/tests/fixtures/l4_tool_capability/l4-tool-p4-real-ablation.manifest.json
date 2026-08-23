@@ -71,8 +71,12 @@
   "interaction": {
     "s2_only_fixes_family_s": false,
     "t2_only_fixes_family_t": true,
-    "condition_11": "additive",
-    "stability_deltas_vs_00": {"10": 0, "01": 10, "11": 10}
+    "condition_11": "NO_INTERACTION/T2-DOMINANT",
+    "s2_effect": 0,
+    "t2_effect": 10,
+    "s2_x_t2_interaction": 0,
+    "stability_deltas_vs_00": {"10": 0, "01": 10, "11": 10},
+    "causal_note": "S2 effect≈0; T2 effect=+10/15; S2×T2 interaction≈0. Gain is T2-only, not joint luck."
   },
   "safety_metrics": {
     "unsafe_terminal": 0,
@@ -103,15 +107,23 @@
   },
   "classification": "Case1 PASS + REAL_VALIDATED_ON_FROZEN_SUBSET",
   "real_validation": "REAL_VALIDATED_ON_FROZEN_SUBSET",
+  "s2_validation": "NO_MEASURABLE_GAIN",
+  "t2_validation": "REAL_VALIDATED_ON_FROZEN_SUBSET",
   "ready_for_p4_freeze": true,
   "ready_for_runtime_rollout": false,
   "defaults_remain_off": true,
   "result": "PASS",
+  "interpretation_discipline": {
+    "allow": "T2 improved frozen Family T 0/10→10/10 under real local trajectories",
+    "forbid": "claiming TOOL capability improved 0%→67% generally",
+    "correct_label": "CURRENT_L3_TOOL_CAPABILITY ON_FROZEN_MIGRATED_SUBSET — 01/11: 2/3 primary, 10/15 stability"
+  },
   "full_report_gitignored": "backend/artifacts/benchmarks/tmp/reports/w8-tool-p4-real-local-ablation.json",
   "notes": [
     "Contemporaneous 00 matches P2 historical boundary (0/3 primary, 0/15 stability).",
     "T2 ON recovers GQ-132/GQ-149 termination (Family T) 10/10; S2 ON does not recover GQ-131 selection (Family S) 0/5.",
-    "Condition 11 additive with T2 gain only; no S2×T2 interference on safety gates.",
+    "S2=NO_MEASURABLE_GAIN (not FIXED / not REAL_VALIDATED); T2=REAL_VALIDATED_ON_FROZEN_SUBSET.",
+    "Interaction=NO_INTERACTION/T2-DOMINANT (not ADDITIVE): 00=0/15, 10=0/15, 01=10/15, 11=10/15; S2×T2≈0.",
     "Runtime rollout NO; product defaults remain OFF/OFF."
   ]
 }
