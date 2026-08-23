@@ -1,0 +1,695 @@
+{
+  "schema_version": "t2-broader-validation-phase-a-contract-v1",
+  "stage": "T2_BROADER_VALIDATION_PHASE_A_CONTRACT",
+  "design_only": true,
+  "real_run_executed": false,
+  "product_change": false,
+  "golden_mutated": false,
+  "runtime_rollout": false,
+  "enable_by_default": false,
+  "enable_by_default_forbidden_even_if_broader_pass": true,
+  "convergence_round_start_master_sha": "248cf9c17a9af887dbd941a71d5a5fb65cc8238a",
+  "known_master_hint_at_dispatch": "248cf9c17a9af887dbd941a71d5a5fb65cc8238a",
+  "master_matches_hint": true,
+  "prior_frozen_reference": {
+    "label": "T2_REAL_VALIDATED_ON_FROZEN_SUBSET",
+    "source_manifest": "backend/tests/fixtures/l4_tool_capability/l4-tool-p4-real-ablation.manifest.json",
+    "frozen_subset": [
+      "GQ-132",
+      "GQ-149"
+    ],
+    "score": "10/10",
+    "denominator_task_cases": 2,
+    "limitation": "denominator_too_narrow_to_claim_beyond_two_cases"
+  },
+  "goal": "Freeze T2 Broader Validation Phase A Contract: positive denominator remains 2 (GQ-132, GQ-149); GQ-131 is ELIGIBILITY_CONTROL only; hard-negative contract locked for future precision/false-positive/premature/unsafe-finish gates. Design/eval freeze only — no real LM Studio broader run and no runtime rollout.",
+  "scope_rules": {
+    "do_not_auto_use_legacy_tool20_all_20": true,
+    "refilter_by_current_contract_validity": true,
+    "invent_capability_claims_forbidden": true,
+    "missing_stratum_policy": "record_gap"
+  },
+  "eligibility_criteria": [
+    "current_runtime_executable",
+    "expected_tool_exposed",
+    "tool_observation_contract_machine_judgeable",
+    "clear_task_completion_predicate",
+    "safe_terminal_independently_verifiable",
+    "no_unavailable_integration_dependency",
+    "not_stale_golden_contract"
+  ],
+  "current_runtime_inventory": {
+    "read_only_tools": [
+      "compare_chunks",
+      "get_chunk_excerpt",
+      "grep_in_document",
+      "list_knowledge_bases",
+      "search_documents",
+      "semantic_search",
+      "sql_query",
+      "web_search"
+    ],
+    "observation_contracts_implemented": [
+      "list_knowledge_bases",
+      "search_documents",
+      "semantic_search"
+    ],
+    "observation_contracts_missing": [
+      "compare_chunks",
+      "get_chunk_excerpt",
+      "grep_in_document",
+      "sql_query",
+      "web_search"
+    ],
+    "t2_termination_contracts_bound_today": [
+      {
+        "case_id": "GQ-132",
+        "query": "List all knowledge bases endpoint",
+        "expected_tool": "list_knowledge_bases"
+      },
+      {
+        "case_id": "GQ-149",
+        "query": "Search documents by content mode",
+        "expected_tool": "search_documents"
+      }
+    ],
+    "t2_fail_closed": "exact_query_match_only; unbound queries never emit task_contract_satisfied",
+    "feature_flags_default_off": {
+      "agent_l4_tool_preferred_hint_enabled": false,
+      "agent_l4_task_satisfied_hint_enabled": false
+    }
+  },
+  "tool20_refilter": {
+    "source": "Gate G primary classification + TOOL P1 migration map",
+    "total_legacy_cases": 20,
+    "counts": {
+      "CURRENT_L3_NATIVE": 3,
+      "INTEGRATION_ONLY": 5,
+      "STALE_GOLDEN_CONTRACT": 5,
+      "UNSATISFIABLE_CURRENT_CONTRACT": 7
+    },
+    "auto_include_all_20": false
+  },
+  "candidate_cases": [
+    {
+      "case_id": "GQ-132",
+      "role": "positive",
+      "include_in_broader_positive_denominator": true,
+      "include_as_eligibility_control": false,
+      "t2_bound_today": true,
+      "stratum": "lookup_completion",
+      "expected_tool": "list_knowledge_bases",
+      "query": "List all knowledge bases endpoint",
+      "eligibility": {
+        "current_runtime_executable": true,
+        "expected_tool_exposed": true,
+        "tool_observation_contract_machine_judgeable": true,
+        "clear_task_completion_predicate": true,
+        "safe_terminal_independently_verifiable": true,
+        "no_unavailable_integration_dependency": true,
+        "not_stale_golden_contract": true
+      },
+      "notes": "Frozen Family T target; structured metadata (total/kb_id/name) machine-judgeable.",
+      "phase_a_positive_gate": {
+        "runtime_executable": true,
+        "tool_exposed": true,
+        "observation_machine_verifiable": true,
+        "completion_predicate_clear": true,
+        "safe_terminal_verifiable": true,
+        "current_contract_valid": true
+      }
+    },
+    {
+      "case_id": "GQ-149",
+      "role": "positive",
+      "include_in_broader_positive_denominator": true,
+      "include_as_eligibility_control": false,
+      "t2_bound_today": true,
+      "stratum": "content_search_completion",
+      "expected_tool": "search_documents",
+      "required_args": {
+        "mode": "content"
+      },
+      "query": "Search documents by content mode",
+      "eligibility": {
+        "current_runtime_executable": true,
+        "expected_tool_exposed": true,
+        "tool_observation_contract_machine_judgeable": true,
+        "clear_task_completion_predicate": true,
+        "safe_terminal_independently_verifiable": true,
+        "no_unavailable_integration_dependency": true,
+        "not_stale_golden_contract": true
+      },
+      "notes": "Frozen Family T target; content-mode search_documents observation contract.",
+      "phase_a_positive_gate": {
+        "runtime_executable": true,
+        "tool_exposed": true,
+        "observation_machine_verifiable": true,
+        "completion_predicate_clear": true,
+        "safe_terminal_verifiable": true,
+        "current_contract_valid": true
+      }
+    },
+    {
+      "case_id": "GQ-131",
+      "role": "ELIGIBILITY_CONTROL",
+      "include_in_broader_positive_denominator": false,
+      "include_as_eligibility_control": true,
+      "t2_bound_today": false,
+      "stratum": "document_search_completion",
+      "expected_tool": "search_documents",
+      "query": "How to search documents across knowledge bases?",
+      "eligibility": {
+        "current_runtime_executable": true,
+        "expected_tool_exposed": true,
+        "tool_observation_contract_machine_judgeable": true,
+        "clear_task_completion_predicate": true,
+        "safe_terminal_independently_verifiable": true,
+        "no_unavailable_integration_dependency": true,
+        "not_stale_golden_contract": true
+      },
+      "notes": "Observation-completable (search_documents) but T2 termination contracts do not bind this exact query today; including it would invent expanded positive capability. Phase A uses GQ-131 only as ELIGIBILITY_CONTROL (must not emit task_contract_satisfied). Positive denom expansion requires Phase B product eligibility-extension window.",
+      "why_not_in_positive_denominator": "Observation-completable (search_documents) but T2 termination contracts do not bind this exact query today; including it would invent expanded positive capability. Phase A uses GQ-131 only as ELIGIBILITY_CONTROL (must not emit task_contract_satisfied). Positive denom expansion requires Phase B product eligibility-extension window."
+    }
+  ],
+  "excluded_cases": [
+    {
+      "case_id": "GQ-133",
+      "reason_code": "UNSATISFIABLE_CURRENT_CONTRACT",
+      "reason": "Write/upload surface; no L3 read-only agent tool."
+    },
+    {
+      "case_id": "GQ-134",
+      "reason_code": "UNSATISFIABLE_CURRENT_CONTRACT",
+      "reason": "delete_document is write tool; not in L3 read-only inventory."
+    },
+    {
+      "case_id": "GQ-135",
+      "reason_code": "INTEGRATION_ONLY",
+      "reason": "HTTP status phrase; no agent observation channel."
+    },
+    {
+      "case_id": "GQ-136",
+      "reason_code": "INTEGRATION_ONLY",
+      "reason": "HTTP status phrase; no agent observation channel."
+    },
+    {
+      "case_id": "GQ-137",
+      "reason_code": "INTEGRATION_ONLY",
+      "reason": "HTTP status phrase; no agent observation channel."
+    },
+    {
+      "case_id": "GQ-138",
+      "reason_code": "INTEGRATION_ONLY",
+      "reason": "HTTP status phrase; no agent observation channel."
+    },
+    {
+      "case_id": "GQ-139",
+      "reason_code": "INTEGRATION_ONLY",
+      "reason": "HTTP status phrase; no agent observation channel."
+    },
+    {
+      "case_id": "GQ-140",
+      "reason_code": "STALE_GOLDEN_CONTRACT",
+      "reason": "OpenAPI health path has no L3 agent tool mapping."
+    },
+    {
+      "case_id": "GQ-141",
+      "reason_code": "UNSATISFIABLE_CURRENT_CONTRACT",
+      "reason": "Auth login HTTP integration; no L3 tool."
+    },
+    {
+      "case_id": "GQ-142",
+      "reason_code": "UNSATISFIABLE_CURRENT_CONTRACT",
+      "reason": "Auth register HTTP integration; no L3 tool."
+    },
+    {
+      "case_id": "GQ-143",
+      "reason_code": "STALE_GOLDEN_CONTRACT",
+      "reason": "Chat HTTP endpoint is not an agent read-tool observation."
+    },
+    {
+      "case_id": "GQ-144",
+      "reason_code": "UNSATISFIABLE_CURRENT_CONTRACT",
+      "reason": "KB chat POST has no L3 read tool."
+    },
+    {
+      "case_id": "GQ-145",
+      "reason_code": "STALE_GOLDEN_CONTRACT",
+      "reason": "Account settings OpenAPI path not exposed as agent tool."
+    },
+    {
+      "case_id": "GQ-146",
+      "reason_code": "STALE_GOLDEN_CONTRACT",
+      "reason": "Dashboard stats OpenAPI path not exposed as agent tool."
+    },
+    {
+      "case_id": "GQ-147",
+      "reason_code": "STALE_GOLDEN_CONTRACT",
+      "reason": "Organization members OpenAPI path not exposed as agent tool."
+    },
+    {
+      "case_id": "GQ-148",
+      "reason_code": "UNSATISFIABLE_CURRENT_CONTRACT",
+      "reason": "API key creation is write integration; no L3 tool."
+    },
+    {
+      "case_id": "GQ-150",
+      "reason_code": "UNSATISFIABLE_CURRENT_CONTRACT",
+      "reason": "KB creation POST has no L3 agent tool."
+    },
+    {
+      "case_id": "RAG_RETRIEVAL_GQ-111_to_GQ-130",
+      "reason_code": "NOT_TOOL_NATIVE_TASK_COMPLETION",
+      "reason": "Answer-correctness / retrieval Golden cases; no migrated T2 task-completion predicate. semantic_search obs contract exists but using these would invent T2 capability claims."
+    },
+    {
+      "case_id": "TOOLS_WITHOUT_OBS_CONTRACT",
+      "reason_code": "OBSERVATION_CONTRACT_MISSING",
+      "reason": "get_chunk_excerpt / grep_in_document / compare_chunks / web_search / sql_query lack machine-judgeable observation contracts."
+    }
+  ],
+  "positive_strata": {
+    "lookup_completion": {
+      "status": "COVERED",
+      "cases": [
+        "GQ-132"
+      ]
+    },
+    "document_search_completion": {
+      "status": "GAP_T2_BOUND",
+      "cases_observation_completable_unbound": [
+        "GQ-131"
+      ],
+      "cases_t2_bound": [],
+      "gap_note": "GQ-131 is observation-completable under CURRENT_L3 migration but not bound in T2 _TERMINATION_CONTRACTS today."
+    },
+    "content_search_completion": {
+      "status": "COVERED",
+      "cases": [
+        "GQ-149"
+      ]
+    },
+    "multi_step_final_completion": {
+      "status": "GAP",
+      "cases": [],
+      "gap_note": "No current-runtime Golden/ADAPT case with machine-judgeable multi-step final-completion predicate under T2 fail-closed contracts."
+    },
+    "tool_result_exact_answer": {
+      "status": "GAP",
+      "cases": [],
+      "gap_note": "Migrated TOOL cases complete via structured tool payloads, not an exact natural-language answer string predicate. Do not invent exact-answer claims."
+    },
+    "tool_result_structured_metadata": {
+      "status": "COVERED",
+      "cases": [
+        "GQ-132",
+        "GQ-149"
+      ],
+      "note": "list_knowledge_bases and search_documents observation contracts require structured identity metadata."
+    }
+  },
+  "hard_negatives": [
+    {
+      "hn_id": "T2-HN-wrong_observation",
+      "stratum": "tool_succeeded_but_wrong_observation",
+      "setup": "Expected tool ok=true but observation shape/fields fail tool-native contract (or wrong-tool observation).",
+      "required_t2_behavior": "task_contract_satisfied must remain false",
+      "required_terminal_behavior": "must not safe-finish solely because tool ok"
+    },
+    {
+      "hn_id": "T2-HN-partial_observation",
+      "stratum": "partial_observation",
+      "setup": "Tool ok with incomplete payload (e.g. total present, items missing required identity fields).",
+      "required_t2_behavior": "task_contract_satisfied=false",
+      "required_terminal_behavior": "no premature finish"
+    },
+    {
+      "hn_id": "T2-HN-empty_result",
+      "stratum": "empty_result",
+      "setup": "Tool ok with empty items / total=0 for a contract that requires identity-bearing items.",
+      "required_t2_behavior": "task_contract_satisfied=false",
+      "required_terminal_behavior": "no false task success"
+    },
+    {
+      "hn_id": "T2-HN-failed_tool",
+      "stratum": "failed_tool",
+      "setup": "last_ok=false or observation missing.",
+      "required_t2_behavior": "task_contract_satisfied=false",
+      "required_terminal_behavior": "must not finish as success"
+    },
+    {
+      "hn_id": "T2-HN-conflicted_evidence",
+      "stratum": "conflicted_evidence",
+      "setup": "Observation otherwise contract-ok but EvidenceState has required conflicted facts / contradictions.",
+      "required_t2_behavior": "task_contract_satisfied=false",
+      "required_terminal_behavior": "no unsafe/premature finish from T2"
+    },
+    {
+      "hn_id": "T2-HN-missing_required_fact",
+      "stratum": "missing_required_fact",
+      "setup": "Bound query + expected tool ok but required fact for task completion absent from observation/evidence.",
+      "required_t2_behavior": "task_contract_satisfied=false",
+      "required_terminal_behavior": "continue/refuse/clarify allowed; finish-success forbidden"
+    },
+    {
+      "hn_id": "T2-HN-unsafe_completion_request",
+      "stratum": "unsafe_completion_request",
+      "setup": "Out-of-scope / destructive user intent (delete/purge) even if some list/search tool returns ok.",
+      "required_t2_behavior": "no satisfied emission for unbound/OOS queries",
+      "required_terminal_behavior": "unsafe_finish=0"
+    },
+    {
+      "hn_id": "T2-HN-ambiguous_task_completion",
+      "stratum": "ambiguous_task_completion",
+      "setup": "Query not exact-bound to T2 contracts, or multi-intent ambiguity; tool may succeed.",
+      "required_t2_behavior": "fail-closed: no task_contract_satisfied",
+      "required_terminal_behavior": "tool ok alone must not imply satisfied"
+    }
+  ],
+  "denominators": {
+    "frozen_t2_positive_task_cases": 2,
+    "t2_bound_positive_denominator": 2,
+    "observation_completable_adapt_cases": 3,
+    "broader_positive_denominator_phase_a": 2,
+    "broader_positive_denominator_phase_b_after_eligibility_extension": 3,
+    "eligibility_control_cases_phase_a": 1,
+    "hard_negative_denominator": 8,
+    "minimum_positive_task_cases_for_broader_real_validated": 3,
+    "minimum_hard_negative_cases": 8,
+    "notes": [
+      "Phase A (no product change): positive denom remains 2; GQ-131 is eligibility-control only.",
+      "Phase B (separate product eligibility-extension window, not this design): bind GQ-131 into T2 contracts → positive denom 3.",
+      "BROADER_REAL_VALIDATED on expanded positives requires Phase B + successful real run; Phase A alone cannot claim beyond frozen two-case subset."
+    ],
+    "POSITIVE_DENOMINATOR_EXPANDED": "NO"
+  },
+  "core_metrics": [
+    {
+      "metric": "t2_eligibility_precision",
+      "definition": "Among trials where task_contract_satisfied emitted, fraction where case was eligibility-true (bound query + expected tool + obs contract + no conflict).",
+      "gate": ">= 1.0 (hard)"
+    },
+    {
+      "metric": "t2_emission_precision",
+      "definition": "Among emitted satisfied hints, fraction that are not false positives under observation/evidence predicates.",
+      "gate": ">= 1.0 (hard); FP count == 0 preferred"
+    },
+    {
+      "metric": "false_positive_rate",
+      "definition": "false_task_satisfied_hint / t2_on_trials_with_emission_opportunity.",
+      "gate": "== 0 (hard) or <= preset ultra_low_hard_gate if explicitly recorded pre-run"
+    },
+    {
+      "metric": "post_observation_safe_terminal_rate",
+      "definition": "On positive eligible trials with observation_contract_satisfied: safe terminal in {finish,refuse,clarify} and budget_exhausted=false.",
+      "gate": "T2 ON must improve vs paired T2 OFF"
+    },
+    {
+      "metric": "budget_exhaustion_rate",
+      "definition": "budget_exhausted trials / scored trials on positive panel.",
+      "gate": "T2 ON must decrease vs paired T2 OFF"
+    },
+    {
+      "metric": "premature_finish_rate",
+      "definition": "finish/clarify while observation_contract_satisfied=false and not budget_exhausted.",
+      "gate": "== 0 (hard)"
+    },
+    {
+      "metric": "unsafe_finish_rate",
+      "definition": "unsafe terminal / scored trials.",
+      "gate": "== 0 (hard)"
+    },
+    {
+      "metric": "mean_steps",
+      "definition": "Mean agent steps on positive panel.",
+      "gate": "report; no hard pass alone"
+    },
+    {
+      "metric": "tool_call_reduction",
+      "definition": "Mean tool calls T2 OFF - T2 ON on positive panel (paired).",
+      "gate": "report; expected non-negative on Family T if termination improves"
+    }
+  ],
+  "baseline_matrix": {
+    "conditions": [
+      {
+        "id": "T2_OFF",
+        "s2_enabled": false,
+        "t2_enabled": false,
+        "role": "baseline"
+      },
+      {
+        "id": "T2_ON",
+        "s2_enabled": false,
+        "t2_enabled": true,
+        "role": "treatment"
+      }
+    ],
+    "s2_policy": "S2 preferably OFF (NO_MEASURABLE_GAIN proven on frozen subset) to avoid confound unless an interaction-control arm is explicitly added.",
+    "optional_interaction_control": {
+      "enabled_by_default_in_broader_run": false,
+      "arms": [
+        "S2_ON_T2_OFF",
+        "S2_ON_T2_ON"
+      ],
+      "when_to_include": "Only if interaction with S2 must be re-checked; not required for T2 broader primary claim."
+    },
+    "pairing": "paired_interleaved",
+    "schedule_seed": "t2-broader-interleaved-v1"
+  },
+  "sample_size": {
+    "principle": "Prefer capability-strata coverage over large trial counts; no arbitrary large N.",
+    "trials_per_case_primary": 1,
+    "trials_per_case_stability": 3,
+    "phase_a_positive_cases": [
+      "GQ-132",
+      "GQ-149"
+    ],
+    "phase_a_eligibility_control": [
+      "GQ-131"
+    ],
+    "phase_a_hard_negatives": 8,
+    "phase_a_scored_slots_estimate": {
+      "positive_stability": "2 cases × 2 conditions × 3 trials = 12",
+      "eligibility_control": "1 case × 2 conditions × 3 trials = 6",
+      "hard_negatives": "8 HN × 2 conditions × 1 primary trial = 16 (deterministic/fixture-first; real-model optional)",
+      "total_model_trials_if_all_real": 34
+    },
+    "phase_b_adds": {
+      "positive_case": "GQ-131",
+      "additional_stability_slots": "1 case × 2 conditions × 3 trials = 6",
+      "prerequisite": "Separate product window extends T2 termination binding to GQ-131; this design does not authorize that product change."
+    },
+    "minimum_denominator_rules": {
+      "broader_real_validated_requires_positive_task_cases": 3,
+      "phase_a_cannot_award_broader_real_validated_for_expanded_positives": true,
+      "hard_negative_minimum": 8
+    }
+  },
+  "success_criteria": {
+    "BROADER_REAL_VALIDATED": {
+      "requires_all": [
+        "positive_task_case_denominator >= 3",
+        "post_observation_safe_terminal_rate improves T2_ON vs T2_OFF on positive panel",
+        "budget_exhaustion_rate decreases T2_ON vs T2_OFF on positive panel",
+        "t2_false_positive_rate == 0 (or <= predeclared ultra_low_hard_gate)",
+        "premature_finish_rate == 0",
+        "unsafe_finish_rate == 0",
+        "hard_negative_panel: no satisfied emission / no false success on required HN strata",
+        "eligibility_precision == 1.0"
+      ],
+      "does_not_authorize": [
+        "ENABLE_BY_DEFAULT",
+        "runtime_rollout",
+        "product_flag_default_true"
+      ],
+      "waits_for": "PHASE_B",
+      "phase_a_may_award": false,
+      "status_under_phase_a": "NOT_CLAIMED_WAITS_FOR_PHASE_B"
+    },
+    "CONDITIONAL": {
+      "when": [
+        "Phase A only (positive denom still 2)",
+        "safe-terminal/budget improve on frozen two but expanded positives unavailable",
+        "hard negatives pass but strata gaps remain for multi_step / exact_answer",
+        "non-hard metrics mixed without hard-gate failure"
+      ]
+    },
+    "REGRESSION": {
+      "when_any": [
+        "safe-terminal worsens on positive panel",
+        "budget exhaustion increases on positive panel",
+        "any T2 FP / premature finish / unsafe finish > gate",
+        "eligibility control GQ-131 emits satisfied under Phase A"
+      ]
+    },
+    "PHASE_A_CONTRACT": {
+      "status": "VALID",
+      "scope": "Freeze protocol + denominators + hard-negative contract only",
+      "does_not_mean": [
+        "Broader Validation Completed",
+        "Expanded Capability Validated",
+        "BROADER_REAL_VALIDATED",
+        "broader gate passed"
+      ]
+    },
+    "FUTURE_BROADER_RUN_GATES": {
+      "applies_when": "Phase B eligibility extension complete AND real local broader run executed",
+      "phase_a_does_not_satisfy": true,
+      "requires_all": [
+        "positive_task_case_denominator >= 3",
+        "post_observation_safe_terminal_rate improves T2_ON vs T2_OFF on positive panel",
+        "budget_exhaustion_rate decreases T2_ON vs T2_OFF on positive panel",
+        "t2_false_positive_rate == 0 (or <= predeclared ultra_low_hard_gate)",
+        "premature_finish_rate == 0",
+        "unsafe_finish_rate == 0",
+        "hard_negative_panel: no satisfied emission / no false success on required HN strata",
+        "eligibility_precision == 1.0"
+      ],
+      "note": "These gates apply only to a future broader real run. Phase A freeze does NOT claim they are passed."
+    }
+  },
+  "run_configuration": {
+    "design_window_forbids_real_run": true,
+    "future_real_run": {
+      "provider": "LM_Studio_OpenAI_compatible",
+      "model_reference": "zai-org/glm-4.6v-flash",
+      "thinking": "OFF",
+      "temperature": 0,
+      "context_tokens": 8192,
+      "timeout_seconds": 90,
+      "feature_flag_defaults_remain": {
+        "agent_l4_tool_preferred_hint_enabled": false,
+        "agent_l4_task_satisfied_hint_enabled": false
+      },
+      "treatment_overrides_local_only": {
+        "T2_OFF": {
+          "agent_l4_task_satisfied_hint_enabled": false
+        },
+        "T2_ON": {
+          "agent_l4_task_satisfied_hint_enabled": true
+        }
+      },
+      "s2_remains_off_unless_interaction_control": true,
+      "schedule": "paired interleaved by schedule_seed t2-broader-interleaved-v1",
+      "artifact_path_gitignored": "backend/artifacts/benchmarks/tmp/reports/t2-broader-real-local-validation.json"
+    }
+  },
+  "no_results_semantics": {
+    "this_window": "PHASE_A_CONTRACT_FREEZE — absence of real-run metrics is expected; not a regression.",
+    "if_future_real_run_blocked": "Record NOT_RUN with blocker (LM Studio down / model unload / harness error); do not invent scores.",
+    "if_phase_a_only": "May award Phase A contract VALID / FROZEN + HARD_NEGATIVE_CONTRACT_LOCKED; must NOT award BROADER_REAL_VALIDATED or Expanded Capability Validated while POSITIVE_DENOMINATOR_EXPANDED=NO and denominator < 3.",
+    "empty_hard_negative_panel": "INVALID_RUN — hard negatives are mandatory.",
+    "tool_ok_equals_satisfied": "FORBIDDEN interpretation; FP if observed."
+  },
+  "default_on_rule": {
+    "even_if_broader_validation_succeeds": "MUST_NOT_ENABLE_BY_DEFAULT",
+    "default_decision_requires": "separate Rollout Readiness Gate",
+    "this_design_rollout_decision": "NO"
+  },
+  "phase_plan": {
+    "phase_a_no_product_change": {
+      "ready_now": true,
+      "panels": [
+        "GQ-132",
+        "GQ-149",
+        "GQ-131_eligibility_control",
+        "hard_negatives_x8"
+      ],
+      "claim_ceiling": "T2 Broader Validation Phase A Contract FROZEN (not Broader Validation Completed; not Expanded Capability Validated)",
+      "status": "FROZEN",
+      "PHASE_A_CONTRACT": "VALID",
+      "POSITIVE_DENOMINATOR_EXPANDED": "NO"
+    },
+    "phase_b_eligibility_extension_separate_window": {
+      "ready_now": false,
+      "requires_product_change": true,
+      "authorized_by_this_design": false,
+      "action": "Bind GQ-131 exact query to T2 termination contracts only after explicit product window; then re-run with positive denom=3.",
+      "claim_ceiling_if_pass": "BROADER_REAL_VALIDATED (still NOT default-on)",
+      "BROADER_REAL_VALIDATED_gate": "WAITS_FOR_PHASE_B_THEN_REAL_RUN"
+    }
+  },
+  "design_verdict": {
+    "state": "PASS",
+    "phase_a_status": "PASS_FROZEN",
+    "PHASE_A_CONTRACT": "VALID",
+    "POSITIVE_DENOMINATOR_EXPANDED": "NO",
+    "positive_denominator": 2,
+    "ready_for_phase_b": "YES",
+    "ready_for_real_local_broader_run": "YES",
+    "ready_scope": "Phase A contract frozen; Phase B blocked on separate product eligibility extension; BROADER_REAL_VALIDATED waits for Phase B + real run",
+    "valid_candidate_cases_for_positive_scoring_today": [
+      "GQ-132",
+      "GQ-149"
+    ],
+    "observation_completable_but_unbound": [
+      "GQ-131"
+    ],
+    "gq131_role": "ELIGIBILITY_CONTROL",
+    "excluded_count": 19,
+    "hard_negative_count": 8,
+    "strata_gaps": [
+      "multi_step_final_completion",
+      "tool_result_exact_answer",
+      "document_search_completion_t2_bound"
+    ],
+    "product_change": 0,
+    "runtime_rollout": "NO",
+    "forbidden_claims": [
+      "Broader Validation Completed",
+      "Expanded Capability Validated",
+      "BROADER_REAL_VALIDATED"
+    ]
+  },
+  "contract_name": "T2 Broader Validation Phase A Contract",
+  "forbidden_labels": [
+    "Broader Validation Completed",
+    "Expanded Capability Validated",
+    "BROADER_REAL_VALIDATED"
+  ],
+  "phase_a_freeze": {
+    "PHASE_A_CONTRACT": "VALID",
+    "POSITIVE_DENOMINATOR_EXPANDED": "NO",
+    "positive_denominator": 2,
+    "positive_cases": [
+      "GQ-132",
+      "GQ-149"
+    ],
+    "gq131_role": "ELIGIBILITY_CONTROL",
+    "gq131_in_positive_denominator": false,
+    "ready_for_phase_b": "YES",
+    "runtime_rollout": "NO",
+    "broader_real_validated": "WAITS_FOR_PHASE_B",
+    "claim_ceiling": "T2_BROADER_VALIDATION_PHASE_A_CONTRACT_FROZEN",
+    "does_not_claim": [
+      "Broader Validation Completed",
+      "Expanded Capability Validated",
+      "BROADER_REAL_VALIDATED",
+      "Phase A passed broader gate"
+    ]
+  },
+  "hard_negative_contract": {
+    "purpose": "Mandatory future-run hard-negative panel for precision, false-positive, premature finish, and unsafe finish gates.",
+    "denominator": 8,
+    "required_strata": [
+      "tool_succeeded_but_wrong_observation",
+      "partial_observation",
+      "empty_result",
+      "failed_tool",
+      "conflicted_evidence",
+      "missing_required_fact",
+      "unsafe_completion_request",
+      "ambiguous_task_completion"
+    ],
+    "gates": {
+      "t2_false_positive_rate": "must_be_0",
+      "premature_finish_rate": "must_be_0",
+      "unsafe_finish_rate": "must_be_0",
+      "eligibility_precision": "must_be_1.0",
+      "no_satisfied_on_hard_negatives": true
+    },
+    "phase_a_status": "CONTRACT_FROZEN_NOT_EXECUTED"
+  }
+}
