@@ -1,25 +1,13 @@
-"""W9 P2 offline product-boundary evidence; no provider or model execution."""
+"""W9 P2 frozen product-boundary evidence; no provider or model execution."""
 
 from __future__ import annotations
 
 import json
-import time
-import uuid
 from collections import Counter
 from pathlib import Path
-from types import SimpleNamespace
-from unittest.mock import AsyncMock
 
-import pytest
-
-from app.core.config import settings
 from app.eval.critic_capability.loader import load_bound_suite
-from app.services.agent.stream import _stream_generation_phase
-from app.services.agent.types import AgentRunOutcome
-from app.services.rag.critic import CriticAction, CriticResult
-from app.services.rag.feedback_attribution import LABEL_UNKNOWN
-from app.services.rag.generation import no_context_reply_for
-from app.services.rag.types import RetrievedChunk
+from app.services.rag.critic import CriticAction
 
 
 FIXTURES = Path(__file__).parent / "fixtures" / "l4_critic"
@@ -43,20 +31,6 @@ def _walk_keys(value: object) -> set[str]:
     return set()
 
 
-def _chunk() -> RetrievedChunk:
-    return RetrievedChunk(
-        kb_id=uuid.uuid4(),
-        chunk_id=uuid.uuid4(),
-        document_id=uuid.uuid4(),
-        doc_name="policy.md",
-        content="Employees complete offboarding training before departure.",
-        page_number=1,
-        section_title="Offboarding",
-        heading_path="Offboarding",
-        similarity=0.9,
-    )
-
-
 def _load_injected() -> dict[str, dict[str, object]]:
     payload = json.loads(INJECTED_PATH.read_text(encoding="utf-8"))
     assert payload["protocol"] == "w9_critic_p2_injected_reports_v1"
@@ -71,7 +45,9 @@ def _load_injected() -> dict[str, dict[str, object]]:
 def test_p2_injection_is_complete_and_oracle_isolation_holds() -> None:
     contract, inputs = load_bound_suite()
     injected = _load_injected()
-    denominator = [case for case in contract["oracle_cases"] if case["in_capability_denominator"]]
+    denominator = [
+        case for case in contract["oracle_cases"] if case["in_capability_denominator"]
+    ]
 
     assert len(inputs) == len(denominator) == len(injected) == 12
     assert {case["case_id"] for case in denominator} == set(injected)
@@ -91,76 +67,26 @@ def test_p2_injection_is_complete_and_oracle_isolation_holds() -> None:
     }
 
 
-@pytest.mark.asyncio
-async def test_c11_frozen_deterministic_revision_exposes_product_boundary_failure(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """C11 must retain rules_v1: changing it to llm_verify_v1 would hide the defect."""
+def test_c11_frozen_deterministic_revision_preserves_product_boundary_failure() -> None:
+    """Frozen P2 evidence remains pre-remediation and never runs current code."""
     c11 = _load_injected()["C11-citation-format-only-defect"]
     assert c11["method"] == "rules_v1"
     assert c11["recommended_action"] == CriticAction.REVISE_FROM_EXISTING_EVIDENCE.value
-
-    async def _tokens(_messages):
-        yield "Draft with a citation defect.[片段1]"
-
-    async def _critic(*_args) -> CriticResult:
-        return CriticResult(
-            ok=False,
-            claims=(),
-            label=LABEL_UNKNOWN,
-            rationale="CITATION_SYNTAX_INVALID",
-            method=str(c11["method"]),
-            recommended_action=CriticAction(str(c11["recommended_action"])),
-        )
-
-    audit = AsyncMock()
-    monkeypatch.setattr("app.services.agent.stream.stream_deepseek_tokens", _tokens)
-    monkeypatch.setattr("app.services.rag.critic.run_critic", _critic)
-    monkeypatch.setattr("app.services.agent.stream.audit_agent_recovery_action", audit)
-    monkeypatch.setattr("app.services.agent.stream.degradation_requires_llm", lambda _d: True)
-    monkeypatch.setattr("app.services.agent.stream.has_available_chat_provider_key", lambda: True)
-    monkeypatch.setattr(settings, "rag_critic_enabled", True)
-    monkeypatch.setattr(settings, "rag_critic_mode", "rules")
-    monkeypatch.setattr(settings, "rag_critic_on_fail", "fail_closed")
-    monkeypatch.setattr(settings, "agent_l3_critic_retrieval_enabled", False)
-
-    state: dict[str, object] = {}
-    outcome = AgentRunOutcome(
-        run_id=uuid.uuid4(),
-        steps_used=0,
-        max_steps=2,
-        capped=False,
-        timed_out=False,
-        steps=(),
-        deadline_monotonic=time.monotonic() + 30,
+    artifact = json.loads(ARTIFACT_PATH.read_text(encoding="utf-8"))
+    historical = next(
+        result
+        for result in artifact["case_results"]
+        if result["case_id"] == "C11-citation-format-only-defect"
     )
-    frames = [
-        frame
-        async for frame in _stream_generation_phase(
-            AsyncMock(),
-            message="What is the retention period?",
-            gen_plan=SimpleNamespace(
-                citations=[], refusal=False, gated_chunks=(_chunk(),), external_context=None
-            ),
-            outcome=outcome,
-            user_id=uuid.uuid4(),
-            assistant_message_id=uuid.uuid4(),
-            state=state,
-        )
-    ]
-
-    observed = state["outcome"]
-    assert isinstance(observed, AgentRunOutcome)
-    record = observed.critic_actions[-1]
-    assert (record.action, record.status, record.attempt_count) == (
-        CriticAction.REVISE_FROM_EXISTING_EVIDENCE.value,
-        "skipped_unavailable",
-        0,
+    assert historical["product_action_observed"] == (
+        CriticAction.REVISE_FROM_EXISTING_EVIDENCE.value
     )
-    assert observed.critic_revision_count == 0
-    assert state["content"] == no_context_reply_for("What is the retention period?")
-    assert any("event: token" in frame for frame in frames)
-    assert audit.await_args.kwargs["status"] == "skipped_unavailable"
+    assert historical["trajectory_result"] == {
+        "status": "skipped_unavailable",
+        "attempt_count": 0,
+    }
+    assert historical["first_failed_stage"] == "L3_ORCHESTRATION_EXECUTION_CORRECT"
+    assert historical["classification"] == "PRODUCT_CONTROL_PLANE_FAILURE"
 
 
 def test_p2_artifact_preserves_partial_verdict_and_zero_rollout() -> None:
@@ -196,11 +122,14 @@ def test_p2_artifact_preserves_partial_verdict_and_zero_rollout() -> None:
         "denominator": 1,
         "rate": 0.0,
     }
-    assert all(metrics[name] == 0 for name in (
-        "unsafe_accept_count",
-        "hidden_recovery_count",
-        "post_critic_mutation_without_revalidation_count",
-    ))
+    assert all(
+        metrics[name] == 0
+        for name in (
+            "unsafe_accept_count",
+            "hidden_recovery_count",
+            "post_critic_mutation_without_revalidation_count",
+        )
+    )
     assert metrics["degenerate_policy_false_pass_count"] is None
     assert metrics["audit_accounting_rate"]["value"] is None
     assert metrics["unaccounted_recovery_count"] is None
