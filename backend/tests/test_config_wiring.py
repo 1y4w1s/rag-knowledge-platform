@@ -30,6 +30,7 @@ ENV_WHITELIST = {
     ("app/services/auth/api_rate_limit.py", "RAG_RATE_LIMIT_MODE"),
     ("app/services/auth/rate_limit_store.py", "RATE_LIMIT_BACKEND"),
     ("app/services/rag/hyde.py", "HYDE_ENABLED"),
+    ("app/eval/adversarial_capability/p4_local_env.py", "DATABASE_URL"),
 }
 
 

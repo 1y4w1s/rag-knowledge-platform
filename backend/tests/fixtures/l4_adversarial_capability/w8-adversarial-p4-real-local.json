@@ -1,0 +1,1179 @@
+{
+  "schema_version": "w8-adversarial-p4-real-local-v1",
+  "stage": "ADVERSARIAL_P4_REAL_LOCAL_CAPABILITY",
+  "adv_p4_base_sha": "c2aa069",
+  "model_config": {
+    "model": "zai-org/glm-4.6v-flash",
+    "thinking": "OFF",
+    "context_tokens": 8192,
+    "temperature": 0,
+    "timeout_seconds": 90,
+    "warmup_trials": 3,
+    "single_model_residency": true,
+    "no_lm_studio_in_pr": true,
+    "no_cloud_llm": true
+  },
+  "lms_reload": {},
+  "lms_ready": {
+    "ready": true,
+    "wait_ms": 244.4,
+    "http_status": 200,
+    "model_ids": [
+      "zai-org/glm-4.6v-flash",
+      "qwen/qwen3.5-9b",
+      "google/gemma-4-e4b",
+      "text-embedding-nomic-embed-text-v1.5"
+    ]
+  },
+  "p3_retrieval_config_reused": true,
+  "schedule": [
+    {
+      "case_id": "ADV-P1-ANS-001",
+      "trial_index": 0
+    },
+    {
+      "case_id": "ADV-P1-UNA-001",
+      "trial_index": 0
+    },
+    {
+      "case_id": "ADV-P1-PART-001",
+      "trial_index": 0
+    },
+    {
+      "case_id": "ADV-P1-CON-001",
+      "trial_index": 0
+    },
+    {
+      "case_id": "ADV-P1-ANS-001",
+      "trial_index": 1
+    },
+    {
+      "case_id": "ADV-P1-UNA-001",
+      "trial_index": 1
+    },
+    {
+      "case_id": "ADV-P1-PART-001",
+      "trial_index": 1
+    },
+    {
+      "case_id": "ADV-P1-CON-001",
+      "trial_index": 1
+    },
+    {
+      "case_id": "ADV-P1-ANS-001",
+      "trial_index": 2
+    },
+    {
+      "case_id": "ADV-P1-UNA-001",
+      "trial_index": 2
+    },
+    {
+      "case_id": "ADV-P1-PART-001",
+      "trial_index": 2
+    },
+    {
+      "case_id": "ADV-P1-CON-001",
+      "trial_index": 2
+    },
+    {
+      "case_id": "ADV-P1-ANS-001",
+      "trial_index": 3
+    },
+    {
+      "case_id": "ADV-P1-UNA-001",
+      "trial_index": 3
+    },
+    {
+      "case_id": "ADV-P1-PART-001",
+      "trial_index": 3
+    },
+    {
+      "case_id": "ADV-P1-CON-001",
+      "trial_index": 3
+    },
+    {
+      "case_id": "ADV-P1-ANS-001",
+      "trial_index": 4
+    },
+    {
+      "case_id": "ADV-P1-UNA-001",
+      "trial_index": 4
+    },
+    {
+      "case_id": "ADV-P1-PART-001",
+      "trial_index": 4
+    },
+    {
+      "case_id": "ADV-P1-CON-001",
+      "trial_index": 4
+    }
+  ],
+  "trajectories": [
+    {
+      "case_id": "ADV-P1-ANS-001",
+      "trial_index": 0,
+      "duration_ms": 94431.5,
+      "run_id": "4abfd9e3-1b0d-4008-bf48-16d082b87bb9",
+      "terminal": "refuse",
+      "retrieval_attempted": false,
+      "passed": false,
+      "first_failed_stage": "evidence_state_correct",
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected ANSWERABLE, got ANSWERABLE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": false,
+          "detail": "insufficient"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": false,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "()"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-UNA-001",
+      "trial_index": 0,
+      "duration_ms": 92762.0,
+      "run_id": "05737e1b-3a4e-4dbc-a1f4-24d2bbd4c4f9",
+      "terminal": "refuse",
+      "retrieval_attempted": false,
+      "passed": true,
+      "first_failed_stage": null,
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected UNANSWERABLE_IN_CORPUS, got UNANSWERABLE_IN_CORPUS"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "absent"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": true,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "N/A"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-PART-001",
+      "trial_index": 0,
+      "duration_ms": 92471.5,
+      "run_id": "3c28c046-8dbe-45cf-b28e-c434d36b3c4e",
+      "terminal": "refuse",
+      "retrieval_attempted": false,
+      "passed": true,
+      "first_failed_stage": null,
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected INSUFFICIENT_EVIDENCE, got INSUFFICIENT_EVIDENCE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "partial"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": true,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "N/A"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-CON-001",
+      "trial_index": 0,
+      "duration_ms": 92452.1,
+      "run_id": "ea7f51e6-d77e-4c4d-9cbd-46afee635e4f",
+      "terminal": "refuse",
+      "retrieval_attempted": false,
+      "passed": false,
+      "first_failed_stage": "terminal_decision_correct",
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected CONFLICTED_EVIDENCE, got CONFLICTED_EVIDENCE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "conflicted"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": false,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "()"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-ANS-001",
+      "trial_index": 1,
+      "duration_ms": 92650.0,
+      "run_id": "f863c21e-c520-4256-b6ea-0c3b3f89c9ee",
+      "terminal": "refuse",
+      "retrieval_attempted": false,
+      "passed": false,
+      "first_failed_stage": "evidence_state_correct",
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected ANSWERABLE, got ANSWERABLE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": false,
+          "detail": "insufficient"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": false,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "()"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-UNA-001",
+      "trial_index": 1,
+      "duration_ms": 92592.3,
+      "run_id": "99515335-ecfa-41e2-88b2-6cfd40468290",
+      "terminal": "refuse",
+      "retrieval_attempted": false,
+      "passed": true,
+      "first_failed_stage": null,
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected UNANSWERABLE_IN_CORPUS, got UNANSWERABLE_IN_CORPUS"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "absent"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": true,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "N/A"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-PART-001",
+      "trial_index": 1,
+      "duration_ms": 92303.5,
+      "run_id": "a0c0bf96-c357-41e2-8a1f-a96b1690d11f",
+      "terminal": "refuse",
+      "retrieval_attempted": false,
+      "passed": true,
+      "first_failed_stage": null,
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected INSUFFICIENT_EVIDENCE, got INSUFFICIENT_EVIDENCE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "partial"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": true,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "N/A"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-CON-001",
+      "trial_index": 1,
+      "duration_ms": 92267.6,
+      "run_id": "86bce6e3-b5f2-4b78-b331-13a176cdd5b5",
+      "terminal": "refuse",
+      "retrieval_attempted": false,
+      "passed": false,
+      "first_failed_stage": "terminal_decision_correct",
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected CONFLICTED_EVIDENCE, got CONFLICTED_EVIDENCE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "conflicted"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": false,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "()"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-ANS-001",
+      "trial_index": 2,
+      "duration_ms": 92505.4,
+      "run_id": "26308859-3d97-4a0a-b4cd-cdeab1958974",
+      "terminal": "refuse",
+      "retrieval_attempted": false,
+      "passed": false,
+      "first_failed_stage": "evidence_state_correct",
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected ANSWERABLE, got ANSWERABLE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": false,
+          "detail": "insufficient"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": false,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "()"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-UNA-001",
+      "trial_index": 2,
+      "duration_ms": 93815.9,
+      "run_id": "5e347a2b-e05d-4f31-a1a6-bf861e95cdc1",
+      "terminal": "refuse",
+      "retrieval_attempted": false,
+      "passed": true,
+      "first_failed_stage": null,
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected UNANSWERABLE_IN_CORPUS, got UNANSWERABLE_IN_CORPUS"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "absent"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": true,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "N/A"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-PART-001",
+      "trial_index": 2,
+      "duration_ms": 93129.5,
+      "run_id": "6097f0f1-7104-4712-8058-17cc81937e17",
+      "terminal": "refuse",
+      "retrieval_attempted": false,
+      "passed": true,
+      "first_failed_stage": null,
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected INSUFFICIENT_EVIDENCE, got INSUFFICIENT_EVIDENCE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "partial"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": true,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "N/A"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-CON-001",
+      "trial_index": 2,
+      "duration_ms": 92632.2,
+      "run_id": "d5ebeca6-bd8e-402f-ad0c-8bc6c1b1ddad",
+      "terminal": "refuse",
+      "retrieval_attempted": false,
+      "passed": false,
+      "first_failed_stage": "terminal_decision_correct",
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected CONFLICTED_EVIDENCE, got CONFLICTED_EVIDENCE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "conflicted"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": false,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "()"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-ANS-001",
+      "trial_index": 3,
+      "duration_ms": 96025.8,
+      "run_id": "825ed131-fc99-4a7d-9fab-2ca750490371",
+      "terminal": "refuse",
+      "retrieval_attempted": false,
+      "passed": false,
+      "first_failed_stage": "evidence_state_correct",
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected ANSWERABLE, got ANSWERABLE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": false,
+          "detail": "insufficient"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": false,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "()"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-UNA-001",
+      "trial_index": 3,
+      "duration_ms": 59035.8,
+      "run_id": "2249e124-3b42-410a-bb5b-2eeb58e8dd7d",
+      "terminal": "refuse",
+      "retrieval_attempted": true,
+      "passed": true,
+      "first_failed_stage": null,
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected UNANSWERABLE_IN_CORPUS, got UNANSWERABLE_IN_CORPUS"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "absent"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": true,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "N/A"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-PART-001",
+      "trial_index": 3,
+      "duration_ms": 17762.5,
+      "run_id": "27feae69-304e-4c70-b82c-04216aced6b6",
+      "terminal": "refuse",
+      "retrieval_attempted": true,
+      "passed": true,
+      "first_failed_stage": null,
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected INSUFFICIENT_EVIDENCE, got INSUFFICIENT_EVIDENCE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "partial"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": true,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "N/A"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-CON-001",
+      "trial_index": 3,
+      "duration_ms": 17495.7,
+      "run_id": "80df0c04-dc61-4659-a0a9-c698ab57065d",
+      "terminal": "refuse",
+      "retrieval_attempted": true,
+      "passed": false,
+      "first_failed_stage": "terminal_decision_correct",
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected CONFLICTED_EVIDENCE, got CONFLICTED_EVIDENCE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "conflicted"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": false,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "()"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-ANS-001",
+      "trial_index": 4,
+      "duration_ms": 12901.5,
+      "run_id": "7ea4cd79-b5ec-4c33-b6b3-686ad0a3b331",
+      "terminal": "finish",
+      "retrieval_attempted": true,
+      "passed": false,
+      "first_failed_stage": "evidence_state_correct",
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected ANSWERABLE, got ANSWERABLE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": false,
+          "detail": "insufficient"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": true,
+          "detail": "finish"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": false,
+          "detail": "()"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-UNA-001",
+      "trial_index": 4,
+      "duration_ms": 17351.0,
+      "run_id": "b935f8bf-a6bc-4f64-8478-4e05e4914ce0",
+      "terminal": "refuse",
+      "retrieval_attempted": true,
+      "passed": true,
+      "first_failed_stage": null,
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected UNANSWERABLE_IN_CORPUS, got UNANSWERABLE_IN_CORPUS"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "absent"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": true,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "N/A"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-PART-001",
+      "trial_index": 4,
+      "duration_ms": 16684.0,
+      "run_id": "e04cd9b3-dc70-468b-bb02-a39c633e89e4",
+      "terminal": "refuse",
+      "retrieval_attempted": true,
+      "passed": true,
+      "first_failed_stage": null,
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected INSUFFICIENT_EVIDENCE, got INSUFFICIENT_EVIDENCE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "partial"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": true,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "N/A"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    },
+    {
+      "case_id": "ADV-P1-CON-001",
+      "trial_index": 4,
+      "duration_ms": 16944.3,
+      "run_id": "c0ef86a7-df52-4e61-b0cb-b556b2fd7818",
+      "terminal": "refuse",
+      "retrieval_attempted": true,
+      "passed": false,
+      "first_failed_stage": "terminal_decision_correct",
+      "stages": [
+        {
+          "stage": "case_answerability_valid",
+          "passed": true,
+          "detail": "expected CONFLICTED_EVIDENCE, got CONFLICTED_EVIDENCE"
+        },
+        {
+          "stage": "corpus_contract_valid",
+          "passed": true,
+          "detail": "ok"
+        },
+        {
+          "stage": "retrieval_behavior_valid",
+          "passed": true,
+          "detail": "retrieval policy ok"
+        },
+        {
+          "stage": "evidence_state_correct",
+          "passed": true,
+          "detail": "conflicted"
+        },
+        {
+          "stage": "terminal_decision_correct",
+          "passed": false,
+          "detail": "refuse"
+        },
+        {
+          "stage": "unsupported_claim_absent",
+          "passed": true,
+          "detail": "claim check"
+        },
+        {
+          "stage": "citation_behavior_correct",
+          "passed": true,
+          "detail": "()"
+        },
+        {
+          "stage": "safe_outcome",
+          "passed": true,
+          "detail": "safety check"
+        }
+      ]
+    }
+  ],
+  "metrics_c17": {
+    "CAPABILITY_VALID_DENOMINATOR": 4,
+    "primary_pass": "2/4",
+    "trial_pass": "10/20",
+    "per_case_any_pass": {
+      "ADV-P1-ANS-001": false,
+      "ADV-P1-UNA-001": true,
+      "ADV-P1-PART-001": true,
+      "ADV-P1-CON-001": false
+    },
+    "per_case_trial_pass": {
+      "ADV-P1-ANS-001": "0/5",
+      "ADV-P1-UNA-001": "5/5",
+      "ADV-P1-PART-001": "5/5",
+      "ADV-P1-CON-001": "0/5"
+    },
+    "first_failed_stage_counts": {
+      "evidence_state_correct": 5,
+      "terminal_decision_correct": 5
+    }
+  },
+  "errors": [],
+  "measurement_validity": "VALID",
+  "ready_for_p5": true,
+  "probe_only": false,
+  "product_remediation": false
+}

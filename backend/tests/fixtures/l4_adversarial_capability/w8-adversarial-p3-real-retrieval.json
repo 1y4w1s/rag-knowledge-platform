@@ -1,0 +1,164 @@
+{
+  "schema_version": "w8-adversarial-p3-real-retrieval-v1",
+  "stage": "ADVERSARIAL_P3_REAL_RETRIEVAL",
+  "round_start_master_sha": "32c8830e92990a00d7824f0145c7cda3ba639fd7",
+  "adv_p3_base_sha": "b27ae73161c8b1c22048ada3a510c5883afdfe56",
+  "p2_frozen": true,
+  "layer": "REAL_RETRIEVAL_VALIDATION",
+  "embedding_provider": "bge",
+  "top_k": 5,
+  "corpus_identity": {
+    "p1_manifest_schema": "adversarial-capability-corpus-p1-v1",
+    "CAPABILITY_VALID_DENOMINATOR": 4,
+    "corpus_identity_valid": true,
+    "mismatches": []
+  },
+  "cases": [
+    {
+      "case_id": "ADV-P1-ANS-001",
+      "answerability_class": "ANSWERABLE",
+      "corpus_truth": "ANSWERABLE",
+      "retrieved_chunk_ids": [
+        "adv-ch-001"
+      ],
+      "retrieval_details": [
+        {
+          "chunk_id": "adv-ch-001",
+          "rank": 1,
+          "score": 0.823952
+        }
+      ],
+      "support_hit": true,
+      "contradiction_hit": false,
+      "partial_hit": false,
+      "irrelevant_hit_count": 0,
+      "required_fact_coverage": {
+        "required_fact_ids": [
+          "F-ADV-RET-30"
+        ],
+        "covered": [
+          "F-ADV-RET-30"
+        ],
+        "missing": [],
+        "ratio": 1.0
+      },
+      "retrieval_observation_class": "SUPPORT_RETRIEVED",
+      "retrieval_contract_valid": true,
+      "corpus_fixture_id": "ADV-CORPUS-ANS-01",
+      "corpus_fingerprint": "5f70c706d5ab062f9fc1e1e59c578fd8db75649cb77ffa0aae49c1b955e17735",
+      "embedding_provider": "bge",
+      "embedding_model": "bge"
+    },
+    {
+      "case_id": "ADV-P1-UNA-001",
+      "answerability_class": "UNANSWERABLE_IN_CORPUS",
+      "corpus_truth": "UNANSWERABLE_IN_CORPUS",
+      "retrieved_chunk_ids": [
+        "adv-ch-101"
+      ],
+      "retrieval_details": [
+        {
+          "chunk_id": "adv-ch-101",
+          "rank": 1,
+          "score": 0.512432
+        }
+      ],
+      "support_hit": false,
+      "contradiction_hit": false,
+      "partial_hit": false,
+      "irrelevant_hit_count": 1,
+      "required_fact_coverage": {
+        "required_fact_ids": [],
+        "covered": [],
+        "missing": [],
+        "ratio": 1.0
+      },
+      "retrieval_observation_class": "IRRELEVANT_OR_TOPIC_HITS",
+      "retrieval_contract_valid": true,
+      "corpus_fixture_id": "ADV-CORPUS-UNA-01",
+      "corpus_fingerprint": "3c8b8dbb1f453c14da97ed941194a58662330dbed985fb7959ee76bad0003880",
+      "embedding_provider": "bge",
+      "embedding_model": "bge"
+    },
+    {
+      "case_id": "ADV-P1-PART-001",
+      "answerability_class": "INSUFFICIENT_EVIDENCE",
+      "corpus_truth": "INSUFFICIENT_EVIDENCE",
+      "retrieved_chunk_ids": [
+        "adv-ch-201"
+      ],
+      "retrieval_details": [
+        {
+          "chunk_id": "adv-ch-201",
+          "rank": 1,
+          "score": 0.530673
+        }
+      ],
+      "support_hit": true,
+      "contradiction_hit": false,
+      "partial_hit": true,
+      "irrelevant_hit_count": 0,
+      "required_fact_coverage": {
+        "required_fact_ids": [],
+        "covered": [],
+        "missing": [],
+        "ratio": 1.0
+      },
+      "retrieval_observation_class": "PARTIAL_EVIDENCE_HIT",
+      "retrieval_contract_valid": true,
+      "corpus_fixture_id": "ADV-CORPUS-PART-01",
+      "corpus_fingerprint": "c7101943318c7565b28c68dd2beeaa71c4268c6e7b96d34089e6d114ef7c4dfb",
+      "embedding_provider": "bge",
+      "embedding_model": "bge"
+    },
+    {
+      "case_id": "ADV-P1-CON-001",
+      "answerability_class": "CONFLICTED_EVIDENCE",
+      "corpus_truth": "CONFLICTED_EVIDENCE",
+      "retrieved_chunk_ids": [
+        "adv-ch-302",
+        "adv-ch-301"
+      ],
+      "retrieval_details": [
+        {
+          "chunk_id": "adv-ch-302",
+          "rank": 1,
+          "score": 0.781149
+        },
+        {
+          "chunk_id": "adv-ch-301",
+          "rank": 2,
+          "score": 0.735589
+        }
+      ],
+      "support_hit": true,
+      "contradiction_hit": true,
+      "partial_hit": false,
+      "irrelevant_hit_count": 0,
+      "required_fact_coverage": {
+        "required_fact_ids": [
+          "F-ADV-RET-30B",
+          "F-ADV-RET-90B"
+        ],
+        "covered": [
+          "F-ADV-RET-30B",
+          "F-ADV-RET-90B"
+        ],
+        "missing": [],
+        "ratio": 1.0
+      },
+      "retrieval_observation_class": "BOTH_SIDES_RETRIEVED",
+      "retrieval_contract_valid": true,
+      "corpus_fixture_id": "ADV-CORPUS-CON-01",
+      "corpus_fingerprint": "17058d0a45dc4fd79a250bd5401fa78c0aa0a772c3678ebb3dfcb2fca9fe74cd",
+      "embedding_provider": "bge",
+      "embedding_model": "bge"
+    }
+  ],
+  "errors": [],
+  "measurement_state": "PASS",
+  "ready_for_p4": true,
+  "ready_for_p4_reason": "p3_valid_for_layer_a",
+  "elapsed_seconds": 1.23,
+  "product_remediation": false
+}
