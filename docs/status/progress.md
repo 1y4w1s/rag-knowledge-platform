@@ -7,6 +7,21 @@
 
 ---
 
+## W9 P2-R1 · Full Frozen Offline Product Rerun（2026-08-24）⚠️ **VALID / PARTIAL / FROZEN**
+
+- **证据链**：原始 P2 `VALID / PARTIAL / FROZEN`（C11 `skipped_unavailable`）→ P2b PR #55
+  `PASS`（merge `0609f225`）→ P2-R1 独立复测；历史 artifact 未改写。
+- **结果**：frozen/executed/valid = **12/12/12**，passed = **11/12**，invalid = **0**；
+  safe outcome **12/12**，unsafe accept / hidden recovery / unaccounted recovery = **0/0/0**。
+- **C11**：`rules_v1` revision **1**、retrieval **0**，trajectory/audit/budget/final boundary 全通过。
+- **Stop condition**：C12 在 bounded retrieval 后的 post-recovery critic 输入仍保留 foreign-KB chunk；
+  首败 `L6_BUDGET_SCOPE_PROVENANCE_CORRECT`，分类 `PRODUCT_CONTROL_PLANE_FAILURE`。
+- **边界**：产品 runtime diff 0、Golden diff 0、workflow diff 0、external model NO、runtime rollout NO；
+  anti-degenerate controls 因产品 stop condition 未运行，P3 未启动。
+- **下一原子任务**：只做 C12 scope/provenance remediation 的设计评审与独立验证；不得在本测量 PR 内修产品。
+
+结果：`backend/tests/fixtures/l4_critic/w9-critic-p2-r1-offline-product.json`。
+
 ## V1.0 Convergence 状态（2026-08-23 · master `dffcd52`）
 
 | 能力线 | 状态 | Runtime rollout |

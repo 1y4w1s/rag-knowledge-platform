@@ -5,6 +5,16 @@
 
 ---
 
+## W9 当前门禁（2026-08-24）
+
+W9 P2-R1 已冻结为 **VALID / PARTIAL**：12 个冻结 case 全部执行，11 个通过，C12 在
+`L6_BUDGET_SCOPE_PROVENANCE_CORRECT` 暴露 post-recovery foreign-KB evidence retention；安全结果 12/12，
+产品 runtime diff 0，外部模型与 runtime rollout 均为 NO。P3 real-local **不得启动**。
+
+**下一唯一原子任务**：基于
+`docs/tasks/rag/w9-critic-p2-r1-next-remediation-analysis.md`（本轮后续生成）评审 C12 最小修复边界，
+另开产品 remediation 窗；不在 P2-R1 测量 PR 中实施。
+
 ## V1.0 Convergence — 当前程序状态（2026-08-23）
 
 **master @** `8a72c53f83a0e285effb5b40526d9a01e13dd3f9` · **阶段：** FINALIZATION PHASE · **Runtime rollout：** NO
