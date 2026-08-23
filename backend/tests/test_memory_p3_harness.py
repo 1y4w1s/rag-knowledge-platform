@@ -1,4 +1,4 @@
-"""Offline harness checks for MEMORY P3 (no LM Studio)."""
+"""Offline harness checks for MEMORY P3 freeze (no LM Studio)."""
 
 from __future__ import annotations
 
@@ -10,6 +10,15 @@ from app.eval.memory_capability.p3_flags import (
     apply_memory_p3_flags,
     assert_production_exposure_default,
     restore_memory_p3_flags,
+)
+from app.eval.memory_capability.p3_freeze import (
+    L3_SCORE,
+    L4_SCORE,
+    L5_SCORE,
+    MEMORY_P3_REAL_RUN_LINEAGE,
+    assert_artifact_matches_freeze,
+    assert_manifest_matches_constants,
+    load_p3_freeze_manifest,
 )
 from app.eval.memory_capability.p3_runner import CASE_IDS, EMPTY_IDS, SEEDED_IDS, _case_hash
 from tests.golden_agent_qa_loader import load_golden_agent_cases
@@ -44,6 +53,44 @@ def test_frozen_ga_memory_case_ids_and_hashes() -> None:
     assert _case_hash(cases["GA-9"]) != _case_hash(cases["GA-10"])
 
 
+def test_p3_freeze_manifest_invariants() -> None:
+    manifest = load_p3_freeze_manifest()
+    assert_manifest_matches_constants(manifest)
+    assert manifest["frozen_seeded_cases"] == ["GA-9", "GA-10"]
+    assert manifest["L3_EXPOSED"]["score"] == L3_SCORE
+    assert manifest["L4_UTILIZED"]["score"] == L4_SCORE
+    assert manifest["L5_TASK_BENEFIT"]["score"] == L5_SCORE
+    assert MEMORY_P3_REAL_RUN_LINEAGE == "VALID"
+    assert manifest["memory_p3_real_run_lineage"] == "VALID"
+    # Causal separation locked
+    assert manifest["lifecycle"]["L3_exposed"] is True
+    assert manifest["lifecycle"]["L4_utilized"] is False
+    assert manifest["lifecycle"]["L5_benefit"] is False
+    assert "EXPOSURE != UTILIZATION" in manifest["causal_separation"]["proof"]
+    assert "UTILIZATION != BENEFIT" in manifest["causal_separation"]["proof"]
+
+
+def test_p3_freeze_denominator_upgrade_from_p1() -> None:
+    """L3 valid measured denom; L4/L5 cannot remain P1 denom 0."""
+    manifest = load_p3_freeze_manifest()
+    dens = manifest["denominators"]
+    assert dens["L3"] == 10
+    assert dens["L4_utilization"] == 10
+    assert dens["L5_task_benefit"] == 10
+    assert dens["p1_superseded"]["L4_utilization"] == 0
+    assert dens["p1_superseded"]["L5_task_benefit"] == 0
+    assert dens["L4_utilization"] != dens["p1_superseded"]["L4_utilization"]
+    assert dens["L5_task_benefit"] != dens["p1_superseded"]["L5_task_benefit"]
+
+
+def test_p3_freeze_privacy_and_safety_zeros() -> None:
+    privacy = load_p3_freeze_manifest()["privacy_safety"]
+    assert privacy["plaintext_leakage"] == 0
+    assert privacy["wrong_run_step_memory_acceptance"] == 0
+    assert privacy["empty_memory_fake_exposure"] == 0
+    assert privacy["false_utilization"] == 0
+
+
 def test_real_capability_artifact_schema_if_present() -> None:
     root = Path(__file__).resolve().parents[2]
     candidates = [
@@ -58,8 +105,4 @@ def test_real_capability_artifact_schema_if_present() -> None:
         return
     data = json.loads(path.read_text(encoding="utf-8"))
     assert data["schema_version"] == "w8-memory-p3-real-capability-v1"
-    assert data["l3_proven"] is True
-    assert data["scored_model_trajectories"] == 30
-    assert data["privacy_audit"]["plaintext_in_trace"] == 0
-    assert data["product_remediation"] is False
-    assert data["runtime_rollout"] is False
+    assert_artifact_matches_freeze(data)
