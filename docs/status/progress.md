@@ -20,6 +20,15 @@
 
 **下一主线：** W9 Critic → W10 Multimodal → Final Benchmark → Flag Audit → Docs/Demo → RC → v1.0.0 tag
 
+### W9 P1 · Critic Control-Plane Hardening（2026-08-24）✅ **PASS / P2 READY**
+
+- **Base**：`cc3321e7a768426f7d7d665984dfbcba6140bf9f`（PR #52 / P0 ancestor confirmed）。
+- **架构裁决**：Agent critic 是 advisory；`_stream_generation_phase` 在 `_stream_agent_core` 下是唯一 recommendation/action owner；Legacy E2 与 L3/W6b 仍互斥。
+- **记账**：critic retrieval/revision/deadline failure 进入 canonical steps、`critic_actions`、EvidenceState、audit、latency 与 run usage；tool retry=0。
+- **最终边界**：critic ON 时 Fast/Agent 缓冲 draft，只发布/持久化最终候选；citation regeneration 在 critic 前完成；中断不落未验证草稿。
+- **默认/边界**：沿用现有默认 OFF flags；Golden diff 0；workflow diff 0；LM Studio NO；Runtime rollout NO；Real-local measurement NO。
+- **下一原子任务**：W9 P2 — Offline Critic Product Experiment。
+
 **停手项（非 active TODO）：** ADV P0–P5 · TOOL selection remediation · MEMORY remediation · T2 broadening · MCP / horizontal expansion
 
 ---

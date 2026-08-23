@@ -209,21 +209,45 @@ class ChatEngine:
         async for text in stream_degraded_fragment_reply(self.message, self.chunks):
             if text:
                 parts.append(text)
-                self.collected_text += text
-                yield {"event": "token", "data": {"text": text}}
+                if not settings.rag_critic_enabled:
+                    self.collected_text += text
+                    yield {"event": "token", "data": {"text": text}}
 
         content = "".join(parts)
+        critic_fail_closed = False
+        if settings.rag_critic_enabled and self.chunks:
+            from app.services.rag.critic import run_critic
+
+            critic_result = await run_critic(content, self.chunks, self.message)
+            if not critic_result.ok:
+                on_fail = (settings.rag_critic_on_fail or "fail_closed").strip().lower()
+                if on_fail == "annotate_only":
+                    logger.info(
+                        "module=rag_critic operation=annotate_only label=%s rationale=%s",
+                        critic_result.label,
+                        critic_result.rationale,
+                    )
+                else:
+                    content = no_context_reply_for(self.message)
+                    self.citations = []
+                    critic_fail_closed = True
         safe_out, _ = output_safety_check(content)
         if not safe_out:
             yield {"event": "error", "data": {"detail": "回答被安全策略拦截"}}
             return
 
-        fn = workspace_chunk_to_citation if self._is_workspace() else chunk_to_citation
-        self.citations = align_citations_to_answer(
-            content,
-            self.chunks,
-            to_citation=fn,
-        )
+        if not critic_fail_closed:
+            fn = workspace_chunk_to_citation if self._is_workspace() else chunk_to_citation
+            self.citations = align_citations_to_answer(
+                content,
+                self.chunks,
+                to_citation=fn,
+            )
+        if settings.rag_critic_enabled:
+            self.collected_text = content
+            for citation in self.citations:
+                yield {"event": "citation", "data": citation}
+            yield {"event": "token", "data": {"text": content}}
         message_id = await self._save(content, self.citations)
         done: dict = {"citations": self.citations}
         if message_id is not None:
@@ -242,8 +266,9 @@ class ChatEngine:
             return
 
         self.citations = self._make_citations()
-        for c in self.citations:
-            yield {"event": "citation", "data": c}
+        if not settings.rag_critic_enabled:
+            for c in self.citations:
+                yield {"event": "citation", "data": c}
 
         # L1：LLM 全挂或未配置任何 chat provider key 时，
         # 在 compress/build_messages 之前切换确定性降级回答
@@ -271,7 +296,7 @@ class ChatEngine:
             messages,
             str(self.user_id),
         )
-        if cached is not None:
+        if cached is not None and not settings.rag_critic_enabled:
             self.citations = cached.get("citations", self.citations)
             content = cached.get("content", "")
             if content:
@@ -288,14 +313,16 @@ class ChatEngine:
             disclaimer = partial_answer_disclaimer_for(self.message)
             token_parts.append(disclaimer)
             token_parts.append("\n\n")
-            yield {"event": "token", "data": {"text": disclaimer + "\n\n"}}
+            if not settings.rag_critic_enabled:
+                yield {"event": "token", "data": {"text": disclaimer + "\n\n"}}
 
         try:
             async for text in stream_deepseek_tokens(messages):
                 if text:
                     token_parts.append(text)
-                    self.collected_text += text
-                    yield {"event": "token", "data": {"text": text}}
+                    if not settings.rag_critic_enabled:
+                        self.collected_text += text
+                        yield {"event": "token", "data": {"text": text}}
         except Exception as exc:
             # L1 异常兜底：provider 双失败把熔断器打开后的竞态窗口切到降级流
             logger.warning(
@@ -313,51 +340,15 @@ class ChatEngine:
             yield {"event": "error", "data": {"detail": "回答被安全策略拦截"}}
             return
 
-        # ── G1 Critic（默认关）：规则 claim 先于贵价 self_verify；llm mode 与 verify 互斥 ──
-        critic_ran_llm = False
-        if settings.rag_critic_enabled and self.chunks:
-            from app.services.rag.critic import run_critic
-
-            body_for_critic = content
-            if confidence is AnswerConfidence.low:
-                prefix = partial_answer_disclaimer_for(self.message) + "\n\n"
-                if body_for_critic.startswith(prefix):
-                    body_for_critic = body_for_critic[len(prefix) :]
-
-            critic_result = await run_critic(
-                body_for_critic, self.chunks, self.message
-            )
-            critic_ran_llm = (
-                settings.rag_critic_mode or ""
-            ).strip().lower() == "llm"
-            if not critic_result.ok:
-                on_fail = (settings.rag_critic_on_fail or "fail_closed").strip().lower()
-                if on_fail == "annotate_only":
-                    logger.info(
-                        "module=rag_critic operation=annotate_only label=%s rationale=%s",
-                        critic_result.label,
-                        critic_result.rationale,
-                    )
-                elif critic_result.corrected:
-                    content = (
-                        with_partial_disclaimer(self.message, critic_result.corrected)
-                        if confidence is AnswerConfidence.low
-                        else critic_result.corrected
-                    )
-                    yield {"event": "correction", "data": {"text": content}}
-                else:
-                    # 对齐 P2-04：失败且无纠正稿 → fail-closed 拒答
-                    content = no_context_reply_for(self.message)
-                    self.citations = []
-                    yield {"event": "correction", "data": {"text": content}}
-                    message_id = await self._save(content, [])
-                    done = {"citations": []}
-                    if message_id is not None:
-                        done["message_id"] = str(message_id)
-                    yield {"event": "done", "data": done}
-                    return
-
-        if settings.self_verify_enabled and self.chunks and not critic_ran_llm:
+        critic_owns_semantic_check = (
+            settings.rag_critic_enabled
+            and (settings.rag_critic_mode or "").strip().lower() == "llm"
+        )
+        if (
+            settings.self_verify_enabled
+            and self.chunks
+            and not critic_owns_semantic_check
+        ):
             from app.services.rag.generation import verify_answer
 
             # 校验只看模型正文，避免 disclaimer 干扰；落库仍保留前缀
@@ -376,19 +367,22 @@ class ChatEngine:
                     if confidence is AnswerConfidence.low
                     else corrected
                 )
-                yield {"event": "correction", "data": {"text": content}}
+                if not settings.rag_critic_enabled:
+                    yield {"event": "correction", "data": {"text": content}}
             elif not verified:
                 # M9-P2-1（P2-04）：verify 失败且无纠正稿 → fail-closed，
                 # 不保留未验证正文，按 R4-2 拒答口径替换并清空引用
                 content = no_context_reply_for(self.message)
                 self.citations = []
-                yield {"event": "correction", "data": {"text": content}}
-                message_id = await self._save(content, [])
-                done = {"citations": []}
-                if message_id is not None:
-                    done["message_id"] = str(message_id)
-                yield {"event": "done", "data": done}
-                return
+                if not settings.rag_critic_enabled:
+                    yield {"event": "correction", "data": {"text": content}}
+                if not settings.rag_critic_enabled:
+                    message_id = await self._save(content, [])
+                    done = {"citations": []}
+                    if message_id is not None:
+                        done["message_id"] = str(message_id)
+                    yield {"event": "done", "data": done}
+                    return
 
         # ── 第2层：引用密度校验 + 低密度重生成（上限 = citation_density_regenerate_limit）─────
         density_passed = True
@@ -462,9 +456,48 @@ class ChatEngine:
             async for text in stream_deepseek_tokens(regen_messages):
                 if text:
                     token_parts.append(text)
-                    yield {"event": "token", "data": {"text": text}}
+                    if not settings.rag_critic_enabled:
+                        yield {"event": "token", "data": {"text": text}}
 
             content = "".join(token_parts)
+
+        # W9 P1: semantic critic evaluates the last deterministically-mutated candidate.
+        if settings.rag_critic_enabled and self.chunks:
+            from app.services.rag.critic import run_critic
+
+            body_for_critic = content
+            if confidence is AnswerConfidence.low:
+                prefix = partial_answer_disclaimer_for(self.message) + "\n\n"
+                if body_for_critic.startswith(prefix):
+                    body_for_critic = body_for_critic[len(prefix) :]
+            critic_result = await run_critic(
+                body_for_critic, self.chunks, self.message
+            )
+            if not critic_result.ok:
+                on_fail = (settings.rag_critic_on_fail or "fail_closed").strip().lower()
+                if on_fail == "annotate_only":
+                    logger.info(
+                        "module=rag_critic operation=annotate_only label=%s rationale=%s",
+                        critic_result.label,
+                        critic_result.rationale,
+                    )
+                else:
+                    content = no_context_reply_for(self.message)
+                    self.citations = []
+                    self.collected_text = content
+                    yield {"event": "token", "data": {"text": content}}
+                    message_id = await self._save(content, [])
+                    done = {"citations": []}
+                    if message_id is not None:
+                        done["message_id"] = str(message_id)
+                    yield {"event": "done", "data": done}
+                    return
+
+        if settings.rag_critic_enabled:
+            safe_out, _ = output_safety_check(content)
+            if not safe_out:
+                yield {"event": "error", "data": {"detail": "回答被安全策略拦截"}}
+                return
 
         # F1：流式 citation 为候选；done/落库按正文 [片段N] 硬对齐（漏标 keep-all）
         fn = workspace_chunk_to_citation if self._is_workspace() else chunk_to_citation
@@ -479,6 +512,12 @@ class ChatEngine:
             to_citation=fn,
             strip_prefix=strip,
         )
+
+        if settings.rag_critic_enabled:
+            self.collected_text = content
+            for citation in self.citations:
+                yield {"event": "citation", "data": citation}
+            yield {"event": "token", "data": {"text": content}}
 
         message_id = await self._save(content, self.citations)
 

@@ -135,6 +135,40 @@ async def audit_agent_tool_replanned(
     )
 
 
+async def audit_agent_recovery_action(
+    db: AsyncSession,
+    *,
+    actor_user_id: UUID,
+    run_id: UUID,
+    action: str,
+    status: str,
+    budget_before: int,
+    budget_after: int,
+    step: int | None = None,
+    attempt_count: int = 0,
+) -> None:
+    """Record a critic-advised action without answer/evidence raw text."""
+    metadata: dict[str, str | int] = {
+        "run_id": str(run_id),
+        "owner": "agent_stream_outer_owner",
+        "action": action,
+        "status": status,
+        "budget_before": budget_before,
+        "budget_after": budget_after,
+        "attempt_count": attempt_count,
+    }
+    if step is not None:
+        metadata["step"] = step
+    await write_audit_log(
+        db,
+        action="agent.recovery_action",
+        actor_user_id=actor_user_id,
+        resource_type="agent_run",
+        resource_id=run_id,
+        metadata=metadata,
+    )
+
+
 async def audit_agent_run_completed(
     db: AsyncSession,
     *,

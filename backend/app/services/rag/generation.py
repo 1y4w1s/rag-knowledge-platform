@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import re
 from collections.abc import AsyncIterator
-from dataclasses import replace
+from dataclasses import dataclass, replace
 
 from app.core.config import settings
 from app.services.rag.chat_llm import stream_deepseek_tokens
@@ -750,31 +750,38 @@ CORRECTIVE_PROMPT = """你的上一条回答包含不受检索片段支持的事
 _REJECTION_PREFIXES = ("知识库中未找到", "No relevant content was found")
 
 
+@dataclass(frozen=True, slots=True)
+class AnswerVerification:
+    """Pure answer judgment; correction generation is owned by the caller."""
+
+    verified: bool
+    issues: tuple[str, ...] = ()
+    degraded: bool = False
+
+
 def _is_rejection_answer(answer: str) -> bool:
     """判断回答是否为拒答。"""
     return any(answer.strip().startswith(p) for p in _REJECTION_PREFIXES)
 
 
-async def verify_answer(
+async def inspect_answer(
     answer: str,
     chunks: list[RetrievedChunk],
     query: str,
     max_chunks: int = 5,
-) -> tuple[bool, str | None]:
-    """验证生成答案是否与检索片段一致。
-
-    Returns:
-        (verified, corrected_answer)
-        - verified=True  → 答案通过验证，corrected 为 None
-        - verified=False → 答案存在不受支持的断言
-        - corrected      为纠正后的答案（None 表示无纠正）
-    """
+) -> AnswerVerification:
+    """Judge the answer without executing a revision or retry loop."""
+    del query
     # 拒答不验证
     if _is_rejection_answer(answer):
-        return True, None
-    # 无 LLM key 时兜底文案不是验证结果；无法验证时按通过处理。
+        return AnswerVerification(verified=True)
+    # Judgment callers must distinguish unavailable verification from a pass.
     if not (settings.deepseek_api_key or settings.tongyi_api_key):
-        return True, None
+        return AnswerVerification(
+            verified=False,
+            issues=("semantic critic unavailable",),
+            degraded=True,
+        )
 
     # 使用最多 max_chunks 个 chunks
     chunks_text = "\n---\n".join(
@@ -796,17 +803,70 @@ async def verify_answer(
         m = re.search(r"\{[^{}]*\}", result)
         if m:
             parsed = json.loads(m.group())
-            if parsed.get("verified", True):
-                return True, None
-
-            # 验证失败，生成纠正
-            issues_text = "\n".join(parsed.get("issues", ["回答包含不受检索片段支持的事实"]))
-            corrected = await _correct_answer(answer, chunks, query, issues_text, max_chunks)
-            return False, corrected
-
-        return True, None
+            verified = parsed.get("verified")
+            if verified is True:
+                return AnswerVerification(verified=True)
+            if verified is False:
+                issues = tuple(
+                    str(item).strip()
+                    for item in parsed.get(
+                        "issues", ["回答包含不受检索片段支持的事实"]
+                    )
+                    if str(item).strip()
+                )
+                return AnswerVerification(
+                    verified=False,
+                    issues=issues or ("回答包含不受检索片段支持的事实",),
+                )
+        return AnswerVerification(
+            verified=False,
+            issues=("semantic critic returned invalid structured output",),
+            degraded=True,
+        )
     except Exception:
+        return AnswerVerification(
+            verified=False,
+            issues=("semantic critic execution failed",),
+            degraded=True,
+        )
+
+
+async def verify_answer(
+    answer: str,
+    chunks: list[RetrievedChunk],
+    query: str,
+    max_chunks: int = 5,
+) -> tuple[bool, str | None]:
+    """Backward-compatible self-verify wrapper with caller-owned correction."""
+    verification = await inspect_answer(answer, chunks, query, max_chunks)
+    # Preserve the existing self-verify fail-open behavior outside the critic boundary.
+    if verification.verified or verification.degraded:
         return True, None
+    corrected = await revise_answer_from_existing_evidence(
+        answer,
+        chunks,
+        query,
+        "\n".join(verification.issues),
+        max_chunks,
+    )
+    return False, corrected
+
+
+async def revise_answer_from_existing_evidence(
+    wrong_answer: str,
+    chunks: list[RetrievedChunk],
+    query: str,
+    issues_text: str,
+    max_chunks: int = 5,
+) -> str | None:
+    """Explicit mutation action for an outer orchestration owner."""
+    return await _correct_answer(
+        wrong_answer,
+        chunks,
+        query,
+        issues_text,
+        max_chunks,
+    )
 
 
 async def _correct_answer(

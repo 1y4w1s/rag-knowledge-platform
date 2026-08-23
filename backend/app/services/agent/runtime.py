@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import time
@@ -25,8 +26,13 @@ from app.services.agent.memory import (
     format_memory_context,
 )
 from app.services.agent.planners import LLMPlanner, NextActionPlanner
-from app.services.agent.state import init_agent_state, reduce_observation
+from app.services.agent.state import (
+    init_agent_state,
+    reduce_observation,
+    update_evidence_state,
+)
 from app.services.audit.agent import (
+    audit_agent_recovery_action,
     audit_agent_reflection,
     audit_agent_run_started,
     audit_agent_tool_denied,
@@ -44,7 +50,6 @@ from app.services.agent.runs import (
 from app.services.agent.tools import (
     AgentToolName,
     ReadOnlyToolName,
-    SemanticSearchOutput,
     UnknownToolError,
     parse_agent_tool,
     run_compare_chunks,
@@ -79,6 +84,8 @@ from app.services.agent.types import (
     AgentDecision,
     AgentRunOutcome,
     AgentStepRecord,
+    CriticActionRecord,
+    EvidenceState,
     StepExecution,
     ToolCallPlan,
     ToolFailure,
@@ -342,6 +349,13 @@ def _record_tool_metric(tool_name: str, execution: StepExecution) -> None:
     record_agent_tool_latency(tool_name, float(execution.latency_ms))
 
 
+def _evidence_from_records(records: list[AgentStepRecord]) -> EvidenceState:
+    evidence = EvidenceState()
+    for record in records:
+        evidence = update_evidence_state(evidence, record)
+    return evidence
+
+
 async def _execute_step(
     db: AsyncSession,
     *,
@@ -354,6 +368,7 @@ async def _execute_step(
     run_id: UUID,
     thread_id: UUID,
     user_id: UUID,
+    max_retries: int | None = None,
 ) -> StepExecution:
     t0 = time.perf_counter()
     try:
@@ -394,7 +409,9 @@ async def _execute_step(
             run_id=run_id,
             thread_id=thread_id,
             user_id=user_id,
-            max_retries=settings.retry_max_attempts,
+            max_retries=(
+                settings.retry_max_attempts if max_retries is None else max_retries
+            ),
             base_delay=settings.retry_base_delay,
             breaker_name=breaker_name,
         )
@@ -611,49 +628,245 @@ async def _run_recovery_search(
         return None, None
 
 
-async def execute_critic_directed_retrieval(
+async def execute_accounted_recovery_step(
     db: AsyncSession,
     *,
+    outcome: AgentRunOutcome,
     decision: AgentDecision,
+    user_id: UUID,
+    thread_id: UUID,
     workspace: WorkspaceScope,
     tool_scope: AgentToolScope,
+    hooks: ToolRuntimeHooks | None = None,
     org_scope: OrgScope | None = None,
-) -> SemanticSearchOutput | None:
-    """L3-W7：执行 Critic 定向 semantic_search（生成后回流；不重开已终态 run）。
-
-    仅接受 reason_code=critic_directed_retrieve 的 tool Decision；失败/空命中返回 None。
-    """
+    current_user: CurrentUser | None = None,
+) -> AgentRunOutcome:
+    """Execute one critic-advised tool action in the canonical Agent trajectory."""
     if (
         decision.action != AgentActionKind.tool
-        or decision.tool_name != "semantic_search"
+        or decision.tool_name != ReadOnlyToolName.semantic_search.value
         or decision.reason_code != "critic_directed_retrieve"
     ):
-        return None
-    query = str(decision.args.get("query", "")).strip()
-    if not query:
-        return None
-    raw_kb_ids = decision.args.get("kb_ids")
-    kb_ids = (
-        [UUID(str(item)) for item in raw_kb_ids] if raw_kb_ids else None
-    )
-    try:
-        result = await run_semantic_search(
+        return outcome
+    budget_before = max(0, outcome.max_steps - outcome.steps_used)
+    if outcome.critic_recovery_count >= 1 or outcome.steps_used >= outcome.max_steps:
+        await audit_agent_recovery_action(
             db,
-            workspace,
-            tool_scope,
-            query=query,
-            org_scope=org_scope,
-            kb_ids=kb_ids,
-            top_k=decision.args.get("top_k"),
+            actor_user_id=user_id,
+            run_id=outcome.run_id,
+            action="RETRIEVE_MISSING_EVIDENCE",
+            status="budget_exhausted",
+            budget_before=budget_before,
+            budget_after=budget_before,
         )
-    except Exception:
-        logger.warning("critic directed retrieval failed", exc_info=True)
-        return None
-    if not result.ok or result.data is None:
-        return None
-    if not isinstance(result.data, SemanticSearchOutput) or not result.data.hits:
-        return None
-    return result.data
+        return replace(
+            outcome,
+            critic_actions=(
+                *outcome.critic_actions,
+                CriticActionRecord(
+                    action="RETRIEVE_MISSING_EVIDENCE",
+                    status="budget_exhausted",
+                    attempt_count=0,
+                    reason_code=decision.reason_code,
+                ),
+            ),
+        )
+    if (
+        outcome.deadline_monotonic is not None
+        and time.monotonic() >= outcome.deadline_monotonic
+    ):
+        await audit_agent_recovery_action(
+            db,
+            actor_user_id=user_id,
+            run_id=outcome.run_id,
+            action="RETRIEVE_MISSING_EVIDENCE",
+            status="deadline_exhausted",
+            budget_before=budget_before,
+            budget_after=budget_before,
+        )
+        return replace(
+            outcome,
+            timed_out=True,
+            critic_actions=(
+                *outcome.critic_actions,
+                CriticActionRecord(
+                    action="RETRIEVE_MISSING_EVIDENCE",
+                    status="deadline_exhausted",
+                    attempt_count=0,
+                    reason_code=decision.reason_code,
+                ),
+            ),
+        )
+
+    effective_hooks = hooks or _NoopHooks()
+    step_index = outcome.steps_used + 1
+    args = _json_safe_args(decision.args)
+    await effective_hooks.on_tool_start(
+        ToolStartEvent(
+            step=step_index,
+            tool=decision.tool_name,
+            args_summary=build_args_summary(decision.tool_name, args),
+        )
+    )
+    db_step = await create_agent_step(
+        db,
+        run_id=outcome.run_id,
+        user_id=user_id,
+        step_index=step_index,
+        tool_name=decision.tool_name,
+        args_json=args,
+    )
+    deadline_timed_out = False
+    recovery_started = time.perf_counter()
+    try:
+        execute_coro = _execute_step(
+            db,
+            workspace=workspace,
+            tool_scope=tool_scope,
+            org_scope=org_scope,
+            current_user=current_user,
+            tool_name=decision.tool_name,
+            args=args,
+            run_id=outcome.run_id,
+            thread_id=thread_id,
+            user_id=user_id,
+            max_retries=0,
+        )
+        if outcome.deadline_monotonic is not None:
+            execution = await asyncio.wait_for(
+                execute_coro,
+                timeout=max(
+                    0.001,
+                    outcome.deadline_monotonic - time.monotonic(),
+                ),
+            )
+        else:
+            execution = await execute_coro
+    except TimeoutError:
+        deadline_timed_out = True
+        execution = StepExecution(
+            ok=False,
+            summary="runtime deadline exhausted",
+            latency_ms=max(
+                1,
+                int((time.perf_counter() - recovery_started) * 1000),
+            ),
+            data=None,
+            failure=ToolFailure(
+                kind=ToolFailureKind.infra,
+                tool_name=decision.tool_name,
+                summary="runtime deadline exhausted",
+                reason="critic recovery exceeded the shared deadline",
+            ),
+        )
+        _record_tool_metric(decision.tool_name, execution)
+    if db_step is not None:
+        await finish_agent_step(
+            db,
+            step_id=db_step.id,
+            user_id=user_id,
+            ok=execution.ok,
+            result_summary=execution.summary,
+            latency_ms=execution.latency_ms,
+        )
+    await audit_agent_tool_executed(
+        db,
+        actor_user_id=user_id,
+        run_id=outcome.run_id,
+        step=step_index,
+        tool=decision.tool_name,
+        ok=execution.ok,
+        latency_ms=execution.latency_ms,
+    )
+    if not execution.ok and execution.summary == FORBIDDEN_KB_SUMMARY:
+        await audit_agent_tool_denied(
+            db,
+            actor_user_id=user_id,
+            run_id=outcome.run_id,
+            tool=decision.tool_name,
+        )
+
+    record = AgentStepRecord(
+        step_index=step_index,
+        tool_name=decision.tool_name,
+        args=args,
+        ok=execution.ok,
+        summary=execution.summary,
+        latency_ms=execution.latency_ms,
+        step_id=db_step.id if db_step is not None else None,
+        data=execution.data,
+        origin="critic_recovery",
+        attempt_count=1,
+    )
+    evidence = update_evidence_state(outcome.evidence_state, record)
+    from app.services.agent.matcher_runtime import (
+        maybe_apply_evidence_match_to_evidence,
+    )
+
+    evidence = maybe_apply_evidence_match_to_evidence(evidence, execution)
+    steps_used = step_index
+    updated = replace(
+        outcome,
+        steps_used=steps_used,
+        capped=steps_used >= outcome.max_steps,
+        timed_out=outcome.timed_out or deadline_timed_out,
+        steps=(*outcome.steps, record),
+        evidence_state=evidence,
+        critic_recovery_count=outcome.critic_recovery_count + 1,
+        critic_actions=(
+            *outcome.critic_actions,
+            CriticActionRecord(
+                action="RETRIEVE_MISSING_EVIDENCE",
+                status=(
+                    "deadline_exhausted"
+                    if deadline_timed_out
+                    else ("executed" if execution.ok else "failed")
+                ),
+                attempt_count=1,
+                reason_code=decision.reason_code,
+                step_index=step_index,
+            ),
+        ),
+    )
+    await update_agent_run_steps_used(
+        db,
+        run_id=outcome.run_id,
+        user_id=user_id,
+        steps_used=steps_used,
+    )
+    await audit_agent_recovery_action(
+        db,
+        actor_user_id=user_id,
+        run_id=outcome.run_id,
+        action="RETRIEVE_MISSING_EVIDENCE",
+        status=(
+            "deadline_exhausted"
+            if deadline_timed_out
+            else ("executed" if execution.ok else "failed")
+        ),
+        budget_before=budget_before,
+        budget_after=max(0, outcome.max_steps - steps_used),
+        step=step_index,
+        attempt_count=1,
+    )
+    await effective_hooks.on_tool_result(
+        ToolResultEvent(
+            step=step_index,
+            tool=decision.tool_name,
+            ok=execution.ok,
+            summary=execution.summary,
+            latency_ms=execution.latency_ms,
+            capped=updated.capped,
+        )
+    )
+    await effective_hooks.on_agent_budget(
+        AgentBudgetEvent(
+            steps_used=steps_used,
+            max_steps=outcome.max_steps,
+            capped=updated.capped,
+        )
+    )
+    return updated
 
 
 async def guard_sub_query_drift(
@@ -907,6 +1120,7 @@ async def run_react_loop(
     max_steps: int = DEFAULT_MAX_STEPS,
     timeout_seconds: float = DEFAULT_RUN_TIMEOUT_SECONDS,
     mode: AgentRunMode = AgentRunMode.thorough,
+    defer_finish: bool = False,
 ) -> AgentRunOutcome:
     """ReAct 只读 tool 循环 · 每步 agent_budget · 终态 capped/completed 落库。
 
@@ -962,12 +1176,13 @@ async def run_react_loop(
             logger.exception("run_react_loop 异常兜底落库失败: run=%s", run.id)
         raise
 
-    await finish_react_run(
-        db,
-        run_id=run.id,
-        user_id=user_id,
-        outcome=outcome,
-    )
+    if not defer_finish:
+        await finish_react_run(
+            db,
+            run_id=run.id,
+            user_id=user_id,
+            outcome=outcome,
+        )
     return outcome
 
 
@@ -1302,6 +1517,9 @@ async def _run_l3_next_action_loop(
         steps=tuple(records),
         low_confidence=_detect_low_confidence(records),
         terminal_decision=terminal_decision,
+        evidence_state=state.evidence,
+        deadline_monotonic=deadline,
+        reflection_count=state.reflection_count,
     )
 
 
@@ -1896,5 +2114,8 @@ async def _run_react_loop_until_outcome(
         low_confidence=_detect_low_confidence(records),
         tool_fallback_count=tool_fallback_count,
         tool_replanned=replan_count,
+        evidence_state=_evidence_from_records(records),
+        deadline_monotonic=deadline,
+        reflection_count=reflection_count,
     )
     return outcome

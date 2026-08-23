@@ -43,6 +43,7 @@ class SemanticSearchHit:
     section_title: str | None
     excerpt: str
     score: float
+    document_id: UUID | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,6 +69,7 @@ def _chunk_to_hit(chunk: RetrievedChunk, kb_names: dict[UUID, str]) -> SemanticS
         section_title=chunk.section_title,
         excerpt=_excerpt(chunk.content),
         score=chunk.similarity,
+        document_id=chunk.document_id,
     )
 
 
