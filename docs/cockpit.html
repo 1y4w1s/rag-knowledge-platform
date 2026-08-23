@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>索隐 · V1.0 驾驶�?/title>
+  <style>
+    :root {
+      --bg: #faf8f5;
+      --surface: #fff;
+      --text: #2c2419;
+      --muted: #6b5f52;
+      --accent: #8b6914;
+      --border: #e8e0d4;
+      --closed: #4a6741;
+      --next: #8b6914;
+      --queued: #6b5f52;
+      --warn: #9a6b2f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 2rem 1.5rem 3rem;
+      line-height: 1.5;
+    }
+    h1 { font-size: 1.75rem; margin: 0 0 0.25rem; }
+    .meta { color: var(--muted); font-size: 0.9rem; margin-bottom: 2rem; }
+    .meta code { background: var(--surface); padding: 0.1rem 0.35rem; border-radius: 4px; border: 1px solid var(--border); }
+    section { margin-bottom: 2rem; }
+    h2 { font-size: 1.1rem; border-bottom: 2px solid var(--border); padding-bottom: 0.35rem; margin-bottom: 1rem; }
+    table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; font-size: 0.92rem; }
+    th, td { padding: 0.65rem 0.85rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { background: #f3ede4; font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.78rem; font-weight: 600; white-space: nowrap; }
+    .closed { background: #e8f0e6; color: var(--closed); }
+    .frozen { background: #ebe4f0; color: #5a4a6b; }
+    .next { background: #f5eed8; color: var(--next); }
+    .queued { background: #eee; color: var(--queued); }
+    .no { background: #fdecea; color: #8b3a3a; }
+    ul.links { list-style: none; padding: 0; margin: 0; }
+    ul.links li { margin: 0.35rem 0; }
+    ul.links a { color: var(--accent); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; }
+    .card h3 { margin: 0 0 0.5rem; font-size: 0.95rem; }
+    .card p { margin: 0; font-size: 0.88rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <h1>索隐 · V1.0 驾驶�?/h1>
+  <p class="meta">
+    更新�?026-08-23 · master <code>dffcd52</code> ·
+    <strong>V1.0 convergence：FINALIZATION PHASE</strong> ·
+    Runtime rollout�?strong>NO</strong>
+  </p>
+
+  <section>
+    <h2>V1.0 Core Capability Status</h2>
+    <table>
+      <thead>
+        <tr><th>能力�?/th><th>状�?/th><th>要点</th><th>Rollout</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Retrieval / Evidence</td>
+          <td><span class="badge closed">CLOSED</span></td>
+          <td>Golden Hit@3 门禁 · Enterprise 观测基线</td>
+          <td><span class="badge no">NO</span></td>
+        </tr>
+        <tr>
+          <td>T2 Termination</td>
+          <td><span class="badge closed">CLOSED_FOR_V1_0</span></td>
+          <td>GQ-132/149 real-validated（denominator 2）；broader NOT_MEASURABLE</td>
+          <td><span class="badge no">NO</span></td>
+        </tr>
+        <tr>
+          <td>TOOL Termination</td>
+          <td><span class="badge frozen">CLOSED / CHARACTERIZED</span></td>
+          <td>P2 primary 0/3 · safe · TRUSTWORTHY</td>
+          <td><span class="badge no">NO</span></td>
+        </tr>
+        <tr>
+          <td>TOOL Selection</td>
+          <td><span class="badge closed">CLOSED / BOUNDARY</span></td>
+          <td>S2/S3A NO_MEASURABLE_GAIN · GQ-131 model boundary</td>
+          <td><span class="badge no">NO</span></td>
+        </tr>
+        <tr>
+          <td>MEMORY</td>
+          <td><span class="badge closed">CLOSED / BOUNDARY</span></td>
+          <td>L3 10/10 · L4/L5 0/10 · C1 no gain · C2 NO_GO</td>
+          <td><span class="badge no">NO</span></td>
+        </tr>
+        <tr>
+          <td>ADVERSARIAL</td>
+          <td><span class="badge frozen">FROZEN / CHARACTERIZED</span></td>
+          <td>4-strata panel primary 2/4 · trials 10/20 · unsafe 0</td>
+          <td><span class="badge no">NO</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>ADVERSARIAL · Frozen Panel（denominator 4�?/h2>
+    <table>
+      <thead>
+        <tr><th>Case</th><th>Stratum</th><th>Layer R</th><th>Layer A trials</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>ADV-P1-ANS-001</td><td>ANSWERABLE</td><td>SUPPORT_RETRIEVED</td><td>0/5</td></tr>
+        <tr><td>ADV-P1-UNA-001</td><td>UNANSWERABLE_IN_CORPUS</td><td>TOPIC_HITS</td><td>5/5</td></tr>
+        <tr><td>ADV-P1-PART-001</td><td>INSUFFICIENT_EVIDENCE</td><td>PARTIAL_HIT</td><td>5/5</td></tr>
+        <tr><td>ADV-P1-CON-001</td><td>CONFLICTED_EVIDENCE</td><td>BOTH_SIDES</td><td>0/5</td></tr>
+      </tbody>
+    </table>
+    <p class="meta" style="margin-top:0.75rem">Remediation�?strong>DEFER</strong> · 不得泛化�?universal adversarial capability</p>
+  </section>
+
+  <section>
+    <h2>下一 V1.0 主线</h2>
+    <table>
+      <thead><tr><th>#</th><th>任务</th><th>状�?/th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>W9 Critic Hardening</td><td><span class="badge next">NEXT</span></td></tr>
+        <tr><td>2</td><td>W10 Multimodal Vertical Slice</td><td><span class="badge queued">QUEUED</span></td></tr>
+        <tr><td>3</td><td>Final Frozen Benchmark</td><td><span class="badge queued">QUEUED</span></td></tr>
+        <tr><td>4</td><td>Feature Flag / Rollout Audit</td><td><span class="badge queued">QUEUED</span></td></tr>
+        <tr><td>5</td><td>README / Architecture / Benchmark 终对�?/td><td><span class="badge queued">QUEUED</span></td></tr>
+        <tr><td>6</td><td>Demo / Reproducibility</td><td><span class="badge queued">QUEUED</span></td></tr>
+        <tr><td>7</td><td>V1.0 RC feature freeze</td><td><span class="badge queued">QUEUED</span></td></tr>
+        <tr><td>8</td><td>v1.0.0 tag</td><td><span class="badge queued">QUEUED</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>权威文档</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>V1.0 状态汇�?/h3>
+        <p><a href="status/v1-convergence-status-2026-08-23.md">v1-convergence-status-2026-08-23.md</a></p>
+      </div>
+      <div class="card">
+        <h3>ADV 结题报告</h3>
+        <p><a href="status/adversarial-v1-convergence-2026-08-23.md">adversarial-v1-convergence-2026-08-23.md</a></p>
+      </div>
+      <div class="card">
+        <h3>Known Limitations</h3>
+        <p><a href="status/v1-known-limitations.md">v1-known-limitations.md</a></p>
+      </div>
+      <div class="card">
+        <h3>进度日志</h3>
+        <p><a href="status/progress.md">progress.md</a> · <a href="remaining-plan.md">remaining-plan.md</a></p>
+      </div>
+    </div>
+  </section>
+</body>
+</html>
