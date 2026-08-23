@@ -1,0 +1,181 @@
+{
+  "schema_version": "l4-memory-c2-evidence-gate-v1",
+  "stage": "MEMORY_C2_GO_NO_GO_EVIDENCE_AUDIT",
+  "audit_mode": "CPU_DETERMINISTIC_ARTIFACT_ONLY",
+  "gpu_lane": "NONE",
+  "round_start_master_sha": "d3b645fc47d6ee035aa1bed5dba9eca11d6767d1",
+  "state": "PASS",
+  "decision": "NO_GO",
+  "product_experiment": "NOT_JUSTIFIED_FOR_V1_0",
+  "offline_proxy_confidence": "DOWNGRADED",
+  "c2_status": "NOT_PURSUED_IN_V1_0",
+  "frozen_subset": {
+    "seeded_cases": [
+      "GA-9",
+      "GA-10"
+    ],
+    "empty_controls": [
+      "GA-11",
+      "GA-12"
+    ],
+    "model": "zai-org/glm-4.6v-flash",
+    "thinking": "OFF"
+  },
+  "inputs_discounted": {
+    "c1_real_local": {
+      "classification": "NO_MEASURABLE_GAIN",
+      "lineage_commit": "9e63e6151416b3fbc0eac1a01424b24fd26b7537",
+      "pushed": false,
+      "L3": {
+        "OFF_WITH_MEMORY": "10/10",
+        "ON_WITH_MEMORY": "10/10"
+      },
+      "L4": {
+        "OFF_WITH_MEMORY": "0/10",
+        "ON_WITH_MEMORY": "0/10"
+      },
+      "L5": {
+        "OFF_control": "0/10",
+        "ON": "0/10"
+      },
+      "false_utilization": 0,
+      "behavior_note": "ON vs OFF tool_query identity on frozen seeded subset (GA-9 search-for-preference loop; GA-10 query-echo Docker and React). Flag agent_memory_relevance_label_enabled production default remains False."
+    },
+    "p4_offline_c2_apparent_recovery": {
+      "value": 1.0,
+      "status": "DISCOUNTED_NOT_SUFFICIENT",
+      "reason": "P4 apparent_utilization_recovery is format_readiness heuristic (no LM): (not conflict) AND binding allowlist. Same offline framework scored C1 ready=1.0; real C1=NO_MEASURABLE_GAIN. Therefore P4 C2 recovery=1.0 alone cannot justify product experiment."
+    }
+  },
+  "p3_real_anchor": {
+    "manifest": "tests/fixtures/l4_memory_capability/l4-memory-p3-real-capability.manifest.json",
+    "artifact_fixture": "tests/fixtures/l4_memory_capability/w8-memory-p3-real-capability.json",
+    "L3_EXPOSED": "10/10 PROVEN",
+    "L4_UTILIZED": "0/10 VALID",
+    "L5_TASK_BENEFIT": "0/10 VALID",
+    "dominant_root_cause_from_p4": "M4_INSTRUCTION_PRIORITY_CONFLICT",
+    "supporting": [
+      "M2_FORMAT_SALIENCE_FAILURE",
+      "M3_TASK_RELEVANCE_LINK_FAILURE",
+      "M1_EXPOSURE_BUT_NOT_ATTENDED"
+    ],
+    "evaluator_blind_spot": "PARTIAL"
+  },
+  "C3_mechanism_distinctness": {
+    "verdict": "OVERLAP_DOMINATES_NOT_MATERIAL_FOR_V1",
+    "c1_mechanism": "Contrastive task-relevance framing: strip baseline disclaimer '仅供参考，不覆盖检索结果'; replace with advisory Relevant prior memory for this task header; proposition body lines unchanged.",
+    "c2_mechanism_claimed": "Structured proposition representation: memory_id / fact-proposition / scope / relevance_to_current_task blocks (offline format_c2).",
+    "addresses": {
+      "M2_FORMAT_SALIENCE_FAILURE": "C2 claims yes via multi-field schema; independent evidence absent that free-text JSON lines are unparseable.",
+      "M3_TASK_RELEVANCE_LINK_FAILURE": "C2 includes relevance_to_current_task — overlaps C1 binding signal already real-tested with 0 gain.",
+      "M4_INSTRUCTION_PRIORITY_CONFLICT": "Both C1 and C2 remove conflict disclaimer; C1 real run shows removing conflict+adding relevance label does not move L4/L5.",
+      "M6_MODEL_CAPABILITY_LIMIT": "Taxonomy exists but P4 root_cause never assigns M6; no trajectory evidence of proposition parse failure vs priority/tool bias."
+    },
+    "stronger_longer_prompt_risk": "HIGH — without independent structure-vs-free-text evidence, C2 is primarily another conflict-free advisory prompt rewrite, not a proven distinct utilization mechanism.",
+    "conclusion": "Not justified as materially different failure fix after C1 real NO_MEASURABLE_GAIN."
+  },
+  "C4_independent_evidence": {
+    "verdict": "INSUFFICIENT_INDEPENDENT_EVIDENCE",
+    "checked": [
+      {
+        "claim": "P3 raw trajectory proposition parsing failure",
+        "result": "ABSENT",
+        "evidence": "GA-9 WITH_MEMORY repeatedly tool-calls semantic_search query='user preferred language for retrieval' while lang={'language':'en'} already exposed — treats preference as retrieval target, not as unparsed blob. GA-10 topic may satisfy via query echo while lang remains unsatisfied — selective non-application, not schema incomprehension."
+      },
+      {
+        "claim": "Planner output showing memory structure not understood",
+        "result": "ABSENT",
+        "evidence": "Planner emits well-formed tool JSON; failure mode is tool-loop / non-utilization, not malformed memory parse."
+      },
+      {
+        "claim": "Deterministic format perturbation changing proposition observability without answer leakage",
+        "result": "ABSENT",
+        "evidence": "No format-perturbation study in repo artifacts."
+      },
+      {
+        "claim": "Model behavior clearly better on structured fields than free-text memory",
+        "result": "ABSENT",
+        "evidence": "No structured-vs-free-text real paired run; only offline proxy readiness for C2."
+      }
+    ],
+    "besides_p4_proxy": "NONE_QUALIFYING"
+  },
+  "C5_product_invasiveness": {
+    "verdict": "NOT_ACCEPTABLE_FOR_ONLY_TWO_FROZEN_CASES",
+    "prompt_tokens": "Higher than C1 (multi-line schema per proposition vs single header swap).",
+    "format_complexity": "New field contract (memory_id, fact/proposition, scope, relevance_to_current_task) to keep aligned with storage/exposure.",
+    "planner_coupling": "Planner prompt becomes schema-sensitive; risk of teaching schema-as-authority.",
+    "privacy": "No extra secrets by default, but structured emission may make preference payloads more salient in logs/traces.",
+    "autonomy": "Still advisory on paper; structure + scope labels increase perceived authority vs free-text bullets.",
+    "authoritative_memory_risk": "ELEVATED vs C1 header-only change.",
+    "maintenance_cost": "Medium ongoing for low demonstrated value (2 seeded golden cases; L4/L5 still 0 under C1).",
+    "value_vs_cost": "Cost exceeds evidenced value for V1.0 frozen subset."
+  },
+  "C6_hard_negative_risk": {
+    "verdict": "NOT_CONTROLLED_FOR_STRUCTURE_AUTHORITY",
+    "classes_audited": [
+      "wrong",
+      "contradictory",
+      "stale",
+      "same-topic-irrelevant",
+      "ambiguous",
+      "scope-invalid"
+    ],
+    "offline_hn_false_util_rate": 0.0,
+    "offline_hn_limitation": "P4 hard negatives score the L4 evaluator against fixed outputs; they do NOT measure whether a stronger structured prompt makes wrong/stale memory look more authoritative to the planner.",
+    "structure_authority_concern": "memory_id + fact/proposition + scope:user_preference + relevance_to_current_task can inflate trust in incorrect, contradictory, stale, same-topic-irrelevant, ambiguous, or scope-invalid memories.",
+    "conclusion": "Hard-negative risk not controlled for C2 product semantics; evaluator HN=0 is insufficient."
+  },
+  "C7_decision_gate": {
+    "mechanism_distinct": false,
+    "independent_evidence": false,
+    "hard_negative_risk_controlled": false,
+    "invasiveness_acceptable": false,
+    "rule": "GO only if all four true; else NO_GO",
+    "result": "NO_GO"
+  },
+  "C8_freeze_recommendation": {
+    "label": "MEMORY_V1_0_CAPABILITY_BOUNDARY",
+    "claims": {
+      "L3_EXPOSED": "PROVEN_ON_FROZEN_SUBSET",
+      "L4_UTILIZED": "NOT_DEMONSTRATED_ON_FROZEN_SUBSET",
+      "L5_TASK_BENEFIT": "NOT_DEMONSTRATED_ON_FROZEN_SUBSET",
+      "C1_CONTRASTIVE_MEMORY_RELEVANCE_LABEL": "NO_MEASURABLE_GAIN_REAL_LOCAL",
+      "C2_STRUCTURED_PROPOSITION_BLOCK": "NOT_PURSUED_IN_V1_0"
+    },
+    "non_claim": "Do NOT generalize to universal 'model will never use memory'. Boundary is frozen-subset / current stack characterization only.",
+    "product_flags": {
+      "agent_memory_relevance_label_enabled_default": false,
+      "c2_product_flag": "DO_NOT_ADD"
+    }
+  },
+  "C9_if_go_counterfactual": {
+    "applied": false,
+    "note": "NO_GO path taken; no C2 product semantics / real-run matrix designed for implementation."
+  },
+  "evidence_sources": [
+    "backend/tests/fixtures/l4_memory_capability/l4-memory-p3-real-capability.manifest.json",
+    "backend/tests/fixtures/l4_memory_capability/w8-memory-p3-real-capability.json",
+    "backend/tests/fixtures/l4_memory_capability/l4-memory-p4-ablation.manifest.json",
+    "backend/app/eval/memory_utilization_ablation/proxy.py",
+    "backend/app/eval/memory_utilization_ablation/candidates.py",
+    "backend/app/eval/memory_utilization_ablation/root_cause.py",
+    "local sibling commit 9e63e61 C1 real revalidation artifact (not pushed)"
+  ],
+  "final_report": {
+    "MEMORY_C2_Decision": {
+      "State": "PASS",
+      "Decision": "NO_GO",
+      "Distinct_mechanism": "Claimed M2/structure distinctness overlaps C1 on M3/M4; not material after C1=0 gain",
+      "Independent_evidence": "INSUFFICIENT_INDEPENDENT_EVIDENCE",
+      "Offline_proxy_confidence": "DOWNGRADED",
+      "Hard_negative_risk": "NOT_CONTROLLED_FOR_STRUCTURE_AUTHORITY",
+      "Product_invasiveness": "NOT_ACCEPTABLE_FOR_ONLY_TWO_FROZEN_CASES",
+      "V1_0_recommendation": "MEMORY_V1_0_CAPABILITY_BOUNDARY; C2 NOT_PURSUED"
+    }
+  },
+  "memory_remediation": "CLOSED_FOR_V1_0",
+  "runtime_rollout": false,
+  "product_remediation": false,
+  "golden_mutated": false
+}

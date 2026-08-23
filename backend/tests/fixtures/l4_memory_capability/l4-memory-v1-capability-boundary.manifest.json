@@ -1,0 +1,48 @@
+{
+  "schema_version": "l4-memory-v1-capability-boundary-v1",
+  "stage": "MEMORY_V1_0_CAPABILITY_BOUNDARY_FREEZE",
+  "evidence_gate_stage": "MEMORY_C2_GO_NO_GO_EVIDENCE_AUDIT",
+  "evidence_gate_commit": "788f026bb183d5cc67a1ccbac887526110ee8ce1",
+  "round_start_master_sha": "d3b645fc47d6ee035aa1bed5dba9eca11d6767d1",
+  "state": "PASS",
+  "MEMORY_C2_DECISION": "NO_GO",
+  "C2_PRODUCT_EXPERIMENT": "NOT_JUSTIFIED_FOR_V1_0",
+  "independent_evidence": "INSUFFICIENT_INDEPENDENT_EVIDENCE",
+  "offline_proxy_confidence": "DOWNGRADED",
+  "c2_status": "NOT_PURSUED_IN_V1_0",
+  "memory_remediation": "CLOSED_FOR_V1_0",
+  "runtime_rollout": false,
+  "product_remediation": false,
+  "golden_mutated": false,
+  "MEMORY_V1_0_CAPABILITY_BOUNDARY": {
+    "L3_exposure": "PROVEN",
+    "L4_semantic_utilization": "NOT_DEMONSTRATED_ON_FROZEN_SUBSET",
+    "L5_causal_task_benefit": "NOT_DEMONSTRATED_ON_FROZEN_SUBSET",
+    "C1_CONTRASTIVE_MEMORY_RELEVANCE_LABEL": "NO_MEASURABLE_GAIN",
+    "C2_STRUCTURED_PROPOSITION_BLOCK": "NOT_PURSUED_IN_V1_0"
+  },
+  "interpretation_discipline": {
+    "allowed": "On frozen GA-9/GA-10 subset with current stack: L3 exposure proven; L4/L5 utilization and C1 contrastive label showed no measurable gain; C2 structured proposition block not pursued for V1.0.",
+    "forbidden": [
+      "memory does not work",
+      "model cannot use memory universally",
+      "C2 proves model boundary",
+      "P4 offline proxy alone justifies C2 product experiment"
+    ]
+  },
+  "evidence_chain_summary": {
+    "p4_offline_proxy_c1_c2": "Apparent recovery 1.0 for C1/C2 — DOWNGRADED after C1 real 0/10→0/10 L4/L5",
+    "c1_real_local": "NO_MEASURABLE_GAIN on GA-9/GA-10 frozen subset",
+    "c2_mechanism_distinctness": "OVERLAP_DOMINATES — C2 overlaps C1 on M3/M4 binding signals",
+    "c2_invasiveness": "NOT_ACCEPTABLE_FOR_ONLY_TWO_FROZEN_CASES",
+    "c2_hard_negative_authority_risk": "NOT_CONTROLLED_FOR_STRUCTURE_AUTHORITY",
+    "c2_maintenance_cost": "Medium ongoing for unproven L4/L5 value"
+  },
+  "non_goals": [
+    "no C2 product implementation",
+    "no memory prompt tuning beyond frozen measurement",
+    "no Golden rewrite",
+    "no runtime rollout",
+    "no model re-run"
+  ]
+}
