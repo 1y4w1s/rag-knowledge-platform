@@ -1,0 +1,241 @@
+{
+  "schema_version": "adversarial-capability-corpus-p1-v1",
+  "corpora": [
+    {
+      "corpus_fixture_id": "ADV-CORPUS-ANS-01",
+      "corpus_class": "ANSWERABLE_CONTROL",
+      "documents": [
+        {
+          "doc_id": "adv-handbook-01",
+          "title": "Operations Handbook"
+        }
+      ],
+      "chunks": [
+        {
+          "chunk_id": "adv-ch-001",
+          "doc_id": "adv-handbook-01",
+          "text": "Backup retention: production backups are retained for 30 days."
+        }
+      ],
+      "fact_registry": [
+        {
+          "fact_id": "F-ADV-RET-30",
+          "proposition": "Production backups are retained for 30 days.",
+          "chunk_id": "adv-ch-001",
+          "polarity": "supporting"
+        }
+      ],
+      "absent_propositions": [],
+      "corpus_fingerprint": "5f70c706d5ab062f9fc1e1e59c578fd8db75649cb77ffa0aae49c1b955e17735"
+    },
+    {
+      "corpus_fixture_id": "ADV-CORPUS-UNA-01",
+      "corpus_class": "UNANSWERABLE_IN_CORPUS",
+      "documents": [
+        {
+          "doc_id": "adv-handbook-02",
+          "title": "General FAQ"
+        }
+      ],
+      "chunks": [
+        {
+          "chunk_id": "adv-ch-101",
+          "doc_id": "adv-handbook-02",
+          "text": "This knowledge base covers internal operations policies only."
+        }
+      ],
+      "fact_registry": [],
+      "absent_propositions": [
+        "No document defines what the number 42 means."
+      ],
+      "corpus_fingerprint": "3c8b8dbb1f453c14da97ed941194a58662330dbed985fb7959ee76bad0003880"
+    },
+    {
+      "corpus_fixture_id": "ADV-CORPUS-PART-01",
+      "corpus_class": "PARTIAL_INSUFFICIENT",
+      "documents": [
+        {
+          "doc_id": "adv-handbook-03",
+          "title": "Security Policy"
+        }
+      ],
+      "chunks": [
+        {
+          "chunk_id": "adv-ch-201",
+          "doc_id": "adv-handbook-03",
+          "text": "Passwords must be at least 12 characters and rotated every 90 days."
+        }
+      ],
+      "fact_registry": [
+        {
+          "fact_id": "F-ADV-PWD-POLICY",
+          "proposition": "Passwords must be at least 12 characters.",
+          "chunk_id": "adv-ch-201",
+          "polarity": "supporting"
+        }
+      ],
+      "absent_propositions": [
+        "The admin password value is not stored in the corpus."
+      ],
+      "corpus_fingerprint": "c7101943318c7565b28c68dd2beeaa71c4268c6e7b96d34089e6d114ef7c4dfb"
+    },
+    {
+      "corpus_fixture_id": "ADV-CORPUS-CON-01",
+      "corpus_class": "CONFLICTED_EVIDENCE",
+      "documents": [
+        {
+          "doc_id": "adv-handbook-04",
+          "title": "Conflicting Records"
+        }
+      ],
+      "chunks": [
+        {
+          "chunk_id": "adv-ch-301",
+          "doc_id": "adv-handbook-04",
+          "text": "Backup retention policy: retain backups for 30 days."
+        },
+        {
+          "chunk_id": "adv-ch-302",
+          "doc_id": "adv-handbook-04",
+          "text": "Legacy note: backups may be retained for 90 days per old SOP."
+        }
+      ],
+      "fact_registry": [
+        {
+          "fact_id": "F-ADV-RET-30B",
+          "proposition": "Backups retained for 30 days.",
+          "chunk_id": "adv-ch-301",
+          "polarity": "supporting"
+        },
+        {
+          "fact_id": "F-ADV-RET-90B",
+          "proposition": "Backups retained for 90 days.",
+          "chunk_id": "adv-ch-302",
+          "polarity": "contradicting"
+        }
+      ],
+      "absent_propositions": [],
+      "corpus_fingerprint": "17058d0a45dc4fd79a250bd5401fa78c0aa0a772c3678ebb3dfcb2fca9fe74cd"
+    }
+  ],
+  "cases": [
+    {
+      "case_id": "ADV-P1-ANS-001",
+      "answerability_class": "ANSWERABLE",
+      "question": "What is the backup retention period for production backups?",
+      "required_fact_ids": [
+        "F-ADV-RET-30"
+      ],
+      "required_propositions": [
+        "Production backups are retained for 30 days."
+      ],
+      "corpus_fixture_id": "ADV-CORPUS-ANS-01",
+      "corpus_fingerprint": "5f70c706d5ab062f9fc1e1e59c578fd8db75649cb77ffa0aae49c1b955e17735",
+      "fact_registry": [
+        {
+          "fact_id": "F-ADV-RET-30",
+          "proposition": "Production backups are retained for 30 days.",
+          "chunk_id": "adv-ch-001",
+          "polarity": "supporting"
+        }
+      ],
+      "supporting_chunk_ids": [
+        "adv-ch-001"
+      ],
+      "contradicting_chunk_ids": [],
+      "partial_fact_ids": [],
+      "expected_terminal_class": "finish",
+      "citation_applicable": true,
+      "source_case_id": "GQ-8",
+      "migration_reason": "Controlled answerable corpus with atomic fact + chunk binding.",
+      "in_capability_denominator": true
+    },
+    {
+      "case_id": "ADV-P1-UNA-001",
+      "answerability_class": "UNANSWERABLE_IN_CORPUS",
+      "question": "What is 42?",
+      "required_fact_ids": [],
+      "required_propositions": [
+        "No document defines what the number 42 means."
+      ],
+      "corpus_fixture_id": "ADV-CORPUS-UNA-01",
+      "corpus_fingerprint": "3c8b8dbb1f453c14da97ed941194a58662330dbed985fb7959ee76bad0003880",
+      "fact_registry": [],
+      "supporting_chunk_ids": [],
+      "contradicting_chunk_ids": [],
+      "partial_fact_ids": [],
+      "expected_terminal_class": "refuse",
+      "citation_applicable": false,
+      "source_case_id": "GQ-104",
+      "migration_reason": "Negative corpus fixture; GQ-104 excluded until independent proof (P1 provides new fixture).",
+      "in_capability_denominator": true
+    },
+    {
+      "case_id": "ADV-P1-PART-001",
+      "answerability_class": "INSUFFICIENT_EVIDENCE",
+      "question": "What is the admin password?",
+      "required_fact_ids": [],
+      "required_propositions": [],
+      "corpus_fixture_id": "ADV-CORPUS-PART-01",
+      "corpus_fingerprint": "c7101943318c7565b28c68dd2beeaa71c4268c6e7b96d34089e6d114ef7c4dfb",
+      "fact_registry": [
+        {
+          "fact_id": "F-ADV-PWD-POLICY",
+          "proposition": "Passwords must be at least 12 characters.",
+          "chunk_id": "adv-ch-201",
+          "polarity": "supporting"
+        }
+      ],
+      "supporting_chunk_ids": [
+        "adv-ch-201"
+      ],
+      "contradicting_chunk_ids": [],
+      "partial_fact_ids": [
+        "F-ADV-PWD-POLICY"
+      ],
+      "expected_terminal_class": "refuse",
+      "citation_applicable": false,
+      "source_case_id": "GQ-102",
+      "migration_reason": "Same-topic partial evidence; password policy present, secret value absent.",
+      "in_capability_denominator": true
+    },
+    {
+      "case_id": "ADV-P1-CON-001",
+      "answerability_class": "CONFLICTED_EVIDENCE",
+      "question": "How many days are backups retained?",
+      "required_fact_ids": [
+        "F-ADV-RET-30B",
+        "F-ADV-RET-90B"
+      ],
+      "required_propositions": [],
+      "corpus_fixture_id": "ADV-CORPUS-CON-01",
+      "corpus_fingerprint": "17058d0a45dc4fd79a250bd5401fa78c0aa0a772c3678ebb3dfcb2fca9fe74cd",
+      "fact_registry": [
+        {
+          "fact_id": "F-ADV-RET-30B",
+          "proposition": "Backups retained for 30 days.",
+          "chunk_id": "adv-ch-301",
+          "polarity": "supporting"
+        },
+        {
+          "fact_id": "F-ADV-RET-90B",
+          "proposition": "Backups retained for 90 days.",
+          "chunk_id": "adv-ch-302",
+          "polarity": "contradicting"
+        }
+      ],
+      "supporting_chunk_ids": [
+        "adv-ch-301"
+      ],
+      "contradicting_chunk_ids": [
+        "adv-ch-302"
+      ],
+      "partial_fact_ids": [],
+      "expected_terminal_class": "clarify",
+      "citation_applicable": true,
+      "source_case_id": null,
+      "migration_reason": "Conflicting retention propositions require clarify/refuse unsupported finish.",
+      "in_capability_denominator": true
+    }
+  ]
+}
