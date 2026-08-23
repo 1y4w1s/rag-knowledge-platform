@@ -1,0 +1,98 @@
+{
+  "schema_version": "l4-memory-p3-real-capability-freeze-v1",
+  "stage": "MEMORY_P3_REAL_CAPABILITY_FREEZE",
+  "measurement_stage": "MEMORY_P3_REAL_LOCAL_CAPABILITY",
+  "freeze_validation_mode": "REAL_RUN_RESULT_REUSED_FOR_FREEZE",
+  "memory_p3_real_run_lineage": "VALID",
+  "memory_p3_base_sha": "4c81c6340f1789a641ef0d6cbaf42c1efdaa2bc2",
+  "measurement_feature_sha": "a683bf48cf278ead3fb50bfb7442951461d53b65",
+  "convergence_round_start_master_sha": "e4359a8e1262fa7a04f78899eebb7d10d796f89f",
+  "artifact": "artifacts/benchmarks/tmp/reports/w8-memory-p3-real-capability.json",
+  "artifact_fixture": "tests/fixtures/l4_memory_capability/w8-memory-p3-real-capability.json",
+  "model": "zai-org/glm-4.6v-flash",
+  "thinking": "OFF",
+  "context_tokens": 8192,
+  "temperature": 0,
+  "timeout_seconds": 90.0,
+  "case_ids": ["GA-9", "GA-10", "GA-11", "GA-12"],
+  "frozen_seeded_cases": ["GA-9", "GA-10"],
+  "empty_control_cases": ["GA-11", "GA-12"],
+  "scored_model_trajectories": 30,
+  "classification": "PASS/CHARACTERIZED/FROZEN",
+  "measurement_validity": "VALID",
+  "lifecycle": {
+    "L1_seeded": true,
+    "L2_loaded": true,
+    "L3_exposed": true,
+    "L3_exposed_score": "10/10",
+    "L4_utilized": false,
+    "L4_utilized_score": "0/10",
+    "L5_benefit": false,
+    "L5_benefit_score": "0/10"
+  },
+  "causal_separation": {
+    "exposure_equals_utilization": false,
+    "utilization_equals_benefit": false,
+    "proof": "EXPOSURE != UTILIZATION; UTILIZATION != BENEFIT"
+  },
+  "L3_EXPOSED": {
+    "status": "PROVEN",
+    "score": "10/10",
+    "denom": 10,
+    "passed": 10,
+    "GA-9": 1.0,
+    "GA-10": 1.0,
+    "claim": "L3_EXPOSED PROVEN; do NOT claim utilized/improved from L3 alone"
+  },
+  "L4_UTILIZED": {
+    "status": "MEASURED/VALID/LOW",
+    "score": "0/10",
+    "denom": 10,
+    "passed": 0,
+    "claim": "NO_SEMANTIC_UTILIZATION_CLAIMED"
+  },
+  "L5_TASK_BENEFIT": {
+    "status": "MEASURED/VALID/LOW",
+    "score": "0/10",
+    "denom": 10,
+    "passed": 0,
+    "claim": "NO_CAUSAL_BENEFIT_DEMONSTRATED",
+    "counterfactual": "VALID"
+  },
+  "denominators": {
+    "L3": 10,
+    "L4_utilization": 10,
+    "L5_task_benefit": 10,
+    "note": "Cannot keep P1 L4/L5 denom 0 once L3 is machine-proven.",
+    "p1_superseded": {
+      "L3": 2,
+      "L4_utilization": 0,
+      "L5_task_benefit": 0
+    }
+  },
+  "privacy_safety": {
+    "plaintext_leakage": 0,
+    "wrong_run_step_memory_acceptance": 0,
+    "empty_memory_fake_exposure": 0,
+    "false_utilization": 0
+  },
+  "empty_memory_correct_behavior": {
+    "score": "0/10",
+    "characterization": "unsafe_termination / budget capped",
+    "product_issue_filed": false
+  },
+  "interpretation": "The memory was genuinely exposed to the model-visible planner context, but the frozen seeded subset showed no capability-valid semantic utilization or causal task benefit. This is a valid low-capability result, not a benchmark failure.",
+  "non_goals": [
+    "no memory prompt tuning",
+    "no ranking change",
+    "no selection change",
+    "no Golden rewrite",
+    "no runtime rollout"
+  ],
+  "product_remediation": false,
+  "runtime_rollout": false,
+  "golden_mutated": false,
+  "production_exposure_trace_default": false,
+  "ready_for_memory_p4": true,
+  "memory_p3": "PASS/CHARACTERIZED/FROZEN"
+}
