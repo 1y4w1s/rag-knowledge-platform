@@ -99,14 +99,14 @@ TRUE_EXPOSURE_BOUNDARY: dict[str, Any] = {
 
 L3_OBSERVABILITY_GAP_CONFIRMED: dict[str, Any] = {
     "gap_id": "L3_OBSERVABILITY_GAP",
-    "status": "CONFIRMED",
+    "status": "INSTRUMENTATION_AVAILABLE",
     "description": (
         "Product injects memory into planner prompts but emits no structured "
         "MemoryExposureEvent; benchmarks cannot machine-prove which memories were "
         "model-visible on a specific (run_id, step_id) trajectory."
     ),
     "blocked_capability": ["GA-9", "GA-10", "L4_UTILIZATION_DENOM", "L5_TASK_BENEFIT_DENOM"],
-    "product_instrumentation_in_this_task": False,
+    "product_instrumentation_in_this_task": True,
 }
 
 LOADED_NE_EXPOSED_INVARIANT: dict[str, str] = {
@@ -125,6 +125,6 @@ def exposure_boundary_audit() -> dict[str, Any]:
         "true_exposure_boundary": TRUE_EXPOSURE_BOUNDARY,
         "l3_gap": L3_OBSERVABILITY_GAP_CONFIRMED,
         "invariant": LOADED_NE_EXPOSED_INVARIANT,
-        "product_code_modified": False,
-        "runtime_emit": False,
+        "product_code_modified": True,
+        "runtime_emit": True,
     }

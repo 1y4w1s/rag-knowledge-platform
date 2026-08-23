@@ -48,9 +48,9 @@ from app.eval.memory_capability.l3_exposure_evaluator import (
 
 def test_l3_gap_confirmed_and_boundary_is_planner_prompt() -> None:
     audit = exposure_boundary_audit()
-    assert audit["l3_gap"]["status"] == "CONFIRMED"
-    assert audit["runtime_emit"] is False
-    assert audit["product_code_modified"] is False
+    assert audit["l3_gap"]["status"] == "INSTRUMENTATION_AVAILABLE"
+    assert audit["runtime_emit"] is True
+    assert audit["product_code_modified"] is True
     boundary = TRUE_EXPOSURE_BOUNDARY
     assert boundary["file"].endswith("planners.py")
     assert "LLMPlanner._call_llm_for_plan" in boundary["functions"]
