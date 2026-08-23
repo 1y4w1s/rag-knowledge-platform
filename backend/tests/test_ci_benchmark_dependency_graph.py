@@ -1,7 +1,7 @@
-"""CI Phase 2 P0 — static characterization of rag-benchmark dependency graph.
+"""CI Phase 2 P0/P1 — static characterization of RAG benchmark dependency graph.
 
 Deterministic only: no LM Studio, no real BGE, no live Postgres benchmark.
-Freezes independence / fan-in / new-scorer hidden-deps for Phase 2 P1 design.
+P0 froze PARTIALLY_PARALLEL_SAFE; P1 applies that freeze as parallel jobs.
 """
 
 from __future__ import annotations
@@ -31,14 +31,28 @@ def _ci_text() -> str:
     return CI_YML.read_text(encoding="utf-8")
 
 
-def test_ci_datasets_are_three_separate_steps() -> None:
+def _job_block(name: str) -> str:
+    text = _ci_text()
+    marker = f"  {name}:"
+    start = text.index(marker)
+    rest = text[start + len(marker) :]
+    m = re.search(r"\n  [a-z][a-z0-9-]*:", rest)
+    return marker + (rest if m is None else rest[: m.start()])
+
+
+def test_ci_datasets_are_three_separate_parallel_jobs() -> None:
     text = _ci_text()
     assert "Run Golden QA benchmark" in text
     assert "Run Enterprise QA benchmark" in text
     assert "Run Advanced QA benchmark" in text
-    # Phase 1: still one job; Phase 2 P1 may split — this audit freezes current shape.
-    assert text.count("rag-benchmark:") == 1
-    assert "needs:" not in text.split("rag-benchmark:")[1].split("\n  ")[0]
+    # Phase 2 P1: three dataset jobs + fan-in gate (no monolithic rag-benchmark).
+    assert "rag-benchmark:" not in text
+    assert "rag-golden:" in text
+    assert "rag-enterprise:" in text
+    assert "rag-advanced:" in text
+    assert "benchmark-gate:" in text
+    gate = _job_block("benchmark-gate")
+    assert "needs: [rag-golden, rag-enterprise, rag-advanced]" in gate
 
 
 def test_dataset_corpus_isolation_matrix() -> None:
@@ -85,6 +99,9 @@ def test_baseline_gate_reads_only_text_artifacts() -> None:
     assert "backend/benchmark_enterprise.txt" in ci
     assert "backend/benchmark_advanced.txt" in ci
     assert "ci_baseline_check.py" in ci
+    gate = _job_block("benchmark-gate")
+    assert "ci_baseline_check.py" in gate
+    assert "BENCHMARK_OUT_FILES: backend/benchmark_output.txt,backend/benchmark_enterprise.txt,backend/benchmark_advanced.txt" in gate
 
 
 def test_new_scorer_has_hidden_latest_kb_db_dependency() -> None:
@@ -100,35 +117,34 @@ def test_new_scorer_has_hidden_latest_kb_db_dependency() -> None:
     assert "benchmark_output.txt" not in src
 
 
-def test_ci_step_order_makes_new_scorer_hit_advanced_kb() -> None:
-    """Serial order today: Golden → Enterprise → Advanced → baseline → new scorer.
-
-    Latest KB is Advanced's (also golden_handbook.md) — coincidentally compatible
-    with golden cases. Enterprise-last would be a semantic footgun.
-    """
-    text = _ci_text()
-    g = text.index("Run Golden QA benchmark")
-    e = text.index("Run Enterprise QA benchmark")
-    a = text.index("Run Advanced QA benchmark")
-    b = text.index("Compare with baseline")
-    n = text.index("New scoring engine comparison")
-    assert g < e < a < b < n
+def test_keep_new_scorer_with_golden() -> None:
+    """KEEP_NEW_SCORER_WITH_GOLDEN: same job DB as Golden; not after Advanced/Enterprise."""
+    golden = _job_block("rag-golden")
+    enterprise = _job_block("rag-enterprise")
+    advanced = _job_block("rag-advanced")
+    gate = _job_block("benchmark-gate")
+    assert "Run Golden QA benchmark" in golden
+    assert "New scoring engine comparison" in golden
+    g = golden.index("Run Golden QA benchmark")
+    n = golden.index("New scoring engine comparison")
+    assert g < n
+    assert "New scoring engine comparison" not in enterprise
+    assert "New scoring engine comparison" not in advanced
+    assert "New scoring engine comparison" not in gate
+    assert "ci_new_scorer.py" not in gate
 
 
 def test_fastembed_cache_key_is_immutable_shared() -> None:
     text = _ci_text()
     assert "path: ~/.cache/huggingface" in text
-    m = re.search(
+    keys = re.findall(
         r"key:\s*(fastembed-bge-small-zh-\$\{\{\s*runner\.os\s*\}\})",
         text,
     )
-    assert m, "immutable fastembed cache key missing"
-    key = m.group(1)
-    # No github.sha / random → N parallel jobs can restore the same immutable key.
-    # Concurrent first-run save: actions/cache may race; one writer wins, others miss
-    # until next run — no corruption expected for read-mostly restore (document only).
-    assert "github.sha" not in key
-    assert "github.run_id" not in key
+    assert len(keys) == 3, "each parallel dataset job must keep immutable fastembed cache"
+    for key in keys:
+        assert "github.sha" not in key
+        assert "github.run_id" not in key
 
 
 def test_parallel_safety_classification_freeze() -> None:
@@ -140,4 +156,6 @@ def test_parallel_safety_classification_freeze() -> None:
     assert classification == "PARTIALLY_PARALLEL_SAFE"
     artifact_fan_in_possible = True
     new_scorer_fan_in_possible = False
+    keep_new_scorer_with_golden = True
     assert artifact_fan_in_possible and not new_scorer_fan_in_possible
+    assert keep_new_scorer_with_golden

@@ -150,7 +150,10 @@ jobs:
         run: |
           python -m pytest tests/test_config_wiring.py -q --no-header
 
-  rag-benchmark:
+  # Phase 2 P1: partial parallel (P0 PARTIALLY_PARALLEL_SAFE).
+  # Datasets independent; baseline = artifact fan-in; new scorer stays with Golden
+  # (KEEP_NEW_SCORER_WITH_GOLDEN — not artifact-only / shared-DB latest-KB footgun).
+  rag-golden:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     env:
@@ -197,7 +200,6 @@ jobs:
         run: |
           cd backend && alembic upgrade head
 
-
       - name: Run Golden QA benchmark (real embeddings)
         env:
           DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
@@ -210,6 +212,64 @@ jobs:
           python scripts/run_benchmark.py --dataset golden_qa --mode retrieval --output text 2>&1 | tee backend/benchmark_output.txt
           echo "BENCHMARK_DONE=1" >> $GITHUB_ENV
 
+      - name: New scoring engine comparison (experimental)
+        run: |
+          python3 backend/scripts/ci_new_scorer.py
+
+      - name: Upload Golden benchmark artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-golden
+          path: backend/benchmark_output.txt
+          if-no-files-found: error
+
+  rag-enterprise:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      HF_ENDPOINT: https://hf-mirror.com
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: ruige
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'changeme' }}
+          POSTGRES_DB: ruige
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ruige"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Cache fastembed model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: fastembed-bge-small-zh-${{ runner.os }}
+
+      - name: Set mirror for model download
+        run: echo "HF_ENDPOINT=https://hf-mirror.com" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          pip install -r backend/requirements.txt
+
+      - name: Apply migrations
+        run: |
+          cd backend && alembic upgrade head
+
       - name: Run Enterprise QA benchmark (C3 gate)
         env:
           DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
@@ -220,6 +280,60 @@ jobs:
           RAG_TEST_PASSWORD: ${{ secrets.RAG_TEST_PASSWORD }}
         run: |
           python scripts/run_benchmark.py --dataset enterprise_qa --mode retrieval --output text --skip-entity-extract 2>&1 | tee backend/benchmark_enterprise.txt
+
+      - name: Upload Enterprise benchmark artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-enterprise
+          path: backend/benchmark_enterprise.txt
+          if-no-files-found: error
+
+  rag-advanced:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      HF_ENDPOINT: https://hf-mirror.com
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: ruige
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'changeme' }}
+          POSTGRES_DB: ruige
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ruige"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Cache fastembed model
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: fastembed-bge-small-zh-${{ runner.os }}
+
+      - name: Set mirror for model download
+        run: echo "HF_ENDPOINT=https://hf-mirror.com" >> $GITHUB_ENV
+
+      - name: Install dependencies
+        run: |
+          pip install -r backend/requirements.txt
+
+      - name: Apply migrations
+        run: |
+          cd backend && alembic upgrade head
 
       - name: Run Advanced QA benchmark (C3 gate)
         env:
@@ -232,16 +346,43 @@ jobs:
         run: |
           python scripts/run_benchmark.py --dataset advanced_qa --mode retrieval --output text 2>&1 | tee backend/benchmark_advanced.txt
 
+      - name: Upload Advanced benchmark artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-advanced
+          path: backend/benchmark_advanced.txt
+          if-no-files-found: error
+
+  benchmark-gate:
+    runs-on: ubuntu-latest
+    needs: [rag-golden, rag-enterprise, rag-advanced]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Golden benchmark artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-golden
+          path: backend
+
+      - name: Download Enterprise benchmark artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-enterprise
+          path: backend
+
+      - name: Download Advanced benchmark artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-advanced
+          path: backend
+
       - name: Compare with baseline (C3 gates)
         env:
           BASELINE_PATH: backend/tests/benchmark/baseline.json
           BENCHMARK_OUT_FILES: backend/benchmark_output.txt,backend/benchmark_enterprise.txt,backend/benchmark_advanced.txt
         run: |
           python3 backend/scripts/ci_baseline_check.py
-
-      - name: New scoring engine comparison (experimental)
-        run: |
-          python3 backend/scripts/ci_new_scorer.py
 
   lint:
     runs-on: ubuntu-latest
