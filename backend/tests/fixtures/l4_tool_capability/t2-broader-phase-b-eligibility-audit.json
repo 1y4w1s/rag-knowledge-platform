@@ -1,0 +1,507 @@
+{
+  "schema_version": "t2-broader-phase-b-eligibility-audit-v1",
+  "stage": "T2_BROADER_VALIDATION_PHASE_B_ELIGIBILITY_AUDIT",
+  "audit_name": "T2 Phase B Eligibility Boundary Freeze",
+  "contract_name": "T2 Phase B Eligibility Boundary Freeze",
+  "design_only": true,
+  "real_run_executed": false,
+  "product_change": false,
+  "golden_mutated": false,
+  "runtime_rollout": false,
+  "product_eligibility_extension": false,
+  "golden_rewrite": false,
+  "round_start_master_sha": "f4d1e7c7234df6cbf8f0e4b102c3316651805f55",
+  "prior_phase_e_research_commit": "92aa6d08461b9cb6a00a91a50df79b6b17131ba6",
+  "prior_phase_e_note": "Local research commit 92aa6d0 audited eligibility candidates (test/docs only; product/golden/workflow diff = 0). Not on master; incorporated here as Phase B boundary freeze with corrected claim language.",
+  "phase_a_reference": {
+    "manifest": "backend/tests/fixtures/l4_tool_capability/t2-broader-validation-contract.json",
+    "PHASE_A_CONTRACT": "VALID",
+    "POSITIVE_DENOMINATOR_EXPANDED": "NO",
+    "positive_denominator": 2,
+    "positive_cases": [
+      "GQ-132",
+      "GQ-149"
+    ],
+    "gq131_role": "ELIGIBILITY_CONTROL"
+  },
+  "sources_audited": [
+    "backend/tests/golden_agent_qa.json (168 cases)",
+    "backend/app/eval/contract_validity/tool_contract.py (TOOL20 Gate G)",
+    "backend/app/eval/tool_capability/migration_map.py",
+    "backend/app/eval/tool_capability/fixtures.py (ADAPT trajectories)",
+    "backend/app/eval/tool_capability/observation.py",
+    "backend/app/services/agent/tool_guidance_hints.py (_TERMINATION_CONTRACTS)",
+    "backend/tests/fixtures/l4_tool_capability/t2-broader-validation-contract.json",
+    "backend/tests/test_agent_golden.py (MULTI_STEP planner sequences)",
+    "artifacts/benchmarks/tmp/reports/w8-p5-capability-manifest.json (48-case subset inventory)"
+  ],
+  "inclusion_criteria": [
+    "current_runtime_executable",
+    "expected_tool_in_exposed_set",
+    "tool_execution_completable_or_deterministic_fixture",
+    "expected_observation_machine_verifiable",
+    "clear_task_completion_predicate",
+    "t2_eligibility_unambiguous_after_observation",
+    "safe_terminal_testable",
+    "not_stale_contract",
+    "no_unavailable_integration_dependency"
+  ],
+  "current_runtime_inventory": {
+    "read_only_tools": [
+      "compare_chunks",
+      "get_chunk_excerpt",
+      "grep_in_document",
+      "list_knowledge_bases",
+      "search_documents",
+      "semantic_search",
+      "sql_query",
+      "web_search"
+    ],
+    "observation_contracts_implemented": [
+      "list_knowledge_bases",
+      "search_documents",
+      "semantic_search"
+    ],
+    "observation_contracts_missing": [
+      "compare_chunks",
+      "get_chunk_excerpt",
+      "grep_in_document",
+      "sql_query",
+      "web_search"
+    ],
+    "t2_termination_contracts_bound_today": [
+      {
+        "case_id": "GQ-132",
+        "query": "List all knowledge bases endpoint",
+        "expected_tool": "list_knowledge_bases"
+      },
+      {
+        "case_id": "GQ-149",
+        "query": "Search documents by content mode",
+        "expected_tool": "search_documents"
+      }
+    ],
+    "adapt_fixture_trajectories": [
+      "GQ-131",
+      "GQ-132",
+      "GQ-149"
+    ],
+    "t2_fail_closed": "exact_query_match_only; unbound queries never emit task_contract_satisfied"
+  },
+  "audit_universe": {
+    "golden_total": 168,
+    "category_counts": {
+      "RAG": 75,
+      "RETRIEVAL": 35,
+      "ADVERSARIAL": 20,
+      "TOOL": 20,
+      "MULTI_STEP": 4,
+      "REFLECTION": 4,
+      "MEMORY": 4,
+      "AUTH": 4,
+      "DEGRADE": 2
+    },
+    "tool20_gate_g_counts": {
+      "CURRENT_L3_NATIVE": 3,
+      "INTEGRATION_ONLY": 5,
+      "STALE_GOLDEN_CONTRACT": 5,
+      "UNSATISFIABLE_CURRENT_CONTRACT": 7
+    }
+  },
+  "included_positive_candidates": [
+    {
+      "case_id": "GQ-132",
+      "role": "positive",
+      "include_in_broader_positive_denominator": true,
+      "t2_bound_today": true,
+      "stratum": "lookup_completion",
+      "expected_tool": "list_knowledge_bases",
+      "query": "List all knowledge bases endpoint",
+      "fixture": "gq132_success_trajectory",
+      "gates": {
+        "current_runtime_executable": true,
+        "expected_tool_in_exposed_set": true,
+        "tool_execution_completable_or_deterministic_fixture": true,
+        "expected_observation_machine_verifiable": true,
+        "clear_task_completion_predicate": true,
+        "t2_eligibility_unambiguous_after_observation": true,
+        "safe_terminal_testable": true,
+        "not_stale_contract": true,
+        "no_unavailable_integration_dependency": true
+      },
+      "notes": "Already frozen Phase A / Family T positive; structured list_knowledge_bases observation."
+    },
+    {
+      "case_id": "GQ-149",
+      "role": "positive",
+      "include_in_broader_positive_denominator": true,
+      "t2_bound_today": true,
+      "stratum": "content_search_completion",
+      "expected_tool": "search_documents",
+      "query": "Search documents by content mode",
+      "fixture": "gq149_success_trajectory",
+      "gates": {
+        "current_runtime_executable": true,
+        "expected_tool_in_exposed_set": true,
+        "tool_execution_completable_or_deterministic_fixture": true,
+        "expected_observation_machine_verifiable": true,
+        "clear_task_completion_predicate": true,
+        "t2_eligibility_unambiguous_after_observation": true,
+        "safe_terminal_testable": true,
+        "not_stale_contract": true,
+        "no_unavailable_integration_dependency": true
+      },
+      "notes": "Already frozen Phase A / Family T positive; content-mode search_documents observation."
+    }
+  ],
+  "eligibility_control_not_positive": [
+    {
+      "case_id": "GQ-131",
+      "role": "ELIGIBILITY_CONTROL",
+      "include_in_broader_positive_denominator": false,
+      "t2_bound_today": false,
+      "stratum": "document_search_completion",
+      "expected_tool": "search_documents",
+      "query": "How to search documents across knowledge bases?",
+      "fixture": "gq131_success_trajectory",
+      "gates": {
+        "current_runtime_executable": true,
+        "expected_tool_in_exposed_set": true,
+        "tool_execution_completable_or_deterministic_fixture": true,
+        "expected_observation_machine_verifiable": true,
+        "clear_task_completion_predicate": true,
+        "t2_eligibility_unambiguous_after_observation": false,
+        "safe_terminal_testable": true,
+        "not_stale_contract": true,
+        "no_unavailable_integration_dependency": true
+      },
+      "failed_gate": "t2_eligibility_unambiguous_after_observation",
+      "why_not_positive": "Observation-completable under CURRENT_L3 ADAPT migration, but _TERMINATION_CONTRACTS do not bind this exact query. Counting as positive would invent expanded capability. Remains ELIGIBILITY_CONTROL (must not emit task_contract_satisfied). Product bind would be a separate product-eligibility-extension window — NOT authorized by this Phase B eligibility boundary freeze.",
+      "phase_b_product_bind_candidate": true,
+      "phase_b_requires_product_change": true,
+      "authorized_by_this_freeze": false
+    }
+  ],
+  "exclusion_ledger": [
+    {
+      "case_id": "GQ-133",
+      "reason_code": "UNSATISFIABLE_CURRENT_RUNTIME",
+      "reason": "Upload/write API surface; no L3 read-only agent tool."
+    },
+    {
+      "case_id": "GQ-134",
+      "reason_code": "UNAVAILABLE_TOOL",
+      "reason": "delete_document exists as write tool but not in L3 read-only exposed inventory."
+    },
+    {
+      "case_id": "GQ-135",
+      "reason_code": "INTEGRATION_ONLY",
+      "reason": "HTTP status phrase '201 Created'; no agent observation channel."
+    },
+    {
+      "case_id": "GQ-136",
+      "reason_code": "INTEGRATION_ONLY",
+      "reason": "HTTP status phrase '409 Conflict'; no agent observation channel."
+    },
+    {
+      "case_id": "GQ-137",
+      "reason_code": "INTEGRATION_ONLY",
+      "reason": "HTTP status phrase '401 Unauthorized'; no agent observation channel."
+    },
+    {
+      "case_id": "GQ-138",
+      "reason_code": "INTEGRATION_ONLY",
+      "reason": "HTTP status phrase '403 Forbidden'; no agent observation channel."
+    },
+    {
+      "case_id": "GQ-139",
+      "reason_code": "INTEGRATION_ONLY",
+      "reason": "HTTP status phrase '429 Too Many Requests'; no agent observation channel."
+    },
+    {
+      "case_id": "GQ-140",
+      "reason_code": "STALE_CONTRACT",
+      "reason": "OpenAPI GET /health path; no L3 agent tool mapping."
+    },
+    {
+      "case_id": "GQ-141",
+      "reason_code": "UNSATISFIABLE_CURRENT_RUNTIME",
+      "reason": "Auth login HTTP integration; no L3 tool."
+    },
+    {
+      "case_id": "GQ-142",
+      "reason_code": "UNSATISFIABLE_CURRENT_RUNTIME",
+      "reason": "Auth register HTTP integration; no L3 tool."
+    },
+    {
+      "case_id": "GQ-143",
+      "reason_code": "STALE_CONTRACT",
+      "reason": "Chat HTTP endpoint is not an agent read-tool observation."
+    },
+    {
+      "case_id": "GQ-144",
+      "reason_code": "UNSATISFIABLE_CURRENT_RUNTIME",
+      "reason": "KB chat POST has no L3 read tool."
+    },
+    {
+      "case_id": "GQ-145",
+      "reason_code": "STALE_CONTRACT",
+      "reason": "Account settings OpenAPI path not exposed as agent tool."
+    },
+    {
+      "case_id": "GQ-146",
+      "reason_code": "STALE_CONTRACT",
+      "reason": "Dashboard stats OpenAPI path not exposed as agent tool."
+    },
+    {
+      "case_id": "GQ-147",
+      "reason_code": "STALE_CONTRACT",
+      "reason": "Organization members OpenAPI path not exposed as agent tool."
+    },
+    {
+      "case_id": "GQ-148",
+      "reason_code": "UNSATISFIABLE_CURRENT_RUNTIME",
+      "reason": "API key creation is write integration; no L3 tool."
+    },
+    {
+      "case_id": "GQ-150",
+      "reason_code": "UNSATISFIABLE_CURRENT_RUNTIME",
+      "reason": "KB creation POST has no L3 agent tool."
+    },
+    {
+      "case_id": "GA-1",
+      "reason_code": "NOT_T2_APPLICABLE",
+      "reason": "MULTI_STEP answer/retrieval path (semantic_search x2); expected_chunk is document text, not T2 tool-completion predicate; not T2-bound."
+    },
+    {
+      "case_id": "GA-2",
+      "reason_code": "NOT_T2_APPLICABLE",
+      "reason": "MULTI_STEP dual semantic_search; answer-correctness Golden, not T2 task-completion."
+    },
+    {
+      "case_id": "GA-3",
+      "reason_code": "AMBIGUOUS_COMPLETION",
+      "reason": "MULTI_STEP list_knowledge_bases then semantic_search; expected_chunk is tool-name string; no machine-judgeable multi-step final-completion under T2 fail-closed; no ADAPT T2 fixture; not T2-bound. Closest multi-step near-miss ??still GAP."
+    },
+    {
+      "case_id": "GA-4",
+      "reason_code": "NO_MACHINE_VERIFIABLE_OBSERVATION",
+      "reason": "Uses get_chunk_excerpt/compare_chunks intent in query; those tools lack observation contracts; planner fixture substitutes list_knowledge_bases for step 3 ??stale vs query intent."
+    },
+    {
+      "case_id": "GA-5_to_GA-8",
+      "reason_code": "NOT_T2_APPLICABLE",
+      "reason": "REFLECTION low_recall/complex_query controls; not tool-capability positives."
+    },
+    {
+      "case_id": "GA-9_to_GA-12",
+      "reason_code": "NOT_T2_APPLICABLE",
+      "reason": "MEMORY exposure cases; separate memory-capability track."
+    },
+    {
+      "case_id": "GA-13_to_GA-16",
+      "reason_code": "NOT_T2_APPLICABLE",
+      "reason": "AUTH FORBIDDEN controls; not T2 positive completion."
+    },
+    {
+      "case_id": "GA-17_to_GA-18",
+      "reason_code": "NOT_T2_APPLICABLE",
+      "reason": "DEGRADE planner fallback controls."
+    },
+    {
+      "case_id": "GQ-91_to_GQ-110",
+      "reason_code": "NOT_T2_APPLICABLE",
+      "reason": "ADVERSARIAL safety/refusal panel; not tool-completion positives."
+    },
+    {
+      "case_id": "GQ-1_to_GQ-130_RAG_RETRIEVAL",
+      "reason_code": "NOT_T2_APPLICABLE",
+      "reason": "Answer-correctness / retrieval Golden; semantic_search obs exists but no migrated T2 task-completion predicate ??using these would invent T2 capability claims."
+    },
+    {
+      "case_id": "TOOLS_WITHOUT_OBS_CONTRACT",
+      "reason_code": "NO_MACHINE_VERIFIABLE_OBSERVATION",
+      "reason": "get_chunk_excerpt / grep_in_document / compare_chunks / web_search / sql_query lack machine-judgeable observation contracts in observation.py."
+    }
+  ],
+  "exclusion_taxonomy": [
+    "AMBIGUOUS_COMPLETION",
+    "INTEGRATION_ONLY",
+    "NOT_T2_APPLICABLE",
+    "NO_MACHINE_VERIFIABLE_OBSERVATION",
+    "OTHER_EXPLICIT_REASON",
+    "STALE_CONTRACT",
+    "UNAVAILABLE_TOOL",
+    "UNSATISFIABLE_CURRENT_RUNTIME"
+  ],
+  "audited_cases": {
+    "positive_valid_only": [
+      "GQ-132",
+      "GQ-149"
+    ],
+    "eligibility_control": [
+      "GQ-131"
+    ],
+    "excluded_ledger_entries": [
+      "GQ-133",
+      "GQ-134",
+      "GQ-135",
+      "GQ-136",
+      "GQ-137",
+      "GQ-138",
+      "GQ-139",
+      "GQ-140",
+      "GQ-141",
+      "GQ-142",
+      "GQ-143",
+      "GQ-144",
+      "GQ-145",
+      "GQ-146",
+      "GQ-147",
+      "GQ-148",
+      "GQ-150",
+      "GA-1",
+      "GA-2",
+      "GA-3",
+      "GA-4",
+      "GA-5_to_GA-8",
+      "GA-9_to_GA-12",
+      "GA-13_to_GA-16",
+      "GA-17_to_GA-18",
+      "GQ-91_to_GQ-110",
+      "GQ-1_to_GQ-130_RAG_RETRIEVAL",
+      "TOOLS_WITHOUT_OBS_CONTRACT"
+    ],
+    "note": "GQ-132 and GQ-149 remain the ONLY positive-valid T2 cases under the current runtime contract."
+  },
+  "candidate_strata": {
+    "lookup_completion": {
+      "status": "COVERED",
+      "positive_cases": [
+        "GQ-132"
+      ]
+    },
+    "content_search_completion": {
+      "status": "COVERED",
+      "positive_cases": [
+        "GQ-149"
+      ]
+    },
+    "document_search_completion": {
+      "status": "GAP_T2_BOUND",
+      "observation_completable_unbound": [
+        "GQ-131"
+      ],
+      "t2_bound_positives": [],
+      "note": "Only GQ-131 is observation-completable; remains unbound under current fail-closed T2."
+    },
+    "tool_result_structured_metadata": {
+      "status": "COVERED",
+      "positive_cases": [
+        "GQ-132",
+        "GQ-149"
+      ]
+    },
+    "multi_step_final_completion": {
+      "status": "GAP",
+      "near_miss": [
+        "GA-3"
+      ],
+      "positive_cases": [],
+      "note": "GA-3 ambiguous completion; no machine-judgeable multi-step T2 predicate."
+    },
+    "tool_result_exact_answer": {
+      "status": "GAP",
+      "positive_cases": [],
+      "note": "Migrated TOOL cases complete via structured payloads, not exact NL answer strings."
+    },
+    "semantic_search_completion_t2_bound": {
+      "status": "GAP",
+      "positive_cases": [],
+      "note": "semantic_search has observation contract but no Golden case with unambiguous T2 completion + binding."
+    }
+  },
+  "coverage_gaps": [
+    "multi_step_final_completion",
+    "tool_result_exact_answer",
+    "document_search_completion_t2_bound",
+    "semantic_search_completion_t2_bound",
+    "observation_contracts_for_excerpt_grep_compare_web_sql"
+  ],
+  "denominators": {
+    "prior_phase_a_positive_denominator": 2,
+    "POSITIVE_DENOMINATOR": 2,
+    "POSITIVE_DENOMINATOR_EXPANDED": "NO",
+    "ADDITIONAL_VALID_POSITIVES": [],
+    "additional_valid_positives_found": [],
+    "eligibility_control_count": 1,
+    "eligibility_control_cases": [
+      "GQ-131"
+    ]
+  },
+  "phase_b_freeze": {
+    "T2_PHASE_B_ELIGIBILITY_AUDIT": "PASS",
+    "ADDITIONAL_VALID_POSITIVES": [],
+    "POSITIVE_DENOMINATOR": 2,
+    "POSITIVE_DENOMINATOR_EXPANDED": "NO",
+    "positive_cases": [
+      "GQ-132",
+      "GQ-149"
+    ],
+    "gq131_role": "ELIGIBILITY_CONTROL",
+    "gq131_in_positive_denominator": false,
+    "BROADER_GENERALIZATION": "NOT_MEASURABLE_ON_CURRENT_BENCHMARK",
+    "runtime_rollout": "NO",
+    "product_eligibility_extension": "NO",
+    "golden_rewrite": "NO",
+    "interpretation": {
+      "correct": "Current frozen benchmark contains no additional capability-valid T2 positive cases under the current runtime contract.",
+      "incorrect_forbidden": "T2 broader validation failed",
+      "note": "BROADER_GENERALIZATION is NOT_MEASURABLE_ON_CURRENT_BENCHMARK — not FALSE. Absence of additional positives is a benchmark-coverage boundary, not a capability failure verdict."
+    },
+    "forbidden_denominator_enlargement": [
+      "Golden rewrite",
+      "contract weakening",
+      "eligibility broadening",
+      "synthetic duplication"
+    ],
+    "v1_0_claim_language": {
+      "allowed": "T2 is real-validated on the frozen valid subset of two positive cases.",
+      "forbidden": "T2 is broadly validated.",
+      "future_broader_claim_requires": "new naturally capability-valid benchmark coverage, not rewriting existing cases."
+    }
+  },
+  "key_outcome": "NO_ADDITIONAL_VALID_POSITIVES_FOUND",
+  "key_outcome_rationale": "Independent eligibility re-audit (Golden 168 + TOOL20 + ADAPT fixtures + T2 bindings) found no case besides GQ-132/GQ-149 that passes all nine positive-inclusion gates under current runtime. GQ-131 remains the sole observation-completable unbound near-miss (ELIGIBILITY_CONTROL only). GA-3 is ambiguous multi-step near-miss, not a valid positive. Do not force-expand denominator. This outcome means the current frozen benchmark contains no additional capability-valid T2 positive cases under the current runtime contract — NOT that 'T2 broader validation failed'.",
+  "forbidden_claims": [
+    "Broader Validation Completed",
+    "Expanded Capability Validated",
+    "BROADER_REAL_VALIDATED",
+    "POSITIVE_DENOMINATOR_EXPANDED",
+    "T2 is broadly validated",
+    "T2 broader validation failed",
+    "BROADER_GENERALIZATION=FALSE"
+  ],
+  "forbidden_labels": [
+    "Broader Validation Completed",
+    "Expanded Capability Validated",
+    "T2 is broadly validated"
+  ],
+  "audit_verdict": {
+    "state": "PASS",
+    "phase_b_status": "PASS_FROZEN",
+    "T2_PHASE_B_ELIGIBILITY_AUDIT": "PASS",
+    "key_outcome": "NO_ADDITIONAL_VALID_POSITIVES_FOUND",
+    "ADDITIONAL_VALID_POSITIVES": [],
+    "POSITIVE_DENOMINATOR": 2,
+    "POSITIVE_DENOMINATOR_EXPANDED": "NO",
+    "BROADER_GENERALIZATION": "NOT_MEASURABLE_ON_CURRENT_BENCHMARK",
+    "product_change": 0,
+    "product_eligibility_extension": "NO",
+    "golden_rewrite": "NO",
+    "runtime_rollout": "NO",
+    "ready_for_forced_denom_expansion": "NO",
+    "claim_ceiling_allowed": "T2 is real-validated on the frozen valid subset of two positive cases.",
+    "claim_ceiling_forbidden": "T2 is broadly validated."
+  }
+}
