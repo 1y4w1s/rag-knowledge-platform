@@ -47,6 +47,7 @@ def _state(query: str, *, max_steps: int = 5):
 def test_tool_guidance_flags_default_off() -> None:
     assert settings.agent_l4_tool_preferred_hint_enabled is False
     assert settings.agent_l4_task_satisfied_hint_enabled is False
+    assert settings.agent_l4_tool_contrastive_selection_enabled is False
 
 
 def test_s2_gq131_emits_preferred_search_documents() -> None:
