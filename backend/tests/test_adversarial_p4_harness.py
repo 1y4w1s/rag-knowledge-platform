@@ -1,4 +1,4 @@
-﻿"""Offline harness for ADVERSARIAL P4 real local capability artifact."""
+"""Offline harness for ADVERSARIAL P4 real local capability artifact."""
 
 from __future__ import annotations
 
@@ -6,7 +6,11 @@ import json
 from pathlib import Path
 
 from app.eval.adversarial_capability.p2_design import PRIMARY_CAPABILITY_CASE_IDS
-from app.eval.adversarial_capability.p4_runner import SCHEMA_VERSION, STAGE, TRIALS_PER_CASE
+from app.eval.adversarial_capability.p4_runner import (
+    SCHEMA_VERSION,
+    STAGE,
+    TRIALS_PER_CASE,
+)
 
 
 def test_p4_artifact_schema_if_present() -> None:
