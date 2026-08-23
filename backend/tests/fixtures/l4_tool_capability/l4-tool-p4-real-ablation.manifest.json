@@ -1,0 +1,117 @@
+{
+  "schema_version": "l4-tool-p4-real-ablation-v1",
+  "stage": "TOOL_P4_REAL_LOCAL_PRODUCT_REVALIDATION",
+  "generated_at": "2026-08-23T03:18:45Z",
+  "round_start_master_sha": "4c81c6340f1789a641ef0d6cbaf42c1efdaa2bc2",
+  "tool_p4_base_sha": "4c81c6340f1789a641ef0d6cbaf42c1efdaa2bc2",
+  "known_reference_sha": "4c81c6340f1789a641ef0d6cbaf42c1efdaa2bc2",
+  "master_advanced_beyond_known": false,
+  "pr_lineage": {
+    "pr30_tool_p3_offline_ablation": true,
+    "pr32_s2_t2_product_experiment": true
+  },
+  "contract_manifest_hash": "e37a61ac1d26d702af569756c607ee3509d62f0b03a2b2c50a7830400fe0d5dc",
+  "capability_label": "CURRENT_L3_TOOL_CAPABILITY ON_FROZEN_MIGRATED_SUBSET",
+  "not_labels": [
+    "NOT TOOL20",
+    "NOT full capability",
+    "NOT broad capability from 0% to X%"
+  ],
+  "frozen_subset": ["GQ-131", "GQ-132", "GQ-149"],
+  "denominator": 3,
+  "model": "zai-org/glm-4.6v-flash",
+  "thinking": "OFF",
+  "context_tokens": 8192,
+  "temperature": 0,
+  "timeout_seconds": 90.0,
+  "endpoint": "http://127.0.0.1:1234/v1",
+  "lm_studio_version": "CLI commit: 9902c3a",
+  "hardware": "Windows-10-10.0.26200-SP0",
+  "feature_flag_defaults": {
+    "agent_l4_tool_preferred_hint_enabled": false,
+    "agent_l4_task_satisfied_hint_enabled": false
+  },
+  "schedule_seed": "tool-p4-interleaved-v1",
+  "scored_trials": 60,
+  "warmup": {
+    "warmup_count": 3,
+    "warmup_success": 3,
+    "warmup_latency_ms": [831.5, 701.2, 689.3]
+  },
+  "primary": {
+    "00": "0/3",
+    "10": "0/3",
+    "01": "2/3",
+    "11": "2/3"
+  },
+  "stability": {
+    "00": "0/15",
+    "10": "0/15",
+    "01": "10/15",
+    "11": "10/15"
+  },
+  "per_case": {
+    "GQ-131": {"00": "0/5", "10": "0/5", "01": "0/5", "11": "0/5"},
+    "GQ-132": {"00": "0/5", "10": "0/5", "01": "5/5", "11": "5/5"},
+    "GQ-149": {"00": "0/5", "10": "0/5", "01": "5/5", "11": "5/5"}
+  },
+  "s2_selection_improvement_gq131": {
+    "00": "0/5",
+    "10": "0/5",
+    "01": "0/5",
+    "11": "0/5",
+    "note": "S2 ON emitted preferred_tool_hint=search_documents 5/5 but planner still selected semantic_search 5/5; hint emitted ≠ success"
+  },
+  "t2_termination_improvement_gq132_149": {
+    "00": "0/10",
+    "10": "0/10",
+    "01": "10/10",
+    "11": "10/10"
+  },
+  "interaction": {
+    "s2_only_fixes_family_s": false,
+    "t2_only_fixes_family_t": true,
+    "condition_11": "additive",
+    "stability_deltas_vs_00": {"10": 0, "01": 10, "11": 10}
+  },
+  "safety_metrics": {
+    "unsafe_terminal": 0,
+    "premature_finish": 0,
+    "false_task_satisfied_hint": 0,
+    "wrong_preferred_tool_hint": 0,
+    "out_of_scope_tool_accept": 0,
+    "invalid_args_accept": 0,
+    "failed_tool_marked_success": 0,
+    "matcher_false_positive": 0,
+    "failed_tool_coverage_pollution": 0,
+    "schema_unrecovered": 0
+  },
+  "tna_tracking": {
+    "raw_tool_name_as_action": 15,
+    "recovered_tool_name_as_action": 15,
+    "unrecovered_tool_name_as_action": 0
+  },
+  "failure_taxonomy": {
+    "WRONG_OR_MISSING_TOOL": 20,
+    "BUDGET_EXHAUSTED": 20,
+    "NONE": 20
+  },
+  "p2_historical_reference": {
+    "primary": "0/3",
+    "stability": "0/15",
+    "note": "NOT substitute for contemporaneous 00 (which remeasured 0/15)"
+  },
+  "classification": "Case1 PASS + REAL_VALIDATED_ON_FROZEN_SUBSET",
+  "real_validation": "REAL_VALIDATED_ON_FROZEN_SUBSET",
+  "ready_for_p4_freeze": true,
+  "ready_for_runtime_rollout": false,
+  "defaults_remain_off": true,
+  "result": "PASS",
+  "full_report_gitignored": "backend/artifacts/benchmarks/tmp/reports/w8-tool-p4-real-local-ablation.json",
+  "notes": [
+    "Contemporaneous 00 matches P2 historical boundary (0/3 primary, 0/15 stability).",
+    "T2 ON recovers GQ-132/GQ-149 termination (Family T) 10/10; S2 ON does not recover GQ-131 selection (Family S) 0/5.",
+    "Condition 11 additive with T2 gain only; no S2×T2 interference on safety gates.",
+    "Runtime rollout NO; product defaults remain OFF/OFF."
+  ]
+}
