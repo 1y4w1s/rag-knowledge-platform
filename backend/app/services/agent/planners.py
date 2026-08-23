@@ -1676,6 +1676,14 @@ class NextActionPlanner:
         if not has_available_chat_provider_key():
             return DecisionParseResult(ok=False, error="no_key")
 
+        # TOOL S3A: optional contrastive description rewrite (default OFF; advisory only)
+        from app.services.agent.tool_contrastive_selection import (
+            apply_contrastive_tool_descriptions,
+        )
+
+        tool_specs = apply_contrastive_tool_descriptions(
+            tool_specs, summary.original_query
+        )
         tool_descriptions = _build_tool_descriptions(tool_specs)
         system_prompt = _build_next_action_prompt(tool_descriptions, summary)
         from app.services.agent.memory_relevance_label import build_planner_memory_block

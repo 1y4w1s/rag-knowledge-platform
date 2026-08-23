@@ -249,6 +249,8 @@ class Settings(BaseSettings):
     # TOOL P3 product experiments（默认关；非 rollout）
     agent_l4_tool_preferred_hint_enabled: bool = False
     agent_l4_task_satisfied_hint_enabled: bool = False
+    # TOOL S3A contrastive description experiment (default OFF; not rollout)
+    agent_l4_tool_contrastive_selection_enabled: bool = False
 
     # ── E2 Agentic Reflection ─────────────────────────────────────
     agent_max_reflections: int = 3
