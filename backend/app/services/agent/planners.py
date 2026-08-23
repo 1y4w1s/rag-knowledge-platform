@@ -1460,6 +1460,31 @@ def _build_next_action_prompt(
     )
     docs = ", ".join(summary.doc_names) if summary.doc_names else "(none)"
     scores = ", ".join(f"{s:.3f}" for s in summary.top_scores) if summary.top_scores else "(none)"
+    has_advisory = bool(summary.preferred_tool_hint) or summary.task_contract_satisfied
+    advisory_rule = (
+        "- preferred_tool_hint / task_contract_satisfied 仅为 advisory，"
+        "不得当作强制 override；模型仍须产出合法 AgentDecision；\n"
+        if has_advisory
+        else ""
+    )
+    advisory_lines: list[str] = []
+    if summary.preferred_tool_hint:
+        advisory_lines.append(
+            f"- preferred_tool_hint (advisory only, not a forced override): "
+            f"{summary.preferred_tool_hint}"
+            f" [intent={summary.preferred_tool_intent or 'n/a'};"
+            f" reason={summary.preferred_tool_reason or 'n/a'}]"
+        )
+    if summary.task_contract_satisfied:
+        advisory_lines.append(
+            "- task_contract_satisfied (advisory): true — "
+            "tool-native observation meets migrated task contract; "
+            "you may choose a legal terminal (finish/refuse/clarify); "
+            "this is NOT force_finish and does not bypass StopPolicy"
+        )
+    advisory_tail = (
+        ("\n" + "\n".join(advisory_lines)) if advisory_lines else ""
+    )
     return (
         "你是只读知识检索 Agent 的下一步决策器。"
         "目标：根据当前证据状态，只选择「一个」下一动作。\n\n"
@@ -1474,6 +1499,7 @@ def _build_next_action_prompt(
         "- 若 missing_facts 非空且仍有有效检索路径，不得 finish；\n"
         "- 若 conflicted_facts 非空，不得 finish（应 refuse 或 clarify）；\n"
         "- 不重复完全相同的失败调用；\n"
+        f"{advisory_rule}"
         "- 不输出自由文本推理，只输出结构化 decision 与 reason_code。\n\n"
         f"可用工具：\n{tool_descriptions}\n\n"
         "当前观察摘要（无正文）：\n"
@@ -1490,7 +1516,8 @@ def _build_next_action_prompt(
         f"- missing_facts: {missing}\n"
         f"- conflicted_facts: {conflicted}\n"
         f"- last_failure: {summary.last_failure_kind} / {summary.last_failure_summary}\n"
-        f"- reflection_count: {summary.reflection_count}\n\n"
+        f"- reflection_count: {summary.reflection_count}"
+        f"{advisory_tail}\n\n"
         "只输出一个 JSON 对象，格式示例：\n"
         '{"action":"tool","tool_name":"semantic_search",'
         '"args":{"query":"..."},"reason_code":"initial_retrieval"}\n'
@@ -1584,6 +1611,10 @@ class NextActionPlanner:
 
         summary = apply_observation_fact_hints(summary, state.evidence)
         self._exposure_step_id = str(state.steps_used)
+        # TOOL P3：S2/T2 advisory hints（默认关；不 override Decision / StopPolicy）
+        from app.services.agent.tool_guidance_hints import apply_tool_guidance_hints
+
+        summary = apply_tool_guidance_hints(summary, state, available_names)
         parsed = await self._call_llm(summary, available)
         self._planner_calls += 1
 

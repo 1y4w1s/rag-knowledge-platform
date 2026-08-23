@@ -44,6 +44,8 @@ def test_l3_l4_and_critic_flags_remain_false() -> None:
     assert settings.agent_l4_reflection_recovery_enabled is False
     assert settings.agent_l4_local_model_profile_enabled is False
     assert settings.agent_l4_multimodal_evidence_enabled is False
+    assert settings.agent_l4_tool_preferred_hint_enabled is False
+    assert settings.agent_l4_task_satisfied_hint_enabled is False
 
 
 def _goals(*statuses: FactStatus) -> tuple[FactGoal, ...]:

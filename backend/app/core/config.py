@@ -246,6 +246,9 @@ class Settings(BaseSettings):
     agent_l4_reflection_recovery_enabled: bool = False
     agent_l4_local_model_profile_enabled: bool = False
     agent_l4_multimodal_evidence_enabled: bool = False
+    # TOOL P3 product experiments（默认关；非 rollout）
+    agent_l4_tool_preferred_hint_enabled: bool = False
+    agent_l4_task_satisfied_hint_enabled: bool = False
 
     # ── E2 Agentic Reflection ─────────────────────────────────────
     agent_max_reflections: int = 3

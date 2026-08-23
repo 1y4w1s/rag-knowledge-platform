@@ -262,6 +262,11 @@ class ObservationSummary:
     last_failure_kind: str | None = None
     last_failure_summary: str | None = None
     reflection_count: int = 0
+    # TOOL P3 experiments（默认关）：S2 preferred-tool / T2 task-satisfied advisory
+    preferred_tool_hint: str | None = None
+    preferred_tool_intent: str | None = None
+    preferred_tool_reason: str | None = None
+    task_contract_satisfied: bool = False
 
 
 @dataclass(frozen=True, slots=True)
