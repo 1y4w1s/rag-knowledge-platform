@@ -1,0 +1,72 @@
+{
+  "schema_version": "l4-memory-c1-real-null-result-freeze-v1",
+  "stage": "MEMORY_C1_REAL_NULL_RESULT_FREEZE",
+  "measurement_stage": "MEMORY_C1_REAL_LOCAL_REVALIDATION",
+  "freeze_validation_mode": "REAL_RUN_RESULT_REUSED_FOR_FREEZE",
+  "REAL_RUN_LINEAGE": "VALID",
+  "memory_c1_base_sha": "f4d1e7c7234df6cbf8f0e4b102c3316651805f55",
+  "measurement_feature_sha": "9e63e6151416b3fbc0eac1a01424b24fd26b7537",
+  "convergence_round_start_master_sha": "838bb0354daeed9dd43c966b7ff400402b3af7c7",
+  "artifact": "artifacts/benchmarks/tmp/reports/w8-memory-c1-real-revalidation.json",
+  "artifact_fixture": "tests/fixtures/l4_memory_capability/w8-memory-c1-real-revalidation.json",
+  "model": "zai-org/glm-4.6v-flash",
+  "thinking": "OFF",
+  "frozen_seeded_cases": [
+    "GA-9",
+    "GA-10"
+  ],
+  "scored_model_trajectories": 30,
+  "C1_REAL_LOCAL_STATE": "NO_MEASURABLE_GAIN",
+  "classification": "NO_MEASURABLE_GAIN",
+  "measurement_validity": "VALID",
+  "contemporaneous": {
+    "L3_EXPOSED": {
+      "OFF": "10/10",
+      "ON": "10/10"
+    },
+    "L4_UTILIZED": {
+      "OFF": "0/10",
+      "ON": "0/10"
+    },
+    "L5_TASK_BENEFIT": {
+      "OFF_control": "0/10",
+      "ON": "0/10"
+    },
+    "false_utilization": 0
+  },
+  "OFFLINE_PROXY_REAL_MISMATCH": "OBSERVED",
+  "offline_proxy_note": "P4 offline liked C1 (apparent_utilization_recovery=1.0 / READY_FOR_PRODUCT_EXPERIMENT); real local GA-9/GA-10 showed 0 measurable L4/L5 gain. Future MEMORY remediation cannot rely on the same offline proxy alone.",
+  "interpretation_discipline": {
+    "allowed": "C1 did not produce capability-valid semantic utilization or causal task benefit on frozen GA-9/GA-10.",
+    "forbidden": [
+      "memory does not work",
+      "model cannot use memory universally",
+      "C1 proves model boundary"
+    ]
+  },
+  "safety_freeze": {
+    "l3_instrumentation_regression": 0,
+    "false_utilization": 0,
+    "privacy_leak": 0,
+    "wrong_scope_exposure": 0
+  },
+  "privacy_safety": {
+    "plaintext_leakage": 0,
+    "wrong_scope": 0,
+    "wrong_run_step_acceptance": 0,
+    "empty_fake_exposure": 0,
+    "false_utilization": 0
+  },
+  "product_remediation": false,
+  "runtime_rollout": false,
+  "golden_mutated": false,
+  "production_c1_default": false,
+  "ready_for_c2_decision_gate": true,
+  "non_goals": [
+    "no C2 product implementation",
+    "no memory prompt tuning beyond frozen measurement",
+    "no Golden rewrite",
+    "no runtime rollout",
+    "no model re-run"
+  ]
+}

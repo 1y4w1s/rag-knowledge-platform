@@ -1,4 +1,4 @@
-"""Offline harness checks for MEMORY C1 real revalidation (no LM Studio)."""
+"""Offline harness checks for MEMORY C1 real revalidation + null-result freeze."""
 
 from __future__ import annotations
 
@@ -10,6 +10,14 @@ from app.eval.memory_capability.c1_flags import (
     apply_memory_c1_flags,
     assert_production_c1_default,
     restore_memory_c1_flags,
+)
+from app.eval.memory_capability.c1_freeze import (
+    C1_REAL_LOCAL_STATE,
+    OFFLINE_PROXY_REAL_MISMATCH,
+    REAL_RUN_LINEAGE,
+    assert_artifact_matches_freeze,
+    assert_manifest_matches_constants,
+    load_c1_freeze_manifest,
 )
 from app.eval.memory_capability.c1_runner import (
     CONDITIONS,
@@ -192,5 +200,31 @@ def test_artifact_schema_if_present() -> None:
     assert data["metrics"]["L3_EXPOSED"]["ON_WITH_MEMORY"]["passed"] == 10
     assert data["metrics"]["L4_UTILIZED"]["OFF_WITH_MEMORY"]["passed"] == 0
     assert data["metrics"]["L4_UTILIZED"]["ON_WITH_MEMORY"]["passed"] == 0
+    assert data["metrics"]["L5_TASK_BENEFIT"]["OFF_control"]["passed"] == 0
+    assert data["metrics"]["L5_TASK_BENEFIT"]["ON"]["passed"] == 0
     assert data["privacy_audit"]["false_utilization"] == 0
     assert data["memory_c1_base_sha"].startswith("f4d1e7c")
+    assert_artifact_matches_freeze(data)
+
+
+def test_c1_null_result_freeze_manifest() -> None:
+    manifest = load_c1_freeze_manifest()
+    assert_manifest_matches_constants(manifest)
+    assert C1_REAL_LOCAL_STATE == "NO_MEASURABLE_GAIN"
+    assert REAL_RUN_LINEAGE == "VALID"
+    assert OFFLINE_PROXY_REAL_MISMATCH == "OBSERVED"
+    assert manifest["C1_REAL_LOCAL_STATE"] == "NO_MEASURABLE_GAIN"
+    assert manifest["REAL_RUN_LINEAGE"] == "VALID"
+    assert manifest["OFFLINE_PROXY_REAL_MISMATCH"] == "OBSERVED"
+    assert manifest["ready_for_c2_decision_gate"] is True
+    assert manifest["runtime_rollout"] is False
+    allowed = manifest["interpretation_discipline"]["allowed"]
+    assert "capability-valid semantic utilization" in allowed
+    assert "causal task benefit" in allowed
+    forbidden = set(manifest["interpretation_discipline"]["forbidden"])
+    assert "memory does not work" in forbidden
+    assert "model cannot use memory universally" in forbidden
+    assert "C1 proves model boundary" in forbidden
+    # Offline proxy liked C1; real showed null gain — methodological freeze.
+    assert "offline proxy" in manifest["offline_proxy_note"].lower()
+    assert "P4" in manifest["offline_proxy_note"]
