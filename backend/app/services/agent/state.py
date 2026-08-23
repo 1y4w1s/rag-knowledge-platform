@@ -197,6 +197,8 @@ def _extract_from_record(
     if isinstance(data, SemanticSearchOutput):
         for hit in data.hits:
             chunk_ids.append(hit.chunk_id)
+            if hit.document_id is not None:
+                document_ids.append(hit.document_id)
             doc_names.append(hit.doc_name)
             scores.append(float(hit.score))
             stubs.append(

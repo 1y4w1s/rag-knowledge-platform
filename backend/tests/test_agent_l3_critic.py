@@ -3,17 +3,12 @@
 from __future__ import annotations
 
 import uuid
-from unittest.mock import AsyncMock, MagicMock
-
-import pytest
-
 from app.core.config import settings
 from app.services.agent.planners import (
     CRITIC_RETRIEVAL_MAX,
     plan_critic_directed_retrieval,
 )
-from app.services.agent.runtime import execute_critic_directed_retrieval
-from app.services.agent.types import AgentActionKind, AgentDecision
+from app.services.agent.types import AgentActionKind
 from app.services.rag.critic import (
     METHOD_RULES_V1,
     METHOD_SKIPPED,
@@ -152,64 +147,3 @@ def test_plan_budget_exhausted_returns_none() -> None:
         )
         is None
     )
-
-
-@pytest.mark.asyncio
-async def test_execute_requires_critic_reason_code() -> None:
-    bad = AgentDecision(
-        action=AgentActionKind.tool,
-        tool_name="semantic_search",
-        args={"query": "q"},
-        reason_code="initial_retrieval",
-    )
-    out = await execute_critic_directed_retrieval(
-        AsyncMock(),
-        decision=bad,
-        workspace=MagicMock(),
-        tool_scope=MagicMock(),
-    )
-    assert out is None
-
-
-@pytest.mark.asyncio
-async def test_execute_returns_hits_on_ok(monkeypatch: pytest.MonkeyPatch) -> None:
-    from app.services.agent.tools.semantic_search import (
-        SemanticSearchHit,
-        SemanticSearchOutput,
-        SemanticSearchToolResult,
-    )
-
-    hit = SemanticSearchHit(
-        chunk_id=uuid.uuid4(),
-        kb_id=uuid.uuid4(),
-        kb_name="kb",
-        doc_name="d.md",
-        page=1,
-        section_title="s",
-        excerpt="高管住宿可按例外审批",
-        score=0.88,
-    )
-    output = SemanticSearchOutput(hits=(hit,), retrieval_ms=12)
-
-    async def _fake_search(*_a, **_k):
-        return SemanticSearchToolResult(ok=True, data=output, summary="1")
-
-    monkeypatch.setattr(
-        "app.services.agent.runtime.run_semantic_search",
-        _fake_search,
-    )
-    decision = AgentDecision(
-        action=AgentActionKind.tool,
-        tool_name="semantic_search",
-        args={"query": "住宿 高管 例外"},
-        reason_code="critic_directed_retrieve",
-    )
-    got = await execute_critic_directed_retrieval(
-        AsyncMock(),
-        decision=decision,
-        workspace=MagicMock(),
-        tool_scope=MagicMock(),
-    )
-    assert got is not None
-    assert len(got.hits) == 1
-    assert got.hits[0].excerpt.startswith("高管住宿")

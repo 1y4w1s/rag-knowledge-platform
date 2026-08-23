@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import asdict, dataclass, field
+from enum import Enum
 from typing import Any
 
 from app.core.config import settings
@@ -42,6 +43,14 @@ METHOD_LLM_VERIFY_V1 = "llm_verify_v1"
 METHOD_SKIPPED = "skipped"
 
 
+class CriticAction(str, Enum):
+    ACCEPT = "ACCEPT"
+    REVISE_FROM_EXISTING_EVIDENCE = "REVISE_FROM_EXISTING_EVIDENCE"
+    RETRIEVE_MISSING_EVIDENCE = "RETRIEVE_MISSING_EVIDENCE"
+    CLARIFY = "CLARIFY"
+    REFUSE = "REFUSE"
+
+
 @dataclass(frozen=True)
 class ClaimCheck:
     text: str
@@ -59,6 +68,7 @@ class CriticResult:
     method: str = METHOD_RULES_V1
     corrected: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    recommended_action: CriticAction = CriticAction.ACCEPT
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -211,7 +221,12 @@ def _has_shallow_evidence(claim_text: str, chunk: RetrievedChunk) -> bool:
     return any(t in hay for t in terms)
 
 
-def _check_claim(text: str, ordered: list[RetrievedChunk]) -> ClaimCheck:
+def _check_claim(
+    text: str,
+    ordered: list[RetrievedChunk],
+    *,
+    require_shallow_evidence: bool = True,
+) -> ClaimCheck:
     if _NON_ASSERTIVE.match(text):
         return ClaimCheck(text=text, citation_nums=(), ok=True)
     nums = _citation_nums(text)
@@ -228,7 +243,9 @@ def _check_claim(text: str, ordered: list[RetrievedChunk]) -> ClaimCheck:
             ok=False,
             issue=f"citation out of range: {invalid}",
         )
-    if not any(_has_shallow_evidence(text, ordered[n - 1]) for n in nums):
+    if require_shallow_evidence and not any(
+        _has_shallow_evidence(text, ordered[n - 1]) for n in nums
+    ):
         return ClaimCheck(
             text=text,
             citation_nums=nums,
@@ -254,6 +271,7 @@ def critique_answer_rules(
             rationale="safety block copy detected",
             method=METHOD_RULES_V1,
             metadata=_meta(True, "rules", METHOD_RULES_V1, False, LABEL_PRODUCT_OR_ACL),
+            recommended_action=CriticAction.REFUSE,
         )
     if any((answer or "").strip().startswith(p) for p in _REJECTION_PREFIXES) or not chunks:
         return CriticResult(
@@ -280,6 +298,19 @@ def critique_answer_rules(
     rationale = (
         "all claims passed rules_v1" if ok else (failed[0].issue or "claim validation failed")
     )
+    issues = tuple((claim.issue or "") for claim in failed)
+    if ok:
+        action = CriticAction.ACCEPT
+    elif any(issue.startswith("shallow evidence") for issue in issues):
+        action = CriticAction.RETRIEVE_MISSING_EVIDENCE
+    elif any(
+        issue == "assertive claim missing [片段N]"
+        or issue.startswith("citation out of range")
+        for issue in issues
+    ):
+        action = CriticAction.REVISE_FROM_EXISTING_EVIDENCE
+    else:
+        action = CriticAction.REFUSE
     return CriticResult(
         ok=ok,
         claims=checks,
@@ -297,24 +328,112 @@ def critique_answer_rules(
                 "critic.failed_claim_count": len(failed),
             },
         ),
+        recommended_action=action,
+    )
+
+
+def _deterministic_preflight(
+    answer: str,
+    chunks: list[RetrievedChunk],
+    *,
+    max_claims: int,
+) -> CriticResult:
+    """Reject only system-known citation/safety defects before semantic review."""
+    rules_result = critique_answer_rules(answer, chunks, max_claims=max_claims)
+    if (
+        rules_result.ok
+        or rules_result.recommended_action
+        is not CriticAction.RETRIEVE_MISSING_EVIDENCE
+    ):
+        return rules_result
+
+    ordered = _ordered_chunks(chunks)
+    checks = tuple(
+        _check_claim(text, ordered, require_shallow_evidence=False)
+        for text in _split_claims(answer, max_claims)
+    )
+    failed = [check for check in checks if not check.ok]
+    if failed:
+        rationale = failed[0].issue or "deterministic claim validation failed"
+        return CriticResult(
+            ok=False,
+            claims=checks,
+            label=LABEL_GENERATION_BAD,
+            rationale=rationale,
+            method=METHOD_RULES_V1,
+            metadata=_meta(
+                True,
+                "rules",
+                METHOD_RULES_V1,
+                False,
+                LABEL_GENERATION_BAD,
+                **{
+                    "critic.claim_count": len(checks),
+                    "critic.failed_claim_count": len(failed),
+                },
+            ),
+            recommended_action=CriticAction.REVISE_FROM_EXISTING_EVIDENCE,
+        )
+    return CriticResult(
+        ok=True,
+        claims=checks,
+        label=LABEL_UNKNOWN,
+        rationale="deterministic preflight passed",
+        method=METHOD_RULES_V1,
+        metadata=_meta(
+            True,
+            "rules",
+            METHOD_RULES_V1,
+            True,
+            LABEL_UNKNOWN,
+            **{
+                "critic.claim_count": len(checks),
+                "critic.failed_claim_count": 0,
+            },
+        ),
+        recommended_action=CriticAction.ACCEPT,
     )
 
 
 async def _critique_llm(
     answer: str, chunks: list[RetrievedChunk], query: str
 ) -> CriticResult:
-    from app.services.rag.generation import verify_answer
+    from app.services.rag.generation import inspect_answer
 
-    verified, corrected = await verify_answer(answer, chunks, query)
-    label = LABEL_UNKNOWN if verified else LABEL_GENERATION_BAD
+    verification = await inspect_answer(answer, chunks, query)
+    label = LABEL_UNKNOWN if verification.verified else LABEL_GENERATION_BAD
+    action = (
+        CriticAction.ACCEPT
+        if verification.verified
+        else (
+            CriticAction.CLARIFY
+            if verification.degraded
+            else CriticAction.REVISE_FROM_EXISTING_EVIDENCE
+        )
+    )
     return CriticResult(
-        ok=verified,
+        ok=verification.verified,
         claims=(),
         label=label,
-        rationale="verify_answer passed" if verified else "verify_answer failed",
+        rationale=(
+            "semantic judgment passed"
+            if verification.verified
+            else "semantic judgment failed"
+        ),
         method=METHOD_LLM_VERIFY_V1,
-        corrected=None if verified else corrected,
-        metadata=_meta(True, "llm", METHOD_LLM_VERIFY_V1, verified, label),
+        corrected=None,
+        metadata=_meta(
+            True,
+            "llm",
+            METHOD_LLM_VERIFY_V1,
+            verification.verified,
+            label,
+            **{
+                "critic.issues": list(verification.issues),
+                "critic.degraded": verification.degraded,
+            },
+        ),
+        recommended_action=action,
     )
 
 
@@ -335,5 +454,12 @@ async def run_critic(
         )
     mode = (settings.rag_critic_mode or "rules").strip().lower()
     if mode == "llm":
+        deterministic = _deterministic_preflight(
+            answer,
+            chunks,
+            max_claims=settings.rag_critic_max_claims,
+        )
+        if not deterministic.ok:
+            return deterministic
         return await _critique_llm(answer, chunks, query)
     return critique_answer_rules(answer, chunks, max_claims=settings.rag_critic_max_claims)

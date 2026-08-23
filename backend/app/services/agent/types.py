@@ -66,6 +66,19 @@ class AgentStepRecord:
     latency_ms: int
     step_id: UUID | None = None
     data: Any = None
+    origin: str = "agent_runtime"
+    attempt_count: int = 1
+
+
+@dataclass(frozen=True, slots=True)
+class CriticActionRecord:
+    """Ordered outcome record for a non-shadow critic recommendation action."""
+
+    action: str
+    status: str
+    attempt_count: int
+    reason_code: str
+    step_index: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -90,6 +103,14 @@ class AgentRunOutcome:
     tool_replanned: int = 0
     # L3：显式终态 decision（finish/clarify/refuse）；legacy 路径保持 None
     terminal_decision: AgentDecision | None = None
+    # Canonical state carried across the generation/recovery boundary.
+    evidence_state: EvidenceState = field(default_factory=lambda: EvidenceState())
+    deadline_monotonic: float | None = None
+    reflection_count: int = 0
+    critic_recovery_count: int = 0
+    critic_validation_count: int = 0
+    critic_revision_count: int = 0
+    critic_actions: tuple[CriticActionRecord, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)

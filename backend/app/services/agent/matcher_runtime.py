@@ -11,7 +11,7 @@ from typing import Any
 from uuid import UUID
 
 from app.services.agent.matcher import EvidenceMatcher, EvidenceSnippet
-from app.services.agent.types import AgentState, StepExecution
+from app.services.agent.types import AgentState, EvidenceState, StepExecution
 
 
 def snippets_from_tool_data(data: Any) -> tuple[EvidenceSnippet, ...]:
@@ -26,12 +26,14 @@ def snippets_from_tool_data(data: Any) -> tuple[EvidenceSnippet, ...]:
             if not text:
                 continue
             cid = getattr(hit, "chunk_id", None)
+            did = getattr(hit, "document_id", None)
             page = getattr(hit, "page", None)
             out.append(
                 EvidenceSnippet(
                     evidence_id=str(cid) if cid is not None else f"hit-{i}",
                     text=text,
                     chunk_id=cid if isinstance(cid, UUID) else None,
+                    document_id=did if isinstance(did, UUID) else None,
                     page=str(page) if page is not None else None,
                     provenance=str(getattr(hit, "doc_name", "") or ""),
                     confidence=float(getattr(hit, "score", 1.0) or 1.0),
@@ -122,14 +124,19 @@ def maybe_apply_evidence_match_after_tool(
 
     空 FactGoal ledger / 失败 step / 无正文 snippet → 不改写。
     """
-    if not execution.ok or execution.data is None:
-        return state
-    if not state.evidence.facts:
-        return state
+    updated = maybe_apply_evidence_match_to_evidence(state.evidence, execution)
+    return state if updated is state.evidence else replace(state, evidence=updated)
+
+
+def maybe_apply_evidence_match_to_evidence(
+    evidence: EvidenceState,
+    execution: StepExecution,
+) -> EvidenceState:
+    """Reuse the legal matcher reducer when only canonical EvidenceState remains."""
+    if not execution.ok or execution.data is None or not evidence.facts:
+        return evidence
     snippets = snippets_from_tool_data(execution.data)
     if not snippets:
-        return state
-    updated, result = EvidenceMatcher().match_and_apply(state.evidence, snippets)
-    if not result.ok:
-        return state
-    return replace(state, evidence=updated)
+        return evidence
+    updated, result = EvidenceMatcher().match_and_apply(evidence, snippets)
+    return updated if result.ok else evidence

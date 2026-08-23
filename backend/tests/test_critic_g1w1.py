@@ -285,7 +285,9 @@ async def test_agent_stream_critic_fail_closed_emits_correction(
         chunk=chunk,
     )
     corrections = [e["data"]["text"] for e in events if e["event"] == "correction"]
-    assert corrections == [refuse]
+    assert corrections == []
+    tokens = [e["data"]["text"] for e in events if e["event"] == "token"]
+    assert tokens == [refuse]
     assert state["content"] == refuse
     assert state["citations"] == []
     done = events[-1]

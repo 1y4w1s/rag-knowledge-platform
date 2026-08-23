@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+import time
 from collections.abc import AsyncIterator, Awaitable, Callable
+from dataclasses import replace
 from functools import partial
 from typing import Any
 from uuid import UUID
@@ -18,6 +21,7 @@ from app.models.chat_thread import ChatThread
 from app.models.enums import AgentRunStatus, MessageStatus, ThreadKind
 from app.services.agent.finalize import prepare_agent_generation, resolve_run_status
 from app.services.audit.agent import (
+    audit_agent_recovery_action,
     audit_agent_run_completed,
     audit_llm_plan_fallback,
     audit_llm_plan_success,
@@ -28,7 +32,11 @@ from app.services.agent.dispatch import (
     ThoroughReadPlanner,
     create_tool_planner,
 )
-from app.services.agent.runtime import ToolPlanner, run_react_loop
+from app.services.agent.runtime import (
+    ToolPlanner,
+    execute_accounted_recovery_step,
+    run_react_loop,
+)
 from app.services.agent.working_memory import build_windowed_prompt_history
 from app.models.agent_approval import AgentApproval
 from app.models.enums import AgentRunMode
@@ -41,11 +49,14 @@ from app.services.agent.tools.document_write import (
     DocumentWriteToolResult,
 )
 from app.services.agent.tools.registry import AgentToolName
-from app.services.agent.tools.scope import AgentToolScope
+from app.services.agent.tools.scope import FORBIDDEN_KB_SUMMARY, AgentToolScope
 from app.services.agent.types import (
+    AgentActionKind,
     AgentBudgetEvent,
+    AgentDecision,
     AgentRunOutcome,
     AgentStepRecord,
+    CriticActionRecord,
     ToolResultEvent,
     ToolStartEvent,
 )
@@ -282,6 +293,9 @@ async def _stream_generation_phase(
     workspace_mode: bool = False,
     retrieval_query: str | None = None,
     default_kb_id: UUID | None = None,
+    thread_id: UUID | None = None,
+    hooks: _BufferingToolHooks | None = None,
+    current_user: CurrentUser | None = None,
 ) -> AsyncIterator[str]:
     """生成阶段事件流（citation → token → done；A2：纯渲染，落库由 core finally 统一收口）。"""
     citations = list(gen_plan.citations)
@@ -296,8 +310,9 @@ async def _stream_generation_phase(
         conf = classify_answer_confidence(gated_for_conf, message)
         inc_chat_answer(conf.value, "thorough")
 
-    for citation in citations:
-        yield _sse_event("citation", citation)
+    if not settings.rag_critic_enabled:
+        for citation in citations:
+            yield _sse_event("citation", citation)
 
     token_parts: list[str] = []
     if active_plan.refusal:
@@ -317,7 +332,8 @@ async def _stream_generation_phase(
                 disclaimer = partial_answer_disclaimer_for(message)
                 token_parts.append(disclaimer)
                 token_parts.append("\n\n")
-                yield _sse_event("token", {"text": disclaimer + "\n\n"})
+                if not settings.rag_critic_enabled:
+                    yield _sse_event("token", {"text": disclaimer + "\n\n"})
 
             if history:
                 windowed = build_windowed_prompt_history(
@@ -348,7 +364,8 @@ async def _stream_generation_phase(
         async for text in token_stream:
             if text:
                 token_parts.append(text)
-                yield _sse_event("token", {"text": text})
+                if not settings.rag_critic_enabled:
+                    yield _sse_event("token", {"text": text})
     except Exception as exc:
         # L1 异常兜底：provider 双失败把熔断器打开后的竞争窗口切到降级流
         if active_plan.refusal:
@@ -362,20 +379,31 @@ async def _stream_generation_phase(
         ):
             if text:
                 token_parts.append(text)
-                yield _sse_event("token", {"text": text})
+                if not settings.rag_critic_enabled:
+                    yield _sse_event("token", {"text": text})
 
     assistant_content = "".join(token_parts)
 
     # ── G1-W1b Critic（默认关）+ L3-W7 定向再检索回流（另 flag，默认关）──
     critic_fail_closed = False
+    force_critic_fail_closed = False
     if (
         settings.rag_critic_enabled
         and not active_plan.refusal
         and active_plan.gated_chunks
     ):
         from app.services.rag.confidence_reply import with_partial_disclaimer
-        from app.services.rag.critic import run_critic
-        from app.services.rag.generation import no_context_reply_for
+        from app.services.rag.critic import (
+            METHOD_LLM_VERIFY_V1,
+            CriticAction,
+            CriticResult,
+            run_critic,
+        )
+        from app.services.rag.feedback_attribution import LABEL_UNKNOWN
+        from app.services.rag.generation import (
+            no_context_reply_for,
+            revise_answer_from_existing_evidence,
+        )
 
         gated = list(active_plan.gated_chunks)
         confidence = classify_answer_confidence(gated, message)
@@ -384,15 +412,84 @@ async def _stream_generation_phase(
             prefix = partial_answer_disclaimer_for(message) + "\n\n"
             if body_for_critic.startswith(prefix):
                 body_for_critic = body_for_critic[len(prefix) :]
-        critic_result = await run_critic(body_for_critic, gated, message)
+        action_count_before = len(getattr(outcome, "critic_actions", ()))
+        validation_attempt_count = 1
+        try:
+            deadline_monotonic = getattr(outcome, "deadline_monotonic", None)
+            remaining = (
+                deadline_monotonic - time.monotonic()
+                if deadline_monotonic is not None
+                else None
+            )
+            if remaining is not None and remaining <= 0:
+                validation_attempt_count = 0
+                raise TimeoutError("initial critic deadline exhausted")
+            if remaining is not None:
+                critic_result = await asyncio.wait_for(
+                    run_critic(body_for_critic, gated, message),
+                    timeout=remaining,
+                )
+            else:
+                critic_result = await run_critic(body_for_critic, gated, message)
+            if isinstance(outcome, AgentRunOutcome):
+                outcome = replace(
+                    outcome,
+                    critic_validation_count=outcome.critic_validation_count + 1,
+                )
+        except Exception as exc:
+            validation_status = (
+                "deadline_exhausted"
+                if isinstance(exc, TimeoutError)
+                else "failed"
+            )
+            critic_result = CriticResult(
+                ok=False,
+                claims=(),
+                label=LABEL_UNKNOWN,
+                rationale="initial semantic validation unavailable",
+                method="control_plane_failure",
+                recommended_action=CriticAction.REFUSE,
+            )
+            if isinstance(outcome, AgentRunOutcome):
+                outcome = replace(
+                    outcome,
+                    timed_out=(
+                        outcome.timed_out
+                        or validation_status == "deadline_exhausted"
+                    ),
+                    critic_actions=(
+                        *outcome.critic_actions,
+                        CriticActionRecord(
+                            action="SEMANTIC_VALIDATION",
+                            status=validation_status,
+                            attempt_count=validation_attempt_count,
+                            reason_code="deadline_or_critic_failure",
+                        ),
+                    ),
+                )
+                await audit_agent_recovery_action(
+                    db,
+                    actor_user_id=user_id,
+                    run_id=outcome.run_id,
+                    action="SEMANTIC_VALIDATION",
+                    status=validation_status,
+                    budget_before=1,
+                    budget_after=0,
+                    attempt_count=validation_attempt_count,
+                )
 
-        # L3-W7：unsupported claim → 限预算定向补检 → revise（至多 1 次）
+        # Outer owner executes one named action; critic remains advisory.
+        recommendation_handled = False
         if (
             not critic_result.ok
+            and critic_result.recommended_action
+            is CriticAction.RETRIEVE_MISSING_EVIDENCE
             and settings.agent_l3_critic_retrieval_enabled
             and workspace is not None
             and tool_scope is not None
+            and thread_id is not None
         ):
+            hook_offset = len(hooks.events) if hooks is not None else 0
             revised = await _maybe_critic_retrieve_and_revise(
                 db,
                 message=message,
@@ -406,34 +503,275 @@ async def _stream_generation_phase(
                 org_scope=org_scope,
                 workspace_mode=workspace_mode,
                 default_kb_id=default_kb_id,
+                user_id=user_id,
+                thread_id=thread_id,
+                hooks=hooks,
+                current_user=current_user,
             )
+            if hooks is not None:
+                for event_name, data in hooks.events[hook_offset:]:
+                    yield _sse_event(event_name, data)
             if revised is not None:
-                active_plan, assistant_content, critic_result = revised
-                gated = list(active_plan.gated_chunks)
-                citations = list(active_plan.citations)
-                confidence = classify_answer_confidence(gated, message)
-                yield _sse_event("correction", {"text": assistant_content})
+                outcome, revised_plan, revised_content, revised_critic = revised
+                recommendation_handled = any(
+                    record.action
+                    == CriticAction.RETRIEVE_MISSING_EVIDENCE.value
+                    for record in outcome.critic_actions[action_count_before:]
+                )
+                if (
+                    revised_plan is None
+                    and outcome.steps
+                    and not outcome.steps[-1].ok
+                    and outcome.steps[-1].summary == FORBIDDEN_KB_SUMMARY
+                ):
+                    force_critic_fail_closed = True
+                if revised_plan is not None and revised_content is not None:
+                    active_plan = revised_plan
+                    assistant_content = revised_content
+                    critic_result = revised_critic
+                    recommendation_handled = False
+                    gated = list(active_plan.gated_chunks)
+                    citations = list(active_plan.citations)
+                    confidence = classify_answer_confidence(gated, message)
+        elif (
+            not critic_result.ok
+            and critic_result.recommended_action
+            is CriticAction.REVISE_FROM_EXISTING_EVIDENCE
+            and critic_result.method == METHOD_LLM_VERIFY_V1
+            and getattr(outcome, "critic_revision_count", 0) < 1
+        ):
+            issues = critic_result.metadata.get("critic.issues") or [
+                critic_result.rationale
+            ]
+            revised_content = None
+            revision_status = "failed"
+            revision_attempt_count = 1
+            try:
+                remaining = (
+                    outcome.deadline_monotonic - time.monotonic()
+                    if isinstance(outcome, AgentRunOutcome)
+                    and outcome.deadline_monotonic is not None
+                    else None
+                )
+                if remaining is not None and remaining <= 0:
+                    revision_status = "deadline_exhausted"
+                    revision_attempt_count = 0
+                elif remaining is not None:
+                    revised_content = await asyncio.wait_for(
+                        revise_answer_from_existing_evidence(
+                            body_for_critic,
+                            gated,
+                            message,
+                            "\n".join(str(item) for item in issues),
+                        ),
+                        timeout=max(0.001, remaining),
+                    )
+                else:
+                    revised_content = await revise_answer_from_existing_evidence(
+                        body_for_critic,
+                        gated,
+                        message,
+                        "\n".join(str(item) for item in issues),
+                    )
+            except TimeoutError:
+                revision_status = "deadline_exhausted"
+                logger.warning(
+                    "module=rag_critic operation=revise_existing_deadline",
+                    exc_info=True,
+                )
+            except Exception:
+                logger.warning(
+                    "module=rag_critic operation=revise_existing_failed",
+                    exc_info=True,
+                )
+            if revised_content:
+                revision_status = "executed"
+            if isinstance(outcome, AgentRunOutcome):
+                outcome = replace(
+                    outcome,
+                    timed_out=(
+                        outcome.timed_out
+                        or revision_status == "deadline_exhausted"
+                    ),
+                    critic_revision_count=outcome.critic_revision_count + 1,
+                    critic_actions=(
+                        *outcome.critic_actions,
+                        CriticActionRecord(
+                            action="REVISE_FROM_EXISTING_EVIDENCE",
+                            status=revision_status,
+                            attempt_count=revision_attempt_count,
+                            reason_code="critic_recommended_revision",
+                        ),
+                    ),
+                )
+                await audit_agent_recovery_action(
+                    db,
+                    actor_user_id=user_id,
+                    run_id=outcome.run_id,
+                    action="REVISE_FROM_EXISTING_EVIDENCE",
+                    status=revision_status,
+                    budget_before=1,
+                    budget_after=0,
+                    attempt_count=revision_attempt_count,
+                )
+                recommendation_handled = True
+            if revised_content:
+                if confidence is AnswerConfidence.low:
+                    revised_content = with_partial_disclaimer(
+                        message, revised_content
+                    )
+                assistant_content = revised_content
+                body = revised_content
+                if confidence is AnswerConfidence.low:
+                    prefix = partial_answer_disclaimer_for(message) + "\n\n"
+                    if body.startswith(prefix):
+                        body = body[len(prefix) :]
+                post_revision_critic = None
+                post_validation_attempt_count = 1
+                try:
+                    remaining = (
+                        outcome.deadline_monotonic - time.monotonic()
+                        if isinstance(outcome, AgentRunOutcome)
+                        and outcome.deadline_monotonic is not None
+                        else None
+                    )
+                    if remaining is not None and remaining <= 0:
+                        post_validation_attempt_count = 0
+                        raise TimeoutError(
+                            "post-revision critic deadline exhausted"
+                        )
+                    if remaining is not None:
+                        post_revision_critic = await asyncio.wait_for(
+                            run_critic(body, gated, message),
+                            timeout=max(0.001, remaining),
+                        )
+                    else:
+                        post_revision_critic = await run_critic(
+                            body, gated, message
+                        )
+                except Exception as exc:
+                    validation_status = (
+                        "deadline_exhausted"
+                        if isinstance(exc, TimeoutError)
+                        else "failed"
+                    )
+                    logger.warning(
+                        "module=rag_critic operation=post_revision_validation_failed",
+                        exc_info=True,
+                    )
+                    if isinstance(outcome, AgentRunOutcome):
+                        outcome = replace(
+                            outcome,
+                            timed_out=(
+                                outcome.timed_out
+                                or validation_status == "deadline_exhausted"
+                            ),
+                            critic_actions=(
+                                *outcome.critic_actions,
+                                CriticActionRecord(
+                                    action="POST_REVISION_VALIDATION",
+                                    status=validation_status,
+                                    attempt_count=post_validation_attempt_count,
+                                    reason_code="deadline_or_critic_failure",
+                                ),
+                            ),
+                        )
+                        await audit_agent_recovery_action(
+                            db,
+                            actor_user_id=user_id,
+                            run_id=outcome.run_id,
+                            action="POST_REVISION_VALIDATION",
+                            status=validation_status,
+                            budget_before=1,
+                            budget_after=0,
+                            attempt_count=post_validation_attempt_count,
+                        )
+                if post_revision_critic is not None:
+                    critic_result = post_revision_critic
+                    recommendation_handled = False
+                if (
+                    post_revision_critic is not None
+                    and isinstance(outcome, AgentRunOutcome)
+                ):
+                    outcome = replace(
+                        outcome,
+                        critic_validation_count=(
+                            outcome.critic_validation_count + 1
+                        ),
+                    )
+
+        if not critic_result.ok and isinstance(outcome, AgentRunOutcome):
+            recommendation = critic_result.recommended_action
+            action_name = recommendation.value
+            handled = recommendation_handled
+            status: str | None = None
+            reason_code = "critic_recommendation_unavailable"
+            if recommendation is CriticAction.REFUSE:
+                status = "executed"
+                reason_code = "critic_recommended_refuse"
+                force_critic_fail_closed = True
+                outcome = replace(
+                    outcome,
+                    terminal_decision=AgentDecision(
+                        action=AgentActionKind.refuse,
+                        reason_code=reason_code,
+                    ),
+                )
+            elif recommendation is CriticAction.CLARIFY:
+                status = "mapped_to_refuse"
+                reason_code = "critic_clarify_fail_closed"
+                force_critic_fail_closed = True
+                outcome = replace(
+                    outcome,
+                    terminal_decision=AgentDecision(
+                        action=AgentActionKind.refuse,
+                        reason_code=reason_code,
+                    ),
+                )
+            elif not handled:
+                if recommendation is CriticAction.RETRIEVE_MISSING_EVIDENCE:
+                    status = "skipped_disabled"
+                    reason_code = "critic_retrieval_unavailable"
+                elif recommendation is CriticAction.REVISE_FROM_EXISTING_EVIDENCE:
+                    status = "skipped_unavailable"
+                    reason_code = "critic_revision_unavailable"
+
+            if status is not None and not handled:
+                outcome = replace(
+                    outcome,
+                    critic_actions=(
+                        *outcome.critic_actions,
+                        CriticActionRecord(
+                            action=action_name,
+                            status=status,
+                            attempt_count=0,
+                            reason_code=reason_code,
+                        ),
+                    ),
+                )
+                await audit_agent_recovery_action(
+                    db,
+                    actor_user_id=user_id,
+                    run_id=outcome.run_id,
+                    action=action_name,
+                    status=status,
+                    budget_before=0,
+                    budget_after=0,
+                    attempt_count=0,
+                )
 
         if not critic_result.ok:
             on_fail = (settings.rag_critic_on_fail or "fail_closed").strip().lower()
-            if on_fail == "annotate_only":
+            if on_fail == "annotate_only" and not force_critic_fail_closed:
                 logger.info(
                     "module=rag_critic operation=annotate_only label=%s rationale=%s",
                     critic_result.label,
                     critic_result.rationale,
                 )
-            elif critic_result.corrected:
-                assistant_content = (
-                    with_partial_disclaimer(message, critic_result.corrected)
-                    if confidence is AnswerConfidence.low
-                    else critic_result.corrected
-                )
-                yield _sse_event("correction", {"text": assistant_content})
             else:
                 assistant_content = no_context_reply_for(message)
                 citations = []
                 critic_fail_closed = True
-                yield _sse_event("correction", {"text": assistant_content})
 
     # F1：流式 citation 为候选；done/落库按正文 [片段N] 硬对齐（拒答跳过；漏标 keep-all）
     if (
@@ -457,6 +795,11 @@ async def _stream_generation_phase(
             strip_prefix=strip,
         )
 
+    if settings.rag_critic_enabled:
+        for citation in citations:
+            yield _sse_event("citation", citation)
+        yield _sse_event("token", {"text": assistant_content})
+
     message_id = assistant_message_id
     retrieval_duration_ms = sum(step.latency_ms for step in outcome.steps) or None
     if retrieval_duration_ms is not None:
@@ -466,6 +809,7 @@ async def _stream_generation_phase(
     state["content"] = assistant_content
     state["citations"] = citations
     state["retrieval_duration_ms"] = retrieval_duration_ms
+    state["outcome"] = outcome
 
     yield _sse_event(
         "done",
@@ -491,12 +835,14 @@ async def _maybe_critic_retrieve_and_revise(
     org_scope: OrgScope | None,
     workspace_mode: bool,
     default_kb_id: UUID | None,
+    user_id: UUID,
+    thread_id: UUID,
+    hooks: _BufferingToolHooks | None,
+    current_user: CurrentUser | None,
 ):
-    """Critic 失败 → 定向检索 → 合并证据 → 再生成 → 再 critic；成功则返回三元组。"""
+    """Outer-owned bounded retrieve/revise/revalidate action."""
     from app.services.agent.finalize import gate_agent_chunks, merge_step_hits_to_chunks
     from app.services.agent.planners import plan_critic_directed_retrieval
-    from app.services.agent.runtime import execute_critic_directed_retrieval
-    from app.services.agent.types import AgentStepRecord
     from app.services.rag.critic import build_critic_retrieval_gap, run_critic
 
     gap = build_critic_retrieval_gap(critic_result, original_query=message)
@@ -505,33 +851,63 @@ async def _maybe_critic_retrieve_and_revise(
         steps_used=outcome.steps_used,
         max_steps=outcome.max_steps,
         default_kb_id=default_kb_id,
-        already_used=0,
+        already_used=outcome.critic_recovery_count,
     )
     if decision is None:
+        if (
+            gap is not None
+            and (
+                outcome.critic_recovery_count >= 1
+                or outcome.steps_used >= outcome.max_steps
+            )
+        ):
+            remaining = max(0, outcome.max_steps - outcome.steps_used)
+            await audit_agent_recovery_action(
+                db,
+                actor_user_id=user_id,
+                run_id=outcome.run_id,
+                action="RETRIEVE_MISSING_EVIDENCE",
+                status="budget_exhausted",
+                budget_before=remaining,
+                budget_after=remaining,
+            )
+            outcome = replace(
+                outcome,
+                critic_actions=(
+                    *outcome.critic_actions,
+                    CriticActionRecord(
+                        action="RETRIEVE_MISSING_EVIDENCE",
+                        status="budget_exhausted",
+                        attempt_count=0,
+                        reason_code="critic_directed_retrieve",
+                    ),
+                ),
+            )
+            return outcome, None, None, None
         return None
 
-    search_out = await execute_critic_directed_retrieval(
+    updated_outcome = await execute_accounted_recovery_step(
         db,
+        outcome=outcome,
         decision=decision,
+        user_id=user_id,
+        thread_id=thread_id,
         workspace=workspace,
         tool_scope=tool_scope,
+        hooks=hooks,
         org_scope=org_scope,
+        current_user=current_user,
     )
-    if search_out is None:
+    if len(updated_outcome.steps) == len(outcome.steps):
+        if updated_outcome is not outcome:
+            return updated_outcome, None, None, None
         return None
-
-    recover_record = AgentStepRecord(
-        step_index=outcome.steps_used + 1,
-        tool_name="semantic_search",
-        args=decision.args,
-        ok=True,
-        summary=f"critic directed hits={len(search_out.hits)}",
-        latency_ms=search_out.retrieval_ms,
-        data=search_out,
-    )
+    recover_record = updated_outcome.steps[-1]
+    if not recover_record.ok or recover_record.data is None:
+        return updated_outcome, None, None, None
     new_chunks = await merge_step_hits_to_chunks(db, (recover_record,))
     if not new_chunks:
-        return None
+        return updated_outcome, None, None, None
 
     combined = {c.chunk_id: c for c in active_plan.gated_chunks}
     for chunk in new_chunks:
@@ -542,51 +918,201 @@ async def _maybe_critic_retrieve_and_revise(
         workspace_mode=workspace_mode,
     )
     if revised_plan.refusal or not revised_plan.gated_chunks:
-        return None
+        return updated_outcome, None, None, None
 
     gated = list(revised_plan.gated_chunks)
     confidence = classify_answer_confidence(gated, message)
-    revised_parts: list[str] = []
-    if (
-        not degradation_requires_llm(assess_degradation())
-        or not has_available_chat_provider_key()
-    ):
-        async for text in stream_degraded_fragment_reply(message, gated):
-            if text:
-                revised_parts.append(text)
-    else:
-        if confidence is AnswerConfidence.low:
-            revised_parts.append(partial_answer_disclaimer_for(message))
-            revised_parts.append("\n\n")
-        enriched = message
-        if revised_plan.external_context:
-            enriched += f"\n\n{revised_plan.external_context}"
-        messages = build_messages(
-            enriched,
-            gated,
-            history=history,
-            compressed_summary=None,
-            answer_confidence=confidence,
-        )
-        try:
+    updated_outcome = replace(
+        updated_outcome,
+        critic_revision_count=updated_outcome.critic_revision_count + 1,
+    )
+
+    async def _collect_revised_parts() -> list[str]:
+        parts: list[str] = []
+        if (
+            not degradation_requires_llm(assess_degradation())
+            or not has_available_chat_provider_key()
+        ):
+            async for text in stream_degraded_fragment_reply(message, gated):
+                if text:
+                    parts.append(text)
+        else:
+            if confidence is AnswerConfidence.low:
+                parts.append(partial_answer_disclaimer_for(message))
+                parts.append("\n\n")
+            enriched = message
+            if revised_plan.external_context:
+                enriched += f"\n\n{revised_plan.external_context}"
+            messages = build_messages(
+                enriched,
+                gated,
+                history=history,
+                compressed_summary=None,
+                answer_confidence=confidence,
+            )
             async for text in stream_deepseek_tokens(messages):
                 if text:
-                    revised_parts.append(text)
-        except Exception:
-            logger.warning(
-                "module=rag_critic operation=revise_llm_failed",
-                exc_info=True,
+                    parts.append(text)
+        return parts
+
+    revision_attempt_count = 1
+    try:
+        remaining = (
+            updated_outcome.deadline_monotonic - time.monotonic()
+            if updated_outcome.deadline_monotonic is not None
+            else None
+        )
+        if remaining is not None and remaining <= 0:
+            revision_attempt_count = 0
+            raise TimeoutError("critic recovery revision deadline exhausted")
+        if remaining is not None:
+            revised_parts = await asyncio.wait_for(
+                _collect_revised_parts(),
+                timeout=max(0.001, remaining),
             )
-            return None
+        else:
+            revised_parts = await _collect_revised_parts()
+    except Exception as exc:
+        revision_status = (
+            "deadline_exhausted" if isinstance(exc, TimeoutError) else "failed"
+        )
+        logger.warning(
+            "module=rag_critic operation=revise_llm_failed",
+            exc_info=True,
+        )
+        updated_outcome = replace(
+            updated_outcome,
+            timed_out=(
+                updated_outcome.timed_out
+                or revision_status == "deadline_exhausted"
+            ),
+            critic_actions=(
+                *updated_outcome.critic_actions,
+                CriticActionRecord(
+                    action="REVISE_FROM_EXISTING_EVIDENCE",
+                    status=revision_status,
+                    attempt_count=revision_attempt_count,
+                    reason_code="critic_retrieval_revision",
+                ),
+            ),
+        )
+        await audit_agent_recovery_action(
+            db,
+            actor_user_id=user_id,
+            run_id=updated_outcome.run_id,
+            action="REVISE_FROM_EXISTING_EVIDENCE",
+            status=revision_status,
+            budget_before=1,
+            budget_after=0,
+            attempt_count=revision_attempt_count,
+        )
+        return updated_outcome, None, None, None
 
     revised_content = "".join(revised_parts)
+    if not revised_content:
+        updated_outcome = replace(
+            updated_outcome,
+            critic_actions=(
+                *updated_outcome.critic_actions,
+                CriticActionRecord(
+                    action="REVISE_FROM_EXISTING_EVIDENCE",
+                    status="failed",
+                    attempt_count=1,
+                    reason_code="critic_retrieval_revision",
+                ),
+            ),
+        )
+        await audit_agent_recovery_action(
+            db,
+            actor_user_id=user_id,
+            run_id=updated_outcome.run_id,
+            action="REVISE_FROM_EXISTING_EVIDENCE",
+            status="failed",
+            budget_before=1,
+            budget_after=0,
+            attempt_count=1,
+        )
+        return updated_outcome, None, None, None
     body = revised_content
     if confidence is AnswerConfidence.low:
         prefix = partial_answer_disclaimer_for(message) + "\n\n"
         if body.startswith(prefix):
             body = body[len(prefix) :]
-    new_critic = await run_critic(body, gated, message)
-    return revised_plan, revised_content, new_critic
+    updated_outcome = replace(
+        updated_outcome,
+        critic_actions=(
+            *updated_outcome.critic_actions,
+            CriticActionRecord(
+                action="REVISE_FROM_EXISTING_EVIDENCE",
+                status="executed",
+                attempt_count=1,
+                reason_code="critic_retrieval_revision",
+            ),
+        ),
+    )
+    await audit_agent_recovery_action(
+        db,
+        actor_user_id=user_id,
+        run_id=updated_outcome.run_id,
+        action="REVISE_FROM_EXISTING_EVIDENCE",
+        status="executed",
+        budget_before=1,
+        budget_after=0,
+        attempt_count=1,
+    )
+    remaining = (
+        updated_outcome.deadline_monotonic - time.monotonic()
+        if updated_outcome.deadline_monotonic is not None
+        else None
+    )
+    post_validation_attempt_count = 1
+    try:
+        if remaining is not None and remaining <= 0:
+            post_validation_attempt_count = 0
+            raise TimeoutError("post-revision critic deadline exhausted")
+        if remaining is not None:
+            new_critic = await asyncio.wait_for(
+                run_critic(body, gated, message),
+                timeout=max(0.001, remaining),
+            )
+        else:
+            new_critic = await run_critic(body, gated, message)
+    except Exception as exc:
+        validation_status = (
+            "deadline_exhausted" if isinstance(exc, TimeoutError) else "failed"
+        )
+        updated_outcome = replace(
+            updated_outcome,
+            timed_out=(
+                updated_outcome.timed_out
+                or validation_status == "deadline_exhausted"
+            ),
+            critic_actions=(
+                *updated_outcome.critic_actions,
+                CriticActionRecord(
+                    action="POST_REVISION_VALIDATION",
+                    status=validation_status,
+                    attempt_count=post_validation_attempt_count,
+                    reason_code="deadline_or_critic_failure",
+                ),
+            ),
+        )
+        await audit_agent_recovery_action(
+            db,
+            actor_user_id=user_id,
+            run_id=updated_outcome.run_id,
+            action="POST_REVISION_VALIDATION",
+            status=validation_status,
+            budget_before=1,
+            budget_after=0,
+            attempt_count=post_validation_attempt_count,
+        )
+        return updated_outcome, None, None, None
+    updated_outcome = replace(
+        updated_outcome,
+        critic_validation_count=updated_outcome.critic_validation_count + 1,
+    )
+    return updated_outcome, revised_plan, revised_content, new_critic
 
 
 def _planner_with_retrieval_query(
@@ -655,6 +1181,9 @@ async def _stream_agent_core(
             org_scope=org_scope,
             current_user=current_user,
             hooks=hooks,
+            # The outer owner keeps the run open for every critic action,
+            # including revision-only paths that do not enable retrieval.
+            defer_finish=settings.rag_critic_enabled,
         )
 
         for event_name, data in hooks.events:
@@ -707,6 +1236,9 @@ async def _stream_agent_core(
             retrieval_query=retrieval_query,
             default_kb_id=getattr(planner, "default_kb_id", None)
             or getattr(planner, "_default_kb_id", None),
+            thread_id=thread_id,
+            hooks=hooks,
+            current_user=current_user,
         ):
             if frame.startswith("event: token"):
                 try:
@@ -719,6 +1251,7 @@ async def _stream_agent_core(
             if frame.startswith("event: done"):
                 state["done_yielded"] = True
             yield frame
+        outcome = state.get("outcome", outcome)
     finally:
         # A2（P1-08）：正常完成 / 断线（GeneratorExit）/ 异常均收敛到单一提交。
         status = (
