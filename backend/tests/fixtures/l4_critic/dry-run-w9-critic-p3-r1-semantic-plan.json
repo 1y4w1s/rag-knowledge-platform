@@ -340,5 +340,42 @@
       "hidden_recovery": false,
       "recovered_action": null
     }
-  ]
+  ],
+  "execution_contract": {
+    "P3_SEMANTIC_PROTOCOL_FROZEN": "YES",
+    "P3_EXECUTION_CONTRACT_READY": "YES",
+    "P3_REAL_RUN_READY": "YES",
+    "MODEL_INPUT_ORACLE_LEAKAGE": 0,
+    "lm_studio_requests": 0,
+    "eligible_model_inputs": 11,
+    "parser_contract": "PASS",
+    "timeout_denominator_preservation": "PASS",
+    "parse_failure_denominator_preservation": "PASS",
+    "artifact_schema_validation": "PASS",
+    "formal_artifact_present": false,
+    "formal_completeness": false,
+    "prompt_builder": "app.services.rag.generation.VERIFY_ANSWER_PROMPT",
+    "provider": "app.eval.local_model_profile.adapter.OpenAICompatibleAdapter",
+    "layers": [
+      "L1_MODEL_SEMANTIC_CAPABILITY",
+      "L2_CONTROL_PLANE_EXECUTION",
+      "L3_FINAL_SAFETY_OUTCOME"
+    ],
+    "input_hashes": {
+      "C01-fully-supported-exact": "7ce997f547d56bc129b703749d7c1c29498fbccd048b8d99103366542e76b18c",
+      "C02-supported-paraphrase-low-lexical": "971330494c46fa654a90cac2ab9e61ff9c7c3d6a25e3e90dc0e1356c5b3b9265",
+      "C03-one-unsupported-among-supported": "5ffa809f2588534a662baceba3064023f3989899c6c7b67bc82d8d6fb56b093d",
+      "C04-valid-citation-wrong-evidence": "7a89a62509217c460dbbc4cdceeb2f545146c59a55a0f04d47b9df784c90d3ca",
+      "C05-known-conflict-overcertain": "b994f8285be67c48553f869523227e1bf3453539e4872021369039f046f12278",
+      "C06-required-fact-missing": "137a1c2495582f624ba860033a8943c131926bed74a68d87b50a2b78cb22f0f2",
+      "C07-correct-insufficiency-refusal": "780b07a016ac760b9c686d735444c09818d303c46479043b70f74bf774e573e5",
+      "C08-nonassertive-preface-supported-fact": "d94766ec6497f0962780db6552d03dfcc6feff93363fd2f43f2784ef45e8d8a4",
+      "C09-supported-plus-unverifiable": "69362eea6ae83e46e00681f8bf87ec11874563c3c1788e19d90cb846322e9d44",
+      "C10-supported-multiclaim-multicitation": "4b3729733bbeafc91ea421ec63ba33d3615a6eb777b6a2cf0ad2120f9851036a",
+      "C11-citation-format-only-defect": "e7c6417474d4fe6dc85c38cc534abb16642501c4cc2791081fbce5d1d912fa41"
+    },
+    "suite_hash": "95143c1b989eba53371b581e3f59cf619e7d720d437edab6d48b5ef0529677cc",
+    "oracle_hash": "f1dfc6a5fbcb8a3234cf227b96f0e34eb29dbb9799b36757d3ae7274a8009f00",
+    "blocker": null
+  }
 }

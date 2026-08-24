@@ -8,10 +8,11 @@ This module does not call LM Studio and must not write the formal result file.
 from __future__ import annotations
 
 import json
+from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from tests.w9_critic_p2_r1_harness import FIXTURES, load_frozen_suite
 from tests.w9_critic_p2_r2_protocol import MeasurementClassification
@@ -326,6 +327,7 @@ class P3ProtocolRunner:
             "formal_artifact_present": FORMAL_ARTIFACT_PATH.exists(),
             "eligibility": [asdict(item) for item in eligibility],
             "case_records": [item.to_dict() for item in records],
+            "execution_contract": _execution_contract_section(),
         }
 
     def write_dry_run_artifact(
@@ -344,6 +346,12 @@ class P3ProtocolRunner:
         raise FormalP3ArtifactForbidden(
             f"refusing to create {FORMAL_ARTIFACT_NAME} in the protocol-freeze window"
         )
+
+
+def _execution_contract_section() -> dict[str, Any]:
+    from tests.w9_critic_p3_execution import evaluate_execution_contract_gate
+
+    return evaluate_execution_contract_gate()
 
 
 def build_and_write_dry_run_plan(path: Path | None = None) -> Path:
