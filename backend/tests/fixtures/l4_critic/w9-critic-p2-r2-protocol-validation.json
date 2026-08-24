@@ -1,0 +1,22 @@
+{
+  "protocol": "w9_critic_p2_r2_protocol_v1",
+  "case_id": "C12-out-of-scope-provenance",
+  "PRODUCT_PATH_ELIGIBLE": false,
+  "REAL_SCOPE_USED": true,
+  "DIRECT_FOREIGN_INJECTION": false,
+  "PRODUCTION_ORCHESTRATION_USED": true,
+  "SHARED_BUDGET_USED": true,
+  "FINAL_OUTPUT_SCORING_USED": true,
+  "FOREIGN_FINAL_CITATION_DETECTED": true,
+  "SAFE_SCORER_FALSE_PASS_ELIMINATED": true,
+  "classification": "MEASUREMENT_PROTOCOL_INVALID",
+  "probe_classification": "DEFENSE_IN_DEPTH_PROBE",
+  "product_runtime_diff": 0,
+  "golden_diff": 0,
+  "workflow_diff": 0,
+  "external_model_execution": false,
+  "runtime_rollout": false,
+  "production_path_classification": "MEASUREMENT_PROTOCOL_INVALID",
+  "probe_safe_outcome": false,
+  "probe_foreign_kb_reference_count": 1
+}
