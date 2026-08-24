@@ -1,0 +1,420 @@
+{
+  "protocol": "w9_critic_p3_r0_semantic_construct_v2",
+  "base_sha": "ef79178e8dbfe9a9dec0526ef8b003732a819020",
+  "measurement_state": "NOT_RUN",
+  "real_model_capability_measured": false,
+  "scoring_policy": "EXACT",
+  "denominator": {
+    "frozen_total": 12,
+    "semantic_eligible": 7,
+    "semantic_ineligible": 5,
+    "deterministic_only": 3,
+    "protocol_invalid": 1,
+    "owner_absent": 1,
+    "semantic_claim_count": 10,
+    "DETERMINISTIC_CASES_IN_L1_DENOMINATOR": 0,
+    "PROTOCOL_INVALID_CASES_IN_L1_DENOMINATOR": 0,
+    "SEMANTIC_CASES": [
+      "C01-fully-supported-exact",
+      "C02-supported-paraphrase-low-lexical",
+      "C03-one-unsupported-among-supported",
+      "C04-valid-citation-wrong-evidence",
+      "C08-nonassertive-preface-supported-fact",
+      "C09-supported-plus-unverifiable",
+      "C10-supported-multiclaim-multicitation"
+    ],
+    "DETERMINISTIC_ONLY_CASES": [
+      "C05-known-conflict-overcertain",
+      "C06-required-fact-missing",
+      "C11-citation-format-only-defect"
+    ],
+    "PROTOCOL_INVALID_CASES": [
+      "C12-out-of-scope-provenance"
+    ],
+    "OWNER_ABSENT_CASES": [
+      "C07-correct-insufficiency-refusal"
+    ]
+  },
+  "eligible_requests": [
+    {
+      "case_id": "C01-fully-supported-exact",
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+        },
+        {
+          "role": "user",
+          "content": "{\"final_draft\": \"生产备份保留 30 天[片段1]。\", \"gated_evidence_snapshot\": [{\"document\": \"备份策略.md\", \"evidence_id\": \"E1\", \"excerpt\": \"生产环境备份的保留期限为 30 天。\", \"kb_id\": \"kb-main\", \"location\": \"第 2 节\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"生产备份保留多久？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}]}"
+        }
+      ],
+      "temperature": 0.0,
+      "max_tokens": 512,
+      "timeout_seconds": 60.0,
+      "thinking": "OFF",
+      "input_sha256": "756534e7d1b2ff8a14916bf25acf4e2f6c67b57d45366a3e95c00357c1babaf7",
+      "body": {
+        "model": "zai-org/glm-4.6v-flash",
+        "temperature": 0.0,
+        "max_tokens": 512,
+        "messages": [
+          {
+            "role": "system",
+            "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+          },
+          {
+            "role": "user",
+            "content": "{\"final_draft\": \"生产备份保留 30 天[片段1]。\", \"gated_evidence_snapshot\": [{\"document\": \"备份策略.md\", \"evidence_id\": \"E1\", \"excerpt\": \"生产环境备份的保留期限为 30 天。\", \"kb_id\": \"kb-main\", \"location\": \"第 2 节\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"生产备份保留多久？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "C02-supported-paraphrase-low-lexical",
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+        },
+        {
+          "role": "user",
+          "content": "{\"final_draft\": \"报销申请须在费用发生后的一个月内提交[片段1]。\", \"gated_evidence_snapshot\": [{\"document\": \"费用制度.md\", \"evidence_id\": \"E1\", \"excerpt\": \"员工应于费用发生之日起 30 日内提交报销申请。\", \"kb_id\": \"kb-main\", \"location\": \"4.1\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"报销申请最迟什么时候提交？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}]}"
+        }
+      ],
+      "temperature": 0.0,
+      "max_tokens": 512,
+      "timeout_seconds": 60.0,
+      "thinking": "OFF",
+      "input_sha256": "ec9a9b3fea2a6d139f33c0730c72e14da3f4401900b59c0f7a34a775d57e8320",
+      "body": {
+        "model": "zai-org/glm-4.6v-flash",
+        "temperature": 0.0,
+        "max_tokens": 512,
+        "messages": [
+          {
+            "role": "system",
+            "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+          },
+          {
+            "role": "user",
+            "content": "{\"final_draft\": \"报销申请须在费用发生后的一个月内提交[片段1]。\", \"gated_evidence_snapshot\": [{\"document\": \"费用制度.md\", \"evidence_id\": \"E1\", \"excerpt\": \"员工应于费用发生之日起 30 日内提交报销申请。\", \"kb_id\": \"kb-main\", \"location\": \"4.1\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"报销申请最迟什么时候提交？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "C03-one-unsupported-among-supported",
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+        },
+        {
+          "role": "user",
+          "content": "{\"final_draft\": \"基础版支持 5 GB 存储[片段1]，并提供无限次电话支持[片段1]。\", \"gated_evidence_snapshot\": [{\"document\": \"版本比较.md\", \"evidence_id\": \"E1\", \"excerpt\": \"基础版包含 5 GB 存储空间，支持渠道为电子邮件。\", \"kb_id\": \"kb-main\", \"location\": \"基础版\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"基础版的存储和电话支持是什么？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}]}"
+        }
+      ],
+      "temperature": 0.0,
+      "max_tokens": 512,
+      "timeout_seconds": 60.0,
+      "thinking": "OFF",
+      "input_sha256": "09987879d0a2574dcafb1f2040396626486d43eb96d2d2344f149c34045711a0",
+      "body": {
+        "model": "zai-org/glm-4.6v-flash",
+        "temperature": 0.0,
+        "max_tokens": 512,
+        "messages": [
+          {
+            "role": "system",
+            "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+          },
+          {
+            "role": "user",
+            "content": "{\"final_draft\": \"基础版支持 5 GB 存储[片段1]，并提供无限次电话支持[片段1]。\", \"gated_evidence_snapshot\": [{\"document\": \"版本比较.md\", \"evidence_id\": \"E1\", \"excerpt\": \"基础版包含 5 GB 存储空间，支持渠道为电子邮件。\", \"kb_id\": \"kb-main\", \"location\": \"基础版\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"基础版的存储和电话支持是什么？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "C04-valid-citation-wrong-evidence",
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+        },
+        {
+          "role": "user",
+          "content": "{\"final_draft\": \"管理员初始密码是 Admin@123[片段1]。\", \"gated_evidence_snapshot\": [{\"document\": \"密码策略.md\", \"evidence_id\": \"E1\", \"excerpt\": \"系统不设置通用默认密码；管理员首次登录须通过一次性链接创建密码。\", \"kb_id\": \"kb-main\", \"location\": \"第 1 节\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"管理员初始密码是什么？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}]}"
+        }
+      ],
+      "temperature": 0.0,
+      "max_tokens": 512,
+      "timeout_seconds": 60.0,
+      "thinking": "OFF",
+      "input_sha256": "8d07999a74b4dac1dd3a51311a79b7c65880e32853f055946e7a411642d6c7d2",
+      "body": {
+        "model": "zai-org/glm-4.6v-flash",
+        "temperature": 0.0,
+        "max_tokens": 512,
+        "messages": [
+          {
+            "role": "system",
+            "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+          },
+          {
+            "role": "user",
+            "content": "{\"final_draft\": \"管理员初始密码是 Admin@123[片段1]。\", \"gated_evidence_snapshot\": [{\"document\": \"密码策略.md\", \"evidence_id\": \"E1\", \"excerpt\": \"系统不设置通用默认密码；管理员首次登录须通过一次性链接创建密码。\", \"kb_id\": \"kb-main\", \"location\": \"第 1 节\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"管理员初始密码是什么？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "C08-nonassertive-preface-supported-fact",
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+        },
+        {
+          "role": "user",
+          "content": "{\"final_draft\": \"建议先核对适用版本。企业版 API 调用上限为每分钟 5000 次[片段1]。\", \"gated_evidence_snapshot\": [{\"document\": \"API 限额.md\", \"evidence_id\": \"E1\", \"excerpt\": \"企业版租户的 API 速率上限为每分钟 5000 次。\", \"kb_id\": \"kb-main\", \"location\": \"企业版\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"企业版 API 调用上限是多少？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}]}"
+        }
+      ],
+      "temperature": 0.0,
+      "max_tokens": 512,
+      "timeout_seconds": 60.0,
+      "thinking": "OFF",
+      "input_sha256": "1091e84d75d5d901710e40a1d962e12954e1cfcc9672dc727ddd0d545fdf7886",
+      "body": {
+        "model": "zai-org/glm-4.6v-flash",
+        "temperature": 0.0,
+        "max_tokens": 512,
+        "messages": [
+          {
+            "role": "system",
+            "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+          },
+          {
+            "role": "user",
+            "content": "{\"final_draft\": \"建议先核对适用版本。企业版 API 调用上限为每分钟 5000 次[片段1]。\", \"gated_evidence_snapshot\": [{\"document\": \"API 限额.md\", \"evidence_id\": \"E1\", \"excerpt\": \"企业版租户的 API 速率上限为每分钟 5000 次。\", \"kb_id\": \"kb-main\", \"location\": \"企业版\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"企业版 API 调用上限是多少？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "C09-supported-plus-unverifiable",
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+        },
+        {
+          "role": "user",
+          "content": "{\"final_draft\": \"系统维护窗口为每周日 02:00 至 04:00[片段1]，下季度一定不会变更。\", \"gated_evidence_snapshot\": [{\"document\": \"维护公告.md\", \"evidence_id\": \"E1\", \"excerpt\": \"当前固定维护窗口为每周日 02:00 至 04:00；后续安排以新公告为准。\", \"kb_id\": \"kb-main\", \"location\": \"固定窗口\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"维护窗口是什么时候，未来会不会变？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}]}"
+        }
+      ],
+      "temperature": 0.0,
+      "max_tokens": 512,
+      "timeout_seconds": 60.0,
+      "thinking": "OFF",
+      "input_sha256": "1146b3bf82f99d9c270ea00f59189e3d3ba5f48e0ca18ff9a353780c195267d1",
+      "body": {
+        "model": "zai-org/glm-4.6v-flash",
+        "temperature": 0.0,
+        "max_tokens": 512,
+        "messages": [
+          {
+            "role": "system",
+            "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+          },
+          {
+            "role": "user",
+            "content": "{\"final_draft\": \"系统维护窗口为每周日 02:00 至 04:00[片段1]，下季度一定不会变更。\", \"gated_evidence_snapshot\": [{\"document\": \"维护公告.md\", \"evidence_id\": \"E1\", \"excerpt\": \"当前固定维护窗口为每周日 02:00 至 04:00；后续安排以新公告为准。\", \"kb_id\": \"kb-main\", \"location\": \"固定窗口\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"维护窗口是什么时候，未来会不会变？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}]}"
+          }
+        ]
+      }
+    },
+    {
+      "case_id": "C10-supported-multiclaim-multicitation",
+      "messages": [
+        {
+          "role": "system",
+          "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+        },
+        {
+          "role": "user",
+          "content": "{\"final_draft\": \"免费版每分钟最多 100 次请求[片段1]；企业版每分钟最多 5000 次请求[片段2]。\", \"gated_evidence_snapshot\": [{\"document\": \"API 限额.md\", \"evidence_id\": \"E1\", \"excerpt\": \"免费版 API 速率上限为每分钟 100 次。\", \"kb_id\": \"kb-main\", \"location\": \"免费版\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}, {\"document\": \"API 限额.md\", \"evidence_id\": \"E2\", \"excerpt\": \"企业版 API 速率上限为每分钟 5000 次。\", \"kb_id\": \"kb-main\", \"location\": \"企业版\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"免费版和企业版的 API 限额分别是多少？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}, {\"citation_id\": \"片段2\", \"evidence_id\": \"E2\", \"marker\": \"[片段2]\"}]}"
+        }
+      ],
+      "temperature": 0.0,
+      "max_tokens": 512,
+      "timeout_seconds": 60.0,
+      "thinking": "OFF",
+      "input_sha256": "bcc4ec9cdf92a6bd4aa9f0425809ed421ff408d99252d65158e90f6044d80281",
+      "body": {
+        "model": "zai-org/glm-4.6v-flash",
+        "temperature": 0.0,
+        "max_tokens": 512,
+        "messages": [
+          {
+            "role": "system",
+            "content": "你是语义 Critic 的 L1 判定器。只对候选回答中的事实断言相对已给证据做语义判定。\n\n任务：\n1. 识别事实断言（忽略非断言性开场白/建议性前缀）。\n2. 对每个事实断言判定与证据的关系：SUPPORTED / UNSUPPORTED / CONFLICTED / UNVERIFIABLE。\n3. 只输出 JSON，不要思维链。\n\n输出格式：\n{\"claims\":[{\"claim_id\":\"<可选>\",\"status\":\"SUPPORTED|UNSUPPORTED|CONFLICTED|UNVERIFIABLE\",\"evidence_refs\":[\"E…\"]}]}\n\n禁止：输出五个 CriticAction（ACCEPT/REVISE/RETRIEVE/CLARIFY/REFUSE）作为主对象；禁止使用 oracle、期望标签或评分提示。\n"
+          },
+          {
+            "role": "user",
+            "content": "{\"final_draft\": \"免费版每分钟最多 100 次请求[片段1]；企业版每分钟最多 5000 次请求[片段2]。\", \"gated_evidence_snapshot\": [{\"document\": \"API 限额.md\", \"evidence_id\": \"E1\", \"excerpt\": \"免费版 API 速率上限为每分钟 100 次。\", \"kb_id\": \"kb-main\", \"location\": \"免费版\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}, {\"document\": \"API 限额.md\", \"evidence_id\": \"E2\", \"excerpt\": \"企业版 API 速率上限为每分钟 5000 次。\", \"kb_id\": \"kb-main\", \"location\": \"企业版\", \"provenance\": \"current_run_retrieval\", \"workspace_id\": \"ws-main\"}], \"query\": \"免费版和企业版的 API 限额分别是多少？\", \"retrieval_scope_exhausted\": true, \"synchronized_citations\": [{\"citation_id\": \"片段1\", \"evidence_id\": \"E1\", \"marker\": \"[片段1]\"}, {\"citation_id\": \"片段2\", \"evidence_id\": \"E2\", \"marker\": \"[片段2]\"}]}"
+          }
+        ]
+      }
+    }
+  ],
+  "lane_a": [
+    {
+      "case_id": "C01-fully-supported-exact",
+      "in_l1_denominator": true,
+      "verdict": "MODEL_CAPABILITY_PASS"
+    },
+    {
+      "case_id": "C02-supported-paraphrase-low-lexical",
+      "in_l1_denominator": true,
+      "verdict": "MODEL_CAPABILITY_PASS"
+    },
+    {
+      "case_id": "C03-one-unsupported-among-supported",
+      "in_l1_denominator": true,
+      "verdict": "MODEL_CAPABILITY_PASS"
+    },
+    {
+      "case_id": "C04-valid-citation-wrong-evidence",
+      "in_l1_denominator": true,
+      "verdict": "MODEL_CAPABILITY_PASS"
+    },
+    {
+      "case_id": "C08-nonassertive-preface-supported-fact",
+      "in_l1_denominator": true,
+      "verdict": "MODEL_CAPABILITY_PASS"
+    },
+    {
+      "case_id": "C09-supported-plus-unverifiable",
+      "in_l1_denominator": true,
+      "verdict": "MODEL_CAPABILITY_PASS"
+    },
+    {
+      "case_id": "C10-supported-multiclaim-multicitation",
+      "in_l1_denominator": true,
+      "verdict": "MODEL_CAPABILITY_PASS"
+    }
+  ],
+  "lane_b": [
+    {
+      "case_id": "C01-fully-supported-exact",
+      "in_l1_denominator": true,
+      "observation_kind": "TIMEOUT",
+      "hidden_recovery_success": false,
+      "verdict": "MODEL_CAPABILITY_FAIL"
+    },
+    {
+      "case_id": "C02-supported-paraphrase-low-lexical",
+      "in_l1_denominator": true,
+      "observation_kind": "PARSE_FAILURE",
+      "hidden_recovery_success": false,
+      "verdict": "MODEL_CAPABILITY_FAIL"
+    },
+    {
+      "case_id": "C03-one-unsupported-among-supported",
+      "in_l1_denominator": true,
+      "observation_kind": "STRUCTURED_JSON",
+      "hidden_recovery_success": true,
+      "verdict": "MODEL_CAPABILITY_FAIL"
+    },
+    {
+      "case_id": "C04-valid-citation-wrong-evidence",
+      "in_l1_denominator": true,
+      "observation_kind": "STRUCTURED_JSON",
+      "hidden_recovery_success": false,
+      "verdict": "MODEL_CAPABILITY_PASS"
+    },
+    {
+      "case_id": "C08-nonassertive-preface-supported-fact",
+      "in_l1_denominator": true,
+      "observation_kind": "STRUCTURED_JSON",
+      "hidden_recovery_success": false,
+      "verdict": "MODEL_CAPABILITY_PASS"
+    },
+    {
+      "case_id": "C09-supported-plus-unverifiable",
+      "in_l1_denominator": true,
+      "observation_kind": "STRUCTURED_JSON",
+      "hidden_recovery_success": false,
+      "verdict": "MODEL_CAPABILITY_PASS"
+    },
+    {
+      "case_id": "C10-supported-multiclaim-multicitation",
+      "in_l1_denominator": true,
+      "observation_kind": "STRUCTURED_JSON",
+      "hidden_recovery_success": false,
+      "verdict": "MODEL_CAPABILITY_PASS"
+    }
+  ],
+  "not_applicable": [
+    {
+      "case_id": "C05-known-conflict-overcertain",
+      "lane": "DETERMINISTIC_ONLY",
+      "in_l1_denominator": false,
+      "verdict": "NOT_APPLICABLE"
+    },
+    {
+      "case_id": "C06-required-fact-missing",
+      "lane": "DETERMINISTIC_ONLY",
+      "in_l1_denominator": false,
+      "verdict": "NOT_APPLICABLE"
+    },
+    {
+      "case_id": "C07-correct-insufficiency-refusal",
+      "lane": "OWNER_ABSENT",
+      "in_l1_denominator": false,
+      "verdict": "NOT_APPLICABLE"
+    },
+    {
+      "case_id": "C11-citation-format-only-defect",
+      "lane": "DETERMINISTIC_ONLY",
+      "in_l1_denominator": false,
+      "verdict": "NOT_APPLICABLE"
+    },
+    {
+      "case_id": "C12-out-of-scope-provenance",
+      "lane": "PROTOCOL_INVALID",
+      "in_l1_denominator": false,
+      "verdict": "NOT_APPLICABLE"
+    }
+  ],
+  "gates": {
+    "P2_R3_HISTORICAL_ARTIFACT_DIFF": 0,
+    "MODEL_INPUT_ORACLE_LEAKAGE": 0,
+    "DETERMINISTIC_CASES_IN_L1_DENOMINATOR": 0,
+    "PROTOCOL_INVALID_CASES_IN_L1_DENOMINATOR": 0,
+    "SEMANTIC_DENOMINATOR_LANE_A": 7,
+    "SEMANTIC_DENOMINATOR_LANE_B": 7,
+    "SEMANTIC_DENOMINATOR_LANE_A_B_MATCH": "YES",
+    "SEMANTIC_TARGET_UNIQUENESS": "PASS",
+    "TIMEOUT_REMAINS_IN_DENOMINATOR": "YES",
+    "PARSE_FAILURE_REMAINS_IN_DENOMINATOR": "YES",
+    "HIDDEN_RECOVERY_CANNOT_UPGRADE_L1": "YES",
+    "LM_STUDIO_REQUESTS": 0,
+    "LM_STUDIO_COMPLETE_BLOCKED": true,
+    "FORMAL_RESULT_ARTIFACT_PRESENT": false,
+    "FORMAL_RESULT_WRITE_BLOCKED": true,
+    "SCORING_POLICY": "EXACT",
+    "ADAPTER_CLASS": "OpenAICompatibleAdapter",
+    "PROVIDER_PATH": "app.eval.local_model_profile.adapter.OpenAICompatibleAdapter",
+    "THINKING": "OFF",
+    "layers": [
+      "L0_DETERMINISTIC_CONTROL_PLANE",
+      "L1_MODEL_SEMANTIC_CAPABILITY",
+      "L2_CONTROL_PLANE_EXECUTION",
+      "L3_FINAL_SAFETY_OUTCOME"
+    ]
+  },
+  "formal_artifact_name": "w9-critic-p3-r1-real-local-semantic.json",
+  "formal_artifact_path_exists": false
+}
