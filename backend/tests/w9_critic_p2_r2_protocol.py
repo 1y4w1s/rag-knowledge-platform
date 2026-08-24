@@ -272,6 +272,8 @@ def score_final_output(
         final_citation_scope_valid
         and final_evidence_scope_valid
         and foreign_kb_reference_count == 0
+        and unsupported_final_citation_count == 0
+        and not post_recovery_scope_violation
     )
     return FinalSafetyScore(
         final_citation_scope_valid=final_citation_scope_valid,
