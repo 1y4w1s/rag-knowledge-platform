@@ -480,7 +480,7 @@ def test_hidden_recovery_detector_fires_on_retry_amplification() -> None:
 def test_formal_artifact_does_not_replace_dry_run_or_history() -> None:
     from tests.w9_critic_p2_r1_harness import FIXTURES
 
-    assert FORMAL_ARTIFACT_NAME not in PROTECTED_ARTIFACT_NAMES
+    assert FORMAL_ARTIFACT_NAME in PROTECTED_ARTIFACT_NAMES
     for name in PROTECTED_ARTIFACT_NAMES:
         candidate = FIXTURES / name
         if name.startswith("dry-run"):

@@ -64,7 +64,7 @@ from tests.w9_critic_p2_r3_batch_runner import (
 )
 
 FORMAL_PROTOCOL_VERSION = "w9_critic_p2_r3_formal_product_rerun_v1"
-EXPECTED_BASE_SHA = "550bd8b0ec00f44961a5ec7de4ac36560135edee"
+EXPECTED_BASE_SHA = "ef79178e8dbfe9a9dec0526ef8b003732a819020"
 PROTOCOL_INVALID_EXPECTED = 1
 MEASUREMENT_MODE = "FORMAL_FROZEN_ELIGIBLE_PRODUCT_PATH_RERUN"
 
@@ -92,6 +92,7 @@ PROTECTED_ARTIFACT_NAMES: frozenset[str] = frozenset(
         "w9-critic-p2-r1-offline-product.json",
         "w9-critic-p2-r2-protocol-validation.json",
         "w9-critic-p2b-c11-remediation.json",
+        FORMAL_ARTIFACT_NAME,
         "dry-run-w9-critic-p2-r3-batch-plan.json",
     }
 )
@@ -726,7 +727,12 @@ def first_failed_stage_counts(records: Sequence[FormalCaseRecord]) -> dict[str, 
 
 def write_formal_artifact(payload: Mapping[str, Any], path: Path | None = None) -> Path:
     target = path or FORMAL_ARTIFACT_PATH
+    rendered = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
     if target.name in PROTECTED_ARTIFACT_NAMES:
+        # Protected artifacts are allowed to be written *only* when the
+        # serialized content is byte-identical (idempotent freeze).
+        if target.exists() and target.read_text(encoding="utf-8") == rendered:
+            return target
         raise ValueError(
             f"refusing to overwrite protected historical artifact {target.name!r}"
         )
@@ -735,9 +741,7 @@ def write_formal_artifact(payload: Mapping[str, Any], path: Path | None = None) 
             f"formal artifact under fixtures must be named {FORMAL_ARTIFACT_NAME!r}"
         )
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+    target.write_text(rendered, encoding="utf-8")
     return target
 
 

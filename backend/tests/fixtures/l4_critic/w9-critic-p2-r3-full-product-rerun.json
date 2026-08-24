@@ -1,6 +1,6 @@
 {
   "protocol": "w9_critic_p2_r3_formal_product_rerun_v1",
-  "base_sha": "550bd8b0ec00f44961a5ec7de4ac36560135edee",
+  "base_sha": "ef79178e8dbfe9a9dec0526ef8b003732a819020",
   "base_sha_verified": true,
   "suite_hash": "95143c1b989eba53371b581e3f59cf619e7d720d437edab6d48b5ef0529677cc",
   "oracle_hash": "f1dfc6a5fbcb8a3234cf227b96f0e34eb29dbb9799b36757d3ae7274a8009f00",
@@ -19,7 +19,7 @@
   "runner_ref": {
     "module": "tests.w9_critic_p2_r3_formal_runner",
     "protocol": "w9_critic_p2_r3_formal_product_rerun_v1",
-    "code_sha256": "285451f0a9d6a44b795c829252f45c8177ea39898e0ba616448345b916302b71"
+    "code_sha256": "55c3b193ca8af6fce52d87798f3a94a95a9c61d99aad89e316b64a4db8444efc"
   },
   "measurement_mode": "FORMAL_FROZEN_ELIGIBLE_PRODUCT_PATH_RERUN",
   "measurement_scope": "CONTROL_PLANE_ORCHESTRATION_WITH_FROZEN_CRITIC_REPORTS_AND_DETERMINISTIC_GENERATION",
@@ -59,7 +59,7 @@
   },
   "frozen_input_manifest": {
     "protocol": "w9_critic_p2_r3_formal_product_rerun_v1",
-    "base_sha": "550bd8b0ec00f44961a5ec7de4ac36560135edee",
+    "base_sha": "ef79178e8dbfe9a9dec0526ef8b003732a819020",
     "base_sha_verified": true,
     "suite_hash": "95143c1b989eba53371b581e3f59cf619e7d720d437edab6d48b5ef0529677cc",
     "oracle_hash": "f1dfc6a5fbcb8a3234cf227b96f0e34eb29dbb9799b36757d3ae7274a8009f00",
@@ -78,7 +78,7 @@
     "runner_ref": {
       "module": "tests.w9_critic_p2_r3_formal_runner",
       "protocol": "w9_critic_p2_r3_formal_product_rerun_v1",
-      "code_sha256": "285451f0a9d6a44b795c829252f45c8177ea39898e0ba616448345b916302b71"
+      "code_sha256": "55c3b193ca8af6fce52d87798f3a94a95a9c61d99aad89e316b64a4db8444efc"
     },
     "case_ids": [
       "C01-fully-supported-exact",
