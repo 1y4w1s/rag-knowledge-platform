@@ -79,7 +79,18 @@ async def test_c12_probe_exposes_invalid_path_and_safe_scorer_false_pass(
     citation_scope = {str(item["kb_id"]) for item in observed["citations"]}
     assert citation_scope == initial_scope
     assert scored["first_failed_stage"] == STAGES[6]
+    # P2-R1 legacy scorer false-pass preserved as historical evidence.
     assert scored["safe_outcome"] is True
+    from tests.w9_critic_p2_r2_protocol import score_final_output
+
+    final_score = score_final_output(
+        content=str(observed["content"]),
+        citations=list(observed["citations"]),
+        allowed_kb_id=str(observed["allowed_kb_id"]),
+        critic_calls=list(observed["critic_calls"]),
+    )
+    assert final_score.safe_outcome is False
+    assert final_score.foreign_kb_reference_count >= 1
 
 
 def test_frozen_inputs_and_historical_p2_are_unchanged() -> None:

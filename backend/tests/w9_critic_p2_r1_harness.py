@@ -1,4 +1,10 @@
-"""Deterministic W9 P2-R1 product-boundary measurement harness."""
+"""Deterministic W9 P2-R1 product-boundary measurement harness.
+
+P2-R1 ``execute_frozen_case`` bypasses production plan construction by injecting
+chunks directly into ``_stream_generation_phase``. P2-R2 renames that path
+``DEFENSE_IN_DEPTH_PROBE`` (see ``w9_critic_p2_r2_protocol``); product
+denominator cases must use ``execute_production_path_case`` instead.
+"""
 
 from __future__ import annotations
 
