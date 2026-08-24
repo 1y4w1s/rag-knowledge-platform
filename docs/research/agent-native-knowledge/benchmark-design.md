@@ -1,18 +1,20 @@
 # v1.1 Benchmark Design — Agent-Native Knowledge Matrix
 
 > **Companion to**: [`v1.1-agent-native-knowledge-charter.md`](v1.1-agent-native-knowledge-charter.md)  
+> **Validity audit**: [`benchmark-validity-audit.md`](benchmark-validity-audit.md) (K0.5 — layers, regimes, gates)  
 > **Status**: Research design (docs-only) · **Date**: 2026-08-24  
-> **Purpose**: Executable benchmark protocol for matrix cells A–F
+> **Purpose**: Executable benchmark protocol for matrix cells A–F (mapped to experimental layers in K0.5)
 
 ---
 
 ## 1. Design Principles
 
-1. **Substrate is the only variable** — agent, model, corpus, evaluator, and FactGoal labels are fixed per run batch.
+1. **Substrate is the only variable (Layer S)** — agent, model, corpus, evaluator, and FactGoal labels are fixed per run batch; control-plane (cell B) and product (Layer P) use separate layers.
 2. **No Wiki-only truth** — even cell D/E must produce `EvidenceItem` ledger entries tied to source provenance.
 3. **Acceptable-set scoring** — trajectories need not match one golden tool path (W8 semantics).
 4. **Denominator first** — publish case count, skip count, and invalid count before any rate.
 5. **Cost is not optional** — token and latency columns are required for publication.
+6. **ValidityManifest required** — every batch emits manifest per [`benchmark-validity-audit.md`](benchmark-validity-audit.md) §11.
 
 ---
 
@@ -32,15 +34,17 @@
 
 ### 2.2 Agent Flag Profiles by Cell
 
-| Cell | `agent_l4_fact_decomposition_enabled` | `agent_l4_evidence_matcher_enabled` | `agent_l4_stop_policy_enabled` | `rag_critic_enabled` | Notes |
-|------|--------------------------------------|-------------------------------------|----------------------------------|----------------------|-------|
-| A | False | False | False | False* | L3 or legacy thorough baseline |
-| B | True | True | True | False* | Full L4 P0 stack |
-| C | True | True | True | False* | + graph adapter |
-| D | True | True | True | False* | + wiki adapter; hybrid OFF |
-| E | True | True | True | False* | + wiki adapter; hybrid fallback ON |
+> **K0.5**: Layer **S** runs use Critic **OFF** + post-hoc safety scoring. Layer **P** (K9) uses Critic **ON** with product-path eligibility. Cell **B** = Layer **CP** (control-plane ablation), not substrate S-layer.
 
-\* Critic runs in dedicated K9 cross-substrate batch; not mixed into primary accuracy runs unless explicitly labeled.
+| Cell | Layer | `agent_l4_*` | `rag_critic_enabled` | Notes |
+|------|-------|--------------|----------------------|-------|
+| A | S-A / CP-0 | OFF | OFF (S) | Hybrid substrate baseline |
+| B | CP-1 | ON | OFF (S) | FactGoal control-plane — compare vs CP-0, not vs S-D |
+| C | S-C | ON (fixed L4 profile) | OFF (S) / ON (P) | Requires K4 `GRAPH_RAG_BASELINE` audit |
+| D | S-D | ON | OFF (S) / ON (P) | Wiki leakage audit required |
+| E | S-E | ON | OFF (S) / ON (P) | Wiki + hybrid fallback |
+
+\* Primary accuracy runs: Layer S, `affordance_regime=N`, `budget_regime=EQUAL`. See validity audit §2, §6, §7.
 
 ### 2.3 Corpus Freeze
 
@@ -80,6 +84,8 @@ Must pass **11/11** Hit@3 before A scores are valid.
 
 **Adapter**: `knowledge_follow` + entity recall; implementation **TBD after K4 audit**.
 
+> **`CURRENT_GRAPH_ENTITY_RECALL` ≠ `GRAPH_RAG_BASELINE`**. Only audit-passed implementation qualifies for Layer S-C scoring (K0.5 §5).
+
 **Candidate implementations** (audit in K4):
 
 | Option | Pros | Cons |
@@ -88,7 +94,7 @@ Must pass **11/11** Hit@3 before A scores are valid.
 | LightRAG offline index | Community baseline | Build/integration cost |
 | Minimal co-occurrence graph | Cheap | Weak semantic edges |
 
-**Pre-score gate**: K4 audit PASS + T11 mini-set (≥5) executes without harness error.
+**Pre-score gate**: K4 audit PASS (`GRAPH_RAG_BASELINE`) + T11 mini-set (≥5) executes without harness error. High build cost → Pareto inclusion, not auto-defer (K0.5 §5.3).
 
 ### 3.4 Cell D — LLM-Wiki Compiled
 
@@ -99,7 +105,7 @@ Frozen chunks → compile job (LLM) → wiki pages / fact cards
   → EvidenceMatcher (must cite source chunk IDs in provenance)
 ```
 
-**Mandatory audit** (K2): Random 10% of compiled pages checked against source chunks.
+**Mandatory audit** (K2): Random 10% of compiled pages checked against source chunks. **Wiki leakage audit** (K0.5 §4) must PASS before scoring.
 
 **Abort condition**: Audit hallucination rate > 20% → D scores marked INVALID.
 
@@ -221,21 +227,28 @@ Plus **one-time** per cell:
 
 ## 6. Run Manifest
 
-Every benchmark batch writes a manifest (gitignored under `backend/artifacts/benchmarks/tmp/`):
+Every benchmark batch writes a **ValidityManifest** (extends this schema — full fields in [`benchmark-validity-audit.md`](benchmark-validity-audit.md) §11):
 
 ```json
 {
-  "schema_version": "v1.1-benchmark-001",
+  "schema_version": "v1.1-validity-001",
+  "validity_audit_ref": "docs/research/agent-native-knowledge/benchmark-validity-audit.md",
+  "experimental_layer": "S",
+  "layer_cell_id": "S-A",
   "charter_ref": "docs/research/agent-native-knowledge/v1.1-agent-native-knowledge-charter.md",
-  "matrix_cell": "B",
+  "matrix_cell": "A",
   "corpus_id": "v1.1-pilot-001",
   "git_sha": "…",
   "model_profile": { "model": "zai-org/glm-4.6v-flash", "thinking": "off", "timeout_s": 90 },
-  "agent_flags": { "agent_l4_fact_decomposition_enabled": true },
-  "substrate_adapter": "hybrid_fact_decomposed_v0",
+  "affordance_regime": "N",
+  "budget_regime": "EQUAL",
+  "critic_runtime": "OFF",
+  "product_path_eligibility": "COMPONENT_ONLY",
+  "substrate_adapter": "hybrid_rag_v0",
   "case_ids": ["…"],
   "denominator": { "executed": 90, "valid": 88, "invalid": 2, "skipped": 0 },
-  "harness_validity": "VALID"
+  "harness_validity": "VALID",
+  "k1_gate_status": "BLOCKED_PENDING_K0_5_VALIDITY_SIGNOFF"
 }
 ```
 
@@ -277,7 +290,8 @@ Otherwise mark **NO_CLEAR_WINNER**.
 
 | Phase | Harness action | Touches runtime? |
 |-------|----------------|------------------|
-| K1 | Add `KnowledgeSubstrateAdapter` protocol + injection point in eval only | Minimal stub, flag OFF |
+| K0.5 | Validity audit + ValidityManifest schema | Docs only |
+| K1 | Add `KnowledgeSubstrateAdapter` protocol + injection point in eval only | **BLOCKED** pending K0.5 signoff |
 | K3 | `backend/app/eval/knowledge_substrate/` package | Eval-only |
 | K9 | Extend critic offline cases for wiki provenance | Eval-only |
 | K10 | Freeze fixtures under `backend/tests/fixtures/v1_1_knowledge/` | Fixtures only |
@@ -290,7 +304,7 @@ Otherwise mark **NO_CLEAR_WINNER**.
 
 | Anti-pattern | W9/v1.0 lesson | v1.1 rule |
 |--------------|----------------|-----------|
-| Harness bypasses production plan construction | C12 false pass | Eligibility bit per case |
+| Harness bypasses production plan construction | C12 false pass | Product-Path Eligibility Law (K0.5 §3) |
 | Scorer ignores citation scope | P2-R1 BLOCKED | Final-answer scope check mandatory |
 | Concluding from 1 invalid case | 11/12 provisional trap | Denominator + invalid split |
 | Enabling by default after pilot | All L4 flags OFF | Research ≠ rollout |
@@ -309,7 +323,8 @@ This design doc is **COMPLETE** when:
 - [x] Run manifest schema defined
 - [x] Comparison report template provided
 - [x] Anti-patterns documented
+- [x] K0.5 validity audit referenced; K1 gate BLOCKED pending signoff
 
 ---
 
-*End of v1.1 Benchmark Design*
+*Aligned with [`benchmark-validity-audit.md`](benchmark-validity-audit.md). K1 implementation not started.*
