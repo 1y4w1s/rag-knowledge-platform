@@ -1,0 +1,394 @@
+{
+  "protocol": "w9_critic_p3_r0_semantic_construct_v2",
+  "base_sha": "ef79178e8dbfe9a9dec0526ef8b003732a819020",
+  "research_question": "How capable is GLM-4.6V-Flash Thinking OFF at the SEMANTIC portion of Critic judgment after deterministic-first responsibilities are handled by the proven control-plane?",
+  "semantic_construct_definition": "L1 scores SEMANTIC-eligible claims only: claim detection after non-assertive exclusion; claim-evidence entailment / unsupported / unverifiable; emit status in {SUPPORTED, UNSUPPORTED, CONFLICTED, UNVERIFIABLE} with evaluation_state=JUDGED and decision_owner=SEMANTIC. Score claim status, not reason_code equality, not five CriticActions.",
+  "semantic_eligibility_rule": "eligible iff exists claim with decision_owner=SEMANTIC and case is not protocol-invalid",
+  "scoring_policy": "EXACT",
+  "acceptable_set": null,
+  "layers": [
+    "L0_DETERMINISTIC_CONTROL_PLANE",
+    "L1_MODEL_SEMANTIC_CAPABILITY",
+    "L2_CONTROL_PLANE_EXECUTION",
+    "L3_FINAL_SAFETY_OUTCOME"
+  ],
+  "primary_metric": "L1_MODEL_SEMANTIC_CAPABILITY",
+  "model_config": {
+    "primary_model": "zai-org/glm-4.6v-flash",
+    "adapter_class": "OpenAICompatibleAdapter",
+    "provider_path": "app.eval.local_model_profile.adapter.OpenAICompatibleAdapter",
+    "thinking": "OFF",
+    "temperature": 0.0,
+    "max_tokens": 512,
+    "timeout_seconds": 60,
+    "retry": "NONE",
+    "best_of_n": false,
+    "output": "structured_json_claim_status_only"
+  },
+  "model_input_schema": {
+    "allowed_keys": [
+      "case_id",
+      "final_draft",
+      "gated_evidence_snapshot",
+      "query",
+      "retrieval_scope_exhausted",
+      "synchronized_citations"
+    ],
+    "forbidden_keys": [
+      "acceptable_set",
+      "citation_ids_valid",
+      "citation_syntax_valid",
+      "critic_pass",
+      "decision_owner",
+      "deterministic_context",
+      "evaluation_state",
+      "expected_action",
+      "expected_reason_code",
+      "expected_status",
+      "hidden_recovery",
+      "hint",
+      "hints",
+      "historical_action",
+      "in_capability_denominator",
+      "in_semantic_denominator",
+      "known_conflict",
+      "oracle",
+      "reason_code",
+      "required_fact_missing",
+      "score"
+    ]
+  },
+  "model_output_schema": {
+    "object": "claims[]",
+    "claim_fields": [
+      "claim_id",
+      "status",
+      "evidence_refs"
+    ],
+    "status_enum": [
+      "CONFLICTED",
+      "SUPPORTED",
+      "UNSUPPORTED",
+      "UNVERIFIABLE"
+    ],
+    "not_l1_object": [
+      "ACCEPT",
+      "REVISE_FROM_EXISTING_EVIDENCE",
+      "RETRIEVE_MISSING_EVIDENCE",
+      "CLARIFY",
+      "REFUSE"
+    ]
+  },
+  "deterministic_exclusions": [
+    "CITATION_ID_INVALID",
+    "CITATION_SYNTAX_INVALID",
+    "KNOWN_REQUIRED_FACT_MISSING",
+    "KNOWN_STRUCTURED_CONFLICT",
+    "MISSING_CITATION",
+    "SCOPE_VIOLATION"
+  ],
+  "timeout_policy": {
+    "remains_in_denominator": true,
+    "l1_result": "MODEL_CAPABILITY_FAIL"
+  },
+  "parse_failure_policy": {
+    "remains_in_denominator": true,
+    "l1_result": "MODEL_CAPABILITY_FAIL"
+  },
+  "hidden_recovery_policy": {
+    "HIDDEN_RECOVERY_CANNOT_UPGRADE_L1": true,
+    "model_wrong_plus_recovery": "MODEL_CAPABILITY_FAIL"
+  },
+  "measurement_state_taxonomy": [
+    "PASS",
+    "PARTIAL",
+    "BLOCKED",
+    "NOT_RUN"
+  ],
+  "model_capability_result_taxonomy": [
+    "MODEL_CAPABILITY_PASS",
+    "MODEL_CAPABILITY_FAIL",
+    "MEASUREMENT_PROTOCOL_INVALID",
+    "NOT_APPLICABLE"
+  ],
+  "denominator": {
+    "frozen_total": 12,
+    "semantic_eligible": 7,
+    "semantic_ineligible": 5,
+    "deterministic_only": 3,
+    "protocol_invalid": 1,
+    "owner_absent": 1,
+    "semantic_claim_count": 10,
+    "DETERMINISTIC_CASES_IN_L1_DENOMINATOR": 0,
+    "PROTOCOL_INVALID_CASES_IN_L1_DENOMINATOR": 0,
+    "SEMANTIC_CASES": [
+      "C01-fully-supported-exact",
+      "C02-supported-paraphrase-low-lexical",
+      "C03-one-unsupported-among-supported",
+      "C04-valid-citation-wrong-evidence",
+      "C08-nonassertive-preface-supported-fact",
+      "C09-supported-plus-unverifiable",
+      "C10-supported-multiclaim-multicitation"
+    ],
+    "DETERMINISTIC_ONLY_CASES": [
+      "C05-known-conflict-overcertain",
+      "C06-required-fact-missing",
+      "C11-citation-format-only-defect"
+    ],
+    "PROTOCOL_INVALID_CASES": [
+      "C12-out-of-scope-provenance"
+    ],
+    "OWNER_ABSENT_CASES": [
+      "C07-correct-insufficiency-refusal"
+    ]
+  },
+  "oracle_uniqueness_freezes": {
+    "C04": "UNSUPPORTED",
+    "C09-CL2": "UNVERIFIABLE",
+    "C02_paraphrase": "30日≡一个月",
+    "C08_preface": "excluded; factual SUPPORTED",
+    "atomic_slots": [
+      "C03",
+      "C09",
+      "C10"
+    ]
+  },
+  "cases": [
+    {
+      "case_id": "C01-fully-supported-exact",
+      "short_id": "C01",
+      "lane": "SEMANTIC",
+      "semantic_eligible": true,
+      "in_l1_denominator": true,
+      "expected_semantic_calls": 1,
+      "semantic_claims": [
+        {
+          "claim_id": "C01-CL1",
+          "identity": "sha256:c2c3c32252ff41d1d154e22a097cc9ae5cd9fa7c4062563c648adda084d96688",
+          "text": "生产备份保留 30 天。",
+          "status": "SUPPORTED",
+          "evidence_references": [
+            "E1"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "C02-supported-paraphrase-low-lexical",
+      "short_id": "C02",
+      "lane": "SEMANTIC",
+      "semantic_eligible": true,
+      "in_l1_denominator": true,
+      "expected_semantic_calls": 1,
+      "semantic_claims": [
+        {
+          "claim_id": "C02-CL1",
+          "identity": "sha256:c46631e765ccf97003545b097a0d95201ac4ee0fe86c1583c9ab15acd92fcba9",
+          "text": "报销申请须在费用发生后的一个月内提交。",
+          "status": "SUPPORTED",
+          "evidence_references": [
+            "E1"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "C03-one-unsupported-among-supported",
+      "short_id": "C03",
+      "lane": "SEMANTIC",
+      "semantic_eligible": true,
+      "in_l1_denominator": true,
+      "expected_semantic_calls": 1,
+      "semantic_claims": [
+        {
+          "claim_id": "C03-CL1",
+          "identity": "sha256:bb1e759699dfcf0fe0b933e3ccf0c339b7d913f94542bfa1c6710d2ecbc9d347",
+          "text": "基础版支持 5 GB 存储。",
+          "status": "SUPPORTED",
+          "evidence_references": [
+            "E1"
+          ]
+        },
+        {
+          "claim_id": "C03-CL2",
+          "identity": "sha256:d5e0350a57471b7703b58fd91145906fc7ea3c28349ee46a2af78a1dbc45aa89",
+          "text": "基础版提供无限次电话支持。",
+          "status": "UNSUPPORTED",
+          "evidence_references": [
+            "E1"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "C04-valid-citation-wrong-evidence",
+      "short_id": "C04",
+      "lane": "SEMANTIC",
+      "semantic_eligible": true,
+      "in_l1_denominator": true,
+      "expected_semantic_calls": 1,
+      "semantic_claims": [
+        {
+          "claim_id": "C04-CL1",
+          "identity": "sha256:a9a968b37fb0c7eff73ecb338a34bd9389b0a793aedb220faf3c699f8d612802",
+          "text": "管理员初始密码是 Admin@123。",
+          "status": "UNSUPPORTED",
+          "evidence_references": [
+            "E1"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "C05-known-conflict-overcertain",
+      "short_id": "C05",
+      "lane": "DETERMINISTIC_ONLY",
+      "semantic_eligible": false,
+      "in_l1_denominator": false,
+      "expected_semantic_calls": 0,
+      "semantic_claims": []
+    },
+    {
+      "case_id": "C06-required-fact-missing",
+      "short_id": "C06",
+      "lane": "DETERMINISTIC_ONLY",
+      "semantic_eligible": false,
+      "in_l1_denominator": false,
+      "expected_semantic_calls": 0,
+      "semantic_claims": []
+    },
+    {
+      "case_id": "C07-correct-insufficiency-refusal",
+      "short_id": "C07",
+      "lane": "OWNER_ABSENT",
+      "semantic_eligible": false,
+      "in_l1_denominator": false,
+      "expected_semantic_calls": 0,
+      "semantic_claims": []
+    },
+    {
+      "case_id": "C08-nonassertive-preface-supported-fact",
+      "short_id": "C08",
+      "lane": "SEMANTIC",
+      "semantic_eligible": true,
+      "in_l1_denominator": true,
+      "expected_semantic_calls": 1,
+      "semantic_claims": [
+        {
+          "claim_id": "C08-CL1",
+          "identity": "sha256:8dbaf0ad9222a4fafd6c98979d99850a7d55bd41eac2720e9fd63c9ea441d00e",
+          "text": "企业版 API 调用上限为每分钟 5000 次。",
+          "status": "SUPPORTED",
+          "evidence_references": [
+            "E1"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "C09-supported-plus-unverifiable",
+      "short_id": "C09",
+      "lane": "SEMANTIC",
+      "semantic_eligible": true,
+      "in_l1_denominator": true,
+      "expected_semantic_calls": 1,
+      "semantic_claims": [
+        {
+          "claim_id": "C09-CL1",
+          "identity": "sha256:c951019c1555f76da91d650856e3d1c581813619455457c8fbe73a5bc8a80ee8",
+          "text": "系统维护窗口为每周日 02:00 至 04:00。",
+          "status": "SUPPORTED",
+          "evidence_references": [
+            "E1"
+          ]
+        },
+        {
+          "claim_id": "C09-CL2",
+          "identity": "sha256:9f1df0ab9d40e0c52e7fdce4f57eedcb0c7514314200b8891ca7f588597a8487",
+          "text": "下季度一定不会变更。",
+          "status": "UNVERIFIABLE",
+          "evidence_references": []
+        }
+      ]
+    },
+    {
+      "case_id": "C10-supported-multiclaim-multicitation",
+      "short_id": "C10",
+      "lane": "SEMANTIC",
+      "semantic_eligible": true,
+      "in_l1_denominator": true,
+      "expected_semantic_calls": 1,
+      "semantic_claims": [
+        {
+          "claim_id": "C10-CL1",
+          "identity": "sha256:4ca2437ba148ccb748551d7c3ef24e200621fe3900e4c9e69f0767ccf0b72dc5",
+          "text": "免费版每分钟最多 100 次请求。",
+          "status": "SUPPORTED",
+          "evidence_references": [
+            "E1"
+          ]
+        },
+        {
+          "claim_id": "C10-CL2",
+          "identity": "sha256:8cbbed335c0c477668e424c9c8494fea7bbb6648fe19d260d26ddc1063817077",
+          "text": "企业版每分钟最多 5000 次请求。",
+          "status": "SUPPORTED",
+          "evidence_references": [
+            "E2"
+          ]
+        }
+      ]
+    },
+    {
+      "case_id": "C11-citation-format-only-defect",
+      "short_id": "C11",
+      "lane": "DETERMINISTIC_ONLY",
+      "semantic_eligible": false,
+      "in_l1_denominator": false,
+      "expected_semantic_calls": 0,
+      "semantic_claims": []
+    },
+    {
+      "case_id": "C12-out-of-scope-provenance",
+      "short_id": "C12",
+      "lane": "PROTOCOL_INVALID",
+      "semantic_eligible": false,
+      "in_l1_denominator": false,
+      "expected_semantic_calls": 0,
+      "semantic_claims": []
+    }
+  ],
+  "suite_binding": {
+    "cases_path": "backend/tests/fixtures/l4_critic/w9-critic-cases.json",
+    "contract_path": "tests/fixtures/l4_critic/w9-critic-capability-contract.json",
+    "oracle_hash": "f1dfc6a5fbcb8a3234cf227b96f0e34eb29dbb9799b36757d3ae7274a8009f00",
+    "case_ids": [
+      "C01-fully-supported-exact",
+      "C02-supported-paraphrase-low-lexical",
+      "C03-one-unsupported-among-supported",
+      "C04-valid-citation-wrong-evidence",
+      "C05-known-conflict-overcertain",
+      "C06-required-fact-missing",
+      "C07-correct-insufficiency-refusal",
+      "C08-nonassertive-preface-supported-fact",
+      "C09-supported-plus-unverifiable",
+      "C10-supported-multiclaim-multicitation",
+      "C11-citation-format-only-defect",
+      "C12-out-of-scope-provenance"
+    ]
+  },
+  "p2_r3_protection": {
+    "artifact": "w9-critic-p2-r3-full-product-rerun.json",
+    "frozen_sha256": "2c69d63d5d14801a6754d4f8094f4d62c95b63a3ddbb5778d98441f817293478"
+  },
+  "formal_result_artifact": {
+    "name": "w9-critic-p3-r1-real-local-semantic.json",
+    "present_required": false
+  },
+  "execution_state": {
+    "measurement_state": "NOT_RUN",
+    "lm_studio_requests": 0,
+    "real_model_capability_measured": false,
+    "p3_r1_executed": false
+  }
+}
