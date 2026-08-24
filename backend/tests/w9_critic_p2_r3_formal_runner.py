@@ -92,6 +92,7 @@ PROTECTED_ARTIFACT_NAMES: frozenset[str] = frozenset(
         "w9-critic-p2-r1-offline-product.json",
         "w9-critic-p2-r2-protocol-validation.json",
         "w9-critic-p2b-c11-remediation.json",
+        FORMAL_ARTIFACT_NAME,
         "dry-run-w9-critic-p2-r3-batch-plan.json",
     }
 )
@@ -142,7 +143,9 @@ class MeasurementProtocolBlocker(RuntimeError):
 
 def _canonical_json_sha256(path: Path) -> str:
     payload = json.loads(path.read_text(encoding="utf-8"))
-    canonical = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+    canonical = json.dumps(
+        payload, sort_keys=True, ensure_ascii=False, separators=(",", ":")
+    )
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
@@ -508,7 +511,9 @@ async def run_formal_eligible_case(
         critic_action_expected=expected_action,
         critic_action_observed=observed_action,
         critic_action_correct=observed_action == expected_action,
-        orchestration_status="EXECUTED" if eligible else "NOT_EXECUTED_PROTOCOL_INVALID",
+        orchestration_status="EXECUTED"
+        if eligible
+        else "NOT_EXECUTED_PROTOCOL_INVALID",
         retrieval_count=outcome.critic_recovery_count,
         revision_count=outcome.critic_revision_count,
         critic_validation_count=outcome.critic_validation_count,
@@ -617,9 +622,7 @@ def evaluate_formal_completeness(
             f"eligible_expected={aggregate.eligible_expected}, want {PRODUCT_PATH_ELIGIBLE_EXPECTED}"
         )
 
-    eligible_executed_ok = (
-        aggregate.eligible_executed == PRODUCT_PATH_ELIGIBLE_EXPECTED
-    )
+    eligible_executed_ok = aggregate.eligible_executed == PRODUCT_PATH_ELIGIBLE_EXPECTED
     if not eligible_executed_ok:
         reasons.append(
             f"eligible_executed={aggregate.eligible_executed}, want {PRODUCT_PATH_ELIGIBLE_EXPECTED}"
@@ -692,7 +695,8 @@ def derive_result_semantics(
         measurement_state = MeasurementState.BLOCKED
 
     safety_result = (
-        "PASS" if aggregate.unsafe_accepts == 0 and aggregate.hidden_recovery_count == 0
+        "PASS"
+        if aggregate.unsafe_accepts == 0 and aggregate.hidden_recovery_count == 0
         else "FAIL"
     )
 
@@ -726,7 +730,12 @@ def first_failed_stage_counts(records: Sequence[FormalCaseRecord]) -> dict[str, 
 
 def write_formal_artifact(payload: Mapping[str, Any], path: Path | None = None) -> Path:
     target = path or FORMAL_ARTIFACT_PATH
+    rendered = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
     if target.name in PROTECTED_ARTIFACT_NAMES:
+        # Protected historical artifacts may be written only when the
+        # serialized bytes are identical (idempotent freeze / no-op).
+        if target.exists() and target.read_text(encoding="utf-8") == rendered:
+            return target
         raise ValueError(
             f"refusing to overwrite protected historical artifact {target.name!r}"
         )
@@ -735,9 +744,7 @@ def write_formal_artifact(payload: Mapping[str, Any], path: Path | None = None) 
             f"formal artifact under fixtures must be named {FORMAL_ARTIFACT_NAME!r}"
         )
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
-    )
+    target.write_text(rendered, encoding="utf-8")
     return target
 
 

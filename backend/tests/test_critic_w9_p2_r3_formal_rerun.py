@@ -7,7 +7,9 @@ dry-run harness may report incomplete batches, the formal harness may not.
 from __future__ import annotations
 
 import json
+import subprocess
 from dataclasses import replace
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -195,32 +197,34 @@ def test_scorer_semantic_change_blocks_measurement(
 # ── A3/A5/A8: formal batch execution + artifact ──────────────────────────────
 
 
+POST_61_MASTER_SHA = "ef79178e8dbfe9a9dec0526ef8b003732a819020"
+HISTORICAL_P2_R3_BASE_SHA = "550bd8b0ec00f44961a5ec7de4ac36560135edee"
+
+
 @pytest.mark.asyncio
-async def test_formal_batch_executes_all_eligible_and_writes_artifact() -> None:
+async def test_formal_batch_executes_all_eligible_without_rewriting_history() -> None:
     payload = await run_formal_batch()
-    path = write_formal_artifact(payload)
-    assert path == FORMAL_ARTIFACT_PATH
-    assert path.name == FORMAL_ARTIFACT_NAME
+    with pytest.raises(ValueError, match="protected historical artifact"):
+        write_formal_artifact(payload)
 
-    saved = json.loads(path.read_text(encoding="utf-8"))
     for field_name in REQUIRED_TOP_LEVEL_FIELDS:
-        assert field_name in saved, f"missing top-level field {field_name}"
+        assert field_name in payload, f"missing top-level field {field_name}"
 
-    assert saved["protocol"] == FORMAL_PROTOCOL_VERSION
-    assert saved["base_sha"] == EXPECTED_BASE_SHA
-    assert saved["external_model_execution"] is False
-    assert saved["runtime_rollout"] is False
-    assert saved["product_remediation_applied"] is False
-    assert saved["frozen_cases"] == 12
-    assert saved["eligible_expected"] == 11
-    assert saved["eligible_executed"] == 11
-    assert saved["protocol_invalid"] == 1
-    assert saved["batch_complete"] is True
-    assert saved["measurement_valid"] is True
-    assert saved["MEASUREMENT_STATE"] == MeasurementState.PASS.value
-    assert len(saved["cases"]) == 12
-    assert saved["passed"] + saved["failed"] == 11
-    assert saved["completeness_gate"]["reasons"] == []
+    assert payload["protocol"] == FORMAL_PROTOCOL_VERSION
+    assert payload["base_sha"] == EXPECTED_BASE_SHA == HISTORICAL_P2_R3_BASE_SHA
+    assert payload["external_model_execution"] is False
+    assert payload["runtime_rollout"] is False
+    assert payload["product_remediation_applied"] is False
+    assert payload["frozen_cases"] == 12
+    assert payload["eligible_expected"] == 11
+    assert payload["eligible_executed"] == 11
+    assert payload["protocol_invalid"] == 1
+    assert payload["batch_complete"] is True
+    assert payload["measurement_valid"] is True
+    assert payload["MEASUREMENT_STATE"] == MeasurementState.PASS.value
+    assert len(payload["cases"]) == 12
+    assert payload["passed"] + payload["failed"] == 11
+    assert list(payload["completeness_gate"]["reasons"]) == []
 
 
 @pytest.mark.asyncio
@@ -309,9 +313,7 @@ def test_strict_gate_forbids_eleven_expected_ten_executed() -> None:
 
 def test_strict_gate_forbids_missing_eligible_record() -> None:
     records = [_record(f"C{i:02d}") for i in range(1, 12)] + [_c12_record()]
-    aggregate = aggregate_batch_results(
-        [item.to_artifact_record() for item in records]
-    )
+    aggregate = aggregate_batch_results([item.to_artifact_record() for item in records])
     gate = evaluate_formal_completeness(
         aggregate, records, expected_eligible_ids=[f"C{i:02d}" for i in range(1, 13)]
     )
@@ -351,6 +353,58 @@ def test_formal_writer_refuses_protected_historical_artifacts(tmp_path) -> None:
     for name in sorted(PROTECTED_ARTIFACT_NAMES):
         with pytest.raises(ValueError, match="protected historical artifact"):
             write_formal_artifact({"x": 1}, tmp_path / name)
+
+
+def test_formal_writer_allows_byte_identical_protected_write(tmp_path: Path) -> None:
+    target = tmp_path / FORMAL_ARTIFACT_NAME
+    payload = {
+        "protocol": FORMAL_PROTOCOL_VERSION,
+        "base_sha": HISTORICAL_P2_R3_BASE_SHA,
+    }
+    rendered = json.dumps(payload, indent=2, ensure_ascii=False) + "\n"
+    target.write_text(rendered, encoding="utf-8")
+    assert write_formal_artifact(payload, target) == target
+    assert target.read_text(encoding="utf-8") == rendered
+
+
+def test_formal_writer_rejects_one_byte_semantic_difference(tmp_path: Path) -> None:
+    target = tmp_path / FORMAL_ARTIFACT_NAME
+    original = {
+        "protocol": FORMAL_PROTOCOL_VERSION,
+        "base_sha": HISTORICAL_P2_R3_BASE_SHA,
+    }
+    target.write_text(
+        json.dumps(original, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
+    mutated = {
+        "protocol": FORMAL_PROTOCOL_VERSION,
+        "base_sha": POST_61_MASTER_SHA,
+    }
+    with pytest.raises(ValueError, match="protected historical artifact"):
+        write_formal_artifact(mutated, target)
+    saved = json.loads(target.read_text(encoding="utf-8"))
+    assert saved["base_sha"] == HISTORICAL_P2_R3_BASE_SHA
+
+
+def test_p2_r3_artifact_equals_post_61_master_historical_bytes() -> None:
+    repo = Path(__file__).resolve().parents[2]
+    completed = subprocess.run(
+        [
+            "git",
+            "show",
+            f"{POST_61_MASTER_SHA}:backend/tests/fixtures/l4_critic/{FORMAL_ARTIFACT_NAME}",
+        ],
+        cwd=repo,
+        capture_output=True,
+        check=True,
+    )
+    working = FORMAL_ARTIFACT_PATH.read_bytes().replace(b"\r\n", b"\n")
+    historical = completed.stdout.replace(b"\r\n", b"\n")
+    assert working == historical
+    payload = json.loads(working.decode("utf-8"))
+    assert payload["base_sha"] == HISTORICAL_P2_R3_BASE_SHA
+    assert payload["frozen_input_manifest"]["base_sha"] == HISTORICAL_P2_R3_BASE_SHA
+    assert EXPECTED_BASE_SHA == HISTORICAL_P2_R3_BASE_SHA
 
 
 # ── A10: measurement validity vs product capability ──────────────────────────
@@ -438,9 +492,10 @@ async def test_wrong_critic_action_is_recorded_as_product_failure() -> None:
     )
 
     # Frozen fixtures on disk are unchanged.
-    assert load_frozen_suite().reports["C01-fully-supported-exact"][
-        "recommended_action"
-    ] == "ACCEPT"
+    assert (
+        load_frozen_suite().reports["C01-fully-supported-exact"]["recommended_action"]
+        == "ACCEPT"
+    )
 
 
 def test_hidden_recovery_detector_fires_on_unaccounted_effects() -> None:
@@ -480,7 +535,7 @@ def test_hidden_recovery_detector_fires_on_retry_amplification() -> None:
 def test_formal_artifact_does_not_replace_dry_run_or_history() -> None:
     from tests.w9_critic_p2_r1_harness import FIXTURES
 
-    assert FORMAL_ARTIFACT_NAME not in PROTECTED_ARTIFACT_NAMES
+    assert FORMAL_ARTIFACT_NAME in PROTECTED_ARTIFACT_NAMES
     for name in PROTECTED_ARTIFACT_NAMES:
         candidate = FIXTURES / name
         if name.startswith("dry-run"):
