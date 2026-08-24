@@ -158,3 +158,26 @@ Formal P3 result artifact claiming real model capability: **forbidden in this wi
 - P2-R3 historical product-path artifact remains protected evidence (`w9-critic-p2-r3-full-product-rerun.json`).
 - This construct re-freeze must keep `P2_R3_HISTORICAL_ARTIFACT_DIFF = 0`.
 - Product runtime under `backend/app` must keep diff = 0 vs POST_61 for this window.
+
+## P3-R0.3 — real local semantic artifact schema freeze
+
+Frozen **before** P3-R1 execution. Contract only; no real model run.
+
+| Item | Frozen value |
+|---|---|
+| Reserved result filename | `w9-critic-p3-r1-real-local-semantic.json` (**must remain absent** until P3-R1) |
+| Schema file | `backend/tests/fixtures/l4_critic/w9-critic-p3-r1-real-local-semantic.schema.json` |
+| `artifact_schema_version` | `p3-r1-semantic-v1` |
+| `semantic_construct` | `claim_status_exact` (not five-action, not control-plane action, not final product success) |
+| `scoring_policy` | `EXACT` |
+| Model | `zai-org/glm-4.6v-flash` · thinking `OFF` · temperature `0.0` · `retry_policy=NONE` |
+
+Layer independence: L1 = `model_capability_result` from semantic claim-status only. L2 `control_plane_result` and L3 `final_safety_result` **must not upgrade L1**. `L1 FAIL + L2 PASS + L3 PASS` is a valid schema outcome.
+
+Failure taxonomy: `SUCCESS` \| `MODEL_CAPABILITY_FAIL` \| `PARSE_FAILURE` \| `TIMEOUT` \| `PROTOCOL_ERROR`. Timeout and parse-failure remain **in** the denominator. No retry, no best-of-N, no post-filtering.
+
+| Gate | Value |
+|---|---|
+| `ARTIFACT_SCHEMA_READY` | **YES** (schema file + helper + deterministic validators frozen; reserved result file must stay absent) |
+| `P3_FINAL_FREEZE` | **NO** (no real P3-R1 measurement yet; remains NO until a real run writes the reserved result file) |
+| `READY_FOR_PR64_MERGE` | **YES** after schema freeze materials are committed on PR #64 (merge is a separate human step) |

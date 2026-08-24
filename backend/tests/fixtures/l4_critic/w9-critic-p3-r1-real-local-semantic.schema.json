@@ -1,0 +1,240 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "w9-critic-p3-r1-real-local-semantic.schema.json",
+  "title": "W9 P3-R1 real local semantic result artifact (schema freeze only)",
+  "description": "Contract for the future reserved file w9-critic-p3-r1-real-local-semantic.json. This schema file is not the result artifact. L1 scores claim-status EXACT only; L2/L3 MUST NOT upgrade L1. L1 FAIL + L2 PASS + L3 PASS is a valid outcome.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "measurement_name",
+    "base_sha",
+    "run_id",
+    "timestamp",
+    "model_config",
+    "semantic_construct",
+    "scoring_policy",
+    "frozen_total_cases",
+    "semantic_eligible_cases",
+    "semantic_executed_cases",
+    "semantic_passed_cases",
+    "semantic_failed_cases",
+    "timeout_count",
+    "parse_failure_count",
+    "model_capability_result",
+    "measurement_state",
+    "artifact_schema_version",
+    "cases"
+  ],
+  "not": {
+    "anyOf": [
+      { "required": ["chain_of_thought"] },
+      { "required": ["reasoning_trace"] },
+      { "required": ["hidden_reason"] },
+      { "required": ["oracle_explanation"] },
+      { "required": ["control_plane_decision"] },
+      { "required": ["recovery_result"] },
+      { "required": ["final_product_outcome"] }
+    ]
+  },
+  "properties": {
+    "protocol_version": {
+      "type": "string",
+      "const": "w9_critic_p3_r0_semantic_construct_v2"
+    },
+    "measurement_name": {
+      "type": "string",
+      "const": "w9_critic_p3_r1_real_local_semantic"
+    },
+    "base_sha": {
+      "type": "string",
+      "minLength": 40
+    },
+    "run_id": { "type": "string", "minLength": 1 },
+    "timestamp": { "type": "string", "minLength": 1 },
+    "model_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "model_name",
+        "thinking",
+        "temperature",
+        "max_tokens",
+        "timeout_seconds",
+        "retry_policy"
+      ],
+      "properties": {
+        "provider": { "type": "string", "const": "openai_compatible" },
+        "model_name": { "type": "string", "const": "zai-org/glm-4.6v-flash" },
+        "thinking": { "type": "string", "const": "OFF" },
+        "temperature": { "type": "number", "const": 0.0 },
+        "max_tokens": { "type": "integer", "const": 512 },
+        "timeout_seconds": { "type": "integer", "const": 60 },
+        "retry_policy": { "type": "string", "const": "NONE" }
+      }
+    },
+    "semantic_construct": {
+      "type": "string",
+      "const": "claim_status_exact"
+    },
+    "scoring_policy": { "type": "string", "const": "EXACT" },
+    "frozen_total_cases": { "type": "integer", "const": 12 },
+    "semantic_eligible_cases": { "type": "integer", "const": 7 },
+    "semantic_executed_cases": { "type": "integer", "minimum": 0, "maximum": 7 },
+    "semantic_passed_cases": { "type": "integer", "minimum": 0 },
+    "semantic_failed_cases": { "type": "integer", "minimum": 0 },
+    "timeout_count": { "type": "integer", "minimum": 0 },
+    "parse_failure_count": { "type": "integer", "minimum": 0 },
+    "best_of_n": { "type": "boolean", "const": false },
+    "post_filtering": { "type": "boolean", "const": false },
+    "timeout_remains_in_denominator": { "type": "boolean", "const": true },
+    "parse_failure_remains_in_denominator": { "type": "boolean", "const": true },
+    "model_capability_result": {
+      "type": "string",
+      "enum": [
+        "MODEL_CAPABILITY_PASS",
+        "MODEL_CAPABILITY_FAIL",
+        "MEASUREMENT_PROTOCOL_INVALID",
+        "NOT_APPLICABLE"
+      ]
+    },
+    "control_plane_result": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "NOT_APPLICABLE"],
+      "description": "L2 only. MUST NOT upgrade L1 model_capability_result."
+    },
+    "final_safety_result": {
+      "type": "string",
+      "enum": ["PASS", "FAIL", "NOT_APPLICABLE"],
+      "description": "L3 only. MUST NOT upgrade L1 model_capability_result."
+    },
+    "measurement_state": {
+      "type": "string",
+      "enum": ["PASS", "PARTIAL", "BLOCKED", "NOT_RUN"]
+    },
+    "artifact_schema_version": {
+      "type": "string",
+      "const": "p3-r1-semantic-v1"
+    },
+    "failure_taxonomy": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "string",
+        "enum": [
+          "SUCCESS",
+          "MODEL_CAPABILITY_FAIL",
+          "PARSE_FAILURE",
+          "TIMEOUT",
+          "PROTOCOL_ERROR"
+        ]
+      }
+    },
+    "cases": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/semanticCase" }
+    }
+  },
+  "definitions": {
+    "semanticCase": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "input_hash",
+        "claim_count",
+        "raw_model_output",
+        "parsed_output",
+        "parse_valid",
+        "semantic_status_prediction",
+        "semantic_status_expected",
+        "semantic_correct",
+        "latency_ms",
+        "timeout",
+        "first_failed_stage",
+        "model_capability_result"
+      ],
+      "not": {
+        "anyOf": [
+          { "required": ["chain_of_thought"] },
+          { "required": ["reasoning_trace"] },
+          { "required": ["hidden_reason"] },
+          { "required": ["oracle_explanation"] },
+          { "required": ["control_plane_decision"] },
+          { "required": ["recovery_result"] },
+          { "required": ["final_product_outcome"] }
+        ]
+      },
+      "properties": {
+        "case_id": { "type": "string", "minLength": 1 },
+        "input_hash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "claim_count": { "type": "integer", "minimum": 0 },
+        "raw_model_output": { "type": "string" },
+        "parsed_output": {
+          "type": ["object", "null"]
+        },
+        "parse_valid": { "type": "boolean" },
+        "semantic_status_prediction": {
+          "type": ["object", "null"],
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["SUPPORTED", "UNSUPPORTED", "CONFLICTED", "UNVERIFIABLE"]
+          }
+        },
+        "semantic_status_expected": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string",
+            "enum": ["SUPPORTED", "UNSUPPORTED", "CONFLICTED", "UNVERIFIABLE"]
+          }
+        },
+        "semantic_correct": { "type": "boolean" },
+        "latency_ms": { "type": "number", "minimum": 0 },
+        "timeout": { "type": "boolean" },
+        "first_failed_stage": {
+          "type": ["string", "null"],
+          "enum": [
+            null,
+            "SUCCESS",
+            "MODEL_CAPABILITY_FAIL",
+            "PARSE_FAILURE",
+            "TIMEOUT",
+            "PROTOCOL_ERROR"
+          ]
+        },
+        "failure_class": {
+          "type": "string",
+          "enum": [
+            "SUCCESS",
+            "MODEL_CAPABILITY_FAIL",
+            "PARSE_FAILURE",
+            "TIMEOUT",
+            "PROTOCOL_ERROR"
+          ]
+        },
+        "model_capability_result": {
+          "type": "string",
+          "enum": [
+            "MODEL_CAPABILITY_PASS",
+            "MODEL_CAPABILITY_FAIL",
+            "MEASUREMENT_PROTOCOL_INVALID",
+            "NOT_APPLICABLE"
+          ]
+        },
+        "control_plane_result": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "NOT_APPLICABLE"]
+        },
+        "final_safety_result": {
+          "type": "string",
+          "enum": ["PASS", "FAIL", "NOT_APPLICABLE"]
+        }
+      }
+    }
+  }
+}
