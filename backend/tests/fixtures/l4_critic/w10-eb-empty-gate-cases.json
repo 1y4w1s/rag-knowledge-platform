@@ -1,0 +1,29 @@
+{
+  "protocol_version": "w10_eb_empty_gate_cases_v1",
+  "suite_id": "w10_eb_empty_gate_v1",
+  "case_count": 2,
+  "purpose": "empty_gate_refuse_ok",
+  "parent_observation_protocol": "w10_eb1_generation_observation_v1",
+  "suite_strategy": "S2_companion",
+  "artifact_kind": "EMPTY_GATE_CASES",
+  "cases_material_status": "REAL_ELIGIBLE",
+  "notes": "REAL_ELIGIBLE empty-gate research denominator for T4 empty_gate_refuse_ok. Not formal observation. E-B_FORMAL_READY remains NO.",
+  "cases": [
+    {
+      "case_id": "EB8-EMPTY-GATE-zh",
+      "query": "知识库里有没有从未收录的虚构加班政策编号 ZX-999？",
+      "retrieval_result_state": "empty_retrieval",
+      "evidence_count": 0,
+      "expected_refusal": true,
+      "no_context_reply_for": "知识库中未找到相关内容。"
+    },
+    {
+      "case_id": "EB8-EMPTY-GATE-en",
+      "query": "Is there any never-indexed fictional overtime policy code ZX-999?",
+      "retrieval_result_state": "empty_gated",
+      "evidence_count": 0,
+      "expected_refusal": true,
+      "no_context_reply_for": "No relevant content was found in the knowledge base."
+    }
+  ]
+}

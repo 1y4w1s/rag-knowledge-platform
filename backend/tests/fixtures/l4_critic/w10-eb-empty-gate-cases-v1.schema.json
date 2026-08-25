@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "w10-eb-empty-gate-cases-v1.schema.json",
+  "title": "W10 E-B11 empty-gate cases artifact (prep contract)",
+  "description": "Contract for future real empty-gate cases material under suite w10_eb_empty_gate_v1. Prep only: schema-example / path status allowed; on-disk REAL_ELIGIBLE cases file must remain absent during E-B11. Does not clear E-B_FORMAL_READY. Forbidden: Critic oracle, LLM judge, E-A5/P2-R3 reuse, W9 identity merge, C04/C07 substitution.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "suite_id",
+    "case_count",
+    "purpose",
+    "parent_observation_protocol",
+    "suite_strategy",
+    "artifact_kind",
+    "cases_material_status",
+    "cases"
+  ],
+  "not": {
+    "anyOf": [
+      { "required": ["expected_action"] },
+      { "required": ["oracle_cases"] },
+      { "required": ["oracle_case"] },
+      { "required": ["critic_score"] },
+      { "required": ["critic_capability"] },
+      { "required": ["capability_label"] },
+      { "required": ["w9_critic_oracle"] },
+      { "required": ["critic_actions"] },
+      { "required": ["per_case_result"] },
+      { "required": ["adapter_protocol_version"] },
+      { "required": ["scorer_observation_point"] },
+      { "required": ["scope_compliance_pass"] },
+      { "required": ["measurement_validity"] },
+      { "required": ["formal_observation_result"] },
+      { "required": ["targets_measured"] },
+      { "required": ["llm_judge"] },
+      { "required": ["auto_label"] },
+      { "required": ["label_source"] }
+    ]
+  },
+  "properties": {
+    "protocol_version": {
+      "type": "string",
+      "const": "w10_eb_empty_gate_cases_v1"
+    },
+    "suite_id": {
+      "type": "string",
+      "const": "w10_eb_empty_gate_v1",
+      "not": { "const": "w9_critic_frozen_12" }
+    },
+    "case_count": {
+      "type": "integer",
+      "const": 2
+    },
+    "purpose": {
+      "type": "string",
+      "const": "empty_gate_refuse_ok"
+    },
+    "parent_observation_protocol": {
+      "type": "string",
+      "const": "w10_eb1_generation_observation_v1"
+    },
+    "suite_strategy": {
+      "type": "string",
+      "const": "S2_companion"
+    },
+    "artifact_kind": {
+      "type": "string",
+      "enum": ["EMPTY_GATE_CASES_SCHEMA_EXAMPLE", "EMPTY_GATE_CASES"]
+    },
+    "cases_material_status": {
+      "type": "string",
+      "enum": ["ABSENT", "SCHEMA_EXAMPLE_ONLY", "REAL_ELIGIBLE"]
+    },
+    "notes": {
+      "type": ["string", "null"]
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "$ref": "#/definitions/empty_gate_case" }
+    }
+  },
+  "definitions": {
+    "empty_gate_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "query",
+        "retrieval_result_state",
+        "evidence_count",
+        "expected_refusal",
+        "no_context_reply_for"
+      ],
+      "not": {
+        "anyOf": [
+          { "required": ["expected_action"] },
+          { "required": ["oracle_cases"] },
+          { "required": ["oracle_case"] },
+          { "required": ["critic_score"] },
+          { "required": ["critic_capability"] },
+          { "required": ["capability_label"] },
+          { "required": ["w9_critic_oracle"] },
+          { "required": ["critic_actions"] },
+          { "required": ["scorer_observation_point"] },
+          { "required": ["scope_compliance_pass"] },
+          { "required": ["per_case_result"] },
+          { "required": ["adapter_protocol_version"] },
+          { "required": ["llm_judge"] },
+          { "required": ["auto_label"] },
+          { "required": ["label_source"] }
+        ]
+      },
+      "properties": {
+        "case_id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^EB8-EMPTY-GATE-"
+        },
+        "query": { "type": "string", "minLength": 1 },
+        "retrieval_result_state": {
+          "type": "string",
+          "enum": ["empty_retrieval", "empty_gated"]
+        },
+        "evidence_count": { "type": "integer", "const": 0 },
+        "expected_refusal": { "type": "boolean", "const": true },
+        "no_context_reply_for": {
+          "type": "string",
+          "minLength": 1,
+          "enum": [
+            "知识库中未找到相关内容。",
+            "No relevant content was found in the knowledge base."
+          ]
+        },
+        "notes": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

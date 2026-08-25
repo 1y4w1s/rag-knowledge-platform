@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "w10-eb-generation-claim-gold-v1.annotation-helper.schema.json",
+  "title": "W10 E-B12A claim gold annotation helper template (prep only)",
+  "description": "Human-in-the-loop annotation helper for claim gold creation. Displays frozen query + evidence chunks only. NOT annotated gold, NOT formal measurement, does NOT clear E-B_FORMAL_READY. Forbidden: model answers, Critic oracle keys, LLM judge / auto-label fields, prefilled claim labels.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "artifact_kind",
+    "parent_gold_protocol",
+    "parent_prep_protocol",
+    "parent_observation_protocol",
+    "frozen_source_protocol",
+    "frozen_source_filename",
+    "target_gold_filename",
+    "annotation_status",
+    "fill_policy",
+    "created_by",
+    "claim_row_template",
+    "cases",
+    "gates"
+  ],
+  "not": {
+    "anyOf": [
+      { "required": ["expected_action"] },
+      { "required": ["oracle_cases"] },
+      { "required": ["oracle_case"] },
+      { "required": ["critic_score"] },
+      { "required": ["critic_capability"] },
+      { "required": ["capability_label"] },
+      { "required": ["w9_critic_oracle"] },
+      { "required": ["critic_actions"] },
+      { "required": ["per_case_result"] },
+      { "required": ["adapter_protocol_version"] },
+      { "required": ["llm_judge"] },
+      { "required": ["llm_judge_label"] },
+      { "required": ["nli_label"] },
+      { "required": ["judge_model"] },
+      { "required": ["auto_label"] },
+      { "required": ["lexical_overlap_label"] },
+      { "required": ["label_source"] },
+      { "required": ["answer"] },
+      { "required": ["model_answer"] },
+      { "required": ["inferred_label"] },
+      { "required": ["auto_generated_label"] }
+    ]
+  },
+  "properties": {
+    "protocol_version": {
+      "type": "string",
+      "const": "w10_eb_generation_claim_gold_annotation_helper_v1"
+    },
+    "artifact_kind": {
+      "type": "string",
+      "const": "CLAIM_GOLD_ANNOTATION_HELPER_TEMPLATE"
+    },
+    "parent_gold_protocol": {
+      "type": "string",
+      "const": "w10_eb_generation_claim_gold_v1"
+    },
+    "parent_prep_protocol": {
+      "type": "string",
+      "const": "w10_eb_generation_claim_gold_annotation_prep_v1"
+    },
+    "parent_observation_protocol": {
+      "type": "string",
+      "const": "w10_eb1_generation_observation_v1"
+    },
+    "frozen_source_protocol": {
+      "type": "string",
+      "const": "w9_critic_model_inputs_v1"
+    },
+    "frozen_source_filename": {
+      "type": "string",
+      "const": "w9-critic-cases.json"
+    },
+    "target_gold_filename": {
+      "type": "string",
+      "const": "w10-eb-generation-claim-gold-v1.json"
+    },
+    "annotation_status": {
+      "type": "string",
+      "const": "AWAITING_HUMAN"
+    },
+    "fill_policy": {
+      "type": "string",
+      "const": "human_only_no_auto_label"
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "enum": ["llm_annotator", "llm_judge", "nli_auto", "lexical_auto"]
+      }
+    },
+    "notes": {
+      "type": ["string", "null"]
+    },
+    "claim_row_template": { "$ref": "#/definitions/claim_row_template" },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/definitions/template_case" }
+    },
+    "gates": { "$ref": "#/definitions/helper_gates" }
+  },
+  "definitions": {
+    "evidence_chunk": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["chunk_id", "content"],
+      "properties": {
+        "chunk_id": { "type": "string", "minLength": 1 },
+        "content": { "type": "string" }
+      }
+    },
+    "claim_row_template": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "claim_text",
+        "label",
+        "supporting_evidence_ids",
+        "annotation_notes"
+      ],
+      "properties": {
+        "claim_id": { "type": "string", "const": "" },
+        "claim_text": { "type": "string", "const": "" },
+        "label": { "type": "null" },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "maxItems": 0,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "annotation_notes": { "type": "null" }
+      }
+    },
+    "template_case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "query", "evidence_chunks", "claims"],
+      "not": {
+        "anyOf": [
+          { "required": ["answer"] },
+          { "required": ["expected_action"] },
+          { "required": ["oracle_cases"] },
+          { "required": ["llm_judge"] },
+          { "required": ["auto_label"] }
+        ]
+      },
+      "properties": {
+        "case_id": { "type": "string", "minLength": 1 },
+        "query": { "type": "string", "minLength": 1 },
+        "evidence_chunks": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/evidence_chunk" }
+        },
+        "claims": {
+          "type": "array",
+          "maxItems": 0,
+          "items": { "$ref": "#/definitions/human_claim_row" }
+        }
+      }
+    },
+    "human_claim_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "claim_text",
+        "label",
+        "supporting_evidence_ids",
+        "annotation_notes"
+      ],
+      "not": {
+        "anyOf": [
+          { "required": ["label_source"] },
+          { "required": ["llm_judge"] },
+          { "required": ["nli_label"] },
+          { "required": ["auto_label"] },
+          { "required": ["inferred_label"] },
+          { "required": ["expected_action"] },
+          { "required": ["oracle_cases"] }
+        ]
+      },
+      "properties": {
+        "claim_id": { "type": "string", "minLength": 1 },
+        "claim_text": { "type": "string", "minLength": 1 },
+        "label": {
+          "type": "string",
+          "enum": ["supported", "unsupported", "unverifiable"]
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "annotation_notes": { "type": ["string", "null"] }
+      }
+    },
+    "helper_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "E_B12A_ANNOTATION_HELPER_READY",
+        "E_B_CLAIM_GOLD_ANNOTATED",
+        "E_B_FORMAL_READY"
+      ],
+      "properties": {
+        "E_B12A_ANNOTATION_HELPER_READY": { "type": "string", "const": "YES" },
+        "E_B_CLAIM_GOLD_ANNOTATED": { "type": "string", "const": "NO" },
+        "E_B_FORMAL_READY": { "type": "string", "const": "NO" }
+      }
+    }
+  }
+}

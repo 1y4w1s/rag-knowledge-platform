@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "w10-eb-generation-claim-gold-v1.annotation-prep.schema.json",
+  "title": "W10 E-B11 Lane A claim gold annotation placeholder (prep only)",
+  "description": "Human-annotation workspace contract for future claim gold. This is NOT annotated gold, NOT a formal measurement artifact, and does NOT clear E-B_FORMAL_READY. Forbidden: claim labels, asserted claim text, Critic oracle keys, LLM judge / auto-label fields.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "artifact_kind",
+    "parent_gold_protocol",
+    "parent_observation_protocol",
+    "target_gold_filename",
+    "annotation_status",
+    "created_by",
+    "slot_fill_policy",
+    "annotation_slots",
+    "gates"
+  ],
+  "not": {
+    "anyOf": [
+      { "required": ["expected_action"] },
+      { "required": ["oracle_cases"] },
+      { "required": ["oracle_case"] },
+      { "required": ["critic_score"] },
+      { "required": ["critic_capability"] },
+      { "required": ["capability_label"] },
+      { "required": ["w9_critic_oracle"] },
+      { "required": ["critic_actions"] },
+      { "required": ["per_case_result"] },
+      { "required": ["adapter_protocol_version"] },
+      { "required": ["llm_judge"] },
+      { "required": ["llm_judge_label"] },
+      { "required": ["nli_label"] },
+      { "required": ["judge_model"] },
+      { "required": ["auto_label"] },
+      { "required": ["lexical_overlap_label"] },
+      { "required": ["label_source"] },
+      { "required": ["asserted_claims"] },
+      { "required": ["cases"] }
+    ]
+  },
+  "properties": {
+    "protocol_version": {
+      "type": "string",
+      "const": "w10_eb_generation_claim_gold_annotation_prep_v1"
+    },
+    "artifact_kind": {
+      "type": "string",
+      "const": "CLAIM_GOLD_ANNOTATION_PLACEHOLDER"
+    },
+    "parent_gold_protocol": {
+      "type": "string",
+      "const": "w10_eb_generation_claim_gold_v1"
+    },
+    "parent_observation_protocol": {
+      "type": "string",
+      "const": "w10_eb1_generation_observation_v1"
+    },
+    "target_gold_filename": {
+      "type": "string",
+      "const": "w10-eb-generation-claim-gold-v1.json"
+    },
+    "annotation_status": {
+      "type": "string",
+      "const": "NOT_ANNOTATED"
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "enum": ["llm_annotator", "llm_judge", "nli_auto", "lexical_auto"]
+      }
+    },
+    "notes": {
+      "type": ["string", "null"]
+    },
+    "slot_fill_policy": {
+      "type": "string",
+      "const": "human_only_after_content_sha256_known"
+    },
+    "annotation_slots": {
+      "type": "array",
+      "maxItems": 0,
+      "items": { "$ref": "#/definitions/annotation_slot" },
+      "description": "Prep window requires empty slots — no fabricated case rows or labels."
+    },
+    "gates": { "$ref": "#/definitions/prep_gates" }
+  },
+  "definitions": {
+    "annotation_slot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["case_id", "slot_status"],
+      "not": {
+        "anyOf": [
+          { "required": ["label"] },
+          { "required": ["asserted_claims"] },
+          { "required": ["supporting_evidence_ids"] },
+          { "required": ["llm_judge"] },
+          { "required": ["nli_label"] },
+          { "required": ["auto_label"] },
+          { "required": ["expected_action"] },
+          { "required": ["oracle_cases"] }
+        ]
+      },
+      "properties": {
+        "case_id": { "type": "string", "minLength": 1 },
+        "slot_status": {
+          "type": "string",
+          "enum": ["AWAITING_HUMAN_ANNOTATION", "UNBOUND"]
+        },
+        "content_binding_status": {
+          "type": "string",
+          "enum": ["UNBOUND"]
+        },
+        "notes": { "type": ["string", "null"] }
+      }
+    },
+    "prep_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "E_B_CLAIM_GOLD_PREP_READY",
+        "E_B_CLAIM_GOLD_ANNOTATED",
+        "E_B_FORMAL_READY"
+      ],
+      "properties": {
+        "E_B_CLAIM_GOLD_PREP_READY": { "type": "string", "const": "YES" },
+        "E_B_CLAIM_GOLD_ANNOTATED": { "type": "string", "const": "NO" },
+        "E_B_FORMAL_READY": { "type": "string", "const": "NO" }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "protocol_version": "w10_eb_generation_claim_gold_annotation_prep_v1",
+  "artifact_kind": "CLAIM_GOLD_ANNOTATION_PLACEHOLDER",
+  "parent_gold_protocol": "w10_eb_generation_claim_gold_v1",
+  "parent_observation_protocol": "w10_eb1_generation_observation_v1",
+  "target_gold_filename": "w10-eb-generation-claim-gold-v1.json",
+  "annotation_status": "NOT_ANNOTATED",
+  "created_by": "e-b11-lane-a-prep",
+  "notes": "PREP_ONLY_NOT_ANNOTATED_GOLD_NOT_FORMAL_MEASUREMENT. Reserved formal gold path is w10-eb-generation-claim-gold-v1.json (intentionally absent). Human annotators fill that ledger later under E-B9a schema; no auto-label / Critic oracle / LLM judge.",
+  "slot_fill_policy": "human_only_after_content_sha256_known",
+  "annotation_slots": [],
+  "gates": {
+    "E_B_CLAIM_GOLD_PREP_READY": "YES",
+    "E_B_CLAIM_GOLD_ANNOTATED": "NO",
+    "E_B_FORMAL_READY": "NO"
+  }
+}

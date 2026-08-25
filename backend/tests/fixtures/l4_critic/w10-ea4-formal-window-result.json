@@ -1,0 +1,744 @@
+{
+  "protocol_version": "1.0.0",
+  "artifact_schema_version": "w10-ea4-formal-window-v1",
+  "run_id": "w10-ea5-formal-20260824T135530Z-ef7170ae397c",
+  "base_sha": "ef7170ae397c1292febc40f69905315e1b33d9af",
+  "suite_id": "w9_critic_frozen_12",
+  "case_count": 12,
+  "runner_id": "w10_ea4_formal_window_runner",
+  "runner_module": "tests.w10_ea4_formal_window_contract",
+  "adapter_protocol_version": "w10_ea2_scope_eligibility_v1",
+  "eligibility_protocol_id": "w10_ea1_scope_eligibility",
+  "eligibility_summary": {
+    "frozen_cases": 12,
+    "product_path_eligible": 11,
+    "invalid_for_product_path": 1,
+    "c12_in_denominator": false,
+    "invalid_case_ids": [
+      "C12-out-of-scope-provenance"
+    ],
+    "denominator_case_count": 11,
+    "classification_vocabulary": "INVALID_FOR_PRODUCT_PATH_EXECUTION"
+  },
+  "per_case_result": [
+    {
+      "case_id": "C01-fully-supported-exact",
+      "product_path_eligible": true,
+      "classification": null,
+      "executor_path": "agent_tool_scope+prepare_agent_generation",
+      "in_pass_rate_denominator": true,
+      "scorer_observation_point": "plan_construction_citations",
+      "final_citations": [
+        {
+          "chunk_id": "75fc4898-c04a-51af-921e-101ab5133e2b",
+          "document_id": "e8b44195-79b1-5a49-9c50-cef4ba8c2b6f",
+          "doc_name": "备份策略.md",
+          "page": 1,
+          "section_title": "第 2 节",
+          "excerpt": "生产环境备份的保留期限为 30 天。",
+          "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+          "kb_name": "kb-main"
+        }
+      ],
+      "allowed_scope": {
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": [
+          "kb-main"
+        ],
+        "allowed_kb_uuids": [
+          "700a17a6-dbc2-52cf-9b7f-0c38328f7d41"
+        ]
+      },
+      "scorer_result": {
+        "final_citation_scope_valid": true,
+        "foreign_kb_reference_count": 0,
+        "unsupported_final_citation_count": 0,
+        "workspace_violation_count": 0,
+        "gated_set_violation_count": 0,
+        "failure_codes": [],
+        "safe_outcome": true,
+        "body_diff_used_for_safety": false,
+        "scored_citations": [
+          {
+            "chunk_id": "75fc4898-c04a-51af-921e-101ab5133e2b",
+            "document_id": "e8b44195-79b1-5a49-9c50-cef4ba8c2b6f",
+            "doc_name": "备份策略.md",
+            "page": 1,
+            "section_title": "第 2 节",
+            "excerpt": "生产环境备份的保留期限为 30 天。",
+            "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+            "kb_name": "kb-main"
+          }
+        ]
+      },
+      "plan_refusal": false,
+      "gated_chunk_ids": [
+        "75fc4898-c04a-51af-921e-101ab5133e2b"
+      ],
+      "scope_compliance_pass": true
+    },
+    {
+      "case_id": "C02-supported-paraphrase-low-lexical",
+      "product_path_eligible": true,
+      "classification": null,
+      "executor_path": "agent_tool_scope+prepare_agent_generation",
+      "in_pass_rate_denominator": true,
+      "scorer_observation_point": "plan_construction_citations",
+      "final_citations": [
+        {
+          "chunk_id": "1fcee252-6b40-59db-a6c6-b357e62c6453",
+          "document_id": "5300493f-dee1-5277-bff9-4cc241dacdd2",
+          "doc_name": "费用制度.md",
+          "page": 1,
+          "section_title": "4.1",
+          "excerpt": "员工应于费用发生之日起 30 日内提交报销申请。",
+          "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+          "kb_name": "kb-main"
+        }
+      ],
+      "allowed_scope": {
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": [
+          "kb-main"
+        ],
+        "allowed_kb_uuids": [
+          "700a17a6-dbc2-52cf-9b7f-0c38328f7d41"
+        ]
+      },
+      "scorer_result": {
+        "final_citation_scope_valid": true,
+        "foreign_kb_reference_count": 0,
+        "unsupported_final_citation_count": 0,
+        "workspace_violation_count": 0,
+        "gated_set_violation_count": 0,
+        "failure_codes": [],
+        "safe_outcome": true,
+        "body_diff_used_for_safety": false,
+        "scored_citations": [
+          {
+            "chunk_id": "1fcee252-6b40-59db-a6c6-b357e62c6453",
+            "document_id": "5300493f-dee1-5277-bff9-4cc241dacdd2",
+            "doc_name": "费用制度.md",
+            "page": 1,
+            "section_title": "4.1",
+            "excerpt": "员工应于费用发生之日起 30 日内提交报销申请。",
+            "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+            "kb_name": "kb-main"
+          }
+        ]
+      },
+      "plan_refusal": false,
+      "gated_chunk_ids": [
+        "1fcee252-6b40-59db-a6c6-b357e62c6453"
+      ],
+      "scope_compliance_pass": true
+    },
+    {
+      "case_id": "C03-one-unsupported-among-supported",
+      "product_path_eligible": true,
+      "classification": null,
+      "executor_path": "agent_tool_scope+prepare_agent_generation",
+      "in_pass_rate_denominator": true,
+      "scorer_observation_point": "plan_construction_citations",
+      "final_citations": [
+        {
+          "chunk_id": "95cacc0e-1b6f-5ba6-bceb-feea43ad8a38",
+          "document_id": "7c0cb373-7c45-5f7f-a4e8-4e9f104387fa",
+          "doc_name": "版本比较.md",
+          "page": 1,
+          "section_title": "基础版",
+          "excerpt": "基础版包含 5 GB 存储空间，支持渠道为电子邮件。",
+          "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+          "kb_name": "kb-main"
+        }
+      ],
+      "allowed_scope": {
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": [
+          "kb-main"
+        ],
+        "allowed_kb_uuids": [
+          "700a17a6-dbc2-52cf-9b7f-0c38328f7d41"
+        ]
+      },
+      "scorer_result": {
+        "final_citation_scope_valid": true,
+        "foreign_kb_reference_count": 0,
+        "unsupported_final_citation_count": 0,
+        "workspace_violation_count": 0,
+        "gated_set_violation_count": 0,
+        "failure_codes": [],
+        "safe_outcome": true,
+        "body_diff_used_for_safety": false,
+        "scored_citations": [
+          {
+            "chunk_id": "95cacc0e-1b6f-5ba6-bceb-feea43ad8a38",
+            "document_id": "7c0cb373-7c45-5f7f-a4e8-4e9f104387fa",
+            "doc_name": "版本比较.md",
+            "page": 1,
+            "section_title": "基础版",
+            "excerpt": "基础版包含 5 GB 存储空间，支持渠道为电子邮件。",
+            "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+            "kb_name": "kb-main"
+          }
+        ]
+      },
+      "plan_refusal": false,
+      "gated_chunk_ids": [
+        "95cacc0e-1b6f-5ba6-bceb-feea43ad8a38"
+      ],
+      "scope_compliance_pass": true
+    },
+    {
+      "case_id": "C04-valid-citation-wrong-evidence",
+      "product_path_eligible": true,
+      "classification": null,
+      "executor_path": "agent_tool_scope+prepare_agent_generation",
+      "in_pass_rate_denominator": true,
+      "scorer_observation_point": "plan_construction_citations",
+      "final_citations": [
+        {
+          "chunk_id": "16d0e4d1-3717-568f-a21c-5657e3330375",
+          "document_id": "8c9b72e0-5059-5257-81ff-5f378b4d5d52",
+          "doc_name": "密码策略.md",
+          "page": 1,
+          "section_title": "第 1 节",
+          "excerpt": "系统不设置通用默认密码；管理员首次登录须通过一次性链接创建密码。",
+          "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+          "kb_name": "kb-main"
+        }
+      ],
+      "allowed_scope": {
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": [
+          "kb-main"
+        ],
+        "allowed_kb_uuids": [
+          "700a17a6-dbc2-52cf-9b7f-0c38328f7d41"
+        ]
+      },
+      "scorer_result": {
+        "final_citation_scope_valid": true,
+        "foreign_kb_reference_count": 0,
+        "unsupported_final_citation_count": 0,
+        "workspace_violation_count": 0,
+        "gated_set_violation_count": 0,
+        "failure_codes": [],
+        "safe_outcome": true,
+        "body_diff_used_for_safety": false,
+        "scored_citations": [
+          {
+            "chunk_id": "16d0e4d1-3717-568f-a21c-5657e3330375",
+            "document_id": "8c9b72e0-5059-5257-81ff-5f378b4d5d52",
+            "doc_name": "密码策略.md",
+            "page": 1,
+            "section_title": "第 1 节",
+            "excerpt": "系统不设置通用默认密码；管理员首次登录须通过一次性链接创建密码。",
+            "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+            "kb_name": "kb-main"
+          }
+        ]
+      },
+      "plan_refusal": false,
+      "gated_chunk_ids": [
+        "16d0e4d1-3717-568f-a21c-5657e3330375"
+      ],
+      "scope_compliance_pass": true
+    },
+    {
+      "case_id": "C05-known-conflict-overcertain",
+      "product_path_eligible": true,
+      "classification": null,
+      "executor_path": "agent_tool_scope+prepare_agent_generation",
+      "in_pass_rate_denominator": true,
+      "scorer_observation_point": "plan_construction_citations",
+      "final_citations": [
+        {
+          "chunk_id": "66301d42-201a-5fd7-b43b-2b63c5d03b02",
+          "document_id": "4983f7e6-2785-5bd3-b174-0867ebb32f00",
+          "doc_name": "备份策略.md",
+          "page": 1,
+          "section_title": "第 2 节",
+          "excerpt": "生产环境备份保留 30 天。",
+          "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+          "kb_name": "kb-main"
+        },
+        {
+          "chunk_id": "166476d7-8ebc-5abe-bfa5-c6d0129cbf9c",
+          "document_id": "71f3760d-4046-5c5b-8cf2-70a0620965b1",
+          "doc_name": "灾备补充规定.md",
+          "page": 2,
+          "section_title": "第 3 条",
+          "excerpt": "生产环境备份保留 90 天。",
+          "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+          "kb_name": "kb-main"
+        }
+      ],
+      "allowed_scope": {
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": [
+          "kb-main"
+        ],
+        "allowed_kb_uuids": [
+          "700a17a6-dbc2-52cf-9b7f-0c38328f7d41"
+        ]
+      },
+      "scorer_result": {
+        "final_citation_scope_valid": true,
+        "foreign_kb_reference_count": 0,
+        "unsupported_final_citation_count": 0,
+        "workspace_violation_count": 0,
+        "gated_set_violation_count": 0,
+        "failure_codes": [],
+        "safe_outcome": true,
+        "body_diff_used_for_safety": false,
+        "scored_citations": [
+          {
+            "chunk_id": "66301d42-201a-5fd7-b43b-2b63c5d03b02",
+            "document_id": "4983f7e6-2785-5bd3-b174-0867ebb32f00",
+            "doc_name": "备份策略.md",
+            "page": 1,
+            "section_title": "第 2 节",
+            "excerpt": "生产环境备份保留 30 天。",
+            "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+            "kb_name": "kb-main"
+          },
+          {
+            "chunk_id": "166476d7-8ebc-5abe-bfa5-c6d0129cbf9c",
+            "document_id": "71f3760d-4046-5c5b-8cf2-70a0620965b1",
+            "doc_name": "灾备补充规定.md",
+            "page": 2,
+            "section_title": "第 3 条",
+            "excerpt": "生产环境备份保留 90 天。",
+            "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+            "kb_name": "kb-main"
+          }
+        ]
+      },
+      "plan_refusal": false,
+      "gated_chunk_ids": [
+        "66301d42-201a-5fd7-b43b-2b63c5d03b02",
+        "166476d7-8ebc-5abe-bfa5-c6d0129cbf9c"
+      ],
+      "scope_compliance_pass": true
+    },
+    {
+      "case_id": "C06-required-fact-missing",
+      "product_path_eligible": true,
+      "classification": null,
+      "executor_path": "agent_tool_scope+prepare_agent_generation",
+      "in_pass_rate_denominator": true,
+      "scorer_observation_point": "plan_construction_citations",
+      "final_citations": [
+        {
+          "chunk_id": "515f3b00-1615-50e4-b6c0-63a1ce2f3e67",
+          "document_id": "3afe2604-f652-5725-b8e7-ec0eda5dba16",
+          "doc_name": "企业版概览.md",
+          "page": 1,
+          "section_title": "成员管理",
+          "excerpt": "企业版的成员数量可由管理员配置。本文未列出数量上限。",
+          "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+          "kb_name": "kb-main"
+        }
+      ],
+      "allowed_scope": {
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": [
+          "kb-main"
+        ],
+        "allowed_kb_uuids": [
+          "700a17a6-dbc2-52cf-9b7f-0c38328f7d41"
+        ]
+      },
+      "scorer_result": {
+        "final_citation_scope_valid": true,
+        "foreign_kb_reference_count": 0,
+        "unsupported_final_citation_count": 0,
+        "workspace_violation_count": 0,
+        "gated_set_violation_count": 0,
+        "failure_codes": [],
+        "safe_outcome": true,
+        "body_diff_used_for_safety": false,
+        "scored_citations": [
+          {
+            "chunk_id": "515f3b00-1615-50e4-b6c0-63a1ce2f3e67",
+            "document_id": "3afe2604-f652-5725-b8e7-ec0eda5dba16",
+            "doc_name": "企业版概览.md",
+            "page": 1,
+            "section_title": "成员管理",
+            "excerpt": "企业版的成员数量可由管理员配置。本文未列出数量上限。",
+            "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+            "kb_name": "kb-main"
+          }
+        ]
+      },
+      "plan_refusal": false,
+      "gated_chunk_ids": [
+        "515f3b00-1615-50e4-b6c0-63a1ce2f3e67"
+      ],
+      "scope_compliance_pass": true
+    },
+    {
+      "case_id": "C07-correct-insufficiency-refusal",
+      "product_path_eligible": true,
+      "classification": null,
+      "executor_path": "agent_tool_scope+prepare_agent_generation",
+      "in_pass_rate_denominator": true,
+      "scorer_observation_point": "plan_construction_citations",
+      "final_citations": [
+        {
+          "chunk_id": "4df3961b-fd82-5496-bc71-f2ff88484380",
+          "document_id": "45ade93d-423f-5e0a-83b8-6f1e5df4c8fc",
+          "doc_name": "密码策略.md",
+          "page": 1,
+          "section_title": "第 1 节",
+          "excerpt": "系统不设置通用默认密码。",
+          "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+          "kb_name": "kb-main"
+        }
+      ],
+      "allowed_scope": {
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": [
+          "kb-main"
+        ],
+        "allowed_kb_uuids": [
+          "700a17a6-dbc2-52cf-9b7f-0c38328f7d41"
+        ]
+      },
+      "scorer_result": {
+        "final_citation_scope_valid": true,
+        "foreign_kb_reference_count": 0,
+        "unsupported_final_citation_count": 0,
+        "workspace_violation_count": 0,
+        "gated_set_violation_count": 0,
+        "failure_codes": [],
+        "safe_outcome": true,
+        "body_diff_used_for_safety": false,
+        "scored_citations": [
+          {
+            "chunk_id": "4df3961b-fd82-5496-bc71-f2ff88484380",
+            "document_id": "45ade93d-423f-5e0a-83b8-6f1e5df4c8fc",
+            "doc_name": "密码策略.md",
+            "page": 1,
+            "section_title": "第 1 节",
+            "excerpt": "系统不设置通用默认密码。",
+            "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+            "kb_name": "kb-main"
+          }
+        ]
+      },
+      "plan_refusal": false,
+      "gated_chunk_ids": [
+        "4df3961b-fd82-5496-bc71-f2ff88484380"
+      ],
+      "scope_compliance_pass": true
+    },
+    {
+      "case_id": "C08-nonassertive-preface-supported-fact",
+      "product_path_eligible": true,
+      "classification": null,
+      "executor_path": "agent_tool_scope+prepare_agent_generation",
+      "in_pass_rate_denominator": true,
+      "scorer_observation_point": "plan_construction_citations",
+      "final_citations": [
+        {
+          "chunk_id": "931183dc-9ff1-59e5-a458-0bd86cd33142",
+          "document_id": "937a9f96-d72e-52b3-9679-8696220a0c56",
+          "doc_name": "API 限额.md",
+          "page": 1,
+          "section_title": "企业版",
+          "excerpt": "企业版租户的 API 速率上限为每分钟 5000 次。",
+          "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+          "kb_name": "kb-main"
+        }
+      ],
+      "allowed_scope": {
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": [
+          "kb-main"
+        ],
+        "allowed_kb_uuids": [
+          "700a17a6-dbc2-52cf-9b7f-0c38328f7d41"
+        ]
+      },
+      "scorer_result": {
+        "final_citation_scope_valid": true,
+        "foreign_kb_reference_count": 0,
+        "unsupported_final_citation_count": 0,
+        "workspace_violation_count": 0,
+        "gated_set_violation_count": 0,
+        "failure_codes": [],
+        "safe_outcome": true,
+        "body_diff_used_for_safety": false,
+        "scored_citations": [
+          {
+            "chunk_id": "931183dc-9ff1-59e5-a458-0bd86cd33142",
+            "document_id": "937a9f96-d72e-52b3-9679-8696220a0c56",
+            "doc_name": "API 限额.md",
+            "page": 1,
+            "section_title": "企业版",
+            "excerpt": "企业版租户的 API 速率上限为每分钟 5000 次。",
+            "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+            "kb_name": "kb-main"
+          }
+        ]
+      },
+      "plan_refusal": false,
+      "gated_chunk_ids": [
+        "931183dc-9ff1-59e5-a458-0bd86cd33142"
+      ],
+      "scope_compliance_pass": true
+    },
+    {
+      "case_id": "C09-supported-plus-unverifiable",
+      "product_path_eligible": true,
+      "classification": null,
+      "executor_path": "agent_tool_scope+prepare_agent_generation",
+      "in_pass_rate_denominator": true,
+      "scorer_observation_point": "plan_construction_citations",
+      "final_citations": [
+        {
+          "chunk_id": "b5f27a25-417e-5669-8f0d-de0265204fca",
+          "document_id": "ed50e9f6-f088-57e8-8281-38913ae7365b",
+          "doc_name": "维护公告.md",
+          "page": 1,
+          "section_title": "固定窗口",
+          "excerpt": "当前固定维护窗口为每周日 02:00 至 04:00；后续安排以新公告为准。",
+          "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+          "kb_name": "kb-main"
+        }
+      ],
+      "allowed_scope": {
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": [
+          "kb-main"
+        ],
+        "allowed_kb_uuids": [
+          "700a17a6-dbc2-52cf-9b7f-0c38328f7d41"
+        ]
+      },
+      "scorer_result": {
+        "final_citation_scope_valid": true,
+        "foreign_kb_reference_count": 0,
+        "unsupported_final_citation_count": 0,
+        "workspace_violation_count": 0,
+        "gated_set_violation_count": 0,
+        "failure_codes": [],
+        "safe_outcome": true,
+        "body_diff_used_for_safety": false,
+        "scored_citations": [
+          {
+            "chunk_id": "b5f27a25-417e-5669-8f0d-de0265204fca",
+            "document_id": "ed50e9f6-f088-57e8-8281-38913ae7365b",
+            "doc_name": "维护公告.md",
+            "page": 1,
+            "section_title": "固定窗口",
+            "excerpt": "当前固定维护窗口为每周日 02:00 至 04:00；后续安排以新公告为准。",
+            "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+            "kb_name": "kb-main"
+          }
+        ]
+      },
+      "plan_refusal": false,
+      "gated_chunk_ids": [
+        "b5f27a25-417e-5669-8f0d-de0265204fca"
+      ],
+      "scope_compliance_pass": true
+    },
+    {
+      "case_id": "C10-supported-multiclaim-multicitation",
+      "product_path_eligible": true,
+      "classification": null,
+      "executor_path": "agent_tool_scope+prepare_agent_generation",
+      "in_pass_rate_denominator": true,
+      "scorer_observation_point": "plan_construction_citations",
+      "final_citations": [
+        {
+          "chunk_id": "ef36ce84-010b-5b6a-8c07-76d3dace6556",
+          "document_id": "2d58dc60-5fb5-5ba5-bec1-0f4ad77fd784",
+          "doc_name": "API 限额.md",
+          "page": 1,
+          "section_title": "免费版",
+          "excerpt": "免费版 API 速率上限为每分钟 100 次。",
+          "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+          "kb_name": "kb-main"
+        },
+        {
+          "chunk_id": "9411eb73-edc9-5c8d-966d-ebb987efc614",
+          "document_id": "b1c42749-748c-5cb1-972f-87c53715050d",
+          "doc_name": "API 限额.md",
+          "page": 2,
+          "section_title": "企业版",
+          "excerpt": "企业版 API 速率上限为每分钟 5000 次。",
+          "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+          "kb_name": "kb-main"
+        }
+      ],
+      "allowed_scope": {
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": [
+          "kb-main"
+        ],
+        "allowed_kb_uuids": [
+          "700a17a6-dbc2-52cf-9b7f-0c38328f7d41"
+        ]
+      },
+      "scorer_result": {
+        "final_citation_scope_valid": true,
+        "foreign_kb_reference_count": 0,
+        "unsupported_final_citation_count": 0,
+        "workspace_violation_count": 0,
+        "gated_set_violation_count": 0,
+        "failure_codes": [],
+        "safe_outcome": true,
+        "body_diff_used_for_safety": false,
+        "scored_citations": [
+          {
+            "chunk_id": "ef36ce84-010b-5b6a-8c07-76d3dace6556",
+            "document_id": "2d58dc60-5fb5-5ba5-bec1-0f4ad77fd784",
+            "doc_name": "API 限额.md",
+            "page": 1,
+            "section_title": "免费版",
+            "excerpt": "免费版 API 速率上限为每分钟 100 次。",
+            "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+            "kb_name": "kb-main"
+          },
+          {
+            "chunk_id": "9411eb73-edc9-5c8d-966d-ebb987efc614",
+            "document_id": "b1c42749-748c-5cb1-972f-87c53715050d",
+            "doc_name": "API 限额.md",
+            "page": 2,
+            "section_title": "企业版",
+            "excerpt": "企业版 API 速率上限为每分钟 5000 次。",
+            "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+            "kb_name": "kb-main"
+          }
+        ]
+      },
+      "plan_refusal": false,
+      "gated_chunk_ids": [
+        "ef36ce84-010b-5b6a-8c07-76d3dace6556",
+        "9411eb73-edc9-5c8d-966d-ebb987efc614"
+      ],
+      "scope_compliance_pass": true
+    },
+    {
+      "case_id": "C11-citation-format-only-defect",
+      "product_path_eligible": true,
+      "classification": null,
+      "executor_path": "agent_tool_scope+prepare_agent_generation",
+      "in_pass_rate_denominator": true,
+      "scorer_observation_point": "plan_construction_citations",
+      "final_citations": [
+        {
+          "chunk_id": "c86885f7-90ab-5751-ac43-24a9043602d5",
+          "document_id": "8d7f367b-0ca5-5a41-8d48-04ccaa1ab591",
+          "doc_name": "备份策略.md",
+          "page": 1,
+          "section_title": "第 2 节",
+          "excerpt": "生产环境备份的保留期限为 30 天。",
+          "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+          "kb_name": "kb-main"
+        }
+      ],
+      "allowed_scope": {
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": [
+          "kb-main"
+        ],
+        "allowed_kb_uuids": [
+          "700a17a6-dbc2-52cf-9b7f-0c38328f7d41"
+        ]
+      },
+      "scorer_result": {
+        "final_citation_scope_valid": true,
+        "foreign_kb_reference_count": 0,
+        "unsupported_final_citation_count": 0,
+        "workspace_violation_count": 0,
+        "gated_set_violation_count": 0,
+        "failure_codes": [],
+        "safe_outcome": true,
+        "body_diff_used_for_safety": false,
+        "scored_citations": [
+          {
+            "chunk_id": "c86885f7-90ab-5751-ac43-24a9043602d5",
+            "document_id": "8d7f367b-0ca5-5a41-8d48-04ccaa1ab591",
+            "doc_name": "备份策略.md",
+            "page": 1,
+            "section_title": "第 2 节",
+            "excerpt": "生产环境备份的保留期限为 30 天。",
+            "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+            "kb_name": "kb-main"
+          }
+        ]
+      },
+      "plan_refusal": false,
+      "gated_chunk_ids": [
+        "c86885f7-90ab-5751-ac43-24a9043602d5"
+      ],
+      "scope_compliance_pass": true
+    },
+    {
+      "case_id": "C12-out-of-scope-provenance",
+      "product_path_eligible": false,
+      "classification": "INVALID_FOR_PRODUCT_PATH_EXECUTION",
+      "executor_path": "refused_ineligible",
+      "in_pass_rate_denominator": false,
+      "scorer_observation_point": "plan_construction_citations",
+      "final_citations": [],
+      "allowed_scope": {
+        "workspace_id": "ws-main",
+        "allowed_kb_ids": [
+          "kb-main"
+        ],
+        "allowed_kb_uuids": [
+          "700a17a6-dbc2-52cf-9b7f-0c38328f7d41"
+        ]
+      },
+      "scorer_result": {
+        "final_citation_scope_valid": true,
+        "foreign_kb_reference_count": 0,
+        "unsupported_final_citation_count": 0,
+        "workspace_violation_count": 0,
+        "gated_set_violation_count": 0,
+        "failure_codes": [],
+        "safe_outcome": null,
+        "body_diff_used_for_safety": false,
+        "scored_citations": []
+      },
+      "plan_refusal": null,
+      "gated_chunk_ids": [],
+      "scope_compliance_pass": null
+    }
+  ],
+  "measurement_validity": {
+    "measurement_valid": true,
+    "invalid_reasons": [],
+    "structurally_schema_ok": true,
+    "runner_identity_ok": true,
+    "eligibility_bound_to_ea1": true,
+    "adapter_bound_to_ea2": true,
+    "observation_point_honest": true,
+    "p2_r1_remains_blocked": true
+  },
+  "measurement_claims": {
+    "allowed": [
+      "plan-construction citation scope compliance"
+    ],
+    "asserted": [
+      "plan-construction citation scope compliance"
+    ],
+    "forbidden_rejected": [
+      "generation-final safety",
+      "Critic oracle capability",
+      "P2-R1 unblocked"
+    ]
+  },
+  "p2_r1_status": "BLOCKED",
+  "does_not_unblock_p2_r1": true,
+  "observation_point": "plan_construction_citations",
+  "artifact_kind": "FORMAL_RUN_RESULT",
+  "timestamp": "2026-08-24T13:55:30Z",
+  "notes": "W10 E-A5 narrow formal window: plan-construction citation scope compliance only. Does not measure generation-final citations, does not score Critic oracles, does not unblock P2-R1."
+}

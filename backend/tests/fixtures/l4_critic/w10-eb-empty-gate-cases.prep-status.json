@@ -1,0 +1,13 @@
+{
+  "protocol_version": "w10_eb_empty_gate_cases_v1",
+  "artifact_kind": "EMPTY_GATE_CASES_PREP_STATUS",
+  "suite_id": "w10_eb_empty_gate_v1",
+  "cases_filename": "w10-eb-empty-gate-cases.json",
+  "cases_path_relative": "backend/tests/fixtures/l4_critic/w10-eb-empty-gate-cases.json",
+  "cases_material_status": "REAL_ELIGIBLE",
+  "E_B_EMPTY_GATE_CASES_ARTIFACT_CONTRACT_READY": "YES",
+  "E_B_EMPTY_GATE_CASES_MATERIAL_READY": "YES",
+  "E_B_FORMAL_READY": "NO",
+  "parent_suite_contract": "w10_eb_empty_gate_v1",
+  "notes": "Empty-gate REAL_ELIGIBLE cases material on disk; T4 denominator fixture ready. Not formal observation authorization; E-B_FORMAL_READY remains NO; S2 packaging not authorized."
+}

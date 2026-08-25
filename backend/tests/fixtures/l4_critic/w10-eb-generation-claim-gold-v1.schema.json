@@ -1,0 +1,210 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "w10-eb-generation-claim-gold-v1.schema.json",
+  "title": "W10 E-B9a generation claim gold ledger (schema freeze only)",
+  "description": "Independent T2/T3 claim gold ledger contract. This schema file is not a gold annotation artifact and does not clear E-B_FORMAL_READY. Forbidden: Critic oracle keys, expected_action, oracle_cases, LLM judge fields, lexical-only label source as sole formal gold.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "parent_observation_protocol",
+    "artifact_kind",
+    "created_by",
+    "cases"
+  ],
+  "not": {
+    "anyOf": [
+      { "required": ["expected_action"] },
+      { "required": ["oracle_cases"] },
+      { "required": ["oracle_case"] },
+      { "required": ["critic_score"] },
+      { "required": ["critic_capability"] },
+      { "required": ["capability_label"] },
+      { "required": ["w9_critic_oracle"] },
+      { "required": ["critic_actions"] },
+      { "required": ["per_case_result"] },
+      { "required": ["adapter_protocol_version"] },
+      { "required": ["llm_judge"] },
+      { "required": ["llm_judge_label"] },
+      { "required": ["nli_label"] },
+      { "required": ["judge_model"] },
+      { "required": ["auto_label"] },
+      { "required": ["lexical_overlap_label"] }
+    ]
+  },
+  "properties": {
+    "protocol_version": {
+      "type": "string",
+      "const": "w10_eb_generation_claim_gold_v1"
+    },
+    "parent_observation_protocol": {
+      "type": "string",
+      "const": "w10_eb1_generation_observation_v1"
+    },
+    "artifact_kind": {
+      "type": "string",
+      "const": "CLAIM_GOLD_LEDGER"
+    },
+    "created_by": {
+      "type": "string",
+      "minLength": 1,
+      "not": {
+        "enum": ["llm_annotator", "llm_judge", "nli_auto", "lexical_auto"]
+      }
+    },
+    "notes": {
+      "type": ["string", "null"]
+    },
+    "cases": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/case_entry" }
+    }
+  },
+  "definitions": {
+    "case_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "case_id",
+        "content_binding",
+        "gated_pool_binding",
+        "denominator_policy",
+        "asserted_claims"
+      ],
+      "not": {
+        "anyOf": [
+          { "required": ["expected_action"] },
+          { "required": ["oracle_cases"] },
+          { "required": ["oracle_case"] },
+          { "required": ["critic_score"] },
+          { "required": ["critic_capability"] },
+          { "required": ["capability_label"] },
+          { "required": ["w9_critic_oracle"] },
+          { "required": ["critic_actions"] },
+          { "required": ["llm_judge"] },
+          { "required": ["nli_label"] },
+          { "required": ["judge_model"] },
+          { "required": ["label_source"] }
+        ]
+      },
+      "properties": {
+        "case_id": { "type": "string", "minLength": 1 },
+        "content_binding": { "$ref": "#/definitions/content_binding" },
+        "gated_pool_binding": { "$ref": "#/definitions/gated_pool_binding" },
+        "denominator_policy": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "exclude_refusal_boilerplate"
+        },
+        "asserted_claims": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/claim_row" }
+        },
+        "notes": { "type": ["string", "null"] }
+      }
+    },
+    "content_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "content_sha256"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["observed_after", "synthetic_authored"]
+        },
+        "content_sha256": {
+          "type": "string",
+          "minLength": 64,
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "synthetic_body_id": { "type": ["string", "null"] }
+      }
+    },
+    "gated_pool_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["evidence_ids"],
+      "properties": {
+        "evidence_ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "pool_sha256": {
+          "type": ["string", "null"],
+          "minLength": 64,
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      }
+    },
+    "claim_row": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "claim_id",
+        "text",
+        "label",
+        "supporting_evidence_ids",
+        "support_span_notes"
+      ],
+      "not": {
+        "anyOf": [
+          { "required": ["expected_action"] },
+          { "required": ["oracle_cases"] },
+          { "required": ["oracle_case"] },
+          { "required": ["llm_judge"] },
+          { "required": ["llm_judge_label"] },
+          { "required": ["nli_label"] },
+          { "required": ["judge_model"] },
+          { "required": ["auto_label"] },
+          { "required": ["lexical_overlap_label"] },
+          { "required": ["label_source"] }
+        ]
+      },
+      "properties": {
+        "claim_id": { "type": "string", "minLength": 1 },
+        "text": { "type": "string", "minLength": 1 },
+        "label": {
+          "type": "string",
+          "enum": ["supported", "unsupported", "unverifiable"]
+        },
+        "supporting_evidence_ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "support_span_notes": { "type": ["string", "null"] },
+        "span_optional": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["start", "end"],
+              "properties": {
+                "start": { "type": "integer", "minimum": 0 },
+                "end": { "type": "integer", "minimum": 0 }
+              }
+            }
+          ]
+        },
+        "notes": { "type": ["string", "null"] },
+        "grounding": { "$ref": "#/definitions/grounding_assist" }
+      }
+    },
+    "grounding_assist": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "expected_citation_ids": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "expected_fragment_indices": {
+          "type": "array",
+          "items": { "type": "integer", "minimum": 1 }
+        },
+        "g1_required": { "type": "boolean" },
+        "g2_required": { "type": "boolean" }
+      }
+    }
+  }
+}

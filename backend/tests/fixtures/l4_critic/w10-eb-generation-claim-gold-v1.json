@@ -1,0 +1,362 @@
+{
+  "protocol_version": "w10_eb_generation_claim_gold_v1",
+  "parent_observation_protocol": "w10_eb1_generation_observation_v1",
+  "artifact_kind": "CLAIM_GOLD_LEDGER",
+  "created_by": "human_annotator",
+  "notes": "HUMAN_ANNOTATED_CLAIM_GOLD_LEDGER. annotation_status=ANNOTATED. Materialized from w10-eb-generation-claim-gold-v1.annotation-draft.json under E-B12B. synthetic_authored content_sha256 binds claim texts; pool_sha256 binds frozen evidence excerpts. C12 excluded from claim denominator. No LLM, no generation observation, E-B_FORMAL_READY=NO.",
+  "cases": [
+    {
+      "case_id": "C01-fully-supported-exact",
+      "content_binding": {
+        "kind": "synthetic_authored",
+        "content_sha256": "87c54c18c50a7edd7311f5b4b13bbfdb38c9b932aa7b17c64ec29252efee532a",
+        "synthetic_body_id": "human_claim_gold_v1::C01-fully-supported-exact"
+      },
+      "gated_pool_binding": {
+        "evidence_ids": [
+          "E1"
+        ],
+        "pool_sha256": "1e38788ed0f8a8479bed6c2519a577be7fd60b97d33ec1765279b88c781d25db"
+      },
+      "denominator_policy": "exclude_refusal_boilerplate",
+      "asserted_claims": [
+        {
+          "claim_id": "C01-fully-supported-exact::c01",
+          "text": "生产环境备份的保留期限为 30 天。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "support_span_notes": "Directly supported by E1."
+        }
+      ]
+    },
+    {
+      "case_id": "C02-supported-paraphrase-low-lexical",
+      "content_binding": {
+        "kind": "synthetic_authored",
+        "content_sha256": "0f6845defa0bd46401edcaf2fb7938a06a900707984c294fb8fd4e1d9a970d73",
+        "synthetic_body_id": "human_claim_gold_v1::C02-supported-paraphrase-low-lexical"
+      },
+      "gated_pool_binding": {
+        "evidence_ids": [
+          "E1"
+        ],
+        "pool_sha256": "9d0194a690c87a683710a3223e52bd99c49b286618441e0f92e85554f37c00a6"
+      },
+      "denominator_policy": "exclude_refusal_boilerplate",
+      "asserted_claims": [
+        {
+          "claim_id": "C02-supported-paraphrase-low-lexical::c01",
+          "text": "员工应于费用发生之日起 30 日内提交报销申请。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "support_span_notes": "Directly supported by E1."
+        }
+      ]
+    },
+    {
+      "case_id": "C03-one-unsupported-among-supported",
+      "content_binding": {
+        "kind": "synthetic_authored",
+        "content_sha256": "fb62fae66916dcc09528c00f1c3ab9e90ec135536afaf69419aae164eed876af",
+        "synthetic_body_id": "human_claim_gold_v1::C03-one-unsupported-among-supported"
+      },
+      "gated_pool_binding": {
+        "evidence_ids": [
+          "E1"
+        ],
+        "pool_sha256": "3348a685a93af72616ceb6cf412bf49c7f86f611a29e831fe3a69410b168c29a"
+      },
+      "denominator_policy": "exclude_refusal_boilerplate",
+      "asserted_claims": [
+        {
+          "claim_id": "C03-one-unsupported-among-supported::c01",
+          "text": "基础版包含 5 GB 存储空间。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "support_span_notes": "Directly supported by E1."
+        },
+        {
+          "claim_id": "C03-one-unsupported-among-supported::c02",
+          "text": "基础版提供电话支持。",
+          "label": "unsupported",
+          "supporting_evidence_ids": [],
+          "support_span_notes": "E1 states email support channel, not phone support."
+        }
+      ]
+    },
+    {
+      "case_id": "C04-valid-citation-wrong-evidence",
+      "content_binding": {
+        "kind": "synthetic_authored",
+        "content_sha256": "6810e2efd7d7d948cc2875673a0a9cbc5cc467ff0f5a64783227693c1a1dddba",
+        "synthetic_body_id": "human_claim_gold_v1::C04-valid-citation-wrong-evidence"
+      },
+      "gated_pool_binding": {
+        "evidence_ids": [
+          "E1"
+        ],
+        "pool_sha256": "b085b179d74dc39c43228936aa80c574979f6bb9ce26735f0ce21da4eb0e7c66"
+      },
+      "denominator_policy": "exclude_refusal_boilerplate",
+      "asserted_claims": [
+        {
+          "claim_id": "C04-valid-citation-wrong-evidence::c01",
+          "text": "管理员首次登录须通过一次性链接创建密码。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "support_span_notes": "E1 explicitly states the one-time link password creation process."
+        },
+        {
+          "claim_id": "C04-valid-citation-wrong-evidence::c02",
+          "text": "系统设置通用默认密码。",
+          "label": "unsupported",
+          "supporting_evidence_ids": [],
+          "support_span_notes": "E1 explicitly states that no universal default password exists."
+        }
+      ]
+    },
+    {
+      "case_id": "C05-known-conflict-overcertain",
+      "content_binding": {
+        "kind": "synthetic_authored",
+        "content_sha256": "f2f4fa1a998714806655434c36bb458993dfeee1ea830f854a56c09b406cb40c",
+        "synthetic_body_id": "human_claim_gold_v1::C05-known-conflict-overcertain"
+      },
+      "gated_pool_binding": {
+        "evidence_ids": [
+          "E1",
+          "E2"
+        ],
+        "pool_sha256": "aa8c7dfe4032b5af416304c2bbee8085afb9d3413074831049399c387702593f"
+      },
+      "denominator_policy": "exclude_refusal_boilerplate",
+      "asserted_claims": [
+        {
+          "claim_id": "C05-known-conflict-overcertain::c01",
+          "text": "生产环境备份保留30天。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "support_span_notes": "E1 supports this retention period, but E2 provides conflicting information."
+        },
+        {
+          "claim_id": "C05-known-conflict-overcertain::c02",
+          "text": "生产环境备份保留90天。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E2"
+          ],
+          "support_span_notes": "E2 supports this retention period, but E1 provides conflicting information."
+        }
+      ]
+    },
+    {
+      "case_id": "C06-required-fact-missing",
+      "content_binding": {
+        "kind": "synthetic_authored",
+        "content_sha256": "383c9155a58d2993462ee6573b017acb14643b0a79b868eed160c5e21ba23d88",
+        "synthetic_body_id": "human_claim_gold_v1::C06-required-fact-missing"
+      },
+      "gated_pool_binding": {
+        "evidence_ids": [
+          "E1"
+        ],
+        "pool_sha256": "865a96c60ead4627a7600f70e0074bc2c1c9d58018c1f2727822e9e452371dc5"
+      },
+      "denominator_policy": "exclude_refusal_boilerplate",
+      "asserted_claims": [
+        {
+          "claim_id": "C06-required-fact-missing::c01",
+          "text": "企业版的成员数量可由管理员配置。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "support_span_notes": "E1 explicitly states that member count can be configured by administrators."
+        },
+        {
+          "claim_id": "C06-required-fact-missing::c02",
+          "text": "企业版没有固定成员数量上限。",
+          "label": "unverifiable",
+          "supporting_evidence_ids": [],
+          "support_span_notes": "E1 states that the limit is not listed, but does not prove there is no limit."
+        }
+      ]
+    },
+    {
+      "case_id": "C07-correct-insufficiency-refusal",
+      "content_binding": {
+        "kind": "synthetic_authored",
+        "content_sha256": "058c497a5782fa66c7fec0f1a1a8e7d3a89e0b1133348bb0999038f84d0ab5bf",
+        "synthetic_body_id": "human_claim_gold_v1::C07-correct-insufficiency-refusal"
+      },
+      "gated_pool_binding": {
+        "evidence_ids": [
+          "E1"
+        ],
+        "pool_sha256": "b099334bdbbcc40e3f1dac61dcdfa2b2289b7497ac9068a636a3bb26f8be102f"
+      },
+      "denominator_policy": "exclude_refusal_boilerplate",
+      "asserted_claims": [
+        {
+          "claim_id": "C07-correct-insufficiency-refusal::c01",
+          "text": "系统不设置通用默认密码。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "support_span_notes": "E1 explicitly states that no universal default password exists."
+        }
+      ]
+    },
+    {
+      "case_id": "C08-nonassertive-preface-supported-fact",
+      "content_binding": {
+        "kind": "synthetic_authored",
+        "content_sha256": "0f8388e2b13a542145bda37143884f779f7a03db27589dcde2481541be17865c",
+        "synthetic_body_id": "human_claim_gold_v1::C08-nonassertive-preface-supported-fact"
+      },
+      "gated_pool_binding": {
+        "evidence_ids": [
+          "E1"
+        ],
+        "pool_sha256": "5f4b267cad1d2fc3accfb428f4ffc2c657a674bd1c06c60a6119b52f208e97f7"
+      },
+      "denominator_policy": "exclude_refusal_boilerplate",
+      "asserted_claims": [
+        {
+          "claim_id": "C08-nonassertive-preface-supported-fact::c01",
+          "text": "企业版租户的 API 速率上限为每分钟 5000 次。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "support_span_notes": "Directly supported by E1."
+        }
+      ]
+    },
+    {
+      "case_id": "C09-supported-plus-unverifiable",
+      "content_binding": {
+        "kind": "synthetic_authored",
+        "content_sha256": "c0f6a70ccd01a0bc4bb1f8807f222388a0e819317c46c710da18272e060451ed",
+        "synthetic_body_id": "human_claim_gold_v1::C09-supported-plus-unverifiable"
+      },
+      "gated_pool_binding": {
+        "evidence_ids": [
+          "E1"
+        ],
+        "pool_sha256": "3f31f3edd099e138fe5e18c5a2f07377d054ae2be97035176d799e1c8857b756"
+      },
+      "denominator_policy": "exclude_refusal_boilerplate",
+      "asserted_claims": [
+        {
+          "claim_id": "C09-supported-plus-unverifiable::c01",
+          "text": "当前固定维护窗口为每周日 02:00 至 04:00。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "support_span_notes": "Directly supported by E1."
+        },
+        {
+          "claim_id": "C09-supported-plus-unverifiable::c02",
+          "text": "后续安排以新公告为准。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "support_span_notes": "E1 states that future arrangements follow new announcements."
+        }
+      ]
+    },
+    {
+      "case_id": "C10-supported-multiclaim-multicitation",
+      "content_binding": {
+        "kind": "synthetic_authored",
+        "content_sha256": "1ad3e86f3d075b2ccbc0be6a6c77298cd78cb6ec6f7221184dc09d3bdd0febec",
+        "synthetic_body_id": "human_claim_gold_v1::C10-supported-multiclaim-multicitation"
+      },
+      "gated_pool_binding": {
+        "evidence_ids": [
+          "E1",
+          "E2"
+        ],
+        "pool_sha256": "8af60e0d8ed6d1565d54c7736780e3e6b80dafca778e3ad1b87fab272acdb653"
+      },
+      "denominator_policy": "exclude_refusal_boilerplate",
+      "asserted_claims": [
+        {
+          "claim_id": "C10-supported-multiclaim-multicitation::c01",
+          "text": "免费版 API 速率上限为每分钟 100 次。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "support_span_notes": "E1 explicitly states the free plan API rate limit."
+        },
+        {
+          "claim_id": "C10-supported-multiclaim-multicitation::c02",
+          "text": "企业版 API 速率上限为每分钟 5000 次。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E2"
+          ],
+          "support_span_notes": "E2 explicitly states the enterprise plan API rate limit."
+        }
+      ]
+    },
+    {
+      "case_id": "C11-citation-format-only-defect",
+      "content_binding": {
+        "kind": "synthetic_authored",
+        "content_sha256": "d352eabf30d41cd694221200d5a03d773127cd011b9f07b2aa319f4c6d83b5da",
+        "synthetic_body_id": "human_claim_gold_v1::C11-citation-format-only-defect"
+      },
+      "gated_pool_binding": {
+        "evidence_ids": [
+          "E1"
+        ],
+        "pool_sha256": "1e38788ed0f8a8479bed6c2519a577be7fd60b97d33ec1765279b88c781d25db"
+      },
+      "denominator_policy": "exclude_refusal_boilerplate",
+      "asserted_claims": [
+        {
+          "claim_id": "C11-citation-format-only-defect::c01",
+          "text": "生产环境备份的保留期限为 30 天。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "support_span_notes": "E1 explicitly states the backup retention period."
+        }
+      ]
+    },
+    {
+      "case_id": "C12-out-of-scope-provenance",
+      "content_binding": {
+        "kind": "synthetic_authored",
+        "content_sha256": "d36e4f3346b61a3726212783296c7f70f0d3dd50f516a6d83442d5ce82e3f178",
+        "synthetic_body_id": "human_claim_gold_v1::C12-out-of-scope-provenance"
+      },
+      "gated_pool_binding": {
+        "evidence_ids": [
+          "E-OUT"
+        ],
+        "pool_sha256": "0180e8b8b8d2bd446e8cdef223604e85242c27e25389746ae96497e12d8ae4b2"
+      },
+      "denominator_policy": "exclude_refusal_boilerplate",
+      "asserted_claims": [],
+      "notes": "EXCLUDED_FROM_CLAIM_DENOMINATOR. OUT_OF_SCOPE_PROVENANCE / INVALID_FOR_PRODUCT_PATH. asserted_claims remains empty; do not score T2/T3."
+    }
+  ]
+}

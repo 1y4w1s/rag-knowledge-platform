@@ -1,0 +1,929 @@
+{
+  "protocol_version": "w10_eb18_gold_after_binding_compatibility_v1",
+  "artifact_kind": "GOLD_AFTER_BINDING_COMPATIBILITY",
+  "parent_gate_protocol": "w10_eb17_binding_gate_v1",
+  "parent_binding_artifact_kind": "AFTER_GOLD_BINDING",
+  "parent_gold_ledger": "w10-eb-generation-claim-gold-v1.json",
+  "window": "E-B18",
+  "binding_policy": "observed_after",
+  "after_source": "compatibility_materialization_author_owned",
+  "hash_rules": {
+    "gold_ledger_hash": {
+      "name": "gold_ledger_hash",
+      "wire": "bare 64-hex",
+      "generate_bp_b": "sha256(canonical_json({case_id, kind=synthetic_authored, claim_texts}))",
+      "generate_bp_a": "sha256(canonical_json(after_content_string)) — same codec as observed_content_hash bare hex; store on gold.content_binding.content_sha256",
+      "verify_bp_b": "recompute claim_texts digest == gold.content_sha256 (GOLD_LEDGER)",
+      "verify_bp_a": "normalize(gold.content_sha256) == observed_content_digest(after) (OBSERVED_CONTENT space after rebound; never vs unrebounded payload hash)"
+    },
+    "observed_content_hash": {
+      "name": "observed_content_hash",
+      "wire": "sha256:{hex} (E-B15) or bare hex (comparator)",
+      "generate": "sha256(canonical_json(state['content'] string))",
+      "verify": "normalize(after_content_hash) == observed_content_digest(after_content); under BP-A also == gold.content_sha256 after rebound"
+    },
+    "evidence_pool_hash": {
+      "name": "evidence_pool_hash",
+      "wire": "bare 64-hex",
+      "generate": "sha256(canonical_json([{chunk_id, content}, ...]))",
+      "verify": "gold.pool_sha256 == observed_pool_sha256 when both present; gold.evidence_ids ⊆ observed_evidence_ids"
+    }
+  },
+  "gates": {
+    "BINDING_GATE_IMPLEMENTED": "YES",
+    "COMPATIBILITY_MATERIALIZED": "YES",
+    "GOLD_AFTER_BINDING_COMPATIBLE": "YES",
+    "LIVE_EB15_X_EB12B_COMPATIBLE": "NO",
+    "T2_T3_SCORER_IMPLEMENTED": "NO",
+    "E-B_FORMAL_READY": "NO",
+    "MAY_ENTER_FORMAL_OBSERVATION_WINDOW": "NO",
+    "B2_PRIME_AFTER_SNAPSHOTS": "BLOCKING_RESIDUAL"
+  },
+  "notes": "BP-A binding compatibility pack. Rebounds human synthetic_authored gold → observed_after content-string hash. After bodies are author-owned claim-text embeddings for codec proof only. Live E-B15 degraded/refusal × unrebounded E-B12B remains incompatible. No LLM, no scorer, no formal observation, E-B_FORMAL_READY=NO.",
+  "excluded_case_ids": [
+    "C12-out-of-scope-provenance"
+  ],
+  "cases": [
+    {
+      "after_snapshot": {
+        "case_id": "C01-fully-supported-exact",
+        "after_content": "生产环境备份的保留期限为 30 天。",
+        "after_content_hash": "sha256:c1115c36b5616ef4ab637be4a8b2e353cbface2e24e2d39d52befdd069735c68",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "1e38788ed0f8a8479bed6c2519a577be7fd60b97d33ec1765279b88c781d25db",
+        "after_source": "compatibility_materialization_author_owned",
+        "llm_called": false,
+        "formal_measurement": false,
+        "product_stream": false
+      },
+      "rebound_gold": {
+        "case_id": "C01-fully-supported-exact",
+        "content_binding": {
+          "kind": "observed_after",
+          "content_sha256": "c1115c36b5616ef4ab637be4a8b2e353cbface2e24e2d39d52befdd069735c68",
+          "rebound_from": "human_claim_gold_v1::C01-fully-supported-exact",
+          "parent_ledger": "w10-eb-generation-claim-gold-v1.json",
+          "parent_kind": "synthetic_authored"
+        },
+        "gated_pool_binding": {
+          "evidence_ids": [
+            "E1"
+          ],
+          "pool_sha256": "1e38788ed0f8a8479bed6c2519a577be7fd60b97d33ec1765279b88c781d25db"
+        },
+        "denominator_policy": "exclude_refusal_boilerplate",
+        "asserted_claims": [
+          {
+            "claim_id": "C01-fully-supported-exact::c01",
+            "text": "生产环境备份的保留期限为 30 天。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E1"
+            ],
+            "support_span_notes": "Directly supported by E1."
+          }
+        ],
+        "notes": "BP-A_REBOUND_FOR_COMPATIBILITY. after_source=compatibility_materialization_author_owned. content_sha256 uses observed_content codec (content string), not claim_texts payload. Does not prove live product LLM faithfulness. E-B_FORMAL_READY=NO."
+      },
+      "binding_artifact": {
+        "protocol_version": "w10_eb17_binding_gate_v1",
+        "artifact_kind": "AFTER_GOLD_BINDING",
+        "after_case_id": "C01-fully-supported-exact",
+        "gold_case_id": "C01-fully-supported-exact",
+        "binding_policy": "observed_after",
+        "after_content_hash": "sha256:c1115c36b5616ef4ab637be4a8b2e353cbface2e24e2d39d52befdd069735c68",
+        "gold_content_sha256": "c1115c36b5616ef4ab637be4a8b2e353cbface2e24e2d39d52befdd069735c68",
+        "gold_content_binding_kind": "observed_after",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "gold_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "1e38788ed0f8a8479bed6c2519a577be7fd60b97d33ec1765279b88c781d25db",
+        "gold_pool_sha256": "1e38788ed0f8a8479bed6c2519a577be7fd60b97d33ec1765279b88c781d25db",
+        "notes": "E-B18 BP-A compatibility materialization"
+      },
+      "binding_verdict": "BOUND",
+      "details": {
+        "formal_candidate_codec": true,
+        "compatibility_proof_only": true,
+        "product_faithfulness_proven": false,
+        "hash_spaces": [
+          "observed_content_hash",
+          "evidence_pool_hash"
+        ],
+        "parent_gold_ledger_hash_bp_b": "87c54c18c50a7edd7311f5b4b13bbfdb38c9b932aa7b17c64ec29252efee532a",
+        "rebound_observed_content_hash": "c1115c36b5616ef4ab637be4a8b2e353cbface2e24e2d39d52befdd069735c68"
+      }
+    },
+    {
+      "after_snapshot": {
+        "case_id": "C02-supported-paraphrase-low-lexical",
+        "after_content": "员工应于费用发生之日起 30 日内提交报销申请。",
+        "after_content_hash": "sha256:7e741889430c9c9d51eeac9b19f3aeedab6e246ce386002b185db55c6515f20f",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "9d0194a690c87a683710a3223e52bd99c49b286618441e0f92e85554f37c00a6",
+        "after_source": "compatibility_materialization_author_owned",
+        "llm_called": false,
+        "formal_measurement": false,
+        "product_stream": false
+      },
+      "rebound_gold": {
+        "case_id": "C02-supported-paraphrase-low-lexical",
+        "content_binding": {
+          "kind": "observed_after",
+          "content_sha256": "7e741889430c9c9d51eeac9b19f3aeedab6e246ce386002b185db55c6515f20f",
+          "rebound_from": "human_claim_gold_v1::C02-supported-paraphrase-low-lexical",
+          "parent_ledger": "w10-eb-generation-claim-gold-v1.json",
+          "parent_kind": "synthetic_authored"
+        },
+        "gated_pool_binding": {
+          "evidence_ids": [
+            "E1"
+          ],
+          "pool_sha256": "9d0194a690c87a683710a3223e52bd99c49b286618441e0f92e85554f37c00a6"
+        },
+        "denominator_policy": "exclude_refusal_boilerplate",
+        "asserted_claims": [
+          {
+            "claim_id": "C02-supported-paraphrase-low-lexical::c01",
+            "text": "员工应于费用发生之日起 30 日内提交报销申请。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E1"
+            ],
+            "support_span_notes": "Directly supported by E1."
+          }
+        ],
+        "notes": "BP-A_REBOUND_FOR_COMPATIBILITY. after_source=compatibility_materialization_author_owned. content_sha256 uses observed_content codec (content string), not claim_texts payload. Does not prove live product LLM faithfulness. E-B_FORMAL_READY=NO."
+      },
+      "binding_artifact": {
+        "protocol_version": "w10_eb17_binding_gate_v1",
+        "artifact_kind": "AFTER_GOLD_BINDING",
+        "after_case_id": "C02-supported-paraphrase-low-lexical",
+        "gold_case_id": "C02-supported-paraphrase-low-lexical",
+        "binding_policy": "observed_after",
+        "after_content_hash": "sha256:7e741889430c9c9d51eeac9b19f3aeedab6e246ce386002b185db55c6515f20f",
+        "gold_content_sha256": "7e741889430c9c9d51eeac9b19f3aeedab6e246ce386002b185db55c6515f20f",
+        "gold_content_binding_kind": "observed_after",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "gold_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "9d0194a690c87a683710a3223e52bd99c49b286618441e0f92e85554f37c00a6",
+        "gold_pool_sha256": "9d0194a690c87a683710a3223e52bd99c49b286618441e0f92e85554f37c00a6",
+        "notes": "E-B18 BP-A compatibility materialization"
+      },
+      "binding_verdict": "BOUND",
+      "details": {
+        "formal_candidate_codec": true,
+        "compatibility_proof_only": true,
+        "product_faithfulness_proven": false,
+        "hash_spaces": [
+          "observed_content_hash",
+          "evidence_pool_hash"
+        ],
+        "parent_gold_ledger_hash_bp_b": "0f6845defa0bd46401edcaf2fb7938a06a900707984c294fb8fd4e1d9a970d73",
+        "rebound_observed_content_hash": "7e741889430c9c9d51eeac9b19f3aeedab6e246ce386002b185db55c6515f20f"
+      }
+    },
+    {
+      "after_snapshot": {
+        "case_id": "C03-one-unsupported-among-supported",
+        "after_content": "基础版包含 5 GB 存储空间。\n基础版提供电话支持。",
+        "after_content_hash": "sha256:dbfce801299c6c99b5ba1d5e391ce68dbbeb31727377fcdf31331ca99e9a65f6",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "3348a685a93af72616ceb6cf412bf49c7f86f611a29e831fe3a69410b168c29a",
+        "after_source": "compatibility_materialization_author_owned",
+        "llm_called": false,
+        "formal_measurement": false,
+        "product_stream": false
+      },
+      "rebound_gold": {
+        "case_id": "C03-one-unsupported-among-supported",
+        "content_binding": {
+          "kind": "observed_after",
+          "content_sha256": "dbfce801299c6c99b5ba1d5e391ce68dbbeb31727377fcdf31331ca99e9a65f6",
+          "rebound_from": "human_claim_gold_v1::C03-one-unsupported-among-supported",
+          "parent_ledger": "w10-eb-generation-claim-gold-v1.json",
+          "parent_kind": "synthetic_authored"
+        },
+        "gated_pool_binding": {
+          "evidence_ids": [
+            "E1"
+          ],
+          "pool_sha256": "3348a685a93af72616ceb6cf412bf49c7f86f611a29e831fe3a69410b168c29a"
+        },
+        "denominator_policy": "exclude_refusal_boilerplate",
+        "asserted_claims": [
+          {
+            "claim_id": "C03-one-unsupported-among-supported::c01",
+            "text": "基础版包含 5 GB 存储空间。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E1"
+            ],
+            "support_span_notes": "Directly supported by E1."
+          },
+          {
+            "claim_id": "C03-one-unsupported-among-supported::c02",
+            "text": "基础版提供电话支持。",
+            "label": "unsupported",
+            "supporting_evidence_ids": [],
+            "support_span_notes": "E1 states email support channel, not phone support."
+          }
+        ],
+        "notes": "BP-A_REBOUND_FOR_COMPATIBILITY. after_source=compatibility_materialization_author_owned. content_sha256 uses observed_content codec (content string), not claim_texts payload. Does not prove live product LLM faithfulness. E-B_FORMAL_READY=NO."
+      },
+      "binding_artifact": {
+        "protocol_version": "w10_eb17_binding_gate_v1",
+        "artifact_kind": "AFTER_GOLD_BINDING",
+        "after_case_id": "C03-one-unsupported-among-supported",
+        "gold_case_id": "C03-one-unsupported-among-supported",
+        "binding_policy": "observed_after",
+        "after_content_hash": "sha256:dbfce801299c6c99b5ba1d5e391ce68dbbeb31727377fcdf31331ca99e9a65f6",
+        "gold_content_sha256": "dbfce801299c6c99b5ba1d5e391ce68dbbeb31727377fcdf31331ca99e9a65f6",
+        "gold_content_binding_kind": "observed_after",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "gold_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "3348a685a93af72616ceb6cf412bf49c7f86f611a29e831fe3a69410b168c29a",
+        "gold_pool_sha256": "3348a685a93af72616ceb6cf412bf49c7f86f611a29e831fe3a69410b168c29a",
+        "notes": "E-B18 BP-A compatibility materialization"
+      },
+      "binding_verdict": "BOUND",
+      "details": {
+        "formal_candidate_codec": true,
+        "compatibility_proof_only": true,
+        "product_faithfulness_proven": false,
+        "hash_spaces": [
+          "observed_content_hash",
+          "evidence_pool_hash"
+        ],
+        "parent_gold_ledger_hash_bp_b": "fb62fae66916dcc09528c00f1c3ab9e90ec135536afaf69419aae164eed876af",
+        "rebound_observed_content_hash": "dbfce801299c6c99b5ba1d5e391ce68dbbeb31727377fcdf31331ca99e9a65f6"
+      }
+    },
+    {
+      "after_snapshot": {
+        "case_id": "C04-valid-citation-wrong-evidence",
+        "after_content": "管理员首次登录须通过一次性链接创建密码。\n系统设置通用默认密码。",
+        "after_content_hash": "sha256:de3b46c7dd5e4a47cc3273f3d7790647c20175c7d5090ca576e6525ea93c7d01",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "b085b179d74dc39c43228936aa80c574979f6bb9ce26735f0ce21da4eb0e7c66",
+        "after_source": "compatibility_materialization_author_owned",
+        "llm_called": false,
+        "formal_measurement": false,
+        "product_stream": false
+      },
+      "rebound_gold": {
+        "case_id": "C04-valid-citation-wrong-evidence",
+        "content_binding": {
+          "kind": "observed_after",
+          "content_sha256": "de3b46c7dd5e4a47cc3273f3d7790647c20175c7d5090ca576e6525ea93c7d01",
+          "rebound_from": "human_claim_gold_v1::C04-valid-citation-wrong-evidence",
+          "parent_ledger": "w10-eb-generation-claim-gold-v1.json",
+          "parent_kind": "synthetic_authored"
+        },
+        "gated_pool_binding": {
+          "evidence_ids": [
+            "E1"
+          ],
+          "pool_sha256": "b085b179d74dc39c43228936aa80c574979f6bb9ce26735f0ce21da4eb0e7c66"
+        },
+        "denominator_policy": "exclude_refusal_boilerplate",
+        "asserted_claims": [
+          {
+            "claim_id": "C04-valid-citation-wrong-evidence::c01",
+            "text": "管理员首次登录须通过一次性链接创建密码。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E1"
+            ],
+            "support_span_notes": "E1 explicitly states the one-time link password creation process."
+          },
+          {
+            "claim_id": "C04-valid-citation-wrong-evidence::c02",
+            "text": "系统设置通用默认密码。",
+            "label": "unsupported",
+            "supporting_evidence_ids": [],
+            "support_span_notes": "E1 explicitly states that no universal default password exists."
+          }
+        ],
+        "notes": "BP-A_REBOUND_FOR_COMPATIBILITY. after_source=compatibility_materialization_author_owned. content_sha256 uses observed_content codec (content string), not claim_texts payload. Does not prove live product LLM faithfulness. E-B_FORMAL_READY=NO."
+      },
+      "binding_artifact": {
+        "protocol_version": "w10_eb17_binding_gate_v1",
+        "artifact_kind": "AFTER_GOLD_BINDING",
+        "after_case_id": "C04-valid-citation-wrong-evidence",
+        "gold_case_id": "C04-valid-citation-wrong-evidence",
+        "binding_policy": "observed_after",
+        "after_content_hash": "sha256:de3b46c7dd5e4a47cc3273f3d7790647c20175c7d5090ca576e6525ea93c7d01",
+        "gold_content_sha256": "de3b46c7dd5e4a47cc3273f3d7790647c20175c7d5090ca576e6525ea93c7d01",
+        "gold_content_binding_kind": "observed_after",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "gold_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "b085b179d74dc39c43228936aa80c574979f6bb9ce26735f0ce21da4eb0e7c66",
+        "gold_pool_sha256": "b085b179d74dc39c43228936aa80c574979f6bb9ce26735f0ce21da4eb0e7c66",
+        "notes": "E-B18 BP-A compatibility materialization"
+      },
+      "binding_verdict": "BOUND",
+      "details": {
+        "formal_candidate_codec": true,
+        "compatibility_proof_only": true,
+        "product_faithfulness_proven": false,
+        "hash_spaces": [
+          "observed_content_hash",
+          "evidence_pool_hash"
+        ],
+        "parent_gold_ledger_hash_bp_b": "6810e2efd7d7d948cc2875673a0a9cbc5cc467ff0f5a64783227693c1a1dddba",
+        "rebound_observed_content_hash": "de3b46c7dd5e4a47cc3273f3d7790647c20175c7d5090ca576e6525ea93c7d01"
+      }
+    },
+    {
+      "after_snapshot": {
+        "case_id": "C05-known-conflict-overcertain",
+        "after_content": "生产环境备份保留30天。\n生产环境备份保留90天。",
+        "after_content_hash": "sha256:0c45a2e04a9c5b92d075d190c8b34ce262e2c41d17506a2fd24fd3fdc11da8fe",
+        "observed_evidence_ids": [
+          "E1",
+          "E2"
+        ],
+        "observed_pool_sha256": "aa8c7dfe4032b5af416304c2bbee8085afb9d3413074831049399c387702593f",
+        "after_source": "compatibility_materialization_author_owned",
+        "llm_called": false,
+        "formal_measurement": false,
+        "product_stream": false
+      },
+      "rebound_gold": {
+        "case_id": "C05-known-conflict-overcertain",
+        "content_binding": {
+          "kind": "observed_after",
+          "content_sha256": "0c45a2e04a9c5b92d075d190c8b34ce262e2c41d17506a2fd24fd3fdc11da8fe",
+          "rebound_from": "human_claim_gold_v1::C05-known-conflict-overcertain",
+          "parent_ledger": "w10-eb-generation-claim-gold-v1.json",
+          "parent_kind": "synthetic_authored"
+        },
+        "gated_pool_binding": {
+          "evidence_ids": [
+            "E1",
+            "E2"
+          ],
+          "pool_sha256": "aa8c7dfe4032b5af416304c2bbee8085afb9d3413074831049399c387702593f"
+        },
+        "denominator_policy": "exclude_refusal_boilerplate",
+        "asserted_claims": [
+          {
+            "claim_id": "C05-known-conflict-overcertain::c01",
+            "text": "生产环境备份保留30天。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E1"
+            ],
+            "support_span_notes": "E1 supports this retention period, but E2 provides conflicting information."
+          },
+          {
+            "claim_id": "C05-known-conflict-overcertain::c02",
+            "text": "生产环境备份保留90天。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E2"
+            ],
+            "support_span_notes": "E2 supports this retention period, but E1 provides conflicting information."
+          }
+        ],
+        "notes": "BP-A_REBOUND_FOR_COMPATIBILITY. after_source=compatibility_materialization_author_owned. content_sha256 uses observed_content codec (content string), not claim_texts payload. Does not prove live product LLM faithfulness. E-B_FORMAL_READY=NO."
+      },
+      "binding_artifact": {
+        "protocol_version": "w10_eb17_binding_gate_v1",
+        "artifact_kind": "AFTER_GOLD_BINDING",
+        "after_case_id": "C05-known-conflict-overcertain",
+        "gold_case_id": "C05-known-conflict-overcertain",
+        "binding_policy": "observed_after",
+        "after_content_hash": "sha256:0c45a2e04a9c5b92d075d190c8b34ce262e2c41d17506a2fd24fd3fdc11da8fe",
+        "gold_content_sha256": "0c45a2e04a9c5b92d075d190c8b34ce262e2c41d17506a2fd24fd3fdc11da8fe",
+        "gold_content_binding_kind": "observed_after",
+        "observed_evidence_ids": [
+          "E1",
+          "E2"
+        ],
+        "gold_evidence_ids": [
+          "E1",
+          "E2"
+        ],
+        "observed_pool_sha256": "aa8c7dfe4032b5af416304c2bbee8085afb9d3413074831049399c387702593f",
+        "gold_pool_sha256": "aa8c7dfe4032b5af416304c2bbee8085afb9d3413074831049399c387702593f",
+        "notes": "E-B18 BP-A compatibility materialization"
+      },
+      "binding_verdict": "BOUND",
+      "details": {
+        "formal_candidate_codec": true,
+        "compatibility_proof_only": true,
+        "product_faithfulness_proven": false,
+        "hash_spaces": [
+          "observed_content_hash",
+          "evidence_pool_hash"
+        ],
+        "parent_gold_ledger_hash_bp_b": "f2f4fa1a998714806655434c36bb458993dfeee1ea830f854a56c09b406cb40c",
+        "rebound_observed_content_hash": "0c45a2e04a9c5b92d075d190c8b34ce262e2c41d17506a2fd24fd3fdc11da8fe"
+      }
+    },
+    {
+      "after_snapshot": {
+        "case_id": "C06-required-fact-missing",
+        "after_content": "企业版的成员数量可由管理员配置。\n企业版没有固定成员数量上限。",
+        "after_content_hash": "sha256:0ea89dd7c22f3297fd8764668f41c04559669a134c31144a897ea246c18cf217",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "865a96c60ead4627a7600f70e0074bc2c1c9d58018c1f2727822e9e452371dc5",
+        "after_source": "compatibility_materialization_author_owned",
+        "llm_called": false,
+        "formal_measurement": false,
+        "product_stream": false
+      },
+      "rebound_gold": {
+        "case_id": "C06-required-fact-missing",
+        "content_binding": {
+          "kind": "observed_after",
+          "content_sha256": "0ea89dd7c22f3297fd8764668f41c04559669a134c31144a897ea246c18cf217",
+          "rebound_from": "human_claim_gold_v1::C06-required-fact-missing",
+          "parent_ledger": "w10-eb-generation-claim-gold-v1.json",
+          "parent_kind": "synthetic_authored"
+        },
+        "gated_pool_binding": {
+          "evidence_ids": [
+            "E1"
+          ],
+          "pool_sha256": "865a96c60ead4627a7600f70e0074bc2c1c9d58018c1f2727822e9e452371dc5"
+        },
+        "denominator_policy": "exclude_refusal_boilerplate",
+        "asserted_claims": [
+          {
+            "claim_id": "C06-required-fact-missing::c01",
+            "text": "企业版的成员数量可由管理员配置。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E1"
+            ],
+            "support_span_notes": "E1 explicitly states that member count can be configured by administrators."
+          },
+          {
+            "claim_id": "C06-required-fact-missing::c02",
+            "text": "企业版没有固定成员数量上限。",
+            "label": "unverifiable",
+            "supporting_evidence_ids": [],
+            "support_span_notes": "E1 states that the limit is not listed, but does not prove there is no limit."
+          }
+        ],
+        "notes": "BP-A_REBOUND_FOR_COMPATIBILITY. after_source=compatibility_materialization_author_owned. content_sha256 uses observed_content codec (content string), not claim_texts payload. Does not prove live product LLM faithfulness. E-B_FORMAL_READY=NO."
+      },
+      "binding_artifact": {
+        "protocol_version": "w10_eb17_binding_gate_v1",
+        "artifact_kind": "AFTER_GOLD_BINDING",
+        "after_case_id": "C06-required-fact-missing",
+        "gold_case_id": "C06-required-fact-missing",
+        "binding_policy": "observed_after",
+        "after_content_hash": "sha256:0ea89dd7c22f3297fd8764668f41c04559669a134c31144a897ea246c18cf217",
+        "gold_content_sha256": "0ea89dd7c22f3297fd8764668f41c04559669a134c31144a897ea246c18cf217",
+        "gold_content_binding_kind": "observed_after",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "gold_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "865a96c60ead4627a7600f70e0074bc2c1c9d58018c1f2727822e9e452371dc5",
+        "gold_pool_sha256": "865a96c60ead4627a7600f70e0074bc2c1c9d58018c1f2727822e9e452371dc5",
+        "notes": "E-B18 BP-A compatibility materialization"
+      },
+      "binding_verdict": "BOUND",
+      "details": {
+        "formal_candidate_codec": true,
+        "compatibility_proof_only": true,
+        "product_faithfulness_proven": false,
+        "hash_spaces": [
+          "observed_content_hash",
+          "evidence_pool_hash"
+        ],
+        "parent_gold_ledger_hash_bp_b": "383c9155a58d2993462ee6573b017acb14643b0a79b868eed160c5e21ba23d88",
+        "rebound_observed_content_hash": "0ea89dd7c22f3297fd8764668f41c04559669a134c31144a897ea246c18cf217"
+      }
+    },
+    {
+      "after_snapshot": {
+        "case_id": "C07-correct-insufficiency-refusal",
+        "after_content": "系统不设置通用默认密码。",
+        "after_content_hash": "sha256:7d4a52ece4191e8a564304142869a8e672a9f163e4e69ffc6cbee7c86be10d99",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "b099334bdbbcc40e3f1dac61dcdfa2b2289b7497ac9068a636a3bb26f8be102f",
+        "after_source": "compatibility_materialization_author_owned",
+        "llm_called": false,
+        "formal_measurement": false,
+        "product_stream": false
+      },
+      "rebound_gold": {
+        "case_id": "C07-correct-insufficiency-refusal",
+        "content_binding": {
+          "kind": "observed_after",
+          "content_sha256": "7d4a52ece4191e8a564304142869a8e672a9f163e4e69ffc6cbee7c86be10d99",
+          "rebound_from": "human_claim_gold_v1::C07-correct-insufficiency-refusal",
+          "parent_ledger": "w10-eb-generation-claim-gold-v1.json",
+          "parent_kind": "synthetic_authored"
+        },
+        "gated_pool_binding": {
+          "evidence_ids": [
+            "E1"
+          ],
+          "pool_sha256": "b099334bdbbcc40e3f1dac61dcdfa2b2289b7497ac9068a636a3bb26f8be102f"
+        },
+        "denominator_policy": "exclude_refusal_boilerplate",
+        "asserted_claims": [
+          {
+            "claim_id": "C07-correct-insufficiency-refusal::c01",
+            "text": "系统不设置通用默认密码。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E1"
+            ],
+            "support_span_notes": "E1 explicitly states that no universal default password exists."
+          }
+        ],
+        "notes": "BP-A_REBOUND_FOR_COMPATIBILITY. after_source=compatibility_materialization_author_owned. content_sha256 uses observed_content codec (content string), not claim_texts payload. Does not prove live product LLM faithfulness. E-B_FORMAL_READY=NO."
+      },
+      "binding_artifact": {
+        "protocol_version": "w10_eb17_binding_gate_v1",
+        "artifact_kind": "AFTER_GOLD_BINDING",
+        "after_case_id": "C07-correct-insufficiency-refusal",
+        "gold_case_id": "C07-correct-insufficiency-refusal",
+        "binding_policy": "observed_after",
+        "after_content_hash": "sha256:7d4a52ece4191e8a564304142869a8e672a9f163e4e69ffc6cbee7c86be10d99",
+        "gold_content_sha256": "7d4a52ece4191e8a564304142869a8e672a9f163e4e69ffc6cbee7c86be10d99",
+        "gold_content_binding_kind": "observed_after",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "gold_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "b099334bdbbcc40e3f1dac61dcdfa2b2289b7497ac9068a636a3bb26f8be102f",
+        "gold_pool_sha256": "b099334bdbbcc40e3f1dac61dcdfa2b2289b7497ac9068a636a3bb26f8be102f",
+        "notes": "E-B18 BP-A compatibility materialization"
+      },
+      "binding_verdict": "BOUND",
+      "details": {
+        "formal_candidate_codec": true,
+        "compatibility_proof_only": true,
+        "product_faithfulness_proven": false,
+        "hash_spaces": [
+          "observed_content_hash",
+          "evidence_pool_hash"
+        ],
+        "parent_gold_ledger_hash_bp_b": "058c497a5782fa66c7fec0f1a1a8e7d3a89e0b1133348bb0999038f84d0ab5bf",
+        "rebound_observed_content_hash": "7d4a52ece4191e8a564304142869a8e672a9f163e4e69ffc6cbee7c86be10d99"
+      }
+    },
+    {
+      "after_snapshot": {
+        "case_id": "C08-nonassertive-preface-supported-fact",
+        "after_content": "企业版租户的 API 速率上限为每分钟 5000 次。",
+        "after_content_hash": "sha256:18e50ab260e52bc963cc8e40580d9771a80c0af558fc9a51081821b76c8416ed",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "5f4b267cad1d2fc3accfb428f4ffc2c657a674bd1c06c60a6119b52f208e97f7",
+        "after_source": "compatibility_materialization_author_owned",
+        "llm_called": false,
+        "formal_measurement": false,
+        "product_stream": false
+      },
+      "rebound_gold": {
+        "case_id": "C08-nonassertive-preface-supported-fact",
+        "content_binding": {
+          "kind": "observed_after",
+          "content_sha256": "18e50ab260e52bc963cc8e40580d9771a80c0af558fc9a51081821b76c8416ed",
+          "rebound_from": "human_claim_gold_v1::C08-nonassertive-preface-supported-fact",
+          "parent_ledger": "w10-eb-generation-claim-gold-v1.json",
+          "parent_kind": "synthetic_authored"
+        },
+        "gated_pool_binding": {
+          "evidence_ids": [
+            "E1"
+          ],
+          "pool_sha256": "5f4b267cad1d2fc3accfb428f4ffc2c657a674bd1c06c60a6119b52f208e97f7"
+        },
+        "denominator_policy": "exclude_refusal_boilerplate",
+        "asserted_claims": [
+          {
+            "claim_id": "C08-nonassertive-preface-supported-fact::c01",
+            "text": "企业版租户的 API 速率上限为每分钟 5000 次。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E1"
+            ],
+            "support_span_notes": "Directly supported by E1."
+          }
+        ],
+        "notes": "BP-A_REBOUND_FOR_COMPATIBILITY. after_source=compatibility_materialization_author_owned. content_sha256 uses observed_content codec (content string), not claim_texts payload. Does not prove live product LLM faithfulness. E-B_FORMAL_READY=NO."
+      },
+      "binding_artifact": {
+        "protocol_version": "w10_eb17_binding_gate_v1",
+        "artifact_kind": "AFTER_GOLD_BINDING",
+        "after_case_id": "C08-nonassertive-preface-supported-fact",
+        "gold_case_id": "C08-nonassertive-preface-supported-fact",
+        "binding_policy": "observed_after",
+        "after_content_hash": "sha256:18e50ab260e52bc963cc8e40580d9771a80c0af558fc9a51081821b76c8416ed",
+        "gold_content_sha256": "18e50ab260e52bc963cc8e40580d9771a80c0af558fc9a51081821b76c8416ed",
+        "gold_content_binding_kind": "observed_after",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "gold_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "5f4b267cad1d2fc3accfb428f4ffc2c657a674bd1c06c60a6119b52f208e97f7",
+        "gold_pool_sha256": "5f4b267cad1d2fc3accfb428f4ffc2c657a674bd1c06c60a6119b52f208e97f7",
+        "notes": "E-B18 BP-A compatibility materialization"
+      },
+      "binding_verdict": "BOUND",
+      "details": {
+        "formal_candidate_codec": true,
+        "compatibility_proof_only": true,
+        "product_faithfulness_proven": false,
+        "hash_spaces": [
+          "observed_content_hash",
+          "evidence_pool_hash"
+        ],
+        "parent_gold_ledger_hash_bp_b": "0f8388e2b13a542145bda37143884f779f7a03db27589dcde2481541be17865c",
+        "rebound_observed_content_hash": "18e50ab260e52bc963cc8e40580d9771a80c0af558fc9a51081821b76c8416ed"
+      }
+    },
+    {
+      "after_snapshot": {
+        "case_id": "C09-supported-plus-unverifiable",
+        "after_content": "当前固定维护窗口为每周日 02:00 至 04:00。\n后续安排以新公告为准。",
+        "after_content_hash": "sha256:706661a2255e3462235c07b58d19a6bada4462d013e79a0767bd379c31489773",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "3f31f3edd099e138fe5e18c5a2f07377d054ae2be97035176d799e1c8857b756",
+        "after_source": "compatibility_materialization_author_owned",
+        "llm_called": false,
+        "formal_measurement": false,
+        "product_stream": false
+      },
+      "rebound_gold": {
+        "case_id": "C09-supported-plus-unverifiable",
+        "content_binding": {
+          "kind": "observed_after",
+          "content_sha256": "706661a2255e3462235c07b58d19a6bada4462d013e79a0767bd379c31489773",
+          "rebound_from": "human_claim_gold_v1::C09-supported-plus-unverifiable",
+          "parent_ledger": "w10-eb-generation-claim-gold-v1.json",
+          "parent_kind": "synthetic_authored"
+        },
+        "gated_pool_binding": {
+          "evidence_ids": [
+            "E1"
+          ],
+          "pool_sha256": "3f31f3edd099e138fe5e18c5a2f07377d054ae2be97035176d799e1c8857b756"
+        },
+        "denominator_policy": "exclude_refusal_boilerplate",
+        "asserted_claims": [
+          {
+            "claim_id": "C09-supported-plus-unverifiable::c01",
+            "text": "当前固定维护窗口为每周日 02:00 至 04:00。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E1"
+            ],
+            "support_span_notes": "Directly supported by E1."
+          },
+          {
+            "claim_id": "C09-supported-plus-unverifiable::c02",
+            "text": "后续安排以新公告为准。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E1"
+            ],
+            "support_span_notes": "E1 states that future arrangements follow new announcements."
+          }
+        ],
+        "notes": "BP-A_REBOUND_FOR_COMPATIBILITY. after_source=compatibility_materialization_author_owned. content_sha256 uses observed_content codec (content string), not claim_texts payload. Does not prove live product LLM faithfulness. E-B_FORMAL_READY=NO."
+      },
+      "binding_artifact": {
+        "protocol_version": "w10_eb17_binding_gate_v1",
+        "artifact_kind": "AFTER_GOLD_BINDING",
+        "after_case_id": "C09-supported-plus-unverifiable",
+        "gold_case_id": "C09-supported-plus-unverifiable",
+        "binding_policy": "observed_after",
+        "after_content_hash": "sha256:706661a2255e3462235c07b58d19a6bada4462d013e79a0767bd379c31489773",
+        "gold_content_sha256": "706661a2255e3462235c07b58d19a6bada4462d013e79a0767bd379c31489773",
+        "gold_content_binding_kind": "observed_after",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "gold_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "3f31f3edd099e138fe5e18c5a2f07377d054ae2be97035176d799e1c8857b756",
+        "gold_pool_sha256": "3f31f3edd099e138fe5e18c5a2f07377d054ae2be97035176d799e1c8857b756",
+        "notes": "E-B18 BP-A compatibility materialization"
+      },
+      "binding_verdict": "BOUND",
+      "details": {
+        "formal_candidate_codec": true,
+        "compatibility_proof_only": true,
+        "product_faithfulness_proven": false,
+        "hash_spaces": [
+          "observed_content_hash",
+          "evidence_pool_hash"
+        ],
+        "parent_gold_ledger_hash_bp_b": "c0f6a70ccd01a0bc4bb1f8807f222388a0e819317c46c710da18272e060451ed",
+        "rebound_observed_content_hash": "706661a2255e3462235c07b58d19a6bada4462d013e79a0767bd379c31489773"
+      }
+    },
+    {
+      "after_snapshot": {
+        "case_id": "C10-supported-multiclaim-multicitation",
+        "after_content": "免费版 API 速率上限为每分钟 100 次。\n企业版 API 速率上限为每分钟 5000 次。",
+        "after_content_hash": "sha256:fcc0f9cf46e0415c4e6b2e392cb76021a823d141bc6d96582a2a2b6746b24ed2",
+        "observed_evidence_ids": [
+          "E1",
+          "E2"
+        ],
+        "observed_pool_sha256": "8af60e0d8ed6d1565d54c7736780e3e6b80dafca778e3ad1b87fab272acdb653",
+        "after_source": "compatibility_materialization_author_owned",
+        "llm_called": false,
+        "formal_measurement": false,
+        "product_stream": false
+      },
+      "rebound_gold": {
+        "case_id": "C10-supported-multiclaim-multicitation",
+        "content_binding": {
+          "kind": "observed_after",
+          "content_sha256": "fcc0f9cf46e0415c4e6b2e392cb76021a823d141bc6d96582a2a2b6746b24ed2",
+          "rebound_from": "human_claim_gold_v1::C10-supported-multiclaim-multicitation",
+          "parent_ledger": "w10-eb-generation-claim-gold-v1.json",
+          "parent_kind": "synthetic_authored"
+        },
+        "gated_pool_binding": {
+          "evidence_ids": [
+            "E1",
+            "E2"
+          ],
+          "pool_sha256": "8af60e0d8ed6d1565d54c7736780e3e6b80dafca778e3ad1b87fab272acdb653"
+        },
+        "denominator_policy": "exclude_refusal_boilerplate",
+        "asserted_claims": [
+          {
+            "claim_id": "C10-supported-multiclaim-multicitation::c01",
+            "text": "免费版 API 速率上限为每分钟 100 次。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E1"
+            ],
+            "support_span_notes": "E1 explicitly states the free plan API rate limit."
+          },
+          {
+            "claim_id": "C10-supported-multiclaim-multicitation::c02",
+            "text": "企业版 API 速率上限为每分钟 5000 次。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E2"
+            ],
+            "support_span_notes": "E2 explicitly states the enterprise plan API rate limit."
+          }
+        ],
+        "notes": "BP-A_REBOUND_FOR_COMPATIBILITY. after_source=compatibility_materialization_author_owned. content_sha256 uses observed_content codec (content string), not claim_texts payload. Does not prove live product LLM faithfulness. E-B_FORMAL_READY=NO."
+      },
+      "binding_artifact": {
+        "protocol_version": "w10_eb17_binding_gate_v1",
+        "artifact_kind": "AFTER_GOLD_BINDING",
+        "after_case_id": "C10-supported-multiclaim-multicitation",
+        "gold_case_id": "C10-supported-multiclaim-multicitation",
+        "binding_policy": "observed_after",
+        "after_content_hash": "sha256:fcc0f9cf46e0415c4e6b2e392cb76021a823d141bc6d96582a2a2b6746b24ed2",
+        "gold_content_sha256": "fcc0f9cf46e0415c4e6b2e392cb76021a823d141bc6d96582a2a2b6746b24ed2",
+        "gold_content_binding_kind": "observed_after",
+        "observed_evidence_ids": [
+          "E1",
+          "E2"
+        ],
+        "gold_evidence_ids": [
+          "E1",
+          "E2"
+        ],
+        "observed_pool_sha256": "8af60e0d8ed6d1565d54c7736780e3e6b80dafca778e3ad1b87fab272acdb653",
+        "gold_pool_sha256": "8af60e0d8ed6d1565d54c7736780e3e6b80dafca778e3ad1b87fab272acdb653",
+        "notes": "E-B18 BP-A compatibility materialization"
+      },
+      "binding_verdict": "BOUND",
+      "details": {
+        "formal_candidate_codec": true,
+        "compatibility_proof_only": true,
+        "product_faithfulness_proven": false,
+        "hash_spaces": [
+          "observed_content_hash",
+          "evidence_pool_hash"
+        ],
+        "parent_gold_ledger_hash_bp_b": "1ad3e86f3d075b2ccbc0be6a6c77298cd78cb6ec6f7221184dc09d3bdd0febec",
+        "rebound_observed_content_hash": "fcc0f9cf46e0415c4e6b2e392cb76021a823d141bc6d96582a2a2b6746b24ed2"
+      }
+    },
+    {
+      "after_snapshot": {
+        "case_id": "C11-citation-format-only-defect",
+        "after_content": "生产环境备份的保留期限为 30 天。",
+        "after_content_hash": "sha256:c1115c36b5616ef4ab637be4a8b2e353cbface2e24e2d39d52befdd069735c68",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "1e38788ed0f8a8479bed6c2519a577be7fd60b97d33ec1765279b88c781d25db",
+        "after_source": "compatibility_materialization_author_owned",
+        "llm_called": false,
+        "formal_measurement": false,
+        "product_stream": false
+      },
+      "rebound_gold": {
+        "case_id": "C11-citation-format-only-defect",
+        "content_binding": {
+          "kind": "observed_after",
+          "content_sha256": "c1115c36b5616ef4ab637be4a8b2e353cbface2e24e2d39d52befdd069735c68",
+          "rebound_from": "human_claim_gold_v1::C11-citation-format-only-defect",
+          "parent_ledger": "w10-eb-generation-claim-gold-v1.json",
+          "parent_kind": "synthetic_authored"
+        },
+        "gated_pool_binding": {
+          "evidence_ids": [
+            "E1"
+          ],
+          "pool_sha256": "1e38788ed0f8a8479bed6c2519a577be7fd60b97d33ec1765279b88c781d25db"
+        },
+        "denominator_policy": "exclude_refusal_boilerplate",
+        "asserted_claims": [
+          {
+            "claim_id": "C11-citation-format-only-defect::c01",
+            "text": "生产环境备份的保留期限为 30 天。",
+            "label": "supported",
+            "supporting_evidence_ids": [
+              "E1"
+            ],
+            "support_span_notes": "E1 explicitly states the backup retention period."
+          }
+        ],
+        "notes": "BP-A_REBOUND_FOR_COMPATIBILITY. after_source=compatibility_materialization_author_owned. content_sha256 uses observed_content codec (content string), not claim_texts payload. Does not prove live product LLM faithfulness. E-B_FORMAL_READY=NO."
+      },
+      "binding_artifact": {
+        "protocol_version": "w10_eb17_binding_gate_v1",
+        "artifact_kind": "AFTER_GOLD_BINDING",
+        "after_case_id": "C11-citation-format-only-defect",
+        "gold_case_id": "C11-citation-format-only-defect",
+        "binding_policy": "observed_after",
+        "after_content_hash": "sha256:c1115c36b5616ef4ab637be4a8b2e353cbface2e24e2d39d52befdd069735c68",
+        "gold_content_sha256": "c1115c36b5616ef4ab637be4a8b2e353cbface2e24e2d39d52befdd069735c68",
+        "gold_content_binding_kind": "observed_after",
+        "observed_evidence_ids": [
+          "E1"
+        ],
+        "gold_evidence_ids": [
+          "E1"
+        ],
+        "observed_pool_sha256": "1e38788ed0f8a8479bed6c2519a577be7fd60b97d33ec1765279b88c781d25db",
+        "gold_pool_sha256": "1e38788ed0f8a8479bed6c2519a577be7fd60b97d33ec1765279b88c781d25db",
+        "notes": "E-B18 BP-A compatibility materialization"
+      },
+      "binding_verdict": "BOUND",
+      "details": {
+        "formal_candidate_codec": true,
+        "compatibility_proof_only": true,
+        "product_faithfulness_proven": false,
+        "hash_spaces": [
+          "observed_content_hash",
+          "evidence_pool_hash"
+        ],
+        "parent_gold_ledger_hash_bp_b": "d352eabf30d41cd694221200d5a03d773127cd011b9f07b2aa319f4c6d83b5da",
+        "rebound_observed_content_hash": "c1115c36b5616ef4ab637be4a8b2e353cbface2e24e2d39d52befdd069735c68"
+      }
+    }
+  ]
+}

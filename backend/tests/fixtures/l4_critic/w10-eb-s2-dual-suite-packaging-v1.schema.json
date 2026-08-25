@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "w10-eb-s2-dual-suite-packaging-v1.schema.json",
+  "title": "W10 E-B11 S2 dual-suite packaging (prep contract)",
+  "description": "S2 companion packaging: W9 Critic frozen-12 primary envelope plus w10_eb_empty_gate_v1 companion for T4 empty_gate_refuse_ok. Prep/schema-example only. Does not authorize formal dual-suite write and does not clear E-B_FORMAL_READY. Forbidden: Critic oracle, LLM judge, E-A5/P2-R3 reuse, silent merge into w9_critic_frozen_12.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "suite_strategy",
+    "artifact_kind",
+    "parent_observation_protocol",
+    "primary_suite",
+    "companion_suite",
+    "composition_rules",
+    "authorization"
+  ],
+  "not": {
+    "anyOf": [
+      { "required": ["expected_action"] },
+      { "required": ["oracle_cases"] },
+      { "required": ["oracle_case"] },
+      { "required": ["critic_score"] },
+      { "required": ["critic_capability"] },
+      { "required": ["capability_label"] },
+      { "required": ["w9_critic_oracle"] },
+      { "required": ["critic_actions"] },
+      { "required": ["per_case_result"] },
+      { "required": ["adapter_protocol_version"] },
+      { "required": ["scorer_observation_point"] },
+      { "required": ["scope_compliance_pass"] },
+      { "required": ["measurement_validity"] },
+      { "required": ["formal_observation_result"] },
+      { "required": ["targets_measured"] },
+      { "required": ["llm_judge"] },
+      { "required": ["auto_label"] },
+      { "required": ["ea5_formal_reuse"] },
+      { "required": ["p2_r3_formal_reuse"] },
+      { "required": ["execute_frozen_case"] }
+    ]
+  },
+  "properties": {
+    "protocol_version": {
+      "type": "string",
+      "const": "w10_eb_s2_dual_suite_packaging_v1"
+    },
+    "suite_strategy": {
+      "type": "string",
+      "const": "S2_companion"
+    },
+    "artifact_kind": {
+      "type": "string",
+      "const": "S2_DUAL_SUITE_PACKAGING_SCHEMA_EXAMPLE"
+    },
+    "parent_observation_protocol": {
+      "type": "string",
+      "const": "w10_eb1_generation_observation_v1"
+    },
+    "notes": {
+      "type": ["string", "null"]
+    },
+    "primary_suite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["suite_id", "case_count", "observation_protocol", "targets"],
+      "properties": {
+        "suite_id": {
+          "type": "string",
+          "const": "w9_critic_frozen_12"
+        },
+        "case_count": {
+          "type": "integer",
+          "const": 12
+        },
+        "observation_protocol": {
+          "type": "string",
+          "const": "w10_eb2_generation_observation_v1"
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": { "type": "string" },
+          "const": ["T1", "T2", "T3"]
+        }
+      }
+    },
+    "companion_suite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["suite_id", "case_count", "purpose", "targets"],
+      "properties": {
+        "suite_id": {
+          "type": "string",
+          "const": "w10_eb_empty_gate_v1"
+        },
+        "case_count": {
+          "type": "integer",
+          "const": 2
+        },
+        "purpose": {
+          "type": "string",
+          "const": "empty_gate_refuse_ok"
+        },
+        "targets": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "items": { "type": "string" },
+          "const": ["T4_empty_gate_refuse_ok"]
+        }
+      }
+    },
+    "composition_rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "w9_case_count_immutable",
+        "forbid_merge_into_w9",
+        "forbid_c04_c07_empty_gate_substitution",
+        "empty_gate_cases_required_for_t4",
+        "separate_envelopes_or_combo_reference"
+      ],
+      "properties": {
+        "w9_case_count_immutable": { "type": "boolean", "const": true },
+        "forbid_merge_into_w9": { "type": "boolean", "const": true },
+        "forbid_c04_c07_empty_gate_substitution": { "type": "boolean", "const": true },
+        "empty_gate_cases_required_for_t4": { "type": "boolean", "const": true },
+        "separate_envelopes_or_combo_reference": { "type": "boolean", "const": true }
+      }
+    },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "E_B_FORMAL_READY",
+        "packaging_contract_ready",
+        "authorized_formal_write"
+      ],
+      "properties": {
+        "E_B_FORMAL_READY": { "type": "string", "const": "NO" },
+        "packaging_contract_ready": { "type": "string", "const": "YES" },
+        "authorized_formal_write": { "type": "boolean", "const": false }
+      }
+    }
+  }
+}

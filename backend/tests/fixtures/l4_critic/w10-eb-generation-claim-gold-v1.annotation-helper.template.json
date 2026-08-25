@@ -1,0 +1,168 @@
+{
+  "protocol_version": "w10_eb_generation_claim_gold_annotation_helper_v1",
+  "artifact_kind": "CLAIM_GOLD_ANNOTATION_HELPER_TEMPLATE",
+  "parent_gold_protocol": "w10_eb_generation_claim_gold_v1",
+  "parent_prep_protocol": "w10_eb_generation_claim_gold_annotation_prep_v1",
+  "parent_observation_protocol": "w10_eb1_generation_observation_v1",
+  "frozen_source_protocol": "w9_critic_model_inputs_v1",
+  "frozen_source_filename": "w9-critic-cases.json",
+  "target_gold_filename": "w10-eb-generation-claim-gold-v1.json",
+  "annotation_status": "AWAITING_HUMAN",
+  "fill_policy": "human_only_no_auto_label",
+  "created_by": "e-b12a-annotation-helper-prep",
+  "notes": "ANNOTATION_HELPER_PREP_ONLY. Displays frozen query + evidence chunks; human annotators fill claims. No model answers, Critic oracle, LLM judge, or auto-label. Formal gold path remains absent.",
+  "claim_row_template": {
+    "claim_id": "",
+    "claim_text": "",
+    "label": null,
+    "supporting_evidence_ids": [],
+    "annotation_notes": null
+  },
+  "cases": [
+    {
+      "case_id": "C01-fully-supported-exact",
+      "query": "生产备份保留多久？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "生产环境备份的保留期限为 30 天。"
+        }
+      ],
+      "claims": []
+    },
+    {
+      "case_id": "C02-supported-paraphrase-low-lexical",
+      "query": "报销申请最迟什么时候提交？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "员工应于费用发生之日起 30 日内提交报销申请。"
+        }
+      ],
+      "claims": []
+    },
+    {
+      "case_id": "C03-one-unsupported-among-supported",
+      "query": "基础版的存储和电话支持是什么？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "基础版包含 5 GB 存储空间，支持渠道为电子邮件。"
+        }
+      ],
+      "claims": []
+    },
+    {
+      "case_id": "C04-valid-citation-wrong-evidence",
+      "query": "管理员初始密码是什么？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "系统不设置通用默认密码；管理员首次登录须通过一次性链接创建密码。"
+        }
+      ],
+      "claims": []
+    },
+    {
+      "case_id": "C05-known-conflict-overcertain",
+      "query": "生产备份统一保留多久？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "生产环境备份保留 30 天。"
+        },
+        {
+          "chunk_id": "E2",
+          "content": "生产环境备份保留 90 天。"
+        }
+      ],
+      "claims": []
+    },
+    {
+      "case_id": "C06-required-fact-missing",
+      "query": "企业版最多支持多少成员？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "企业版的成员数量可由管理员配置。本文未列出数量上限。"
+        }
+      ],
+      "claims": []
+    },
+    {
+      "case_id": "C07-correct-insufficiency-refusal",
+      "query": "管理员初始密码是什么？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "系统不设置通用默认密码。"
+        }
+      ],
+      "claims": []
+    },
+    {
+      "case_id": "C08-nonassertive-preface-supported-fact",
+      "query": "企业版 API 调用上限是多少？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "企业版租户的 API 速率上限为每分钟 5000 次。"
+        }
+      ],
+      "claims": []
+    },
+    {
+      "case_id": "C09-supported-plus-unverifiable",
+      "query": "维护窗口是什么时候，未来会不会变？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "当前固定维护窗口为每周日 02:00 至 04:00；后续安排以新公告为准。"
+        }
+      ],
+      "claims": []
+    },
+    {
+      "case_id": "C10-supported-multiclaim-multicitation",
+      "query": "免费版和企业版的 API 限额分别是多少？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "免费版 API 速率上限为每分钟 100 次。"
+        },
+        {
+          "chunk_id": "E2",
+          "content": "企业版 API 速率上限为每分钟 5000 次。"
+        }
+      ],
+      "claims": []
+    },
+    {
+      "case_id": "C11-citation-format-only-defect",
+      "query": "生产备份保留多久？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "生产环境备份的保留期限为 30 天。"
+        }
+      ],
+      "claims": []
+    },
+    {
+      "case_id": "C12-out-of-scope-provenance",
+      "query": "企业版是否可导出完整审计日志？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E-OUT",
+          "content": "企业版可导出完整审计日志。"
+        }
+      ],
+      "claims": []
+    }
+  ],
+  "gates": {
+    "E_B12A_ANNOTATION_HELPER_READY": "YES",
+    "E_B_CLAIM_GOLD_ANNOTATED": "NO",
+    "E_B_FORMAL_READY": "NO"
+  }
+}

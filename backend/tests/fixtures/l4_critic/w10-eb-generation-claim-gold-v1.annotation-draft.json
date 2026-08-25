@@ -1,0 +1,314 @@
+{
+  "artifact_kind": "CLAIM_GOLD_ANNOTATION_DRAFT",
+  "parent_gold_protocol": "w10_eb_generation_claim_gold_v1",
+  "frozen_source_filename": "w9-critic-cases.json",
+  "target_gold_filename": "w10-eb-generation-claim-gold-v1.json",
+  "annotation_status": "ANNOTATED",
+  "fill_policy": "human_only_no_auto_label",
+  "created_by": "human_annotator",
+  "notes": "HUMAN_ANNOTATION_DRAFT_COMPLETE. Frozen case_id/query/evidence_chunks preserved. C01–C11 claims filled by human_annotator; C12 claims=[] (exclusion). No answers, oracle, Critic, LLM, or auto-label. Materialized formal gold is w10-eb-generation-claim-gold-v1.json; E_B_FORMAL_READY stays NO.",
+  "cases": [
+    {
+      "case_id": "C01-fully-supported-exact",
+      "query": "生产备份保留多久？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "生产环境备份的保留期限为 30 天。"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "C01-fully-supported-exact::c01",
+          "claim_text": "生产环境备份的保留期限为 30 天。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "annotation_notes": "Directly supported by E1."
+        }
+      ]
+    },
+    {
+      "case_id": "C02-supported-paraphrase-low-lexical",
+      "query": "报销申请最迟什么时候提交？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "员工应于费用发生之日起 30 日内提交报销申请。"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "C02-supported-paraphrase-low-lexical::c01",
+          "claim_text": "员工应于费用发生之日起 30 日内提交报销申请。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "annotation_notes": "Directly supported by E1."
+        }
+      ]
+    },
+    {
+      "case_id": "C03-one-unsupported-among-supported",
+      "query": "基础版的存储和电话支持是什么？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "基础版包含 5 GB 存储空间，支持渠道为电子邮件。"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "C03-one-unsupported-among-supported::c01",
+          "claim_text": "基础版包含 5 GB 存储空间。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "annotation_notes": "Directly supported by E1."
+        },
+        {
+          "claim_id": "C03-one-unsupported-among-supported::c02",
+          "claim_text": "基础版提供电话支持。",
+          "label": "unsupported",
+          "supporting_evidence_ids": [],
+          "annotation_notes": "E1 states email support channel, not phone support."
+        }
+      ]
+    },
+    {
+      "case_id": "C04-valid-citation-wrong-evidence",
+      "query": "管理员初始密码是什么？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "系统不设置通用默认密码；管理员首次登录须通过一次性链接创建密码。"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "C04-valid-citation-wrong-evidence::c01",
+          "claim_text": "管理员首次登录须通过一次性链接创建密码。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "annotation_notes": "E1 explicitly states the one-time link password creation process."
+        },
+        {
+          "claim_id": "C04-valid-citation-wrong-evidence::c02",
+          "claim_text": "系统设置通用默认密码。",
+          "label": "unsupported",
+          "supporting_evidence_ids": [],
+          "annotation_notes": "E1 explicitly states that no universal default password exists."
+        }
+      ]
+    },
+    {
+      "case_id": "C05-known-conflict-overcertain",
+      "query": "生产备份统一保留多久？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "生产环境备份保留 30 天。"
+        },
+        {
+          "chunk_id": "E2",
+          "content": "生产环境备份保留 90 天。"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "C05-known-conflict-overcertain::c01",
+          "claim_text": "生产环境备份保留30天。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "annotation_notes": "E1 supports this retention period, but E2 provides conflicting information."
+        },
+        {
+          "claim_id": "C05-known-conflict-overcertain::c02",
+          "claim_text": "生产环境备份保留90天。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E2"
+          ],
+          "annotation_notes": "E2 supports this retention period, but E1 provides conflicting information."
+        }
+      ]
+    },
+    {
+      "case_id": "C06-required-fact-missing",
+      "query": "企业版最多支持多少成员？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "企业版的成员数量可由管理员配置。本文未列出数量上限。"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "C06-required-fact-missing::c01",
+          "claim_text": "企业版的成员数量可由管理员配置。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "annotation_notes": "E1 explicitly states that member count can be configured by administrators."
+        },
+        {
+          "claim_id": "C06-required-fact-missing::c02",
+          "claim_text": "企业版没有固定成员数量上限。",
+          "label": "unverifiable",
+          "supporting_evidence_ids": [],
+          "annotation_notes": "E1 states that the limit is not listed, but does not prove there is no limit."
+        }
+      ]
+    },
+    {
+      "case_id": "C07-correct-insufficiency-refusal",
+      "query": "管理员初始密码是什么？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "系统不设置通用默认密码。"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "C07-correct-insufficiency-refusal::c01",
+          "claim_text": "系统不设置通用默认密码。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "annotation_notes": "E1 explicitly states that no universal default password exists."
+        }
+      ]
+    },
+    {
+      "case_id": "C08-nonassertive-preface-supported-fact",
+      "query": "企业版 API 调用上限是多少？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "企业版租户的 API 速率上限为每分钟 5000 次。"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "C08-nonassertive-preface-supported-fact::c01",
+          "claim_text": "企业版租户的 API 速率上限为每分钟 5000 次。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "annotation_notes": "Directly supported by E1."
+        }
+      ]
+    },
+    {
+      "case_id": "C09-supported-plus-unverifiable",
+      "query": "维护窗口是什么时候，未来会不会变？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "当前固定维护窗口为每周日 02:00 至 04:00；后续安排以新公告为准。"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "C09-supported-plus-unverifiable::c01",
+          "claim_text": "当前固定维护窗口为每周日 02:00 至 04:00。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "annotation_notes": "Directly supported by E1."
+        },
+        {
+          "claim_id": "C09-supported-plus-unverifiable::c02",
+          "claim_text": "后续安排以新公告为准。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "annotation_notes": "E1 states that future arrangements follow new announcements."
+        }
+      ]
+    },
+    {
+      "case_id": "C10-supported-multiclaim-multicitation",
+      "query": "免费版和企业版的 API 限额分别是多少？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "免费版 API 速率上限为每分钟 100 次。"
+        },
+        {
+          "chunk_id": "E2",
+          "content": "企业版 API 速率上限为每分钟 5000 次。"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "C10-supported-multiclaim-multicitation::c01",
+          "claim_text": "免费版 API 速率上限为每分钟 100 次。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "annotation_notes": "E1 explicitly states the free plan API rate limit."
+        },
+        {
+          "claim_id": "C10-supported-multiclaim-multicitation::c02",
+          "claim_text": "企业版 API 速率上限为每分钟 5000 次。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E2"
+          ],
+          "annotation_notes": "E2 explicitly states the enterprise plan API rate limit."
+        }
+      ]
+    },
+    {
+      "case_id": "C11-citation-format-only-defect",
+      "query": "生产备份保留多久？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E1",
+          "content": "生产环境备份的保留期限为 30 天。"
+        }
+      ],
+      "claims": [
+        {
+          "claim_id": "C11-citation-format-only-defect::c01",
+          "claim_text": "生产环境备份的保留期限为 30 天。",
+          "label": "supported",
+          "supporting_evidence_ids": [
+            "E1"
+          ],
+          "annotation_notes": "E1 explicitly states the backup retention period."
+        }
+      ]
+    },
+    {
+      "case_id": "C12-out-of-scope-provenance",
+      "query": "企业版是否可导出完整审计日志？",
+      "evidence_chunks": [
+        {
+          "chunk_id": "E-OUT",
+          "content": "企业版可导出完整审计日志。"
+        }
+      ],
+      "claims": []
+    }
+  ],
+  "gates": {
+    "E_B_CLAIM_GOLD_ANNOTATED": "YES",
+    "E_B_FORMAL_READY": "NO"
+  }
+}
