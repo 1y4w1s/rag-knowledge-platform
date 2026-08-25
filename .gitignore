@@ -110,12 +110,13 @@ backend/=*,
 /.env.example
 /.env.production.example
 
-# docs/ default private; narrow allowlist for formal W10 research protocol (E-B35a.3)
+# docs/ default private; narrow allowlist for formal W10 research + V1.0 closure inventory
 /docs/*
 !/docs/research/
 /docs/research/*
 !/docs/research/w10-*/
 !/docs/research/w10-*.md
+!/docs/research/v1-0-closure*/
 !/docs/research/project-boundary/
 /docs/research/project-boundary/*
 !/docs/research/project-boundary/w10-*.md

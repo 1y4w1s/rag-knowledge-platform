@@ -7,6 +7,17 @@
 
 ---
 
+## V1.0-C0 · Current Capability Inventory & Cut-Line Preparation（2026-08-25）✅ **INVENTORY COMPLETE · AWAIT REVIEW · NO COMMIT**
+
+- **范围**：repo-internal audit only — inspect/classify/verify/document；**不**实现功能 · **不**改 flag · **不**改 CI/scorer · **不**开 E-B45/W11 · **不** commit。
+- **输入锚**：`W10_CLOSED=YES` · Formal T1 MEASURED（Showcase T1-only 11/11 citation-scope；≠ Agent/RAG accuracy 100%）· HEAD `f06e8d92…`。
+- **盘点**：34 capabilities · IMPLEMENTED 22 / PARTIAL 8 / EXPERIMENTAL 2 / STUB 2 · `NEW_CAPABILITY_REQUIRED_FOR_V1_0=NO`。
+- **默认面**：L3/Critic/rerank/HyDE/rewrite/graph/L4 **OFF**（safe）· `agent_memory_enabled=True`（infra ON；utilization **未**产品化证明）。
+- **判定**：`V1_0_CI_COVERAGE=PARTIAL` · `INSTALL_PATH_STATUS=PARTIAL` · `DEMO_READINESS=GAP`。
+- **Closure blockers（候选）**：README V1 stale · Memory「Stable」overclaim · canonical demo/BROWSER 断链 · install overlay 漂移 · Formal claim 口径纪律。
+- **产物**：[`docs/research/v1-0-closure-inventory/`](../research/v1-0-closure-inventory/)（README + 01–08）。
+- **停手**：等待人工 review；勿自动 README rewrite / Demo 实现 / install fix / v1.0 功能实现。
+
 ## W10 Closure · Final Evidence & Claim Freeze（2026-08-25）✅ **W10_CLOSED · NEXT = V1_0_CLOSURE**
 
 - **范围**：只汇总 W10 证据链与可声明结论；**不**新增 evaluation semantics / scorer / acquisition / protocol / capability / Agent feature。
