@@ -109,7 +109,19 @@ backend/=*,
 /AGENTS.md
 /.env.example
 /.env.production.example
-/docs/
+
+# docs/ default private; narrow allowlist for formal W10 research protocol (E-B35a.3)
+/docs/*
+!/docs/research/
+/docs/research/*
+!/docs/research/w10-*/
+!/docs/research/w10-*.md
+!/docs/research/project-boundary/
+/docs/research/project-boundary/*
+!/docs/research/project-boundary/w10-*.md
+!/docs/status/
+/docs/status/*
+!/docs/status/progress.md
 
 # Local env / temp artifacts - do NOT commit
 frontend/.env.development

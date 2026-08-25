@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "w10-eb2-generation-observation-contract.schema.json",
+  "title": "W10 E-B2 generation observation reserved artifact (schema freeze only)",
+  "description": "Contract for future reserved file w10-eb2-generation-observation-result.json. This schema document is NOT a formal observation result. observation_point must be generation_final_content_and_citations. Allowed claim: generation observation artifact produced. Forbidden: generation quality proven; grounding proven; Critic validated. Reject E-A5 / P2-R3 / Critic oracle reuse. Do not overwrite w10-ea4-formal-window-result.json.",
+  "type": "object",
+  "required": [
+    "protocol_version",
+    "artifact_schema_version",
+    "run_id",
+    "base_sha",
+    "suite_id",
+    "case_count",
+    "runner_id",
+    "runner_module",
+    "eligibility_protocol_id",
+    "parent_protocol_id",
+    "eligibility_summary",
+    "per_case_observation",
+    "measurement_validity",
+    "measurement_claims",
+    "p2_r1_status",
+    "does_not_unblock_p2_r1",
+    "observation_point",
+    "artifact_kind"
+  ],
+  "properties": {
+    "protocol_version": {
+      "type": "string",
+      "const": "w10_eb2_generation_observation_v1"
+    },
+    "artifact_schema_version": {
+      "type": "string",
+      "const": "w10-eb2-generation-observation-v1"
+    },
+    "run_id": { "type": "string", "minLength": 1 },
+    "base_sha": { "type": "string", "minLength": 7 },
+    "suite_id": { "type": "string", "const": "w9_critic_frozen_12" },
+    "case_count": { "type": "integer", "const": 12 },
+    "runner_id": {
+      "type": "string",
+      "const": "w10_eb2_generation_observation_runner"
+    },
+    "runner_module": {
+      "type": "string",
+      "const": "tests.w10_eb2_generation_observation_contract"
+    },
+    "eligibility_protocol_id": {
+      "type": "string",
+      "const": "w10_ea1_scope_eligibility"
+    },
+    "parent_protocol_id": {
+      "type": "string",
+      "const": "w10_eb1_generation_observation_v1"
+    },
+    "observation_point": {
+      "type": "string",
+      "const": "generation_final_content_and_citations"
+    },
+    "p2_r1_status": { "type": "string", "const": "BLOCKED" },
+    "does_not_unblock_p2_r1": { "type": "boolean", "const": true },
+    "artifact_kind": {
+      "type": "string",
+      "enum": ["SCHEMA_EXAMPLE_NOT_A_RUN", "FORMAL_OBSERVATION_RESULT"]
+    },
+    "eligibility_summary": { "type": "object" },
+    "per_case_observation": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": [
+          "case_id",
+          "eligibility",
+          "classification",
+          "input_hash",
+          "gen_plan_reference",
+          "final_content_observation",
+          "final_citations",
+          "scope_compliance_result",
+          "grounding_observation_status",
+          "refusal_observation_status"
+        ]
+      }
+    },
+    "measurement_validity": { "type": "object" },
+    "measurement_claims": { "type": "object" },
+    "parent_l0_artifact": { "type": ["string", "null"] },
+    "timestamp": { "type": "string" },
+    "notes": { "type": "string" }
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "w10-ea4-formal-window-contract.schema.json",
+  "title": "W10 E-A4 formal window reserved artifact (schema freeze only)",
+  "description": "Contract for future reserved file w10-ea4-formal-window-result.json. This file is NOT a formal run result. Allowed claim: plan-construction citation scope compliance. Forbidden claims: generation-final safety; Critic oracle capability; P2-R1 unblocked. Runner must be w10_ea4_formal_window_runner (not execute_frozen_case, not P2-R3).",
+  "type": "object",
+  "required": [
+    "protocol_version",
+    "artifact_schema_version",
+    "run_id",
+    "base_sha",
+    "suite_id",
+    "case_count",
+    "runner_id",
+    "runner_module",
+    "adapter_protocol_version",
+    "eligibility_protocol_id",
+    "eligibility_summary",
+    "per_case_result",
+    "measurement_validity",
+    "measurement_claims",
+    "p2_r1_status",
+    "does_not_unblock_p2_r1",
+    "observation_point",
+    "artifact_kind"
+  ],
+  "properties": {
+    "protocol_version": { "type": "string", "const": "1.0.0" },
+    "artifact_schema_version": {
+      "type": "string",
+      "const": "w10-ea4-formal-window-v1"
+    },
+    "run_id": { "type": "string", "minLength": 1 },
+    "base_sha": { "type": "string", "minLength": 7 },
+    "suite_id": { "type": "string", "const": "w9_critic_frozen_12" },
+    "case_count": { "type": "integer", "const": 12 },
+    "runner_id": {
+      "type": "string",
+      "const": "w10_ea4_formal_window_runner"
+    },
+    "runner_module": {
+      "type": "string",
+      "const": "tests.w10_ea4_formal_window_contract"
+    },
+    "adapter_protocol_version": {
+      "type": "string",
+      "const": "w10_ea2_scope_eligibility_v1"
+    },
+    "eligibility_protocol_id": {
+      "type": "string",
+      "const": "w10_ea1_scope_eligibility"
+    },
+    "observation_point": {
+      "type": "string",
+      "const": "plan_construction_citations"
+    },
+    "p2_r1_status": { "type": "string", "const": "BLOCKED" },
+    "does_not_unblock_p2_r1": { "type": "boolean", "const": true },
+    "artifact_kind": {
+      "type": "string",
+      "enum": ["FORMAL_RUN_RESULT", "SCHEMA_EXAMPLE_NOT_A_RUN"]
+    },
+    "eligibility_summary": { "type": "object" },
+    "per_case_result": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12
+    },
+    "measurement_validity": { "type": "object" },
+    "measurement_claims": { "type": "object" },
+    "timestamp": { "type": "string" },
+    "notes": { "type": "string" }
+  }
+}

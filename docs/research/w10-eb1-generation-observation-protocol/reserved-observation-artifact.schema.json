@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "w10-eb1-generation-observation-protocol.schema.json",
+  "title": "W10 E-B1 generation observation reserved artifact (RESEARCH DRAFT — not a run result)",
+  "description": "Draft envelope for a future file named w10-eb1-generation-observation-result.json. This file is NOT a formal observation result. Observation point must be generation_final_content_and_citations (not plan_construction_citations). Forbidden: generation quality PASS; Critic oracle capability; merging with E-A5; P2-R1 unblocked. Do not overwrite w10-ea4-formal-window-result.json.",
+  "type": "object",
+  "required": [
+    "protocol_version",
+    "artifact_schema_version",
+    "observation_point",
+    "artifact_kind",
+    "p2_r1_status",
+    "does_not_unblock_p2_r1",
+    "measurement_claims",
+    "eligibility_summary",
+    "per_case_observation"
+  ],
+  "properties": {
+    "protocol_version": {
+      "type": "string",
+      "const": "w10_eb1_generation_observation_v1"
+    },
+    "artifact_schema_version": {
+      "type": "string",
+      "const": "w10-eb1-generation-observation-v1"
+    },
+    "run_id": { "type": "string", "minLength": 1 },
+    "base_sha": { "type": "string", "minLength": 7 },
+    "suite_id": { "type": "string", "minLength": 1 },
+    "case_count": { "type": "integer", "minimum": 0 },
+    "runner_id": { "type": "string" },
+    "eligibility_protocol_id": {
+      "type": "string",
+      "const": "w10_ea1_scope_eligibility"
+    },
+    "parent_l0_artifact": { "type": ["string", "null"] },
+    "observation_point": {
+      "type": "string",
+      "const": "generation_final_content_and_citations"
+    },
+    "p2_r1_status": { "type": "string", "const": "BLOCKED" },
+    "does_not_unblock_p2_r1": { "type": "boolean", "const": true },
+    "artifact_kind": {
+      "type": "string",
+      "enum": ["SCHEMA_EXAMPLE_NOT_A_RUN", "FORMAL_OBSERVATION_RESULT"]
+    },
+    "eligibility_summary": {
+      "type": "object",
+      "properties": {
+        "empty_retrieval_eligible_count": { "type": "integer", "minimum": 0 },
+        "refusal_gold_empty_gate_count": { "type": "integer", "minimum": 0 },
+        "c12_in_denominator": { "type": "boolean" },
+        "targets_measured": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "per_case_observation": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["case_id", "product_path_eligible"],
+        "properties": {
+          "case_id": { "type": "string" },
+          "product_path_eligible": { "type": "boolean" },
+          "content": { "type": ["string", "null"] },
+          "final_citations": { "type": ["array", "null"] },
+          "gen_plan_refusal": { "type": ["boolean", "null"] },
+          "align_bucket": {
+            "type": ["string", "null"],
+            "enum": [
+              "shrink",
+              "keep_all",
+              "refuse_empty",
+              "fail_closed_empty",
+              "not_aligned",
+              null
+            ]
+          },
+          "t1_final_citation_scope_valid": { "type": ["boolean", "null"] },
+          "t2_unsupported_claim_count": { "type": ["integer", "null"] },
+          "t3_grounded_rate": { "type": ["number", "null"] },
+          "t4_empty_gate_refuse_ok": { "type": ["boolean", "null"] }
+        }
+      }
+    },
+    "measurement_validity": { "type": "object" },
+    "measurement_claims": {
+      "type": "object",
+      "required": ["allowed", "asserted", "forbidden_rejected"],
+      "properties": {
+        "allowed": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "asserted": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "forbidden_rejected": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "timestamp": { "type": "string" },
+    "notes": { "type": "string" }
+  }
+}

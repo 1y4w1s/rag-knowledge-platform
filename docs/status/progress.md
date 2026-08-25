@@ -7,6 +7,270 @@
 
 ---
 
+## W10 E-B35a.3 · Reproducible Freeze Baseline Materialization（2026-08-25）✅ **BASELINE ONLY · NO FREEZE / NO STAMP / NO FORMAL**
+
+- **范围**：修复 `WORKING_TREE_CLEAN=NO` / `BASE_SHA_PROTOCOL_COVERAGE=INCOMPLETE` — 将正式 W10 research protocol + tests/fixtures/gold/schema 纳入 Git baseline；`.gitignore` 窄 allowlist 跟踪 `docs/research/w10-*`；**不** Human Freeze · **不** Owner Stamp · **不** Formal Observation · **不** 进入 E-B35b。
+- **`.gitignore` 策略**：`/docs/*` 默认 private；显式 un-ignore `docs/research/w10-*/`、`w10-*.md`、`project-boundary/w10-*.md`、`docs/status/progress.md`；非 protocol private docs 仍 ignored。
+- **历史 artifact**：`backend/tests/fixtures/l4_critic/w10-ea4-formal-window-result.json` = **E-A5 historical parent/result fixture**（内容 pinned · 不重生成 · 内部 `base_sha` 不变 · **≠** 当前 freeze `base_sha · **≠** 当前 Formal Observation）。
+- **Companion 诚实性**：empty-gate / S2 assets tracked for reproducibility；**仍** excluded from current BP-A T1–T3 Narrow denominator；`S2_AUTHORIZED=NO` unchanged。
+- **门禁**：`E-B35A3_BASELINE_MATERIALIZED=YES` · `WORKING_TREE_CLEAN=YES`（post-commit）· `BASE_SHA_PROTOCOL_COVERAGE=COMPLETE` · `FREEZE_BASELINE_REPRODUCIBILITY_GAP=NO` · `BASE_SHA_CANDIDATE_READY=YES` · **`BASE_SHA_FROZEN=NO`** · **`SOURCE_IDENTITY_COMPLETE=NO`** · **`CAPTURE_MODE_FROZEN=NO`** · **`MAY_ISSUE_APPROVED_OWNER_STAMP=NO`** · **`OWNER_AUTHORIZATION_ISSUED=NO`** · **`SOURCE_APPROVED=NO`** · **`AFTER_SOURCE_APPROVED=NO`** · **`ACQUISITION_EXECUTION_READY=NO`** · **`E-B_FORMAL_READY=NO`** · `FORMAL_OBSERVATION=NOT_STARTED` · **`WAITING_FOR_HUMAN_BASE_SHA_CONFIRMATION=YES`**。
+- **验收**：`pytest backend/tests/test_w10_eb32_freeze_preparation.py backend/tests/test_w10_eb35a_freeze_candidate_materialization.py … -q`（W10 targeted set；**不含** E-A5 live write · **不调** LLM/API）。
+
+## W10 E-B35a · Human Freeze Candidate Materialization（2026-08-25）✅ **CANDIDATE ONLY · PENDING_HUMAN_CONFIRMATION · NO FREEZE / NO STAMP / NO ACQUISITION / NO FORMAL**
+
+- **范围**：将 E-B34 后 human owner 已接受的 Showcase 决策 + 本窗只读 git/runtime/dependency 观测，汇成 **PENDING_HUMAN_CONFIRMATION** 候选冻结记录。不真正 freeze · 不签发 stamp · 不生成 After · 不调 LM Studio/API/LLM · 不改 `backend/app` · 不自动 tick human checklist · 不进入 E-B35b。
+- **产物**：[`docs/research/w10-eb35a-freeze-candidate-materialization/`](../research/w10-eb35a-freeze-candidate-materialization/)（README + 01–06）· `backend/tests/test_w10_eb35a_freeze_candidate_materialization.py`。
+- **候选摘要**：`source/after_source=suoyin_local_research_product_after_v1` · `product_version=showcase-research-instance-v1` · `capture_mode_id=product_stream` · `model_backend_identity=none_no_llm` · `llm_called_expected=false` · `run_identity_pattern=w10_showcase_narrow_*` · `formal_model_identity=DEFER_TO_BENCHMARK_TRACK` · LM Studio = Dev Backend ≠ Narrow Formal Primary。
+- **观测**：`observed/proposed_base_sha=ef7170ae397c1292febc40f69905315e1b33d9af` · branch `test/agent-l4-w9-p3-e1-local-runtime-exploration` · **`WORKING_TREE_CLEAN=NO`** → `BASE_SHA_CANDIDATE_READY=NO` · `BASE_SHA_FREEZE_READINESS=BLOCKED_PENDING_OWNER_REVIEW` · runtime candidate `suoyin_backend_venv_cpython_3.11.9_win10_amd64` · `DEPENDENCY_SNAPSHOT_PINNED=NO`。
+- **硬分离**：`HUMAN_SUPPLIED_CANDIDATE ≠ HUMAN_FROZEN` · `observed_base_sha ≠ frozen base_sha` · `PENDING_HUMAN_CONFIRMATION ≠ FROZEN`。
+- **门禁**：`E-B35A_FREEZE_CANDIDATE_MATERIALIZED=YES` · `FREEZE_CANDIDATE_STATUS=PENDING_HUMAN_CONFIRMATION` · **`SOURCE_IDENTITY_COMPLETE=NO`** · **`CAPTURE_MODE_FROZEN=NO`** · **`MAY_ISSUE_APPROVED_OWNER_STAMP=NO`** · **`OWNER_AUTHORIZATION_ISSUED=NO`** · **`SOURCE_APPROVED=NO`** · **`AFTER_SOURCE_APPROVED=NO`** · **`ACQUISITION_EXECUTION_READY=NO`** · **`E-B_FORMAL_READY=NO`** · `FORMAL_OBSERVATION=NOT_STARTED` · **`WAITING_FOR_HUMAN_CONFIRMATION=YES`**。
+- **验收**：`pytest backend/tests/test_w10_eb35a_freeze_candidate_materialization.py -q`
+- **下一动作**：停手等待 human owner 确认（`05-human-confirmation-sheet.md`）；**不要**自动开 E-B35b。
+
+## W10 E-B34 · Showcase Track Owner Input & Human Freeze Review（2026-08-25）✅ **REVIEW ONLY · NO FREEZE / NO STAMP / NO ACQUISITION / NO FORMAL**
+
+- **范围**：Showcase Track owner freeze **评审** only — 冻结近期/长期路线定义 · 仓库可验证候选字段 · human-only 决策表 · 提案型 Showcase profile · `provenance_class` 语义澄清。不真正 freeze · 不签发 owner stamp · 不生成 After · 不调 LM Studio/API/LLM · 不改 `backend/app` · 不翻转任何 approval/ready gate · 不自动填写 `owner_identity` · 不把 current HEAD 当作 frozen `base_sha` · 不 pin concrete Formal Model Identity。
+- **产物**：[`docs/research/w10-eb34-showcase-owner-freeze-review/`](../research/w10-eb34-showcase-owner-freeze-review/)（README + 01–06）。
+- **战略**：`SHOWCASE_TRACK=PRIMARY` · `RESEARCH_BENCHMARK_TRACK=LONG_TERM` · `RESEARCH_BENCHMARK_TRACK_EXECUTED=NO`（命名禁用「路线 A/B」，避免与 E-B27 Option A/B 冲突）。
+- **模型边界**：`LOCAL_MODEL_FIRST=YES` · `LOCAL_MODEL_PINNED=NO` · `LOCAL_MODEL_AS_NARROW_FORMAL_PRIMARY=NO` · `formal_model_identity=<FILL>`；LM Studio = Development Backend ≠ Formal Evaluation Source。
+- **硬分离**：`PROPOSED ≠ FROZEN` · `REPOSITORY_VERIFIED_CANDIDATE ≠ HUMAN_FROZEN` · `provenance_class=Product After` = 目标证据类别（⇏ `AFTER_SOURCE_APPROVED`）。
+- **继承**：`E-B33_FREEZE_RECORD_DRAFT_READY=YES` · `MAY_ENTER_HUMAN_FREEZE_EXECUTION=YES` · `PRIMARY_CANDIDATE_SOURCE=A`（selected design candidate only）。
+- **门禁**：`E-B34_SHOWCASE_FREEZE_REVIEW_COMPLETE=YES` · **`SOURCE_IDENTITY_COMPLETE=NO`** · **`CAPTURE_MODE_FROZEN=NO`** · **`MAY_ISSUE_APPROVED_OWNER_STAMP=NO`** · **`OWNER_AUTHORIZATION_ISSUED=NO`** · **`SOURCE_APPROVED=NO`** · **`AFTER_SOURCE_APPROVED=NO`** · **`ACQUISITION_EXECUTION_READY=NO`** · **`E-B_FORMAL_READY=NO`** · `FORMAL_OBSERVATION=NOT_STARTED`。
+- **含义**：Showcase 冻结评审完成；**不可**当作已 freeze / 已 approved / 可 acquisition / 可 Formal Observation。下一窗：human Showcase freeze execution（owner 填 HUMAN_INPUT_REQUIRED）。
+
+## W10 E-B33 · Human Freeze Record Draft（2026-08-25）✅ **DRAFT ONLY · NO FREEZE / NO ISSUANCE / NO ACQUISITION / NO FORMAL**
+
+- **范围**：将 E-B32 freeze preparation templates 转为 **human-reviewable freeze record drafts** only — 填 repository-verified / template-fixed 字段 · 未知保持 `<FILL>` · 附未勾选 review checklist · draft verdict。不设 `freeze_status=FROZEN` · 不 source approval · 不签发 owner stamp · 不 acquisition / After / formal · 不调 LM Studio/API/LLM · 不改 `backend/app`。
+- **产物**：[`docs/research/w10-eb33-human-freeze-record-draft/`](../research/w10-eb33-human-freeze-record-draft/)（README + 01–05）。
+- **硬分离**：`Template ≠ Record` · `Record draft ≠ Approved freeze` · `provenance_class=Product After`（目标类别）⇏ After 已获得/已授权。
+- **继承**：`E-B32_FREEZE_PREPARATION_DESIGNED=YES` · `MAY_ENTER_HUMAN_FREEZE_EXECUTION=YES` · `PRIMARY_CANDIDATE_SOURCE=A`（selected design candidate only）。
+- **门禁**：`E-B33_FREEZE_RECORD_DRAFT_READY=YES` · **`SOURCE_IDENTITY_COMPLETE=NO`** · **`CAPTURE_MODE_FROZEN=NO`** · **`MAY_ISSUE_APPROVED_OWNER_STAMP=NO`** · **`OWNER_AUTHORIZATION_ISSUED=NO`** · **`SOURCE_APPROVED=NO`** · **`AFTER_SOURCE_APPROVED=NO`** · **`ACQUISITION_EXECUTION_READY=NO`** · **`E-B_FORMAL_READY=NO`** · `FORMAL_OBSERVATION=NOT_STARTED`。
+
+## W10 E-B32 · Source Identity + Capture Freeze Preparation（2026-08-25）✅ **PREPARATION ONLY · NO FREEZE / NO ISSUANCE / NO ACQUISITION / NO FORMAL**
+
+- **范围**：Human Freeze Execution 前的准备资产 only — source identity template · capture mode template · runtime/reproducibility template · human checklist · freeze execution entry gate。不执行 freeze · 不 source approval · 不签发 owner stamp · 不 acquisition / After capture / formal observation；不调 LM Studio/API/LLM；不改 `backend/app`；不翻转任何 approval/ready gate。
+- **产物**：[`docs/research/w10-eb32-freeze-preparation/`](../research/w10-eb32-freeze-preparation/)（README + 01–05）· `backend/tests/test_w10_eb32_freeze_preparation.py`。
+- **硬分离**：`Preparation ≠ Freeze` · `Template ≠ Filled Record` · `Designed ≠ Approved` · `candidate ≠ approved source` · `MAY_ENTER_HUMAN_FREEZE_EXECUTION` ⇏ `SOURCE_APPROVED` / `E-B_FORMAL_READY`。
+- **继承**：`OWNER_STAMP_PRE_ISSUANCE_VALIDATED=YES`（E-B31）· `PRIMARY_CANDIDATE_SOURCE=A`（selected design candidate only）· `OWNER_STAMP_ISSUANCE_DESIGNED=YES`（E-B30）。
+- **门禁**：`E-B32_FREEZE_PREPARATION_DESIGNED=YES` · `MAY_ENTER_HUMAN_FREEZE_EXECUTION=YES` · **`SOURCE_IDENTITY_COMPLETE=NO`** · **`CAPTURE_MODE_FROZEN=NO`** · **`MAY_ISSUE_APPROVED_OWNER_STAMP=NO`** · **`OWNER_AUTHORIZATION_ISSUED=NO`** · **`SOURCE_APPROVED=NO`** · **`AFTER_SOURCE_APPROVED=NO`** · **`ACQUISITION_EXECUTION_READY=NO`** · **`E-B_FORMAL_READY=NO`** · `FORMAL_OBSERVATION=NOT_STARTED`。
+- **含义**：freeze 模板与人工检查表已设计；**不可** 当作已 freeze / 已 approved / 可 acquisition / 可 Formal Observation。下一窗：human freeze execution（填模板 + 勾 checklist）。
+- **验收**：`pytest backend/tests/test_w10_eb32_freeze_preparation.py -q`
+
+## W10 E-B31 · Owner Stamp Pre-Issuance Validation（2026-08-25）✅ **AUDIT ONLY · NO ISSUANCE / NO ACQUISITION / NO FORMAL**
+
+- **范围**：真实 owner stamp issuance 前的完整 pre-issuance readiness audit only — 验证 schema / source identity / capture-mode / issuance gate 是否具备进入 issuance 的条件。不创建真实 owner stamp；不翻转 `OWNER_AUTHORIZATION_ISSUED` / `SOURCE_APPROVED` / `AFTER_SOURCE_APPROVED` / `CAPTURE_MODE_FROZEN`；不执行 acquisition / After capture / formal observation；不调 LM Studio/API/LLM；不改 `backend/app`。
+- **产物**：[`docs/research/w10-eb31-owner-stamp-pre-issuance-validation/`](../research/w10-eb31-owner-stamp-pre-issuance-validation/)（README + 01–05）。
+- **四检**：`STAMP_SCHEMA_COMPLETE=NO` · `SOURCE_IDENTITY_COMPLETE=NO` · `CAPTURE_MODE_FROZEN=NO`（plan READY）· `MAY_ISSUE_APPROVED_OWNER_STAMP=NO`。
+- **含义**：审计完成；**不可** APPROVED issuance / acquisition / Formal Observation。下一窗仅 human freeze（capture-mode + 四支柱 identity）。
+- **继承**：`OWNER_STAMP_ISSUANCE_DESIGNED=YES`（E-B30）· `OWNER_AUTHORIZATION_DESIGNED=YES` · `PRIMARY_CANDIDATE_SOURCE=A`（selected design candidate only）。
+- **门禁**：`OWNER_STAMP_PRE_ISSUANCE_VALIDATED=YES` · **`OWNER_AUTHORIZATION_ISSUED=NO`** · **`SOURCE_APPROVED=NO`** · **`AFTER_SOURCE_APPROVED=NO`** · **`ACQUISITION_EXECUTION_READY=NO`** · **`E-B_FORMAL_READY=NO`** · `CAPTURE_MODE_FROZEN=NO` · `FORMAL_OBSERVATION=NOT_STARTED`。
+
+## W10 E-B30 · Owner Stamp Issuance Planning（2026-08-25）✅ **PLANNING / CONTRACT ONLY · NO ISSUANCE / NO ACQUISITION / NO FORMAL**
+
+- **范围**：Owner Stamp Issuance **最终协议形状**设计 only — schema、source-identity freeze plan、capture-mode freeze plan、issuance gate、post-issuance boundary。不实际签发 stamp；不翻转 `SOURCE_APPROVED` / `AFTER_SOURCE_APPROVED`；不执行 acquisition / After capture / formal observation；不调 LM Studio/API/LLM；不改 `backend/app`。
+- **产物**：[`docs/research/w10-eb30-owner-stamp-issuance-planning/`](../research/w10-eb30-owner-stamp-issuance-planning/)（README + 01–05）。
+- **Schema 必含**：`owner_identity` · `source_identity` · `after_source_id` · `capture_mode` · `model_backend_identity` · `runtime_identity` · `base_sha` · `run_identity` · `authorization_scope` · `issued_at` · `expiration_or_review_policy`。
+- **硬分离**：`schema designed ≠ stamp issued` · `authorization issued ≠ formal ready` · issued 后仍须 After capture → Binding → Scoring → Formal gate。
+- **继承**：`OWNER_AUTHORIZATION_DESIGNED=YES`（E-B29）· `PRIMARY_CANDIDATE_SOURCE=A`（selected design candidate only）· `SOURCE_MODEL_SEPARATION_DESIGNED=YES`。
+- **门禁**：`OWNER_STAMP_ISSUANCE_DESIGNED=YES` · **`OWNER_AUTHORIZATION_ISSUED=NO`** · **`SOURCE_APPROVED=NO`** · **`AFTER_SOURCE_APPROVED=NO`** · **`ACQUISITION_EXECUTION_READY=NO`** · **`E-B_FORMAL_READY=NO`** · `CAPTURE_MODE_FROZEN=NO` · `FORMAL_OBSERVATION=NOT_STARTED`。
+- **含义**：签发协议已设计；**不可** stamp 签发 / acquisition / Formal Observation。
+
+## W10 E-B29 · Owner Authorization & After Source Preparation（2026-08-25）✅ **DESIGN ONLY · NO ACQUISITION / NO FORMAL / NO STAMP**
+
+- **范围**：owner authorization contract preparation only — stamp 模型、After-source identity checklist、capture-mode freeze 模板、acquisition entry gate、blocker resolution plan。不执行 acquisition；不生成 After；不调 LM Studio/API/LLM；不写 formal/reserved result；不签发真实 owner stamp；不改 `backend/app`；不翻转任何 approved/ready gate。
+- **产物**：[`docs/research/w10-eb29-owner-authorization-preparation/`](../research/w10-eb29-owner-authorization-preparation/)（README + 01–05）。
+- **Stamp 必含**：source identity · capture path identity · run identity · base sha · model/backend identity · capture mode · authorization status。
+- **硬分离**：`authorization ≠ formal ready` · `approved source ≠ completed observation` · candidate A ≠ Formal Evaluation Source。
+- **继承**：`SOURCE_MODEL_SEPARATION_DESIGNED=YES` · `PRIMARY_CANDIDATE_SOURCE=A`（selected design candidate only · capture path candidate）。
+- **门禁**：`OWNER_AUTHORIZATION_DESIGNED=YES` · **`OWNER_AUTHORIZATION_ISSUED=NO`** · **`SOURCE_APPROVED=NO`** · **`AFTER_SOURCE_APPROVED=NO`** · **`ACQUISITION_EXECUTION_READY=NO`** · **`E-B_FORMAL_READY=NO`** · `CAPTURE_MODE_FROZEN=NO` · `FORMAL_OBSERVATION=NOT_STARTED`。
+- **含义**：授权合同已设计；**不可** stamp 签发 / acquisition / Formal Observation。
+
+## W10 E-B28 · Formal Source vs Development Model Separation（2026-08-25）✅ **DESIGN ONLY · NO ACQUISITION / NO FORMAL**
+
+- **范围**：architecture freeze only — Formal Evaluation Source ≠ Development Generation Backend；Local Model First（PLANNED）；API 依赖风险；未来 Track A/B/C 扩展设计；ADR。不调 LM Studio/API；不生成 After；不写 formal；不改 `backend/app`；不翻转任何 ready gate。
+- **产物**：[`docs/research/w10-eb28-source-model-separation/`](../research/w10-eb28-source-model-separation/)（README + 01–05）。
+- **决策**：Formal Evaluation Source（provenance / reproducibility / authorization）与 Development Generation Backend（LM Studio + GLM/Qwen/Llama 等）分离；二者不可互相替代。
+- **术语**：`E-B15 harness ≠ Formal Evaluation Source`；`E-B15 harness = validated Product After capture path candidate`；`PRIMARY_CANDIDATE_SOURCE=A` is a selected design candidate only（⇏ source approved / formal eligible / After approved）。
+- **继承**：`PRIMARY_CANDIDATE_SOURCE=A`（E-B27 · selected design candidate only）；B/C 仍 OUT for Narrow PRIMARY candidacy，但可用作 Development / 未来 Track。
+- **门禁**：`SOURCE_MODEL_SEPARATION_DESIGNED=YES` · `LOCAL_MODEL_STRATEGY=PLANNED` · **`LOCAL_MODEL_AS_NARROW_FORMAL_PRIMARY=NO`** · **`FORMAL_SOURCE_APPROVED=NO`** · **`SOURCE_APPROVED=NO`** · **`AFTER_SOURCE_APPROVED=NO`** · **`E-B_FORMAL_READY=NO`** · `FORMAL_OBSERVATION=NOT_STARTED`。
+- **含义**：边界已冻结；**不可** acquisition / Formal Observation / Local eval execution。
+
+## W10 E-B26 · Product After Acquisition Planning（2026-08-25）✅ **PLANNING ONLY · NO ACQUISITION / NO FORMAL**
+
+- **范围**：acquisition planning only — 设计 Narrow Formal 第一批 Product After 获取方案；不执行 acquisition；不写 formal/reserved result；不调 LLM；不改 `backend/app`；不翻转 `E-B_FORMAL_READY` / `AFTER_SOURCE_APPROVED`。
+- **产物**：[`docs/research/w10-eb26-product-after-acquisition-planning/`](../research/w10-eb26-product-after-acquisition-planning/)（README + 01–05）。
+- **Options A–D**：E-B15 harness / LM Studio / API / future prod — **只分析不选型**；E-B18 synthetic 禁止作 Product After。
+- **设计**：C01–C11 · BP-A capture 字段 · owner approval stamp · gold rebinding 流程 · pre-execution checklist。
+- **门禁**：`E-B26_ACQUISITION_PLAN_DESIGNED=YES` · **`AFTER_SOURCE_APPROVED=NO`** · **`E-B_FORMAL_READY=NO`** · `FORMAL_OBSERVATION=NOT_STARTED` · `ACQUISITION_EXECUTION_READY=NO`。
+- **含义**：计划已齐；**不可** acquisition execution / Formal Observation。
+
+## W10 E-B24 · Narrow Formal Observation Preparation（2026-08-25）✅ **PREPARATION ONLY · NO FORMAL**
+
+- **范围**：preparation only — 设计第一次 Narrow Formal Observation 的 scope；不写 formal result；不翻转 `E-B_FORMAL_READY`；不调 LLM；不开 A4 / S2；不改 `backend/app`；不清 B2′ / AG-5 / AG-3。
+- **产物**：[`docs/research/w10-eb24-narrow-formal-preparation/`](../research/w10-eb24-narrow-formal-preparation/)（README + 01/02/03/04）。
+- **Scope**：BP-A only · `targets_measured={T1,T2,T3}` · 测量案 **C01–C11** · **排除 C12** · **排除 S2 empty-gate** · **排除 A4 live LLM**。
+- **After 授权合同**：source identity ∧ hash binding (BP-A) ∧ capture mode ∧ no synthetic contamination — 当前 `AFTER_SOURCE_APPROVED=NO`。
+- **Entry checklist**：Claim Gold frozen · After source approved · Binding compatible · Scorer available · Reserved write authorized · Formal gate unlocked — **0/6 checked**。
+- **Blockers（仅整理）**：B2′=BLOCKING_RESIDUAL · AG-5=PARTIAL · AG-3=PARTIAL；S2/A4 对本 Narrow scope 为 excluded（仍 NO，未清）。
+- **门禁**：`E-B24_SCOPE_DEFINED=YES` · **`E-B_FORMAL_READY=NO`** · **`MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO`** · `FORMAL_OBSERVATION=NOT_STARTED`。
+- **含义**：Narrow scope 已定义；**不可**进入 Formal Observation execution；下一窗仅 clearance / authorization。
+
+## W10 E-B23 · Formal Observation Authorization Readiness（2026-08-25）✅ **DESIGN / AUDIT ONLY · NO FORMAL**
+
+- **范围**：只读规划/审计 — Formal Observation 开启前最终 readiness 评审；设计 `MAY_ENTER_FORMAL_OBSERVATION_WINDOW` 契约 + checklist；不跑 formal / LLM；不写 reserved result；不改 `backend/app` / E-B2 schema；不翻转 `E-B_FORMAL_READY`。
+- **产物**：[`docs/research/w10-eb23-formal-observation-authorization-readiness/`](../research/w10-eb23-formal-observation-authorization-readiness/)（README + 01/02/03/04）。
+- **矩阵**：Claim Gold / Scorer / Wireup = READY；After Capture / Binding / Empty Gate = PARTIAL；S2 / A4 / Reserved Write = BLOCKED。
+- **入口 blockers**：B2′ BLOCKING_RESIDUAL · AG-3 PARTIAL（wireup YES · write NO）· AG-5 PARTIAL · S2=NO · A4=NO — **本窗未清任何 Formal Entry blocker**。
+- **门禁**：`E-B23_READINESS_DESIGNED=YES` · **`E-B_FORMAL_READY=NO`** · **`MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO`** · `FORMAL_OBSERVATION=NOT_STARTED` · `RESERVED_RESULT=ABSENT`。
+- **含义**：可进入 **authorization clearance planning**；**不可**进入 Formal Observation execution。
+
+## W10 E-B22 · Formal Wireup Contract（2026-08-25）✅ **IMPLEMENTED TESTS-ONLY · NO FORMAL**
+
+- **范围**：仅 `backend/tests` + research docs；落地 E-B21 Formal Wireup 为 tests-only wiring contract（composer + companion + validators）；不跑 formal observation；不写 reserved result；不改 `backend/app`；不翻转 `E-B_FORMAL_READY`。
+- **产物**：`backend/tests/w10_eb22_formal_wireup_contract.py` · `backend/tests/test_w10_eb22_formal_wireup_contract.py` · [`docs/research/w10-eb22-formal-wireup-contract/`](../research/w10-eb22-formal-wireup-contract/)
+- **合同**：`compose_l_obs` / `compose_l_score`（gate locked → raise `FORMAL_GATE_LOCKED`）· `attempt_formal_compose`（测试用 blocked dict）· `build_l_obs_skeleton` / `build_l_score_companion` · `validate_compose_pair` · BP isolation · E-B22 invalid-reason allowlist（含 `GOLD_AFTER_HASH_MISMATCH` / `SCORER_BASE_SHA_MISMATCH`；不改 E-B2 模块）。
+- **L-Score**：`artifact_kind=FORMAL_T2_T3_SCORE_RESULT` · `parent_run_id`/`parent_base_sha` 对齐 L-Obs；rates 仅在 companion。
+- **禁止**：LLM · reserved formal write · `formal_measurement=true` · 兼容包当 product faithfulness · rates 塞 E-B2 notes。
+- **门禁**：`FORMAL_WIREUP_DESIGNED=YES` · **`FORMAL_WIREUP_IMPLEMENTED=YES`（tests-only）** · **`E-B_FORMAL_READY=NO`** · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO`。
+- **验收**：`pytest tests/test_w10_eb22_formal_wireup_contract.py -q`
+
+## W10 E-B21 · Formal Wireup Readiness Review（2026-08-25）✅ **DESIGN ONLY · NO FORMAL**
+
+- **范围**：只读设计 — E-B20 tests-only scorer → 正式 E-B2 observation artifact 接线；不跑 LLM / formal / 写 reserved result；不改 `backend/app`；不翻转 `E-B_FORMAL_READY`。
+- **产物**：[`docs/research/w10-eb21-formal-wireup-readiness/`](../research/w10-eb21-formal-wireup-readiness/)（README + 01/02）。
+- **架构**：LAAE compose = Capture → Binding → `execute_score_t2/t3` → E-B2 status projection + **companion L-Score**（W1 primary；E-B2.1 additive = W2 backup）。
+- **要点**：E-B2 v1 仅有 status 槽、无 t2_*/t3_* 数值字段；正式分数进 companion `FORMAL_T2_T3_SCORE_RESULT`（同 `run_id`）；`measurement_validity` = gate ∧ bind ∧ gold-only ∧ companion ∧ BP honesty；BP-A/B/C 必须声明并分层，禁静默混算。
+- **门禁（E-B21 当时）**：`FORMAL_WIREUP_DESIGNED=YES` · **`FORMAL_WIREUP_IMPLEMENTED=NO`** · **`E-B_FORMAL_READY=NO`** · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO`。
+- **后续**：E-B22 已落地 wireup contract 并将 `FORMAL_WIREUP_IMPLEMENTED` 翻转为 YES（仍不翻 formal）。
+
+## W10 E-B20 · T2/T3 Scorer Implementation（2026-08-25）✅ **IMPLEMENTED TESTS-ONLY · NO FORMAL**
+
+- **范围**：仅 `backend/tests` + research docs；将 E-B19 scorer contract 落地为 tests-only executors + implementation artifact。
+- **产物**：`backend/tests/w10_eb20_t2_t3_scorer_implementation.py` · `backend/tests/test_w10_eb20_t2_t3_scorer_implementation.py` · [`docs/research/w10-eb20-t2-t3-scorer-implementation/`](../research/w10-eb20-t2-t3-scorer-implementation/)
+- **Executor**：`execute_score_t2` / `execute_score_t3`（labels 仅 gold；exact citation/id grounding；复用 E-B19 公式）。
+- **Artifact**：`artifact_kind=T2_T3_SCORER_IMPLEMENTATION` · `formal_measurement=false` · `implementation_only=true`；BP-A compat pack 接线 E-B2 `grounding_observation_status`。
+- **禁止**：LLM / NLI / fuzzy / Critic oracle · formal result · `backend/app` · 翻转 `E-B_FORMAL_READY`。
+- **门禁**：`T2_T3_SCORER_CONTRACT_DESIGNED=YES` · **`T2_T3_SCORER_IMPLEMENTED=YES`（tests-only）** · **`E-B_FORMAL_READY=NO`** · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO`。
+- **AG-3**：`PARTIAL`（implemented YES；formal wire-up NO）。
+- **验收**：`pytest tests/test_w10_eb20_t2_t3_scorer_implementation.py -q`
+
+## W10 E-B19 · T2/T3 Scorer Contract Design（2026-08-25）✅ **CONTRACT ONLY · NO FORMAL / NO IMPLEMENTED**
+
+- **范围**：仅 `backend/tests` + research docs；基于 E-B18 BP-A binding compatibility 冻结 tests-only T2/T3 scorer **contract**。
+- **产物**：`backend/tests/w10_eb19_t2_t3_scorer_contract.py` · `backend/tests/test_w10_eb19_t2_t3_scorer_contract.py` · [`docs/research/w10-eb19-t2-t3-scorer-contract/`](../research/w10-eb19-t2-t3-scorer-contract/)
+- **T2**：`observed_after` + `claim_gold` → `unsupported_rate`（labels 仅来自 gold；unverifiable 进分母不进分子；denom 0 → `NOT_APPLICABLE`）。
+- **T3**：G1=`label`/support status · G2=`final_citations`/`[片段N]` ↔ `supporting_evidence_ids`（exact id）；`grounded ⇔ G1∧G2`；keep-all  alone ≠ G2。
+- **禁止**：LLM judge · NLI auto-label · fuzzy matching · Critic oracle · formal result · `backend/app`。
+- **门禁**：`T2_T3_SCORER_CONTRACT_DESIGNED=YES` · **`T2_T3_SCORER_IMPLEMENTED=NO`** · **`E-B_FORMAL_READY=NO`** · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO`。
+- **AG-3**：`PARTIAL`（gate+compat+contract YES；implemented/formal wire-up NO）。
+- **边缘**：E-B8 F1–F8 + S1 确定性 fixtures。
+- **验收**：`pytest tests/test_w10_eb19_t2_t3_scorer_contract.py -q`
+
+## W10 E-B18 · Gold↔After Binding Compatibility Materialization（2026-08-25）✅ **COMPAT PACK · NO FORMAL / NO SCORER**
+
+- **范围**：仅 `backend/tests` + research docs；物化 BP-A rebound 兼容包（after↔gold case_id · 三哈希契约 · compatibility validator）。
+- **产物**：`backend/tests/w10_eb18_gold_after_binding_compatibility.py` · `backend/tests/test_w10_eb18_gold_after_binding_compatibility.py` · `backend/tests/fixtures/l4_critic/w10-eb-bp-a-binding-compatibility-v1.json` · [`docs/research/w10-eb18-gold-after-binding-compatibility/`](../research/w10-eb18-gold-after-binding-compatibility/)
+- **契约**：`after_snapshot.case_id ↔ gold.case_id`（BP-A）；`gold_ledger_hash` / `observed_content_hash` / `evidence_pool_hash` 生成与验证规则冻结；rebound gold `kind=observed_after` 用正文 codec。
+- **诚实性**：After body = author-owned claim-text embedding（`compatibility_materialization_author_owned`）；**不**证明 live product LLM faithfulness；live E-B15×未 rebound E-B12B 仍 `INCOMPATIBLE`。
+- **门禁**：`COMPATIBILITY_MATERIALIZED=YES` · **`GOLD_AFTER_BINDING_COMPATIBLE=YES`** · `LIVE_EB15_X_EB12B_COMPATIBLE=NO` · `T2_T3_SCORER_IMPLEMENTED=NO` · **`E-B_FORMAL_READY=NO`** · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO`。
+- **AG**：AG-1=`CLEARED_FOR_BP_A_REBOUND` · AG-3=`PARTIAL`（gate+compat YES；scorer NO）· AG-5=`PARTIAL`。
+- **禁止**：LLM · formal observation · scorer · `backend/app` · 翻转 `E-B_FORMAL_READY`。
+- **未清**：scorer contract（→ E-B19）· live/authorized After rebound · B2′ unlock · S2 · A4 · AG-4/6。
+- **验收**：`pytest tests/test_w10_eb18_gold_after_binding_compatibility.py -q`
+
+## W10 E-B17 · After↔Gold Binding Gate（2026-08-25）✅ **GATE ONLY · NO FORMAL SCORE**
+
+- **范围**：仅 `backend/tests` + research docs；实现 LAAE Binding Gate（artifact · 三哈希语义分离 · BP-A/B/C validator）。
+- **产物**：`backend/tests/w10_eb17_binding_gate.py` · `backend/tests/test_w10_eb17_binding_gate.py` · [`docs/research/w10-eb17-binding-gate/`](../research/w10-eb17-binding-gate/)
+- **契约**：`after_snapshot.case_id ↔ gold.case_id`；`gold_ledger_hash` / `observed_content_hash` / `evidence_pool_hash` 禁止跨空间裸 `==`。
+- **BP**：BP-A `observed_after`=formal candidate · BP-B `synthetic_authored`=test only · BP-C `refusal_exclude`=T4 exclusion。
+- **门禁（E-B17 当时）**：`BINDING_GATE_IMPLEMENTED=YES` · `GOLD_AFTER_BINDING_COMPATIBLE=NO`（live 未 rebound）· `T2_T3_SCORER_IMPLEMENTED=NO` · **`E-B_FORMAL_READY=NO`**。
+- **后续**：E-B18 已物化 BP-A rebound 兼容包并将权威兼容门禁翻转为 YES（仍不翻 formal）。
+- **禁止**：LLM · formal T2/T3 scoring · reserved formal write · `backend/app`。
+- **验收**：`pytest tests/test_w10_eb17_binding_gate.py -q`
+
+## W10 E-B16 · After-to-Gold Evaluation Boundary Review（2026-08-25）✅ **DESIGN / READINESS ONLY**
+
+- **范围**：只读设计 — generation After ↔ claim gold 连接边界；不跑 LLM / formal / scorer 实现；不改 `backend/app`；不翻转 `E-B_FORMAL_READY`。
+- **产物**：[`docs/research/w10-eb16-after-to-gold-evaluation-boundary/`](../research/w10-eb16-after-to-gold-evaluation-boundary/)（README + 01/02/03）。
+- **推荐架构**：**LAAE**（Ledger-Anchored After Evaluation）· binding policies BP-A/B/C · formal 切分 = ledger-only。
+- **硬缺口**：E-B12B `content_sha256` 绑 **claim_texts payload**；E-B15 After 绑 **正文字符串**（且 `sha256:` 前缀）— **`GOLD_AFTER_BINDING_COMPATIBLE=NO`**。
+- **门禁**：`AFTER_TO_GOLD_BOUNDARY_DESIGNED=YES` · `T2_T3_SCORER_IMPLEMENTED=NO` · **`E-B_FORMAL_READY=NO`** · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO` · `B2_PRIME_AFTER_SNAPSHOTS=BLOCKING_RESIDUAL`。
+- **后续**：E-B17 已落地 Binding Gate；scorer / rebound / formal 仍未做。
+
+## W10 E-B15 · Product After Snapshot Capture Harness（2026-08-25）✅ **HARNESS ONLY · Scheme A**
+
+- **范围**：仅 `backend/tests` + `docs/status`；实现 Scheme A test-only harness：`prepare_agent_generation` → 真实 `_stream_generation_phase` → `state["content"]`/`citations` After → E-B2 per_case slot 映射。
+- **产物**：`backend/tests/w10_eb15_product_after_capture.py` · `backend/tests/test_w10_eb15_product_after_capture.py`
+- **捕获模式**：A1 `product_stream_refusal`（empty-gate N=2）· A2 `product_stream_degraded`（frozen eligible · 双无 key · 零 LLM）· C12 `ineligible_no_after`
+- **门禁**：`PRODUCT_AFTER_CAPTURE_HARNESS_READY=YES` · `PRODUCT_AFTER_CAPTURE_FEASIBLE=YES` · **`E-B_FORMAL_READY=NO`** · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO` · `B2_PRIME_AFTER_SNAPSHOTS=BLOCKING_RESIDUAL`
+- **禁止**：synthetic body · W9 answer 回填 · plan-as-final · P2-R1 inject · Critic oracle · LLM/LM Studio · reserved formal write · `backend/app`
+- **未清**：reserved formal write / owner unlock · gold↔After hash rebind · S2 packaging auth · A4 live LLM
+- **验收**：`pytest tests/test_w10_eb15_product_after_capture.py -q` → **7 passed**
+
+## W10 E-B14 · Product After Snapshot Capture Feasibility（2026-08-25）✅ **FEASIBILITY ONLY**
+
+- **范围**：只读审查 `_stream_generation_phase` 入口/依赖/state 写入；评估方案 A（test harness）/ B（app hook）/ C（无法无侵入捕获）。
+- **产物**：[`docs/research/w10-eb14-product-after-snapshot-capture-feasibility/`](../research/w10-eb14-product-after-snapshot-capture-feasibility/)
+- **结论**：推荐 **Scheme A** · `PRODUCT_AFTER_CAPTURE_FEASIBLE=YES` · **拒绝 B/C** · **`MAY_ENTER_CAPTURE_HARNESS_IMPL_WINDOW=YES`** · **`MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO`** · **`E-B_FORMAL_READY=NO`** · B2′ 仍为 blocking residual（harness 未落地）。
+- **要点**：tests 直调 stream + 读 `state` 先例充分；无需 observation hook；禁 P2-R1 inject；live LLM（A4）另需 owner 授权 + E-B2 `llm_called` freeze 解冻。
+- **未做**：LLM · formal observation · formal result · 翻转门禁 · `backend/app` / runtime · harness 实现。
+
+## W10 E-B · B2′ After Snapshot Readiness（2026-08-25）✅ **READINESS ONLY · STILL BLOCKING**
+
+- **范围**：仅研究 + contract/readiness；检查 E-B6 能力、`state` 捕获边界、prepare→generation→align、formal 字段、阻塞点。
+- **产物**：[`docs/research/w10-eb-b2-prime-after-snapshot-readiness/`](../research/w10-eb-b2-prime-after-snapshot-readiness/)
+- **结论**：`B2_PRIME_AFTER_SNAPSHOTS=BLOCKING_RESIDUAL` · **`MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO`** · **`E-B_FORMAL_READY=NO`** · `E-B_NARROW_FORMAL_READY=NO`
+- **要点**：同构 smoke After 已通；产品 `_stream_generation_phase` After / reserved formal write / owner unlock 仍缺；claim gold 与 E-B6 合成正文 hash 未对齐。
+- **未做**：LLM · formal observation · formal result · 翻转门禁 · `backend/app`。
+
+## W10 Empty-gate Cases Materialization（2026-08-25）✅ **REAL_ELIGIBLE MATERIAL**
+
+- **范围**：落地 `w10-eb-empty-gate-cases.json`（N=2 · zh/en）+ cases/suite validator 接入；不跑 formal / LLM。
+- **产物**：`backend/tests/fixtures/l4_critic/w10-eb-empty-gate-cases.json`；prep-status `REAL_ELIGIBLE`。
+- **门禁**：`E_B_EMPTY_GATE_CASES_MATERIAL_READY=YES` · `E_B_S2_PACKAGING_AUTHORIZED=NO` · **`E-B_FORMAL_READY=NO`**。
+- **隔离**：suite `w10_eb_empty_gate_v1` 与 `w9_critic_frozen_12`（case_count=12）分离；禁 C04/C07 顶替。
+- **未做**：LLM / formal observation result · S2 packaging 授权 · E-B2 schema · `backend/app`。
+
+## W10 E-B12B · Claim Gold Materialization（2026-08-25）✅ **ANNOTATED GOLD**
+
+- **范围**：人工 annotation draft → 正式 `CLAIM_GOLD_LEDGER`；确定性物化 + validator；不跑 generation / LLM。
+- **产物**：`backend/tests/fixtures/l4_critic/w10-eb-generation-claim-gold-v1.json`；模块 `backend/tests/w10_eb12b_claim_gold_materialization.py`。
+- **分母**：C01–C11 共 17 claims；**C12** `asserted_claims=[]`，不进 claim denominator。
+- **门禁**：`E_B_CLAIM_GOLD_ANNOTATED=YES` · **`E-B_FORMAL_READY=NO`**（formal observation 未开）。
+- **未做**：LLM / LM Studio · generation observation · Critic oracle / auto-label · `backend/app` · E-B9a schema 变更。
+
+## W10 E-B12A-3 · Annotation Draft Workspace（2026-08-25）✅ **DRAFT ANNOTATED**
+
+- **范围**：从 `w9-critic-cases.json` 复制冻结 `case_id` / `query` / `evidence_chunks`，人工填 claim 后供 E-B12B 物化。
+- **产物**：`backend/tests/fixtures/l4_critic/w10-eb-generation-claim-gold-v1.annotation-draft.json`（12 案 · `annotation_status=ANNOTATED` · `created_by=human_annotator`）。
+- **门禁**：`E_B_CLAIM_GOLD_ANNOTATED=YES`（draft gates）· **`E-B_FORMAL_READY=NO`**。
+- **后续**：E-B12B 已写出正式 gold；仍不得自称 formal observation ready。
+
+## W10 E-B12A-2 · Human Annotation Workflow Guide（2026-08-25）✅ **GUIDE ONLY**
+
+- **范围**：claim gold 人工标注流程说明 + 逐案 checklist；不执行标注、不写 gold。
+- **产物**：[`docs/research/w10-eb12a-annotation-guide/`](../research/w10-eb12a-annotation-guide/)（README + `03-checklist.md`）。
+- **门禁**：`E_B12A_ANNOTATION_GUIDE_READY=YES` · **`E-B_FORMAL_READY=NO`**。
+- **后续**：E-B12A-3 已建 annotation draft（仍未标注 / 未写 gold）。
+
+## W10 E-B11 Lane A · Claim Gold Preparation（2026-08-24）✅ **PREP ONLY**
+
+- **范围**：仅 Lane A — claim gold artifact 路径、标注占位契约、E-B9a validator 集成。
+- **产物**：`w10-eb-generation-claim-gold-v1.annotation-prep.json` + schema；模块 `backend/tests/w10_eb11_claim_gold_prep.py`。
+- **正式金标路径**：`w10-eb-generation-claim-gold-v1.json` **仍缺席**（故意；无假标注 / 无 auto-label）。
+- **门禁**：`E_B_CLAIM_GOLD_PREP_READY=YES` · `E_B_CLAIM_GOLD_ANNOTATED=NO` · **`E-B_FORMAL_READY=NO`**。
+- **未清**：B3′ 人工标注 ledger；B2′ After unlock；B4′ empty-gate（Lane B）。
+- **说明** → [`../research/w10-eb11-claim-gold-prep/README.md`](../research/w10-eb11-claim-gold-prep/README.md)
+
+## W10 E-B11 Lane B · Empty-gate / S2 packaging prep（2026-08-24）✅ **PREP ONLY**（cases 材料已由后续窗落地）
+
+- **范围**：空闸 cases 工件合同 + S2 双套件 packaging 合同 + validator；**非**正式测量。
+- **门禁（合同层）**：`E_B_EMPTY_GATE_CASES_ARTIFACT_CONTRACT_READY = YES` · `E_B_S2_PACKAGING_CONTRACT_READY = YES`
+- **材料**：见上方「Empty-gate Cases Materialization」——`MATERIAL_READY=YES`；S2 packaging 仍 **未授权**；`E-B_FORMAL_READY=NO`
+- **仍缺席**：formal S2 packaging result · formal empty-gate result · LLM / LM Studio
+- **包**：[`docs/research/w10-eb11-empty-gate-s2-prep/`](../research/w10-eb11-empty-gate-s2-prep/)
+
 ## W9 P2-R1 · Independent Review Correction（2026-08-24）⛔ **BLOCKED**
 
 - **最终分类**：`MEASUREMENT_PROTOCOL_MISMATCH / HARNESS_INTEGRATION_FAILURE_NON_TRIVIAL`；当前未证明
