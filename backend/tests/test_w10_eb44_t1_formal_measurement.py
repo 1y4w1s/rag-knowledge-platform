@@ -33,8 +33,6 @@ from tests.w10_eb44_t1_formal_measurement import (
     C12_STATUS,
     EB43_PROVENANCE_COMMIT,
     EB44_DIR,
-    FORMAL_T1_RESULT_PATH,
-    FormalMeasurementError,
     assert_no_conflicting_formal_results,
     assert_raw_input_integrity,
     build_formal_t1_result,

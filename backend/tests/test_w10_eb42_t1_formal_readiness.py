@@ -6,9 +6,6 @@ No Formal measurement · no Formal result write · no LLM/API/LM Studio · no re
 from __future__ import annotations
 
 import json
-from pathlib import Path
-
-import pytest
 
 from tests.w10_eb40_response_mode_gate import (
     ResponseMode,
@@ -141,7 +138,6 @@ def test_no_formal_artifact_created() -> None:
     assert_no_formal_artifacts_created()
     assert FORMAL_T1_RESULT_WRITTEN == "NO"
     assert FORMAL_OBSERVATION == "NOT_STARTED"
-    reserved = Path("backend/tests/fixtures") / "l4_critic"
     # E-B2 reserved result must remain absent under research dirs
     assert not (
         EB41_DIR / "w10-eb2-generation-observation-result.json"

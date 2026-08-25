@@ -113,20 +113,30 @@ def test_skip_entity_extract_context_noop_when_disabled() -> None:
 
 
 def test_enterprise_ci_command_has_explicit_bypass() -> None:
-    cmd = _extract_run_command(_ci_text(), "Run Enterprise QA benchmark (C3 gate)")
+    # C5: all rag-* PR jobs use --skip-entity-extract (paid-LLM independent).
+    cmd = _extract_run_command(
+        _ci_text(),
+        "Run Enterprise QA benchmark (C3 gate; real local BGE; no paid LLM)",
+    )
     assert "--skip-entity-extract" in cmd
     assert "--dataset enterprise_qa" in cmd
 
 
-def test_golden_ci_command_has_no_bypass() -> None:
-    cmd = _extract_run_command(_ci_text(), "Run Golden QA benchmark (real embeddings)")
-    assert "--skip-entity-extract" not in cmd
+def test_golden_ci_command_has_explicit_bypass() -> None:
+    cmd = _extract_run_command(
+        _ci_text(),
+        "Run Golden QA benchmark (real local BGE embeddings; no paid LLM)",
+    )
+    assert "--skip-entity-extract" in cmd
     assert "--dataset golden_qa" in cmd
 
 
-def test_advanced_ci_command_has_no_bypass() -> None:
-    cmd = _extract_run_command(_ci_text(), "Run Advanced QA benchmark (C3 gate)")
-    assert "--skip-entity-extract" not in cmd
+def test_advanced_ci_command_has_explicit_bypass() -> None:
+    cmd = _extract_run_command(
+        _ci_text(),
+        "Run Advanced QA benchmark (C3 gate; real local BGE; no paid LLM)",
+    )
+    assert "--skip-entity-extract" in cmd
     assert "--dataset advanced_qa" in cmd
 
 

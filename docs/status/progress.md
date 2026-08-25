@@ -523,7 +523,7 @@
 - **Failure layers**：ANS → `AGENT_RETRIEVAL_TRIGGER_FAILURE` + evidence_state；CON → terminal refuse vs clarify
 - **Safety**：UNSAFE / false_supported **0** · **Product remediation**：**NO** · **Runtime rollout**：**NO**
 - **Remediation**：**DEFER**（等显式产品 trigger）
-- **结题 / 状态 SSOT**：[`docs/status/adversarial-v1-convergence-2026-08-23.md`](status/adversarial-v1-convergence-2026-08-23.md) · [`docs/status/v1-convergence-status-2026-08-23.md`](status/v1-convergence-status-2026-08-23.md)
+- **结题 / 状态 SSOT**：[`docs/status/adversarial-v1-convergence-2026-08-23.md`](adversarial-v1-convergence-2026-08-23.md) · [`docs/status/v1-convergence-status-2026-08-23.md`](v1-convergence-status-2026-08-23.md)
 
 ### Agentic-RAG L4 W8 · TOOL P2 Real Local Capability（2026-08-22）✅ **PASS/CHARACTERIZED / FROZEN**
 

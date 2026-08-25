@@ -33,7 +33,6 @@ from tests.w10_eb43_formal_target_scope_v2 import (
     FormalScopeV2Error,
     assert_no_formal_result_written,
     build_formal_result_v2_dry_run,
-    build_showcase_t1_only_scope,
     clear_active_scopes_for_tests,
     ensure_showcase_scope_frozen,
     freeze_formal_measurement_scope,

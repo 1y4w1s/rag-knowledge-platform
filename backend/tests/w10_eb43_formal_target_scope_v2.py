@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Any, Mapping, Sequence
+from typing import Any
 
 from tests.w10_eb22_formal_wireup_contract import (
     E_B_FORMAL_READY as HISTORICAL_E_B_FORMAL_READY,
@@ -35,7 +35,6 @@ from tests.w10_eb41_t1_companion import (
     MAY_ENTER_FORMAL_OBSERVATION_WINDOW,
     assert_no_formal_result_artifacts,
     candidate_summary,
-    load_companion_manifest,
     load_companion_record,
 )
 from tests.w10_eb42_t1_formal_readiness import (

@@ -115,7 +115,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 app = FastAPI(
     title="索隐 API",
-    version="0.12.0",
+    version="1.0.0",
     docs_url="/docs" if settings.environment == "development" else None,
     redoc_url="/redoc" if settings.environment == "development" else None,
     openapi_url="/openapi.json" if settings.environment != "production" else None,
