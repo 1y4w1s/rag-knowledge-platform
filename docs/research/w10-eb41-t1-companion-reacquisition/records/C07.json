@@ -1,0 +1,96 @@
+{
+  "schema_ref": "eb41_t1_companion_scope_record_v1",
+  "case_id": "C07-correct-insufficiency-refusal",
+  "case_id_short": "C07",
+  "query": "管理员初始密码是什么？",
+  "parent_acquisition_run": "w10_showcase_narrow_eb38_20260825T085526Z",
+  "companion_run": "w10_showcase_narrow_eb41_t1_20260825T094148Z",
+  "source_identity": "suoyin_local_research_product_after_v1",
+  "after_source_id": "suoyin_local_research_product_after_v1",
+  "base_sha": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "authorization_record_commit": "bd23448f561a541ba6bed7fa1308c3f7de3f6236",
+  "runtime_identity": "suoyin_backend_venv_cpython_3.11.9_win10_amd64",
+  "capture_mode": "product_stream",
+  "capture_path_identity": "eb15_harness_product_after_capture_path_a",
+  "capture_path_submode": "product_stream_degraded",
+  "model_backend_identity": "none_no_llm",
+  "llm_called": false,
+  "llm_called_observed": false,
+  "response_mode": "DEGRADED",
+  "plan_refusal": false,
+  "stream_phase_entered": true,
+  "gated_scope_ids": [
+    "4df3961b-fd82-5496-bc71-f2ff88484380"
+  ],
+  "gated_chunks_ordered": [
+    {
+      "chunk_id": "4df3961b-fd82-5496-bc71-f2ff88484380",
+      "document_id": "45ade93d-423f-5e0a-83b8-6f1e5df4c8fc",
+      "doc_name": "密码策略.md",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main",
+      "page_number": 1,
+      "section_title": "第 1 节",
+      "similarity": 0.9
+    }
+  ],
+  "gated_scope_hash": "sha256:cb62473addc6534ddee8861a9d730b503042c08da8c1a60bdbc43a7348373b13",
+  "plan_scope_provenance": {
+    "owner": "gen_plan.gated_chunks",
+    "product_path": [
+      "execute_product_path_plan",
+      "prepare_agent_generation",
+      "gen_plan.gated_chunks"
+    ],
+    "gen_plan_reference": "sha256:91ceb8d7947009395fec24e4b7955ed6b0fd4e0d3689b13766486a2c67a0d641",
+    "inferred_from_final_citations": false,
+    "synthetic_fixture_scope": false,
+    "eb18_compat": false,
+    "gold_constructed": false
+  },
+  "content": "AI 回答服务暂时不可用，以下是最相关的文档片段供您参考。请稍后再试以获得完整回答。\n[片段1] 《密码策略.md》 · 第1页 · 章节：第 1 节：系统不设置通用默认密码。",
+  "citations": [
+    {
+      "chunk_id": "4df3961b-fd82-5496-bc71-f2ff88484380",
+      "document_id": "45ade93d-423f-5e0a-83b8-6f1e5df4c8fc",
+      "doc_name": "密码策略.md",
+      "page": 1,
+      "section_title": "第 1 节",
+      "excerpt": "系统不设置通用默认密码。",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main"
+    }
+  ],
+  "final_citation_ids": [
+    "4df3961b-fd82-5496-bc71-f2ff88484380"
+  ],
+  "final_citation_source": "E-B41 companion same-run product final citations (same trajectory as gated_scope; not E-B38 cross-run splice)",
+  "source_hash": "sha256:93c688fd5e398e1dbf454adfdecf0ca6b39e32e4e9c11713f5c8f86eb4c7a355",
+  "observed_content_hash": "sha256:93c688fd5e398e1dbf454adfdecf0ca6b39e32e4e9c11713f5c8f86eb4c7a355",
+  "after_citations_hash": "sha256:97a9322b8a208813c2fb3b008c475a475d984e4c4f4bb2247212eb3e65ec29bc",
+  "gen_plan_reference": "sha256:91ceb8d7947009395fec24e4b7955ed6b0fd4e0d3689b13766486a2c67a0d641",
+  "T1_SAME_EXECUTION_BINDING_REQUIRED": true,
+  "same_trajectory_binding": true,
+  "suite_id": "w9_critic_frozen_12",
+  "binding_policy": "observed_after",
+  "formal_measurement": false,
+  "timestamp": "2026-08-25T09:44:28Z",
+  "capture_provenance": {
+    "window": "W10-E-B41",
+    "harness_id": "w10_eb15_product_after_capture",
+    "orchestration_entry": "execute_product_path_plan+drain_product_generation_phase",
+    "product_boundary": [
+      "prepare_agent_generation",
+      "gen_plan.gated_chunks",
+      "_stream_generation_phase",
+      "state[content]",
+      "state[citations]"
+    ],
+    "worktree_head": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+    "authorization_stamp_schema": "eb30_owner_stamp_v1"
+  },
+  "worktree_head_observed": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "eb38_content_hash_match": true,
+  "eb38_citations_hash_match": true,
+  "eb38_gen_plan_reference_match": true
+}

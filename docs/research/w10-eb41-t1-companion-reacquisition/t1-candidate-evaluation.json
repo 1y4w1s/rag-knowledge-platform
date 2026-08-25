@@ -1,0 +1,164 @@
+{
+  "protocol_version": "w10_eb41_t1_companion_v1",
+  "artifact_kind": "t1_companion_candidate_evaluation",
+  "is_formal_t1_result": false,
+  "eligible_count": 11,
+  "candidate_compliant_count": 11,
+  "candidate_violation_count": 0,
+  "candidate_binding_invalid_count": 0,
+  "c12_status": "INELIGIBLE_NOT_SCORED",
+  "T1_INPUT_BINDING_VALID": "YES",
+  "T1_COMPANION_CAPTURE_VALID": "YES",
+  "T1_REAL_AFTER_INPUT_READY": "YES",
+  "T1_COMPANION_REACQUISITION_EXECUTED": "YES",
+  "T2_REAL_AFTER_INPUT_READY": "NOT_APPLICABLE",
+  "T3_REAL_AFTER_INPUT_READY": "NOT_APPLICABLE",
+  "E-B_FORMAL_READY": "NO",
+  "MAY_ENTER_FORMAL_OBSERVATION_WINDOW": "NO",
+  "FORMAL_OBSERVATION": "NOT_STARTED",
+  "FORMAL_T1_RESULT_WRITTEN": "NO",
+  "gold_kind_synthetic_authored_is_t1_blocker": false,
+  "per_case": [
+    {
+      "case_id_short": "C01",
+      "T1_INPUT_BINDING_VALID": "YES",
+      "candidate_verdict": "COMPLIANT",
+      "subset_holds": true,
+      "response_mode": "DEGRADED",
+      "edge_cases": [
+        "nonempty_scope_and_citations",
+        "degraded_with_citations"
+      ],
+      "is_formal_t1_result": false
+    },
+    {
+      "case_id_short": "C02",
+      "T1_INPUT_BINDING_VALID": "YES",
+      "candidate_verdict": "COMPLIANT",
+      "subset_holds": true,
+      "response_mode": "DEGRADED",
+      "edge_cases": [
+        "nonempty_scope_and_citations",
+        "degraded_with_citations"
+      ],
+      "is_formal_t1_result": false
+    },
+    {
+      "case_id_short": "C03",
+      "T1_INPUT_BINDING_VALID": "YES",
+      "candidate_verdict": "COMPLIANT",
+      "subset_holds": true,
+      "response_mode": "DEGRADED",
+      "edge_cases": [
+        "nonempty_scope_and_citations",
+        "degraded_with_citations"
+      ],
+      "is_formal_t1_result": false
+    },
+    {
+      "case_id_short": "C04",
+      "T1_INPUT_BINDING_VALID": "YES",
+      "candidate_verdict": "COMPLIANT",
+      "subset_holds": true,
+      "response_mode": "DEGRADED",
+      "edge_cases": [
+        "nonempty_scope_and_citations",
+        "degraded_with_citations"
+      ],
+      "is_formal_t1_result": false
+    },
+    {
+      "case_id_short": "C05",
+      "T1_INPUT_BINDING_VALID": "YES",
+      "candidate_verdict": "COMPLIANT",
+      "subset_holds": true,
+      "response_mode": "DEGRADED",
+      "edge_cases": [
+        "nonempty_scope_and_citations",
+        "degraded_with_citations"
+      ],
+      "is_formal_t1_result": false
+    },
+    {
+      "case_id_short": "C06",
+      "T1_INPUT_BINDING_VALID": "YES",
+      "candidate_verdict": "COMPLIANT",
+      "subset_holds": true,
+      "response_mode": "DEGRADED",
+      "edge_cases": [
+        "nonempty_scope_and_citations",
+        "degraded_with_citations"
+      ],
+      "is_formal_t1_result": false
+    },
+    {
+      "case_id_short": "C07",
+      "T1_INPUT_BINDING_VALID": "YES",
+      "candidate_verdict": "COMPLIANT",
+      "subset_holds": true,
+      "response_mode": "DEGRADED",
+      "edge_cases": [
+        "nonempty_scope_and_citations",
+        "degraded_with_citations"
+      ],
+      "is_formal_t1_result": false
+    },
+    {
+      "case_id_short": "C08",
+      "T1_INPUT_BINDING_VALID": "YES",
+      "candidate_verdict": "COMPLIANT",
+      "subset_holds": true,
+      "response_mode": "DEGRADED",
+      "edge_cases": [
+        "nonempty_scope_and_citations",
+        "degraded_with_citations"
+      ],
+      "is_formal_t1_result": false
+    },
+    {
+      "case_id_short": "C09",
+      "T1_INPUT_BINDING_VALID": "YES",
+      "candidate_verdict": "COMPLIANT",
+      "subset_holds": true,
+      "response_mode": "DEGRADED",
+      "edge_cases": [
+        "nonempty_scope_and_citations",
+        "degraded_with_citations"
+      ],
+      "is_formal_t1_result": false
+    },
+    {
+      "case_id_short": "C10",
+      "T1_INPUT_BINDING_VALID": "YES",
+      "candidate_verdict": "COMPLIANT",
+      "subset_holds": true,
+      "response_mode": "DEGRADED",
+      "edge_cases": [
+        "nonempty_scope_and_citations",
+        "degraded_with_citations"
+      ],
+      "is_formal_t1_result": false
+    },
+    {
+      "case_id_short": "C11",
+      "T1_INPUT_BINDING_VALID": "YES",
+      "candidate_verdict": "COMPLIANT",
+      "subset_holds": true,
+      "response_mode": "DEGRADED",
+      "edge_cases": [
+        "nonempty_scope_and_citations",
+        "degraded_with_citations"
+      ],
+      "is_formal_t1_result": false
+    },
+    {
+      "case_id_short": "C12",
+      "T1_INPUT_BINDING_VALID": "NO",
+      "candidate_verdict": "INELIGIBLE",
+      "subset_holds": false,
+      "response_mode": null,
+      "edge_cases": [],
+      "is_formal_t1_result": false
+    }
+  ]
+}

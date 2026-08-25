@@ -1,0 +1,118 @@
+{
+  "schema_ref": "eb41_t1_companion_scope_record_v1",
+  "case_id": "C10-supported-multiclaim-multicitation",
+  "case_id_short": "C10",
+  "query": "免费版和企业版的 API 限额分别是多少？",
+  "parent_acquisition_run": "w10_showcase_narrow_eb38_20260825T085526Z",
+  "companion_run": "w10_showcase_narrow_eb41_t1_20260825T094148Z",
+  "source_identity": "suoyin_local_research_product_after_v1",
+  "after_source_id": "suoyin_local_research_product_after_v1",
+  "base_sha": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "authorization_record_commit": "bd23448f561a541ba6bed7fa1308c3f7de3f6236",
+  "runtime_identity": "suoyin_backend_venv_cpython_3.11.9_win10_amd64",
+  "capture_mode": "product_stream",
+  "capture_path_identity": "eb15_harness_product_after_capture_path_a",
+  "capture_path_submode": "product_stream_degraded",
+  "model_backend_identity": "none_no_llm",
+  "llm_called": false,
+  "llm_called_observed": false,
+  "response_mode": "DEGRADED",
+  "plan_refusal": false,
+  "stream_phase_entered": true,
+  "gated_scope_ids": [
+    "ef36ce84-010b-5b6a-8c07-76d3dace6556",
+    "9411eb73-edc9-5c8d-966d-ebb987efc614"
+  ],
+  "gated_chunks_ordered": [
+    {
+      "chunk_id": "ef36ce84-010b-5b6a-8c07-76d3dace6556",
+      "document_id": "2d58dc60-5fb5-5ba5-bec1-0f4ad77fd784",
+      "doc_name": "API 限额.md",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main",
+      "page_number": 1,
+      "section_title": "免费版",
+      "similarity": 0.9
+    },
+    {
+      "chunk_id": "9411eb73-edc9-5c8d-966d-ebb987efc614",
+      "document_id": "b1c42749-748c-5cb1-972f-87c53715050d",
+      "doc_name": "API 限额.md",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main",
+      "page_number": 2,
+      "section_title": "企业版",
+      "similarity": 0.89
+    }
+  ],
+  "gated_scope_hash": "sha256:c7daaefcc913521afeeb68d62444d297787e3e4aef62dcd5db9dde73690ad3e9",
+  "plan_scope_provenance": {
+    "owner": "gen_plan.gated_chunks",
+    "product_path": [
+      "execute_product_path_plan",
+      "prepare_agent_generation",
+      "gen_plan.gated_chunks"
+    ],
+    "gen_plan_reference": "sha256:776c41264d2bc35842ba8993e20fc6c55097b841e272b82c8d3db7af131a3b12",
+    "inferred_from_final_citations": false,
+    "synthetic_fixture_scope": false,
+    "eb18_compat": false,
+    "gold_constructed": false
+  },
+  "content": "AI 回答服务暂时不可用，以下是最相关的文档片段供您参考。请稍后再试以获得完整回答。\n[片段1] 《API 限额.md》 · 第1页 · 章节：免费版：免费版 API 速率上限为每分钟 100 次。\n[片段2] 《API 限额.md》 · 第2页 · 章节：企业版：企业版 API 速率上限为每分钟 5000 次。",
+  "citations": [
+    {
+      "chunk_id": "9411eb73-edc9-5c8d-966d-ebb987efc614",
+      "document_id": "b1c42749-748c-5cb1-972f-87c53715050d",
+      "doc_name": "API 限额.md",
+      "page": 2,
+      "section_title": "企业版",
+      "excerpt": "企业版 API 速率上限为每分钟 5000 次。",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main"
+    },
+    {
+      "chunk_id": "ef36ce84-010b-5b6a-8c07-76d3dace6556",
+      "document_id": "2d58dc60-5fb5-5ba5-bec1-0f4ad77fd784",
+      "doc_name": "API 限额.md",
+      "page": 1,
+      "section_title": "免费版",
+      "excerpt": "免费版 API 速率上限为每分钟 100 次。",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main"
+    }
+  ],
+  "final_citation_ids": [
+    "9411eb73-edc9-5c8d-966d-ebb987efc614",
+    "ef36ce84-010b-5b6a-8c07-76d3dace6556"
+  ],
+  "final_citation_source": "E-B41 companion same-run product final citations (same trajectory as gated_scope; not E-B38 cross-run splice)",
+  "source_hash": "sha256:7d1655dec1f336695116c59609262fa2f6fe4c2d59389e7666957fc526ee479a",
+  "observed_content_hash": "sha256:7d1655dec1f336695116c59609262fa2f6fe4c2d59389e7666957fc526ee479a",
+  "after_citations_hash": "sha256:8bd960c986127f9ab3e8d3fce37fe37e0f60b78b14c081981bf269f27c654b53",
+  "gen_plan_reference": "sha256:776c41264d2bc35842ba8993e20fc6c55097b841e272b82c8d3db7af131a3b12",
+  "T1_SAME_EXECUTION_BINDING_REQUIRED": true,
+  "same_trajectory_binding": true,
+  "suite_id": "w9_critic_frozen_12",
+  "binding_policy": "observed_after",
+  "formal_measurement": false,
+  "timestamp": "2026-08-25T09:44:28Z",
+  "capture_provenance": {
+    "window": "W10-E-B41",
+    "harness_id": "w10_eb15_product_after_capture",
+    "orchestration_entry": "execute_product_path_plan+drain_product_generation_phase",
+    "product_boundary": [
+      "prepare_agent_generation",
+      "gen_plan.gated_chunks",
+      "_stream_generation_phase",
+      "state[content]",
+      "state[citations]"
+    ],
+    "worktree_head": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+    "authorization_stamp_schema": "eb30_owner_stamp_v1"
+  },
+  "worktree_head_observed": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "eb38_content_hash_match": true,
+  "eb38_citations_hash_match": true,
+  "eb38_gen_plan_reference_match": true
+}

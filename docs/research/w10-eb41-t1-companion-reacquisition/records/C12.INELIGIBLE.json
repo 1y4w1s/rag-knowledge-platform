@@ -1,0 +1,22 @@
+{
+  "schema_ref": "eb41_c12_ineligible_record_v1",
+  "case_id": "C12-out-of-scope-provenance",
+  "case_id_short": "C12",
+  "status": "INELIGIBLE_NOT_SCORED",
+  "attempted_companion_capture": false,
+  "parent_acquisition_run": "w10_showcase_narrow_eb38_20260825T085526Z",
+  "companion_run": "w10_showcase_narrow_eb41_t1_20260825T094148Z",
+  "source_identity": "suoyin_local_research_product_after_v1",
+  "after_source_id": "suoyin_local_research_product_after_v1",
+  "base_sha": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "runtime_identity": "suoyin_backend_venv_cpython_3.11.9_win10_amd64",
+  "capture_mode": "product_stream",
+  "model_backend_identity": "none_no_llm",
+  "llm_called_observed": false,
+  "gated_scope_ids": null,
+  "final_citation_ids": null,
+  "timestamp": "2026-08-25T09:44:28Z",
+  "suite_id": "w9_critic_frozen_12",
+  "formal_measurement": false,
+  "reason": "authorization_scope.c12_policy=INELIGIBLE_NOT_SCORED; excluded before companion execution"
+}

@@ -7,6 +7,21 @@
 
 ---
 
+## W10 E-B41 · T1 Companion Reacquisition on Frozen Baseline（2026-08-25）✅ **T1 COMPANION CAPTURE · NO FORMAL**
+
+- **范围**：在同一 frozen baseline 上为 E-B38 Real After 补采 T1 所需 `gen_plan.gated_chunks` / gated scope；same-trajectory final citations；候选子集判定。**不** Formal T1 scorer · **不** T2/T3 · **不** Formal Observation · **不调** LLM · **不改** `backend/app` / frozen tree。
+- **E-B40 protocol commit**：`8197147801081da262b01edfb7e21729d1630b54`（`≠` frozen `base_sha=3ce0e75…`）。
+- **授权**：`AUTHORIZATION_STILL_VALID=YES` · stamp / source / capture_mode / runtime / scope 未变。
+- **Worktree**：复用 `…-eb38-frozen-3ce0e75` @ `3ce0e75…` clean preflight PASS；运行后仍 clean。
+- **Signal**：`T1_GATED_SCOPE_SIGNAL_AVAILABLE=YES`（外层编排读 `gen_plan.gated_chunks`，无需改 app）。
+- **Run**：`companion_run=w10_showcase_narrow_eb41_t1_20260825T094148Z` · parent=`w10_showcase_narrow_eb38_20260825T085526Z`。
+- **捕获**：C01–C11 = 11/11 same-trajectory · C12=`INELIGIBLE_NOT_SCORED` · `response_mode=DEGRADED` · `llm_called_observed=false`。
+- **候选 T1**（非 Formal）：compliant=11 · violation=0 · `T1_REAL_AFTER_INPUT_READY=YES`。
+- **门禁**：`T1_COMPANION_REACQUISITION_EXECUTED=YES` · `T2/T3_REAL_AFTER_INPUT_READY=NOT_APPLICABLE` · **`E-B_FORMAL_READY=NO`** · `FORMAL_OBSERVATION=NOT_STARTED`。
+- **产物**：`docs/research/w10-eb41-t1-companion-reacquisition/` · `backend/tests/w10_eb41_t1_companion.py` · `test_w10_eb41_t1_companion_reacquisition.py`。
+- **验收**：`pytest backend/tests/test_w10_eb41_t1_companion_reacquisition.py -q`（14 passed）。
+- **下一动作**：`WAITING_FOR_T1_FORMAL_READINESS_REVIEW`（仍勿跑 Formal T1 / 勿开 Formal Observation）。
+
 ## W10 E-B40 · Degraded Response Semantics & Real-After Binding Repair（2026-08-25）✅ **PROTOCOL REPAIR · NO FORMAL**
 
 - **范围**：持久化 E-B39 → versioned `response_mode` gate + real-After binding v2 → 分类 E-B38 C01–C11 → 关闭 degraded→perfect-score 路径。**不** Formal scorer · **不** Formal Observation · **不调** LLM/NLI · **不改** 冻结 E-B16/17/19 公式 · **不改** gold/E-B38 After · **不**把 E-B39 解释成模型失败。

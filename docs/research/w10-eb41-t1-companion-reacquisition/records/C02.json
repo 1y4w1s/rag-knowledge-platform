@@ -1,0 +1,96 @@
+{
+  "schema_ref": "eb41_t1_companion_scope_record_v1",
+  "case_id": "C02-supported-paraphrase-low-lexical",
+  "case_id_short": "C02",
+  "query": "报销申请最迟什么时候提交？",
+  "parent_acquisition_run": "w10_showcase_narrow_eb38_20260825T085526Z",
+  "companion_run": "w10_showcase_narrow_eb41_t1_20260825T094148Z",
+  "source_identity": "suoyin_local_research_product_after_v1",
+  "after_source_id": "suoyin_local_research_product_after_v1",
+  "base_sha": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "authorization_record_commit": "bd23448f561a541ba6bed7fa1308c3f7de3f6236",
+  "runtime_identity": "suoyin_backend_venv_cpython_3.11.9_win10_amd64",
+  "capture_mode": "product_stream",
+  "capture_path_identity": "eb15_harness_product_after_capture_path_a",
+  "capture_path_submode": "product_stream_degraded",
+  "model_backend_identity": "none_no_llm",
+  "llm_called": false,
+  "llm_called_observed": false,
+  "response_mode": "DEGRADED",
+  "plan_refusal": false,
+  "stream_phase_entered": true,
+  "gated_scope_ids": [
+    "1fcee252-6b40-59db-a6c6-b357e62c6453"
+  ],
+  "gated_chunks_ordered": [
+    {
+      "chunk_id": "1fcee252-6b40-59db-a6c6-b357e62c6453",
+      "document_id": "5300493f-dee1-5277-bff9-4cc241dacdd2",
+      "doc_name": "费用制度.md",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main",
+      "page_number": 1,
+      "section_title": "4.1",
+      "similarity": 0.9
+    }
+  ],
+  "gated_scope_hash": "sha256:c7624c389acfd9d364521414df4d8194333955458c8a3906a8b7f84488a0e626",
+  "plan_scope_provenance": {
+    "owner": "gen_plan.gated_chunks",
+    "product_path": [
+      "execute_product_path_plan",
+      "prepare_agent_generation",
+      "gen_plan.gated_chunks"
+    ],
+    "gen_plan_reference": "sha256:9460775819a8cc075523ff599fde442b18cdc89e286f24aa54230d2ec7a5cb36",
+    "inferred_from_final_citations": false,
+    "synthetic_fixture_scope": false,
+    "eb18_compat": false,
+    "gold_constructed": false
+  },
+  "content": "AI 回答服务暂时不可用，以下是最相关的文档片段供您参考。请稍后再试以获得完整回答。\n[片段1] 《费用制度.md》 · 第1页 · 章节：4.1：员工应于费用发生之日起 30 日内提交报销申请。",
+  "citations": [
+    {
+      "chunk_id": "1fcee252-6b40-59db-a6c6-b357e62c6453",
+      "document_id": "5300493f-dee1-5277-bff9-4cc241dacdd2",
+      "doc_name": "费用制度.md",
+      "page": 1,
+      "section_title": "4.1",
+      "excerpt": "员工应于费用发生之日起 30 日内提交报销申请。",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main"
+    }
+  ],
+  "final_citation_ids": [
+    "1fcee252-6b40-59db-a6c6-b357e62c6453"
+  ],
+  "final_citation_source": "E-B41 companion same-run product final citations (same trajectory as gated_scope; not E-B38 cross-run splice)",
+  "source_hash": "sha256:c360ea17ef07fe21e3fd897cfb52dea1b5fbd08e302cb1eeba80668950287f93",
+  "observed_content_hash": "sha256:c360ea17ef07fe21e3fd897cfb52dea1b5fbd08e302cb1eeba80668950287f93",
+  "after_citations_hash": "sha256:48131cbf31e4a25c3d66fd6fdb74bfd5569cff2de61d42a7e54c1c29e6a2e62f",
+  "gen_plan_reference": "sha256:9460775819a8cc075523ff599fde442b18cdc89e286f24aa54230d2ec7a5cb36",
+  "T1_SAME_EXECUTION_BINDING_REQUIRED": true,
+  "same_trajectory_binding": true,
+  "suite_id": "w9_critic_frozen_12",
+  "binding_policy": "observed_after",
+  "formal_measurement": false,
+  "timestamp": "2026-08-25T09:44:28Z",
+  "capture_provenance": {
+    "window": "W10-E-B41",
+    "harness_id": "w10_eb15_product_after_capture",
+    "orchestration_entry": "execute_product_path_plan+drain_product_generation_phase",
+    "product_boundary": [
+      "prepare_agent_generation",
+      "gen_plan.gated_chunks",
+      "_stream_generation_phase",
+      "state[content]",
+      "state[citations]"
+    ],
+    "worktree_head": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+    "authorization_stamp_schema": "eb30_owner_stamp_v1"
+  },
+  "worktree_head_observed": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "eb38_content_hash_match": true,
+  "eb38_citations_hash_match": true,
+  "eb38_gen_plan_reference_match": true
+}
