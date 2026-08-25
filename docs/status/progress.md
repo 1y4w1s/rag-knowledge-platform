@@ -7,6 +7,20 @@
 
 ---
 
+## W10 E-B42 · T1 Formal Readiness Review（2026-08-25）✅ **AUDIT · BLOCKED · NO FORMAL**
+
+- **范围**：只读 Formal readiness 审计 — E-B41 已有真实 same-trajectory T1 input 时，既有 Formal contract 是否允许 **T1-only Formal Measurement**（T2/T3=`NOT_APPLICABLE`）。**不**跑 Formal scorer · **不**写 Formal result · **不** reacquisition · **不调** LLM · **不改** frozen baseline / `backend/app` / E-B21·E-B22。
+- **E-B41 provenance**：`2951914b3298ef63258d3a1df953bf10a899977b`（`≠` frozen `base_sha=3ce0e75…`）。
+- **核心语义**：`FORMAL_TARGET_SCOPE_SEMANTICS=AMBIGUOUS`（E-B21/E-B10 subset vs E-B24 Narrow `{T1,T2,T3}` supersession）· `FORMAL_TARGET_SCOPING_GAP=YES` · `GLOBAL_E_B_FORMAL_READY_SEMANTICS=UNDEFINED`。
+- **兼容**：`L_OBS_T1_ONLY_COMPATIBLE=YES` · `T2_T3_NA_COMPANION_ALLOWED=YES`（诚实 N/A ≠ PASS）。
+- **输入**：`T1_FORMAL_INPUT_READY=YES` · `T1_FORMAL_INPUT_IMMUTABLE=YES` · `AUTHORIZATION_STILL_VALID=YES` · `FORMAL_ORACLE_LEAK_RISK=NO`（raw recompute）。
+- **就绪**：`T1_FORMAL_READY=NO` · `MAY_ENTER_T1_FORMAL_MEASUREMENT=NO` · T2/T3=`NOT_APPLICABLE`。
+- **门禁（保持）**：`E-B_FORMAL_READY=NO` · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO` · `FORMAL_OBSERVATION=NOT_STARTED`。
+- **结论**：`BLOCKED_PENDING_FORMAL_TARGET_SCOPING_REPAIR`（非 `READY_FOR_T1_FORMAL_MEASUREMENT`）。
+- **产物**：`docs/research/w10-eb42-t1-formal-readiness/` · `backend/tests/w10_eb42_t1_formal_readiness.py` · `test_w10_eb42_t1_formal_readiness.py`。
+- **验收**：`pytest backend/tests/test_w10_eb42_t1_formal_readiness.py -q`（16 passed）。
+- **下一动作**：versioned Formal target-scoping repair（仍勿跑 Formal Measurement）。
+
 ## W10 E-B41 · T1 Companion Reacquisition on Frozen Baseline（2026-08-25）✅ **T1 COMPANION CAPTURE · NO FORMAL**
 
 - **范围**：在同一 frozen baseline 上为 E-B38 Real After 补采 T1 所需 `gen_plan.gated_chunks` / gated scope；same-trajectory final citations；候选子集判定。**不** Formal T1 scorer · **不** T2/T3 · **不** Formal Observation · **不调** LLM · **不改** `backend/app` / frozen tree。
