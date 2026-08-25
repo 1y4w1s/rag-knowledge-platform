@@ -7,6 +7,17 @@
 
 ---
 
+## W10 E-B39 · Post-Acquisition Binding & Scorer Applicability（2026-08-25）✅ **AUDIT COMPLETE · BLOCKED · NO FORMAL**
+
+- **范围**：持久化 E-B38 acquisition provenance → C01–C11 integrity recheck → E-B12B gold ↔ E-B38 real After binding（禁 E-B18 compat）→ frozen claimed-unit / claim-presence / degraded BP 分类 → 分目标 T1/T2/T3 input readiness。**不** Formal scorer · **不** Formal Observation · **不调** LLM/API · **不改** gold/After/scorer formula。
+- **provenance**：`acquisition_record_commit=f82cf46e04da6670acd3ca8a38c12fc6206c03a9`（`≠` frozen `base_sha=3ce0e75…`）。
+- **integrity**：`POST_ACQUISITION_RECORD_INTEGRITY=PASS`（双哈希各自自洽：utf8 `observed_content_hash` · canonical `harness_after_content_hash`）。
+- **binding**：C01–C11 全部 BP-A `INCOMPATIBLE`（gold `kind=synthetic_authored`）· BP-B `INVALID`（pool `E1/E2`≠UUID + 常 presence fail）→ `REAL_AFTER_BINDING_COMPLETE=NO` · `BP_A_REAL_AFTER_BOUND=NO`。
+- **semantics**：`CLAIM_UNIT_SEMANTICS=GOLD_LEDGER_UNIVERSE`（E-B16/E-B19）；`CLAIM_PRESENCE_UNRESOLVED_BY_FROZEN_PROTOCOL=YES`（substring ≠ assertion）；degraded → `bp_class=UNCLASSIFIED` · `BP_A_FORMAL_ELIGIBILITY=NO`。
+- **readiness**：`T1=NO`（缺 plan/gated scope）· `T2=NO` · `T3=NO`；`SCORER_APPLICABILITY_GAP=YES`；`POST_ACQUISITION_BINDING_READY=NO` · `BLOCKED_PENDING_PROTOCOL_REPAIR`。
+- **门禁（必须 NO）**：`E-B_FORMAL_READY=NO` · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO` · `FORMAL_OBSERVATION=NOT_STARTED`。
+- **产物**：`docs/research/w10-eb39-post-acquisition-binding/`。
+
 ## W10 E-B38 · Frozen Baseline Product After Acquisition（2026-08-25）✅ **ACQUISITION EXECUTED · NO FORMAL**
 
 - **范围**：在 Owner-APPROVED frozen baseline 上**首次真实执行** Product After acquisition（C01–C11）；C12 执行前排除。**不** Formal Observation · **不** Formal T2/T3 scoring · **不调** LM Studio/API/LLM · **不改** frozen worktree 实现代码 · **不**改写 stamp/`base_sha`。
@@ -17,7 +28,8 @@
 - **门禁（本窗 YES）**：`ACQUISITION_EXECUTED=YES` · `PRODUCT_AFTER_CAPTURED=YES` · `ACQUISITION_VALID=YES` · `AUTHORIZATION_STILL_VALID=YES`。
 - **门禁（必须 NO）**：`E-B_FORMAL_READY=NO` · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO` · `FORMAL_OBSERVATION=NOT_STARTED`。
 - **验收**：binding validation 116/116 PASS；post-run frozen worktree clean · HEAD 未变。
-- **下一动作**：`WAITING_FOR_POST_ACQUISITION_BINDING_AND_FORMAL_READINESS` — **不要**本记录窗进入 Formal Observation。
+- **下一动作**：E-B39 已完成 post-acquisition binding audit → **BLOCKED_PENDING_PROTOCOL_REPAIR**（仍勿进 Formal）。
+- **provenance commit**：`acquisition_record_commit=f82cf46e04da6670acd3ca8a38c12fc6206c03a9`（`≠` frozen `base_sha`）。
 
 ## W10 E-B37 · Acquisition Entry Review & Frozen Baseline Execution Plan（2026-08-25）✅ **ENTRY READY · NO ACQUISITION EXECUTED / NO FORMAL**
 
