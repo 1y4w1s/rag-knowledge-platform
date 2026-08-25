@@ -1,0 +1,246 @@
+{
+  "schema_version": "w10_formal_t1_result_v1",
+  "artifact_kind": "formal_t1_measurement_result",
+  "is_formal_result": true,
+  "formal_measurement_executed": true,
+  "formal_measurement_id": "w10_t1_formal_20260825T101800Z",
+  "measurement_scope_id": "w10_showcase_t1_only_v1",
+  "measurement_scope": "T1_ONLY",
+  "measured_at": "2026-08-25T10:18:00Z",
+  "source_identity": "suoyin_local_research_product_after_v1",
+  "base_sha": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "runtime_identity": "suoyin_backend_venv_cpython_3.11.9_win10_amd64",
+  "capture_mode": "product_stream",
+  "suite": "w9_critic_frozen_12",
+  "input_run_identity": "w10_showcase_narrow_eb41_t1_20260825T094148Z",
+  "input_provenance_commit": "2951914b3298ef63258d3a1df953bf10a899977b",
+  "eb43_protocol_commit": "07a0dcbea9b676c297f45ef0a6edc54831c4ad16",
+  "eligible_count": 11,
+  "excluded_count": 1,
+  "targets": {
+    "T1": {
+      "status": "MEASURED"
+    },
+    "T2": {
+      "status": "NOT_APPLICABLE"
+    },
+    "T3": {
+      "status": "NOT_APPLICABLE"
+    }
+  },
+  "per_case": [
+    {
+      "case_id": "C01-fully-supported-exact",
+      "case_id_short": "C01",
+      "gated_scope_ids": [
+        "75fc4898-c04a-51af-921e-101ab5133e2b"
+      ],
+      "gated_scope_hash": "sha256:34e05dd508c5de22d43a435549431f9b86174eea33964afe944b9d4d1f603e67",
+      "final_citation_ids": [
+        "75fc4898-c04a-51af-921e-101ab5133e2b"
+      ],
+      "final_citation_hash": "sha256:9163a249adf39c23a2a8000796813dd34c61079845299a0919cba2a115db99f5",
+      "same_trajectory_binding": true,
+      "compliant": true,
+      "violation_ids": [],
+      "excluded": false,
+      "status": "MEASURED"
+    },
+    {
+      "case_id": "C02-supported-paraphrase-low-lexical",
+      "case_id_short": "C02",
+      "gated_scope_ids": [
+        "1fcee252-6b40-59db-a6c6-b357e62c6453"
+      ],
+      "gated_scope_hash": "sha256:c7624c389acfd9d364521414df4d8194333955458c8a3906a8b7f84488a0e626",
+      "final_citation_ids": [
+        "1fcee252-6b40-59db-a6c6-b357e62c6453"
+      ],
+      "final_citation_hash": "sha256:9b3f436d74319f8eca395ce7ff69bf9f2038a54352f813a07330888f9a7fae41",
+      "same_trajectory_binding": true,
+      "compliant": true,
+      "violation_ids": [],
+      "excluded": false,
+      "status": "MEASURED"
+    },
+    {
+      "case_id": "C03-one-unsupported-among-supported",
+      "case_id_short": "C03",
+      "gated_scope_ids": [
+        "95cacc0e-1b6f-5ba6-bceb-feea43ad8a38"
+      ],
+      "gated_scope_hash": "sha256:2640f9579fd095da2f49b886dd078fefa0b7869409d0bd9b65cbe1e24f123db3",
+      "final_citation_ids": [
+        "95cacc0e-1b6f-5ba6-bceb-feea43ad8a38"
+      ],
+      "final_citation_hash": "sha256:83894bf1083af54c318aa03c4e13cb946f690f7562890cba4218a8cad0498e6a",
+      "same_trajectory_binding": true,
+      "compliant": true,
+      "violation_ids": [],
+      "excluded": false,
+      "status": "MEASURED"
+    },
+    {
+      "case_id": "C04-valid-citation-wrong-evidence",
+      "case_id_short": "C04",
+      "gated_scope_ids": [
+        "16d0e4d1-3717-568f-a21c-5657e3330375"
+      ],
+      "gated_scope_hash": "sha256:044e93b8c3d8e8a7d8ee86f58256e305f6583c2661b3cd0b5768f2ccfacd3797",
+      "final_citation_ids": [
+        "16d0e4d1-3717-568f-a21c-5657e3330375"
+      ],
+      "final_citation_hash": "sha256:4404035e65cba23516ac91a45540e4e749b86cfb98718f6cb9214917ea783049",
+      "same_trajectory_binding": true,
+      "compliant": true,
+      "violation_ids": [],
+      "excluded": false,
+      "status": "MEASURED"
+    },
+    {
+      "case_id": "C05-known-conflict-overcertain",
+      "case_id_short": "C05",
+      "gated_scope_ids": [
+        "66301d42-201a-5fd7-b43b-2b63c5d03b02",
+        "166476d7-8ebc-5abe-bfa5-c6d0129cbf9c"
+      ],
+      "gated_scope_hash": "sha256:77a4f355f96ae31270fd2dd3feda8cd0ee5c33196df29844d20f4c69a0a391e4",
+      "final_citation_ids": [
+        "166476d7-8ebc-5abe-bfa5-c6d0129cbf9c",
+        "66301d42-201a-5fd7-b43b-2b63c5d03b02"
+      ],
+      "final_citation_hash": "sha256:59afe50ba0dcd9a0a819902867c53d5e5aaf8825b0627c363ab203c0ef08644f",
+      "same_trajectory_binding": true,
+      "compliant": true,
+      "violation_ids": [],
+      "excluded": false,
+      "status": "MEASURED"
+    },
+    {
+      "case_id": "C06-required-fact-missing",
+      "case_id_short": "C06",
+      "gated_scope_ids": [
+        "515f3b00-1615-50e4-b6c0-63a1ce2f3e67"
+      ],
+      "gated_scope_hash": "sha256:604b758aaa095e5d58d8f764ed717b3134e345de34c0ae69c77901f16b731a95",
+      "final_citation_ids": [
+        "515f3b00-1615-50e4-b6c0-63a1ce2f3e67"
+      ],
+      "final_citation_hash": "sha256:c72183939999826ecbd470cf4fec692521232120483c9f2dddc7794080e7acb2",
+      "same_trajectory_binding": true,
+      "compliant": true,
+      "violation_ids": [],
+      "excluded": false,
+      "status": "MEASURED"
+    },
+    {
+      "case_id": "C07-correct-insufficiency-refusal",
+      "case_id_short": "C07",
+      "gated_scope_ids": [
+        "4df3961b-fd82-5496-bc71-f2ff88484380"
+      ],
+      "gated_scope_hash": "sha256:cb62473addc6534ddee8861a9d730b503042c08da8c1a60bdbc43a7348373b13",
+      "final_citation_ids": [
+        "4df3961b-fd82-5496-bc71-f2ff88484380"
+      ],
+      "final_citation_hash": "sha256:fa7a9abd4214b18e9ced4596db5019314905e4a2d6dd131e5ebac41f4cdbc7e2",
+      "same_trajectory_binding": true,
+      "compliant": true,
+      "violation_ids": [],
+      "excluded": false,
+      "status": "MEASURED"
+    },
+    {
+      "case_id": "C08-nonassertive-preface-supported-fact",
+      "case_id_short": "C08",
+      "gated_scope_ids": [
+        "931183dc-9ff1-59e5-a458-0bd86cd33142"
+      ],
+      "gated_scope_hash": "sha256:5e25f7e298934d883616e6b5c5fb9880b7c3102cd73c5ff75e5ca47ce55590dc",
+      "final_citation_ids": [
+        "931183dc-9ff1-59e5-a458-0bd86cd33142"
+      ],
+      "final_citation_hash": "sha256:83049020ea416016ce99f602e2f96fc4c914cae766b9d9dba1effd4e3a3d5299",
+      "same_trajectory_binding": true,
+      "compliant": true,
+      "violation_ids": [],
+      "excluded": false,
+      "status": "MEASURED"
+    },
+    {
+      "case_id": "C09-supported-plus-unverifiable",
+      "case_id_short": "C09",
+      "gated_scope_ids": [
+        "b5f27a25-417e-5669-8f0d-de0265204fca"
+      ],
+      "gated_scope_hash": "sha256:97b9230a346bf2fc936e80e05a41a78be049e1c077ab169d40eb5fd6911c98fa",
+      "final_citation_ids": [
+        "b5f27a25-417e-5669-8f0d-de0265204fca"
+      ],
+      "final_citation_hash": "sha256:894f190b0957560317154428e10437165918f1c51674476282ec2b9b3ff35db4",
+      "same_trajectory_binding": true,
+      "compliant": true,
+      "violation_ids": [],
+      "excluded": false,
+      "status": "MEASURED"
+    },
+    {
+      "case_id": "C10-supported-multiclaim-multicitation",
+      "case_id_short": "C10",
+      "gated_scope_ids": [
+        "ef36ce84-010b-5b6a-8c07-76d3dace6556",
+        "9411eb73-edc9-5c8d-966d-ebb987efc614"
+      ],
+      "gated_scope_hash": "sha256:c7daaefcc913521afeeb68d62444d297787e3e4aef62dcd5db9dde73690ad3e9",
+      "final_citation_ids": [
+        "9411eb73-edc9-5c8d-966d-ebb987efc614",
+        "ef36ce84-010b-5b6a-8c07-76d3dace6556"
+      ],
+      "final_citation_hash": "sha256:5213297999259f2b7cb36a5370c1a837d2da51e68c13f7e976eb1f8625211982",
+      "same_trajectory_binding": true,
+      "compliant": true,
+      "violation_ids": [],
+      "excluded": false,
+      "status": "MEASURED"
+    },
+    {
+      "case_id": "C11-citation-format-only-defect",
+      "case_id_short": "C11",
+      "gated_scope_ids": [
+        "c86885f7-90ab-5751-ac43-24a9043602d5"
+      ],
+      "gated_scope_hash": "sha256:556e25743a1ea1c6235a3cc0516554483de2f19139e3eb333d4007df42a0ed40",
+      "final_citation_ids": [
+        "c86885f7-90ab-5751-ac43-24a9043602d5"
+      ],
+      "final_citation_hash": "sha256:d12d92cb04de8508148a38d22636da29b8abdf488aa16daa12f04f6ba6bd00af",
+      "same_trajectory_binding": true,
+      "compliant": true,
+      "violation_ids": [],
+      "excluded": false,
+      "status": "MEASURED"
+    },
+    {
+      "case_id": "C12-out-of-scope-provenance",
+      "case_id_short": "C12",
+      "gated_scope_ids": [],
+      "gated_scope_hash": null,
+      "final_citation_ids": [],
+      "final_citation_hash": null,
+      "same_trajectory_binding": false,
+      "compliant": false,
+      "violation_ids": [],
+      "excluded": true,
+      "status": "INELIGIBLE_NOT_SCORED"
+    }
+  ],
+  "aggregate": {
+    "compliant_count": 11,
+    "violation_count": 0,
+    "compliance_rate": 1.0
+  },
+  "measurement_valid": true,
+  "candidate_oracle_used": false,
+  "llm_called": false,
+  "notes": "Formal T1 measurement from immutable E-B41 raw companion records. Subset predicate: final_citation_ids ⊆ gated_scope_ids. C12 excluded before denominator. T2/T3 NOT_APPLICABLE."
+}

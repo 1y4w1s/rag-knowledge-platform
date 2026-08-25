@@ -7,6 +7,20 @@
 
 ---
 
+## W10 E-B44 · T1 Formal Measurement Execution（2026-08-25）✅ **FORMAL T1 · MEASURED · STOP**
+
+- **范围**：在冻结 scope `w10_showcase_t1_only_v1` 下，从 E-B41 immutable raw records **重新计算** Formal T1（`final_citation_ids ⊆ gated_scope_ids`），写出唯一 canonical Formal result。**不**用 candidate oracle · **不**改 `backend/app` / raw input · **不**扩 T2/T3/A4/S2/Local Model。
+- **E-B43 provenance**：`07a0dcbea9b676c297f45ef0a6edc54831c4ad16`（`≠` frozen `base_sha=3ce0e75…`）。
+- **Formal identity**：`formal_measurement_id=w10_t1_formal_20260825T101800Z` · `measured_at=2026-08-25T10:18:00Z` · `input_run=w10_showcase_narrow_eb41_t1_20260825T094148Z`。
+- **输入绑定**：`source_identity=suoyin_local_research_product_after_v1` · `base_sha=3ce0e75…` · suite=`w9_critic_frozen_12` · C01–C11 eligible · C12=`INELIGIBLE_NOT_SCORED` · `response_mode=DEGRADED`。
+- **Formal T1 结果**：compliant=**11** · violation=**0** · rate=**100%** · eligible=11 · excluded=1。
+- **T2/T3**：`NOT_APPLICABLE`（≠ PASS/100%）。
+- **完整性**：`FORMAL_ORACLE_LEAK_RISK=NO` · `CANONICAL_FORMAL_T1_RESULT_COUNT=1` · raw 未变异 · 无 LLM。
+- **门禁**：`FORMAL_T1_MEASUREMENT_EXECUTED=YES` · `FORMAL_T1_MEASUREMENT_VALID=YES` · `FORMAL_OBSERVATION=COMPLETED_FOR_T1_V2` · `T1_FORMAL_STATUS=MEASURED` · 历史 `E-B_FORMAL_READY=NO` 保持。
+- **产物**：`docs/research/w10-eb44-t1-formal-measurement/`（含 `formal-t1-result.json`）· `backend/tests/w10_eb44_t1_formal_measurement.py` · `test_w10_eb44_t1_formal_measurement.py`。
+- **验收**：`pytest backend/tests/test_w10_eb44_t1_formal_measurement.py -q`（17 passed）。
+- **结论**：`W10_T1_FORMAL_MEASUREMENT_COMPLETE` — **停手**，勿自动开下一研究能力。
+
 ## W10 E-B43 · Target-Scoped Formal Contract v2（2026-08-25）✅ **SCOPE V2 · READY · NO FORMAL RUN**
 
 - **范围**：versioned Formal target-scoping repair — 冻结显式 `formal_measurement_scope`，允许 Showcase Narrow `FORMAL_MEASUREMENT_SCOPE={T1}`，T2/T3=`NOT_APPLICABLE`。**不**跑 Formal Measurement · **不**写 Formal result · **不调** LLM · **不改** `backend/app` / E-B21·E-B22 · **不**重写 E-B21/E-B24/E-B42 历史结论。
