@@ -7,16 +7,30 @@
 
 ---
 
-## V1.0-C0 · Current Capability Inventory & Cut-Line Preparation（2026-08-25）✅ **INVENTORY COMPLETE · AWAIT REVIEW · NO COMMIT**
+## V1.0-C2 · README Truthfulness & Scope Representation（2026-08-25）✅ **README TRUTH FREEZE · CLOSURE COMMIT**
 
-- **范围**：repo-internal audit only — inspect/classify/verify/document；**不**实现功能 · **不**改 flag · **不**改 CI/scorer · **不**开 E-B45/W11 · **不** commit。
-- **输入锚**：`W10_CLOSED=YES` · Formal T1 MEASURED（Showcase T1-only 11/11 citation-scope；≠ Agent/RAG accuracy 100%）· HEAD `f06e8d92…`。
+- **范围**：README claim repair + progress 同步 only；**不**实现能力 · **不**改 flag/CI · **不**修 install/demo · **不**开 C3。
+- **冻结**：`README_TRUTHFULNESS_REPAIRED=YES` · `V1_0_SCOPE_REPRESENTED=YES` · `UNSUPPORTED_CAPABILITY_CLAIMS=0` · `NEW_CAPABILITY_ADDED=NO`。
+- **口径**：Memory = infra ≠ intelligence；L3/Critic/L4/rerank/HyDE/rewrite/graph **DEFAULT OFF**；W10 Formal T1 = Showcase T1-only citation-scope 11/11；T2/T3 = **NOT_APPLICABLE**。
+- **停手**：本窗 closure commit 后等待人工触发 C3；勿自动开 install/demo/CI 修复。
+
+## V1.0-C1 · Feature Admission Constitution & Release Cut-Line Freeze（2026-08-25）✅ **GOVERNANCE FREEZE · COMMITTED（with C2）**
+
+- **范围**：项目级治理契约 only — Constitution · Lifecycle · Proposal template · v1.0 Cut Line；**不**实现能力 · **不**改 flag/CI · **不**开 E-B45/W11。
+- **C0 provenance**：`v1_0_c0_inventory_commit=854de3a`（`docs(research): inventory v1.0 closure surface`）。
+- **冻结**：`FEATURE_CONSTITUTION_FROZEN=YES` · `V1_0_CUT_LINE_FROZEN=YES` · `NEW_CAPABILITY_REQUIRED_FOR_V1_0=NO` · `COOL_IDEA_IS_NOT_RELEASE_BLOCKER=YES`。
+- **产物**：[`docs/project/feature-admission-constitution.md`](../project/feature-admission-constitution.md) · [`feature-lifecycle.md`](../project/feature-lifecycle.md) · [`feature-proposal-template.md`](../project/feature-proposal-template.md) · [`v1-0-release-cut-line.md`](../project/v1-0-release-cut-line.md)。
+
+## V1.0-C0 · Current Capability Inventory & Cut-Line Preparation（2026-08-25）✅ **INVENTORY COMPLETE · COMMITTED**
+
+- **范围**：repo-internal audit only — inspect/classify/verify/document；**不**实现功能 · **不**改 flag · **不**改 CI/scorer · **不**开 E-B45/W11。
+- **Commit**：`854de3a` · `docs(research): inventory v1.0 closure surface`。
+- **输入锚**：`W10_CLOSED=YES` · Formal T1 MEASURED（Showcase T1-only 11/11 citation-scope；≠ Agent/RAG accuracy 100%）· 当时 HEAD `f06e8d92…`。
 - **盘点**：34 capabilities · IMPLEMENTED 22 / PARTIAL 8 / EXPERIMENTAL 2 / STUB 2 · `NEW_CAPABILITY_REQUIRED_FOR_V1_0=NO`。
 - **默认面**：L3/Critic/rerank/HyDE/rewrite/graph/L4 **OFF**（safe）· `agent_memory_enabled=True`（infra ON；utilization **未**产品化证明）。
 - **判定**：`V1_0_CI_COVERAGE=PARTIAL` · `INSTALL_PATH_STATUS=PARTIAL` · `DEMO_READINESS=GAP`。
-- **Closure blockers（候选）**：README V1 stale · Memory「Stable」overclaim · canonical demo/BROWSER 断链 · install overlay 漂移 · Formal claim 口径纪律。
+- **Closure blockers（候选）**：canonical demo/BROWSER 断链 · install overlay 漂移 · CI scope honesty（README claim 口径已由 C2 修复）。
 - **产物**：[`docs/research/v1-0-closure-inventory/`](../research/v1-0-closure-inventory/)（README + 01–08）。
-- **停手**：等待人工 review；勿自动 README rewrite / Demo 实现 / install fix / v1.0 功能实现。
 
 ## W10 Closure · Final Evidence & Claim Freeze（2026-08-25）✅ **W10_CLOSED · NEXT = V1_0_CLOSURE**
 

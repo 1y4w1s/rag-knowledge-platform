@@ -110,7 +110,7 @@ backend/=*,
 /.env.example
 /.env.production.example
 
-# docs/ default private; narrow allowlist for formal W10 research + V1.0 closure inventory
+# docs/ default private; narrow allowlist for formal W10 research + V1.0 closure inventory + project governance
 /docs/*
 !/docs/research/
 /docs/research/*
@@ -120,6 +120,7 @@ backend/=*,
 !/docs/research/project-boundary/
 /docs/research/project-boundary/*
 !/docs/research/project-boundary/w10-*.md
+!/docs/project/
 !/docs/status/
 /docs/status/*
 !/docs/status/progress.md
