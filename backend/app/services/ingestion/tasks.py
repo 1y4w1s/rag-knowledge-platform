@@ -1,14 +1,31 @@
 """Celery task 定义 — 异步文档 ingestion。"""
 from __future__ import annotations
 
-import anyio
 import logging
+import threading
 from uuid import UUID
+
+import anyio
 
 from app.services.ingestion.celery_app import celery_app
 from app.services.ingestion.pipeline import process_document_ingestion
 
 logger = logging.getLogger(__name__)
+
+# Celery --pool=threads + anyio.run() creates a fresh event loop per task.
+# The process-global AsyncEngine/asyncpg pool must not be shared across those
+# loops (RuntimeError: Future attached to a different loop). Serialize one
+# loop-bound ingest at a time and dispose the pool when the loop ends.
+_INGEST_LOOP_LOCK = threading.Lock()
+
+
+async def _process_document_on_fresh_loop(doc_id: str):
+    from app.core.database import engine
+
+    try:
+        return await process_document_ingestion(UUID(doc_id))
+    finally:
+        await engine.dispose()
 
 
 @celery_app.task(
@@ -30,7 +47,8 @@ def ingest_document_task(self, doc_id: str) -> dict:
     """
     logger.info("ingestion task started: doc_id=%s attempt=%d", doc_id, self.request.retries)
     try:
-        outcome = anyio.run(process_document_ingestion, UUID(doc_id))
+        with _INGEST_LOOP_LOCK:
+            outcome = anyio.run(_process_document_on_fresh_loop, doc_id)
         logger.info(
             "ingestion task finished: doc_id=%s outcome=%s",
             doc_id,
