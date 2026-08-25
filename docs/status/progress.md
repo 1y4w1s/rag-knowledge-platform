@@ -7,6 +7,19 @@
 
 ---
 
+## W10 E-B40 · Degraded Response Semantics & Real-After Binding Repair（2026-08-25）✅ **PROTOCOL REPAIR · NO FORMAL**
+
+- **范围**：持久化 E-B39 → versioned `response_mode` gate + real-After binding v2 → 分类 E-B38 C01–C11 → 关闭 degraded→perfect-score 路径。**不** Formal scorer · **不** Formal Observation · **不调** LLM/NLI · **不改** 冻结 E-B16/17/19 公式 · **不改** gold/E-B38 After · **不**把 E-B39 解释成模型失败。
+- **E-B39 provenance**：`937e33bddd8278536125a28cbe151886e19959e7`（`REAL_AFTER_BINDING_COMPLETE=NO` · 旧协议 `SCORER_APPLICABILITY_GAP=YES` 原样保留）。
+- **信号**：`RESPONSE_MODE_SIGNAL_AVAILABLE=YES`（主信号 `capture_path_submode` / E-B15 · 辅 `plan_refusal` · `llm_called`）。
+- **分类**：C01–C11 全部 `response_mode=DEGRADED` · `DEGRADED_BP_POLICY=VERSIONED_BP_D`。
+- **binding v2**：provenance 11/11 bound · `T2_T3_SCORER_ELIGIBLE=NO` · T2/T3=`NOT_APPLICABLE`（≠ PASS）。
+- **T1**：仍缺 plan/gated scope → `T1_REQUIRES_COMPANION_REACQUISITION=YES` · 同 frozen baseline 外层编排可行（不改 `backend/app`）。
+- **门禁**：`RESPONSE_MODE_GATE_IMPLEMENTED=YES` · `SCORER_APPLICABILITY_GAP=RESOLVED_FOR_RESPONSE_MODE` · `EMPTY_OR_DEGRADED_PERFECT_SCORE_PATH=CLOSED` · **`E-B_FORMAL_READY=NO`** · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO` · `FORMAL_OBSERVATION=NOT_STARTED`。
+- **产物**：`docs/research/w10-eb40-degraded-response-semantics/` · `backend/tests/w10_eb40_*.py` · `test_w10_eb40_degraded_response_semantics.py`。
+- **验收**：`pytest backend/tests/test_w10_eb40_degraded_response_semantics.py -q`（14 passed）。
+- **下一动作**：`PROTOCOL_REPAIR_COMPLETE_FOR_DEGRADED_SEMANTICS` → **WAITING_FOR_T1_COMPANION_REACQUISITION**（仍勿进 Formal）。
+
 ## W10 E-B39 · Post-Acquisition Binding & Scorer Applicability（2026-08-25）✅ **AUDIT COMPLETE · BLOCKED · NO FORMAL**
 
 - **范围**：持久化 E-B38 acquisition provenance → C01–C11 integrity recheck → E-B12B gold ↔ E-B38 real After binding（禁 E-B18 compat）→ frozen claimed-unit / claim-presence / degraded BP 分类 → 分目标 T1/T2/T3 input readiness。**不** Formal scorer · **不** Formal Observation · **不调** LLM/API · **不改** gold/After/scorer formula。
@@ -28,7 +41,7 @@
 - **门禁（本窗 YES）**：`ACQUISITION_EXECUTED=YES` · `PRODUCT_AFTER_CAPTURED=YES` · `ACQUISITION_VALID=YES` · `AUTHORIZATION_STILL_VALID=YES`。
 - **门禁（必须 NO）**：`E-B_FORMAL_READY=NO` · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO` · `FORMAL_OBSERVATION=NOT_STARTED`。
 - **验收**：binding validation 116/116 PASS；post-run frozen worktree clean · HEAD 未变。
-- **下一动作**：E-B39 已完成 post-acquisition binding audit → **BLOCKED_PENDING_PROTOCOL_REPAIR**（仍勿进 Formal）。
+- **下一动作**：E-B40 已完成 degraded response-mode protocol repair → **WAITING_FOR_T1_COMPANION_REACQUISITION**（仍勿进 Formal）。
 - **provenance commit**：`acquisition_record_commit=f82cf46e04da6670acd3ca8a38c12fc6206c03a9`（`≠` frozen `base_sha`）。
 
 ## W10 E-B37 · Acquisition Entry Review & Frozen Baseline Execution Plan（2026-08-25）✅ **ENTRY READY · NO ACQUISITION EXECUTED / NO FORMAL**
