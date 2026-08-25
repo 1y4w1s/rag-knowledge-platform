@@ -1,140 +1,26 @@
-# RAG 回归检测 CI（已弃用）
+# RAG 回归检测 CI（已弃用 · V1.0-C5）
 #
-# 此 workflow 已弃用，功能已合并到 ci.yml 的 rag-benchmark job。
-# 保留此文件供参考，将在 3 个月后删除。
-# 如需回归检测，请关注 ci.yml 中的 Baseline 对比结果。
+# 此 workflow 已弃用，功能已合并到 ci.yml 的 rag-* + benchmark-gate jobs。
+# 不再挂在 pull_request 上（continue-on-error 会制造「绿勾但未门禁」的假象）。
+# 仅保留 workflow_dispatch 供历史对照；将在后续清理窗删除。
+# 正式回归请看 ci.yml → rag-golden / rag-enterprise / rag-advanced / benchmark-gate。
 
 name: RAG Regression
 
 on:
-  pull_request:
-    paths:
-      - 'backend/app/services/rag/**'
-      - 'backend/app/services/ingestion/**'
-      - 'backend/app/services/search/**'
   workflow_dispatch:
 
 permissions:
   contents: read
-  pull-requests: write
   actions: read
 
 jobs:
-  regression:
+  regression-deprecated:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    services:
-      postgres:
-        image: pgvector/pgvector:pg16
-        env:
-          POSTGRES_USER: raguser
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD || 'ragpass' }}
-          POSTGRES_DB: ragknowledge
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -h localhost -U raguser"
-          --health-interval 5s
-          --health-timeout 3s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: 'pip'
-
-      - name: Install dependencies
+      - name: Deprecated notice
         run: |
-          python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
-
-      - name: Run migrations
-        env:
-          DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
-          JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-test-32-char-jwt-secret-key-for-ci' }}
-          DEEPSEEK_API_KEY: skip
-        run: |
-          cd backend
-          alembic upgrade head
-
-      - name: Run regression check
-        id: check
-        env:
-          DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
-          JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci-test-32-char-jwt-secret-key-for-ci' }}
-          DEEPSEEK_API_KEY: skip
-          TONGYI_API_KEY: skip
-          RAG_REAL_EMBEDDING: '0'
-        continue-on-error: true
-        run: |
-          python scripts/regression_ci.py --sample 50 2>&1 | tee /tmp/regression_output.txt
-
-      - name: Run generation quality eval
-        id: generation_eval
-        env:
-          DATABASE_URL: postgresql+asyncpg://raguser:ragpass@localhost:5432/ragknowledge
-          JWT_SECRET: ci-t*****************************r-ci
-          DEEPSEEK_API_KEY: [redacted]
-          TONGYI_API_KEY: [redacted]
-        continue-on-error: true
-        timeout-minutes: 30
-        run: |
-          cd backend
-          python -m tests.benchmark.tests.run_generation_eval 2>&1 | tee /tmp/gen_eval_output.txt
-
-      - name: Parse results
-        id: parse
-        run: |
-          json_result=$(python3 -c "
-import json, re
-with open('/tmp/regression_output.txt') as f:
-    text = f.read()
-m = re.search(r'JSON_START\n(.*?)\nJSON_END', text, re.DOTALL)
-if m:
-    print(m.group(1))
-else:
-    print(json.dumps({'status':'UNKNOWN','exit_code':1,'failures':['JSON parse failed']}))
-          ")
-          echo "result<<EOF" >> $GITHUB_OUTPUT
-          echo "$json_result" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Comment PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const result = JSON.parse('${{ steps.parse.outputs.result }}');
-            let body = `## RAG 回归检测\n\n`;
-            body += `**状态**: ${result.status}\n\n`;
-            if (result.status === 'PASS') {
-              body += `\u2705 所有指标在阈值内\n\n`;
-            } else if (result.status === 'WARN') {
-              body += `\u26a0\ufe0f 指标有下降但未超阈值\n\n`;
-            } else if (result.status === 'FAIL') {
-              body += `\u274c 指标超阈值：\n${result.failures.map(f => `- ${f}`).join('\n')}\n\n`;
-            } else {
-              body += `\u2753 无法解析检测结果\n\n`;
-            }
-            body += `| 指标 | 当前 | 基线 | 差值 |\n`;
-            body += `|------|------|------|------|\n`;
-            if (result.current) {
-              const ch = (result.current.hit_at_k * 100).toFixed(1);
-              const bh = (result.baseline.hit_at_k * 100).toFixed(1);
-              const dh = (result.diff.hit_at_k * 100).toFixed(1);
-              body += `| Hit@3 | ${ch}% | ${bh}% | ${dh}% |\n`;
-              body += `| MRR | ${result.current.mrr.toFixed(4)} | ${result.baseline.mrr.toFixed(4)} | ${result.diff.mrr.toFixed(4)} |\n`;
-            }
-            body += `\n_全量评测需手动触发 workflow_dispatch_`;
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: body
-            });
+          echo "This workflow is deprecated and is not a PR gate."
+          echo "Use .github/workflows/ci.yml (rag-* + benchmark-gate) for release protection."
+          echo "Historical soft regression lived here; removed from pull_request triggers in V1.0-C5."

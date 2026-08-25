@@ -7,6 +7,17 @@
 
 ---
 
+## V1.0-C5 · CI Scope & Release Gate Audit（2026-08-25）✅ **CI GATE AUDIT · CLOSURE COMMIT**
+
+- **范围**：CI / release-gate honesty only — 审计真实执行链 · 最小修复 · 定义 PR Tier-1 门禁；**不**开新能力 · **不**重开 W9/W10 · **不**改 golden 期望 · **不**开 C6/RC。
+- **基线**：`bc025c4`（`feat(release): add canonical v1.0 product demo`）。
+- **修复**：C4 `test_c4_ingestion_loop_isolation.py` 进入 PR `test` job · `test_v1_0_safe_defaults.py` · rag-* `--skip-entity-extract`（去付费 LLM 依赖）· `ci_baseline_check` 硬失败语义 · `benchmark.yml` baseline 路径 · `regression.yml` 脱离 PR。
+- **分类**：Agent Golden = RELEASE/MANUAL · ADV/W9/W10 = RESEARCH_ARCHIVE · Canonical demo = MANUAL_ONLY。
+- **冻结**：`CI_SCOPE_AUDITED=YES` · `PR_GATE_DEFINED=YES` · `PR_GATE_DETERMINISTIC=YES` · `C4_INGESTION_REGRESSION_COVERED=YES` · `RETRIEVAL_GATE_VERIFIED=YES` · `PAID_PROVIDER_REQUIRED_FOR_PR_CI=NO` · `NEW_CAPABILITY_ADDED=NO`。
+- **Determinism**：paid-LLM independent；local BGE 可能依赖 HF mirror/cache — **不**宣称完全离线、**不**为此削弱门禁。
+- **契约**：[`docs/project/v1-0-release-cut-line.md`](../project/v1-0-release-cut-line.md) §CI Contract · [`04-ci-and-test-surface.md`](../research/v1-0-closure-inventory/04-ci-and-test-surface.md)。
+- **停手**：C5 已闭合；勿自动开 C6。
+
 ## V1.0-C2 · README Truthfulness & Scope Representation（2026-08-25）✅ **README TRUTH FREEZE · CLOSURE COMMIT**
 
 - **范围**：README claim repair + progress 同步 only；**不**实现能力 · **不**改 flag/CI · **不**修 install/demo · **不**开 C3。

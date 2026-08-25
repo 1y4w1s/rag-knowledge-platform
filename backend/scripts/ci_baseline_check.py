@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
-"""CI 基线对比：解析 BENCHMARK_SUMMARY 行，对比 docs/baseline.json。
+"""CI 基线对比：解析 BENCHMARK_SUMMARY 行，对比 baseline.json。
 
 compare_mode:
   - gate: 掉分超过 drop_fail_pp → exit 1（golden / enterprise / advanced · C3）
   - informational: 掉分超过 drop_warn_pp → WARN，仍 exit 0（CRAG sample / crag_full · C4）
+
+Failure semantics (V1.0-C5):
+  - Missing baseline file → exit 1 (not soft skip)
+  - Empty / unparseable output when gate datasets are expected → exit 1
+  - Gate-mode dataset present in baseline but missing from run → exit 1
+  - Informational datasets may still SKIP when absent
 """
 from __future__ import annotations
 
@@ -13,7 +19,9 @@ import re
 import sys
 from pathlib import Path
 
-BASELINE_PATH = os.environ.get("BASELINE_PATH", "docs/baseline.json")
+BASELINE_PATH = os.environ.get(
+    "BASELINE_PATH", "backend/tests/benchmark/baseline.json"
+)
 # 逗号分隔的评测输出文件（tee 产物）
 OUTPUT_GLOBS = os.environ.get(
     "BENCHMARK_OUT_FILES",
@@ -34,17 +42,19 @@ def _load_baseline(path: str) -> dict:
         with open(path, encoding="utf-8") as f:
             return json.load(f)
     except FileNotFoundError:
-        print(f"Baseline not found at {path}, skipping comparison")
-        sys.exit(0)
+        print(f"FAIL: Baseline not found at {path}")
+        sys.exit(1)
 
 
-def _collect_text(files_csv: str) -> str:
+def _collect_text(files_csv: str) -> tuple[str, list[str]]:
     chunks: list[str] = []
+    found_files: list[str] = []
     for part in files_csv.split(","):
         p = Path(part.strip())
         if p.is_file():
+            found_files.append(str(p))
             chunks.append(p.read_text(encoding="utf-8", errors="replace"))
-    return "\n".join(chunks)
+    return "\n".join(chunks), found_files
 
 
 def _parse_summaries(text: str) -> dict[str, dict]:
@@ -60,6 +70,14 @@ def _parse_summaries(text: str) -> dict[str, dict]:
         if m:
             found["golden_qa"] = {"hit_at_k": float(m.group(1)) / 100.0, "total": -1}
     return found
+
+
+def _gate_dataset_names(baseline: dict) -> list[str]:
+    names: list[str] = []
+    for name, spec in baseline.items():
+        if isinstance(spec, dict) and spec.get("compare_mode") == "gate":
+            names.append(name)
+    return names
 
 
 def _compare_one(name: str, current: dict, spec: dict) -> int:
@@ -107,26 +125,41 @@ def _compare_one(name: str, current: dict, spec: dict) -> int:
 
 def main() -> None:
     baseline = _load_baseline(BASELINE_PATH)
-    text = _collect_text(OUTPUT_GLOBS)
+    text, found_files = _collect_text(OUTPUT_GLOBS)
+    gate_names = _gate_dataset_names(baseline)
+
+    if not found_files:
+        print(f"FAIL: No benchmark output files found in {OUTPUT_GLOBS}")
+        sys.exit(1)
+
     if not text.strip():
-        print(f"No benchmark output in {OUTPUT_GLOBS}, skipping comparison")
-        sys.exit(0)
+        print(f"FAIL: Benchmark output files are empty: {found_files}")
+        sys.exit(1)
 
     current = _parse_summaries(text)
     if not current:
-        print("Could not parse BENCHMARK_SUMMARY / Hit@3 from outputs")
-        sys.exit(0)
+        print("FAIL: Could not parse BENCHMARK_SUMMARY / Hit@3 from outputs")
+        sys.exit(1)
 
     hard_fail = 0
     checked = 0
     for name, spec in baseline.items():
         if not isinstance(spec, dict) or "hit_at_k" not in spec:
             continue
+        mode = spec.get("compare_mode", "informational")
         if name not in current:
-            print(f"SKIP {name}: no current summary in this run")
+            if mode == "gate":
+                print(f"FAIL: {name}: gate dataset missing from this run")
+                hard_fail = 1
+            else:
+                print(f"SKIP {name}: no current summary in this run (informational)")
             continue
         checked += 1
         hard_fail |= _compare_one(name, current[name], spec)
+
+    if gate_names and checked == 0:
+        print("FAIL: No gate datasets compared")
+        sys.exit(1)
 
     if checked == 0:
         print("No overlapping datasets between baseline and run; skip")

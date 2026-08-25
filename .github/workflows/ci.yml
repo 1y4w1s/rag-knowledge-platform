@@ -71,7 +71,7 @@ jobs:
 
       - name: Run RAG + ingestion tests
         run: |
-          python -m pytest tests/test_retrieval_golden.py tests/test_retrieval_hybrid.py tests/test_rerank.py tests/test_chunker.py tests/test_ingestion_golden.py tests/test_pptx_ingestion.py tests/test_xlsx_ingestion.py -v --tb=short
+          python -m pytest tests/test_retrieval_golden.py tests/test_retrieval_hybrid.py tests/test_rerank.py tests/test_chunker.py tests/test_ingestion_golden.py tests/test_pptx_ingestion.py tests/test_xlsx_ingestion.py tests/test_c4_ingestion_loop_isolation.py -v --tb=short
 
       - name: Run chat + streaming tests
         run: |
@@ -150,6 +150,10 @@ jobs:
         run: |
           python -m pytest tests/test_config_wiring.py -q --no-header
 
+      - name: V1.0 safe defaults (experimental surfaces OFF)
+        run: |
+          python -m pytest tests/test_v1_0_safe_defaults.py -q --no-header
+
   # Phase 2 P1: partial parallel (P0 PARTIALLY_PARALLEL_SAFE).
   # Datasets independent; baseline = artifact fan-in; new scorer stays with Golden
   # (KEEP_NEW_SCORER_WITH_GOLDEN — not artifact-only / shared-DB latest-KB footgun).
@@ -200,16 +204,15 @@ jobs:
         run: |
           cd backend && alembic upgrade head
 
-      - name: Run Golden QA benchmark (real embeddings)
+      - name: Run Golden QA benchmark (real local BGE embeddings; no paid LLM)
         env:
           DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
           JWT_SECRET: ${{ secrets.JWT_SECRET || '1362b8353e8306574369454872b0fb2a' }}
           RAG_RATE_LIMIT_MODE: bypass
           PYTHONPATH: backend
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           RAG_TEST_PASSWORD: ${{ secrets.RAG_TEST_PASSWORD }}
         run: |
-          python scripts/run_benchmark.py --dataset golden_qa --mode retrieval --output text 2>&1 | tee backend/benchmark_output.txt
+          python scripts/run_benchmark.py --dataset golden_qa --mode retrieval --output text --skip-entity-extract 2>&1 | tee backend/benchmark_output.txt
           echo "BENCHMARK_DONE=1" >> $GITHUB_ENV
 
       - name: New scoring engine comparison (experimental)
@@ -270,13 +273,12 @@ jobs:
         run: |
           cd backend && alembic upgrade head
 
-      - name: Run Enterprise QA benchmark (C3 gate)
+      - name: Run Enterprise QA benchmark (C3 gate; real local BGE; no paid LLM)
         env:
           DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
           JWT_SECRET: ${{ secrets.JWT_SECRET || '1362b8353e8306574369454872b0fb2a' }}
           RAG_RATE_LIMIT_MODE: bypass
           PYTHONPATH: backend
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           RAG_TEST_PASSWORD: ${{ secrets.RAG_TEST_PASSWORD }}
         run: |
           python scripts/run_benchmark.py --dataset enterprise_qa --mode retrieval --output text --skip-entity-extract 2>&1 | tee backend/benchmark_enterprise.txt
@@ -335,16 +337,15 @@ jobs:
         run: |
           cd backend && alembic upgrade head
 
-      - name: Run Advanced QA benchmark (C3 gate)
+      - name: Run Advanced QA benchmark (C3 gate; real local BGE; no paid LLM)
         env:
           DATABASE_URL: postgresql+asyncpg://ruige:changeme@localhost:5432/ruige
           JWT_SECRET: ${{ secrets.JWT_SECRET || '1362b8353e8306574369454872b0fb2a' }}
           RAG_RATE_LIMIT_MODE: bypass
           PYTHONPATH: backend
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           RAG_TEST_PASSWORD: ${{ secrets.RAG_TEST_PASSWORD }}
         run: |
-          python scripts/run_benchmark.py --dataset advanced_qa --mode retrieval --output text 2>&1 | tee backend/benchmark_advanced.txt
+          python scripts/run_benchmark.py --dataset advanced_qa --mode retrieval --output text --skip-entity-extract 2>&1 | tee backend/benchmark_advanced.txt
 
       - name: Upload Advanced benchmark artifact
         uses: actions/upload-artifact@v4

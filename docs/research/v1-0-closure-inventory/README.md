@@ -39,7 +39,7 @@
 | Status mix | IMPLEMENTED **22** · PARTIAL **8** · EXPERIMENTAL **2** · STUB **2** · ABSENT **0**（见 01） |
 | Default experimental flags | L3 / Critic / rerank / HyDE / rewrite / graph / L4 **OFF** — **safe** |
 | Memory master switch | `agent_memory_enabled=True` — 基础设施 ON；utilization **未**产品化证明 |
-| `V1_0_CI_COVERAGE` | **PARTIAL** |
+| `V1_0_CI_COVERAGE` | **SUFFICIENT_FOR_STABLE_RAG_V1_0**（C5；原 PARTIAL 已闭合） |
 | `INSTALL_PATH_STATUS` | **PARTIAL** |
 | `DEMO_READINESS` | **GAP**（无 canonical 面试 Demo path） |
 | `NEW_CAPABILITY_REQUIRED_FOR_V1_0` | **NO** |

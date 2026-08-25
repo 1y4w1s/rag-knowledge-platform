@@ -128,13 +128,65 @@ IMPLEMENTED        ≠  VALIDATED / DEFAULT
 
 ---
 
+## V1.0 CI Contract（C5 · canonical）
+
+> Authoritative answer to: *If a PR breaks a V1.0 release-critical behavior, will CI detect and block it?*  
+> Inventory detail: [`../research/v1-0-closure-inventory/04-ci-and-test-surface.md`](../research/v1-0-closure-inventory/04-ci-and-test-surface.md).
+
+### Tier model
+
+| Tier | Role | Paid LLM? | Blocks PR? |
+|------|------|-----------|:----------:|
+| **1 — PR BLOCKING** | Fast / deterministic / local-BGE or mock | **NO** | **YES** |
+| **2 — RELEASE CHECK** | Slower reproducible (CRAG nightly, full benchmark dispatch) | optional | NO |
+| **3 — RESEARCH / MANUAL** | Stochastic / Formal / provider-dependent / historical | often | NO |
+
+### What blocks PR（Tier 1）
+
+Workflow: [`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)
+
+| Surface | Command / job | Notes |
+|---------|---------------|-------|
+| Import / collect | `pytest --collect-only` | 0 collection errors |
+| Lint | `ruff check` · frontend `npm ci && npm run build && npm test` | `lint` + `test` jobs |
+| Migrations | `alembic upgrade/downgrade` · `alembic check` | empty autogenerate diff |
+| Config wiring | `tests/test_config_wiring.py` | dead config / env bypass |
+| Safe defaults | `tests/test_v1_0_safe_defaults.py` | L3/L4/Critic/rerank/HyDE/rewrite/graph **OFF** |
+| Core API A-layer | listed pytest files in `test` job | auth / citations / upload / search / … |
+| Ingestion + **C4 loop isolation** | ingest golden + `test_c4_ingestion_loop_isolation.py` | Celery thread-pool event-loop bug |
+| Retrieval Hit@3 **11/11** | `tests/test_retrieval_golden.py`（GQ-1…12 minus GQ-9） | **mock** embeddings · PR hard gate |
+| Retrieval baseline | `rag-golden` / `rag-enterprise` / `rag-advanced` → `benchmark-gate` | **local BGE** · `--skip-entity-extract` · vs `backend/tests/benchmark/baseline.json` |
+
+### What is release-only / manual（Tier 2–3）
+
+| Surface | Classification | Why |
+|---------|----------------|-----|
+| Agent Golden（168） | **RELEASE_ONLY / MANUAL** | suite exists; not PR cost/noise budget |
+| ADV adversarial panels | **RESEARCH_ARCHIVE** | frozen CHARACTERIZED evidence; rollout NO |
+| W9 Critic | **RESEARCH_ARCHIVE** | Formal/research; default OFF; not PR gate |
+| W10 Formal T1/T2/T3 | **RESEARCH_ARCHIVE** | sealed historical Formal scope; ≠ Agent/RAG accuracy |
+| Canonical demo (`scripts/demo.ps1`) | **MANUAL_ONLY** | live DeepSeek + running stack; not PR CI |
+| CRAG nightly / full | **RELEASE_ONLY**（informational） | `benchmark.yml` schedule/dispatch |
+| Deprecated `regression.yml` | **MANUAL_ONLY** | dispatch only; soft; not PR |
+
+```text
+V1_0_CI_COVERAGE           = SUFFICIENT_FOR_STABLE_RAG_V1_0
+PR_GATE_DETERMINISTIC      = YES   # no paid LLM required for PR
+PAID_PROVIDER_REQUIRED_FOR_PR_CI = NO
+```
+
+**Determinism note:** PR CI is **paid-LLM independent** and uses deterministic / local-model retrieval evaluation. It is **not** claimed completely offline — model artifact availability may require the configured Hugging Face mirror/cache (`HF_ENDPOINT`, BGE download). Do not weaken Hit@3 / baseline gates merely to eliminate that dependency.
+
+---
+
 ## Next closure windows（human-triggered only）
 
-Suggested sequence after C1/C2 freeze (do **not** auto-start):
+Suggested sequence after C1–C5 (do **not** auto-start):
 
-1. ~~V1.0-C2 — README / claim repair~~ **DONE**（with C1/C2 closure commit）  
-2. Install path coherence（C3 candidate）  
-3. Canonical demo  
-4. CI scope honesty / remaining RELEASE BLOCKING items  
+1. ~~V1.0-C2 — README / claim repair~~ **DONE**  
+2. ~~Install path coherence（C3）~~ **DONE**  
+3. ~~Canonical demo（C4）~~ **DONE**  
+4. ~~CI scope honesty（C5）~~ **DONE**（closure commit）  
+5. Safe-defaults / remaining RELEASE BLOCKING polish（C6 candidate）· **not** auto-start  
 
 No C1.1 / C1.2 / E-B45 / W11 preparation chain.

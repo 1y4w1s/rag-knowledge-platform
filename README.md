@@ -231,10 +231,10 @@ agent_l4_*                          = False
 
 | Surface | Result | Scope / class | Forbidden overclaim |
 |---------|--------|---------------|---------------------|
-| Retrieval Golden Hit@3 | **11/11** | CI 强制门禁（`test_retrieval_golden.py`；`GQ-1`…`GQ-12`，fixture 缺 `GQ-9`） | 通用问答准确率 |
-| Retrieval Golden 全量 | 109 cases · 门禁文档记载 **135 passed** | `golden_qa.json`；改检索/入库必过 CI | 当作全库质量证明 |
-| Enterprise QA | 60%（CI mock）/ **71.1%**（真向量，2026-08-09，n=90） | 有日期的观测快照 | 永久 Enterprise 分数 |
-| Advanced QA | **14/14** | CI baseline | 通用 advanced 能力 |
+| Retrieval Golden Hit@3 | **11/11** | **PR CI 强制**：`test_retrieval_golden.py`（mock emb；`GQ-1`…`GQ-12` 缺 `GQ-9`）+ `rag-golden`/`benchmark-gate`（local BGE vs baseline） | 通用问答准确率 |
+| Retrieval Golden 全量 | 109 cases · pytest 路径执行全量 parametrize | `golden_qa.json`；改检索/入库必过 CI | 当作全库质量证明 |
+| Enterprise QA | CI gate baseline **60%**（local BGE · `rag-enterprise`）/ **71.1%**（dated 观测，2026-08-09，n=90） | PR gate + 有日期快照 | 永久 Enterprise 分数 |
+| Advanced QA | **14/14** | CI baseline（`rag-advanced` · local BGE） | 通用 advanced 能力 |
 | Latency（本机 Docker，2026-07-22） | 检索 P95 ≈1285ms；对话首 token 等见历史记录 | **dated snapshot** · 本窗未重测 | 当前生产 SLO 已验证 |
 | Agent Golden | **168** cases | suite 存在；**非 PR CI 阻塞** | 「CI 已证明 Agent 质量」 |
 | ADV frozen panel | primary **2/4** · trials **10/20** | CHARACTERIZED / FROZEN · rollout **NO** | 通用对抗能力 |
@@ -276,7 +276,7 @@ W10 研究窗已关闭（`W10_CLOSED=YES`）。**唯一**可声明的 Formal 质
 - ADV ANS/CON：冻结案上仍有 Agent 触发 / 终止策略失败。
 - Graph recall：质量回滚后默认关；**非**产品化 GraphRAG。
 - Rerank / HyDE / Query Rewrite：可用 ≠ 默认有价值；全量 rerank 曾伤害 FAQ Hit@3。
-- Canonical demo / CI scope honesty：仍属 v1.0 **closure blockers**（见 cut-line）。**Install 路径**已在 C3 按 Compose-first 重验并与 README 对齐；demo / CI 不在本安装窗。
+- Canonical demo（C4）与 CI scope（C5）已闭合审计；剩余 closure 以 cut-line RELEASE BLOCKING 为准（安全默认 / 文档 / tag 完整性等）。**Install** 已 Compose-first。
 
 完整边界：[`docs/status/v1-known-limitations.md`](docs/status/v1-known-limitations.md) ·
 盘点：[`docs/research/v1-0-closure-inventory/`](docs/research/v1-0-closure-inventory/)。
@@ -630,19 +630,23 @@ docker compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
 
 ## Evaluation / CI（engineer checklist）
 
+权威契约：[`docs/project/v1-0-release-cut-line.md`](docs/project/v1-0-release-cut-line.md) §「V1.0 CI Contract」。
+
 | Workflow | Role |
 |----------|------|
-| [`ci.yml`](.github/workflows/ci.yml) | **PR blocking**：Ruff、pytest A 层、Retrieval Golden Hit@3、`alembic check`、config wiring、rag-* baseline jobs、前端 build |
-| [`benchmark.yml`](.github/workflows/benchmark.yml) | 长跑 / 成本敏感 · **非** PR 门禁 |
-| [`regression.yml`](.github/workflows/regression.yml) | Deprecated soft gate |
+| [`ci.yml`](.github/workflows/ci.yml) | **PR blocking（Tier 1）**：Ruff、pytest A 层、Retrieval Hit@3 11/11、C4 ingest loop、safe defaults、`alembic check`、config wiring、rag-* local-BGE baseline、前端 build/test — **不需要付费 LLM**（非完全离线：BGE 可能需 HF mirror/cache） |
+| [`benchmark.yml`](.github/workflows/benchmark.yml) | Tier 2 长跑 / CRAG · **非** PR 门禁 |
+| [`regression.yml`](.github/workflows/regression.yml) | Deprecated · **仅** `workflow_dispatch`（不再挂 PR） |
 
-**Not PR-blocking（repo 有，CI 不强制）：** Agent Golden 168 · Adversarial · W9 Critic · W10 Formal · Local-model real panels。
+**Determinism:** PR CI is paid-LLM independent and uses deterministic/local-model retrieval evaluation; model artifact availability may require the configured Hugging Face mirror/cache. Gates are not weakened to remove that dependency.
+
+**Not PR-blocking（repo 有，CI 不强制）：** Agent Golden 168 · Adversarial · W9 Critic · W10 Formal · Canonical demo（`scripts/demo.ps1`）· Local-model real panels。
 
 本地常用：
 
 ```bash
 cd backend
-python -m pytest tests/test_retrieval_golden.py -q
+python -m pytest tests/test_retrieval_golden.py tests/test_c4_ingestion_loop_isolation.py tests/test_v1_0_safe_defaults.py -q
 # Agent Golden（可选，非 PR 门禁）
 python -m pytest tests/test_agent_golden.py -q
 ```

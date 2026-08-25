@@ -230,7 +230,7 @@ jobs:
           python backend/scripts/run_crag.py --sample 100 2>&1 | tee backend/benchmark_crag.txt
       - name: Compare C3 baselines (Ent/Adv gate · CRAG informational)
         env:
-          BASELINE_PATH: docs/baseline.json
+          BASELINE_PATH: backend/tests/benchmark/baseline.json
           BENCHMARK_OUT_FILES: backend/benchmark_enterprise.txt,backend/benchmark_advanced.txt,backend/benchmark_crag.txt
         run: python3 backend/scripts/ci_baseline_check.py
       - name: Upload C1 comparable artifacts
@@ -299,7 +299,7 @@ jobs:
           python backend/scripts/run_crag.py --sample 4409 2>&1 | tee backend/benchmark_crag_full.txt
       - name: Compare crag_full baseline (informational)
         env:
-          BASELINE_PATH: docs/baseline.json
+          BASELINE_PATH: backend/tests/benchmark/baseline.json
           BENCHMARK_OUT_FILES: backend/benchmark_crag_full.txt
         run: python3 backend/scripts/ci_baseline_check.py
       - name: Upload CRAG full artifact
