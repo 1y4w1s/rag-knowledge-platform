@@ -276,7 +276,7 @@ W10 研究窗已关闭（`W10_CLOSED=YES`）。**唯一**可声明的 Formal 质
 - ADV ANS/CON：冻结案上仍有 Agent 触发 / 终止策略失败。
 - Graph recall：质量回滚后默认关；**非**产品化 GraphRAG。
 - Rerank / HyDE / Query Rewrite：可用 ≠ 默认有价值；全量 rerank 曾伤害 FAQ Hit@3。
-- Install / canonical demo / CI scope honesty：属 v1.0 **closure blockers**（见 cut-line），**本 README 窗不修复运行时**。
+- Canonical demo / CI scope honesty：仍属 v1.0 **closure blockers**（见 cut-line）。**Install 路径**已在 C3 按 Compose-first 重验并与 README 对齐；demo / CI 不在本安装窗。
 
 完整边界：[`docs/status/v1-known-limitations.md`](docs/status/v1-known-limitations.md) ·
 盘点：[`docs/research/v1-0-closure-inventory/`](docs/research/v1-0-closure-inventory/)。
@@ -394,30 +394,60 @@ Implementation → Tests → Offline Evaluation → Regression Check → Gray Ro
 
 ## 快速开始
 
+**Canonical install path（V1.0）：Docker Compose（`docker-compose.yml` + `docker-compose.prod.yml`）。**  
+本机 venv / `docker-compose.dev.yml` / `docker-compose.api.yml` 为次要路径，不替代本节。
+
 ### 前置条件
 
-- Docker 与 Docker Compose
-- 至少一个 LLM Key（DeepSeek 或通义）；嵌入默认走本地 BGE ONNX，无需 Key
-- 首次入库会自动下载本地 BGE 嵌入模型，需可访问 Hugging Face 镜像
+- Docker Engine + Docker Compose v2+
+- 至少一个对话 LLM Key（`DEEPSEEK_API_KEY` 或 `CHAT_PROVIDER=tongyi` + `TONGYI_API_KEY`）；嵌入默认本地 BGE ONNX，无需云 Key
+- 首次入库会下载 BGE 模型（compose 已设 `HF_ENDPOINT=https://hf-mirror.com`）
+- 宿主机端口空闲：`80`（web）、`8000`（api）、`5432`（postgres）、`6380`（redis 映射）
+- 容器名固定为 `ruige-*`：同一时刻只能跑一套本栈
 
 ### 克隆并配置
 
 ```bash
 git clone https://github.com/1y4w1s/rag-knowledge-platform.git
 cd rag-knowledge-platform
-
-cat > .env <<'EOF'
-POSTGRES_PASSWORD=replace-with-a-strong-password  # compose 必填
-JWT_SECRET=replace-with-a-long-random-string
-CHAT_PROVIDER=deepseek
-DEEPSEEK_API_KEY=sk-xxx            # 对话主链路（必填之一）
-DEEPSEEK_BASE_URL=https://api.deepseek.com
-DEEPSEEK_MODEL=deepseek-chat
-TONGYI_API_KEY=                    # 备用 LLM + 嵌入（可选）
-EMBEDDING_PROVIDER=bge             # bge=本地 ONNX（默认，零云依赖）；tongyi=云 API 备选
-# EMBEDDING_MODEL=text-embedding-v2 # 仅 EMBEDDING_PROVIDER=tongyi 时使用
-EOF
+cp .env.example .env
 ```
+
+编辑 `.env`（**不要**保留代码内禁值）：
+
+| 变量 | 要求 |
+|------|------|
+| `POSTGRES_PASSWORD` | 强随机；**禁止**字面量 `changeme`（空卷首次初始化写入库密） |
+| `JWT_SECRET` | ≥32 字符随机串；**禁止** `changeme` 与 `replace-with-a-long-random-string`（启动守卫会直接拒绝） |
+| `DEEPSEEK_API_KEY` 或通义 Key | 对话可用；缺 Key 时进程可起，但 `/health/ready` 为 degraded、对话不可用 |
+| `EMBEDDING_PROVIDER` | 默认 `bge`（本地）；勿为了“装得上”去打开实验 flag |
+
+生成示例（bash）：
+
+```bash
+# macOS / Linux
+POSTGRES_PASSWORD=$(openssl rand -hex 16)
+JWT_SECRET=$(openssl rand -hex 32)
+# 写入 .env 对应行后再填 DEEPSEEK_API_KEY=...
+```
+
+PowerShell（Windows；用 UTF-8 **无 BOM** 写文件，避免 compose 读到异常字符）：
+
+```powershell
+Copy-Item .env.example .env
+$pg = -join ((1..32) | ForEach-Object { '{0:x}' -f (Get-Random -Max 16) })
+$jwt = -join ((1..64) | ForEach-Object { '{0:x}' -f (Get-Random -Max 16) })
+$utf8 = New-Object System.Text.UTF8Encoding $false
+$lines = Get-Content .env | ForEach-Object {
+  if ($_ -match '^POSTGRES_PASSWORD=') { "POSTGRES_PASSWORD=$pg" }
+  elseif ($_ -match '^JWT_SECRET=') { "JWT_SECRET=$jwt" }
+  else { $_ }
+}
+[System.IO.File]::WriteAllLines((Resolve-Path .env), $lines, $utf8)
+# 再手动填入 DEEPSEEK_API_KEY=...
+```
+
+可选检查：`.\scripts\init-secrets.ps1`（占位符 / 空 Key 告警）。一键起栈：`.\scripts\docker-up.ps1`（与下方 compose 命令等价，含 prod overlay）。
 
 ### 启动
 
@@ -425,17 +455,39 @@ EOF
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
 
-首次构建视机器而定，通常需要数分钟。API 服务监听 `8000`，前端入口为 `80`。
-
-> **Honesty note（closure）：** Compose-first 路径存在；install overlay / 脚本漂移与 live smoke 重验属后续 closure 窗（C3+），本窗不修复运行时。
+首次构建通常数分钟。编排会：起 Postgres（含 pgvector 扩展）+ Redis → **`migrate`（`alembic upgrade head`）成功后** → API / Celery → nginx 前端。  
+API：`http://127.0.0.1:8000` · 前端：`http://localhost/`（宿主机 `80`）。
 
 ### 验证
 
 ```bash
-curl http://localhost:8000/health
+curl http://127.0.0.1:8000/health
+# 期望：HTTP 200，且 "database":"ok"（同时会查 Redis；二者都好且无熔断降级时 "status":"ok"）
+curl http://127.0.0.1:8000/health/ready
+# 期望：database ok 且已配置当前 CHAT_PROVIDER 的 API Key → "status":"ok"
 ```
 
-期望返回 `database: ok`（字段以实际响应为准）。浏览器访问 `http://localhost/` 打开完整前端。
+浏览器打开 `http://localhost/` 应看到登录页（静态前端由 `web` 提供）。
+
+最小应用冒烟（非 demo / 非评测；证明 schema + API 可写）：
+
+```bash
+curl -sS -X POST http://127.0.0.1:8000/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"email":"install-smoke@example.com","username":"installsmoke","password":"InstallSmoke123!","account_type":"personal"}'
+```
+
+期望：`201`（或邮箱已存在时的业务错误，仍证明 API+DB 可达）。上传/对话/引用链路属后续 canonical demo（C4），不在安装验收内。
+
+### 已验证环境 / 限制
+
+| 项 | 说明 |
+|----|------|
+| **INSTALL_VERIFIED_ENVIRONMENT** | Windows 10/11 + Docker Desktop（Compose v2+）；本仓库 C3 窗在此环境 live 重验 |
+| macOS / Linux | 命令与 compose 路径预期可用，**本窗未单独重验**；请按同序执行 |
+| 实验能力 | L3 / Critic / L4 / rerank / HyDE / query rewrite / graph **保持 DEFAULT OFF**；安装不得靠打开它们过关 |
+| LM Studio / 本地聊天模型 | **非**安装前置；产品本地模型 profile 为 POST-V1.0 |
+| 已有 `postgres_data` 卷 | 只改 `.env` 不会自动改库密；须 `ALTER USER` 对齐或删卷重建（先备份） |
 
 ---
 

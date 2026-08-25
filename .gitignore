@@ -107,8 +107,9 @@ backend/=*,
 
 # Private artifacts - do NOT commit (user decision 2026-08-02, history rewritten)
 /AGENTS.md
-/.env.example
-/.env.production.example
+# V1.0-C3: root env *templates* must be tracked (no secrets). Real `.env` stays ignored above.
+# /.env.example
+# /.env.production.example
 
 # docs/ default private; narrow allowlist for formal W10 research + V1.0 closure inventory + project governance
 /docs/*

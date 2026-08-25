@@ -18,31 +18,31 @@ $issues = @()
 
 # ── 1. 检查 .env 是否存在 ──
 if (-not (Test-Path $EnvFile)) {
-    Write-Host "❌ .env 文件不存在。请复制 .env.production.example 为 .env 并填入密钥。" -ForegroundColor Red
-    Write-Host "    cp .env.production.example .env"
+    Write-Host "❌ .env 文件不存在。请复制 .env.example 为 .env（开发/Compose 默认）或 .env.production.example（生产加固模板）并填入密钥。" -ForegroundColor Red
+    Write-Host "    cp .env.example .env"
     exit 1
 }
 Write-Host "✅ .env 文件存在" -ForegroundColor Green
 
 # ── 2. 检查关键密钥是否还是占位符 ──
 $content = Get-Content $EnvFile -Raw
-$criticalKeys = @{
-    "POSTGRES_PASSWORD=changeme"    = "POSTGRES_PASSWORD"
-    "JWT_SECRET=changeme"           = "JWT_SECRET"
-    "DEEPSEEK_API_KEY="             = "DEEPSEEK_API_KEY"
-    "TONGYI_API_KEY="               = "TONGYI_API_KEY"
-}
+# JWT 启动守卫拒绝的字面量（与 backend/app/main.py _check_production_guard 对齐）
+$jwtPlaceholders = @("changeme", "replace-with-a-long-random-string")
+$pgPlaceholders = @("changeme")
 
 $emptyKeys = @()
 $placeholderKeys = @()
 
-foreach ($pattern in $criticalKeys.Keys) {
-    $keyName = $criticalKeys[$pattern]
+foreach ($keyName in @("POSTGRES_PASSWORD", "JWT_SECRET", "DEEPSEEK_API_KEY", "TONGYI_API_KEY")) {
     $value = ($content -split "`n" | Where-Object { $_ -match "^$keyName=" }) -replace "^$keyName=", "" -replace "`r", ""
     if ([string]::IsNullOrWhiteSpace($value)) {
         $emptyKeys += $keyName
+        continue
     }
-    elseif ($value -eq "changeme") {
+    if ($keyName -eq "JWT_SECRET" -and $jwtPlaceholders -contains $value) {
+        $placeholderKeys += $keyName
+    }
+    elseif ($keyName -eq "POSTGRES_PASSWORD" -and $pgPlaceholders -contains $value) {
         $placeholderKeys += $keyName
     }
 }

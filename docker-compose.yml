@@ -77,6 +77,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
       celery-worker:
         condition: service_started
     healthcheck:
@@ -141,6 +143,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     command: ["python", "-m", "celery", "-A", "app.services.ingestion.celery_app", "worker", "--loglevel=info", "--concurrency=10", "--pool=threads"]
     logging:
       driver: "json-file"

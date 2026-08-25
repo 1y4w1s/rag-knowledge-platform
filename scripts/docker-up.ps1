@@ -1,5 +1,6 @@
-# 索隐 (Ruige) - pull images then docker compose up
+# 索隐 — pull base images then canonical Compose stack (base + prod overlay)
 # Run: .\scripts\docker-up.ps1
+# Equivalent to README: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 
 $Root = Split-Path -Parent $PSScriptRoot
 Set-Location $Root
@@ -9,23 +10,30 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 if (-not (Test-Path ".env")) {
     Copy-Item ".env.example" ".env"
-    Write-Host "Created .env - check POSTGRES_PASSWORD and JWT_SECRET" -ForegroundColor Yellow
+    Write-Host "Created .env from .env.example — replace POSTGRES_PASSWORD and JWT_SECRET (not placeholders) and set an LLM key." -ForegroundColor Yellow
 }
 
-docker compose up -d --build
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "Waiting for Postgres healthcheck..."
-Start-Sleep -Seconds 8
-
-try {
-    $resp = Invoke-RestMethod -Uri "http://localhost:8000/health" -TimeoutSec 10
-    $resp | ConvertTo-Json -Compress
-    if ($resp.database -eq "ok") {
-        Write-Host "Wave 0.2 OK: database ok" -ForegroundColor Green
-    } else {
-        Write-Host "API up but database not ok - see: docker compose logs api postgres" -ForegroundColor Yellow
+Write-Host "Waiting for API health (migrate must complete first)..."
+$deadline = (Get-Date).AddSeconds(120)
+$ok = $false
+while ((Get-Date) -lt $deadline) {
+    Start-Sleep -Seconds 5
+    try {
+        $resp = Invoke-RestMethod -Uri "http://127.0.0.1:8000/health" -TimeoutSec 10
+        $resp | ConvertTo-Json -Compress
+        if ($resp.database -eq "ok") {
+            Write-Host "Install OK: database ok" -ForegroundColor Green
+            $ok = $true
+            break
+        }
+        Write-Host "API up but database not ok yet..." -ForegroundColor Yellow
+    } catch {
+        Write-Host "health not ready yet..." -ForegroundColor DarkGray
     }
-} catch {
-    Write-Host "health check failed - see: docker compose logs api postgres" -ForegroundColor Yellow
+}
+if (-not $ok) {
+    Write-Host "health check failed - see: docker compose -f docker-compose.yml -f docker-compose.prod.yml logs api postgres migrate" -ForegroundColor Yellow
 }
