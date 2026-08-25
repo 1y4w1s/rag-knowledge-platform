@@ -7,6 +7,19 @@
 
 ---
 
+## W10 E-B43 · Target-Scoped Formal Contract v2（2026-08-25）✅ **SCOPE V2 · READY · NO FORMAL RUN**
+
+- **范围**：versioned Formal target-scoping repair — 冻结显式 `formal_measurement_scope`，允许 Showcase Narrow `FORMAL_MEASUREMENT_SCOPE={T1}`，T2/T3=`NOT_APPLICABLE`。**不**跑 Formal Measurement · **不**写 Formal result · **不调** LLM · **不改** `backend/app` / E-B21·E-B22 · **不**重写 E-B21/E-B24/E-B42 历史结论。
+- **E-B42 provenance**：`8ec8af2b4854722e830ed7333f16323c5e6ec578`（`≠` frozen `base_sha=3ce0e75…`）。
+- **历史保持**：E-B42 `FORMAL_TARGET_SCOPE_SEMANTICS=AMBIGUOUS` · `GLOBAL_E_B_FORMAL_READY_SEMANTICS=UNDEFINED` · 历史 `E-B_FORMAL_READY=NO`。
+- **Scope v2**：`measurement_scope_id=w10_showcase_t1_only_v1` · `authorized={T1}` · `N/A={T2,T3}` · suite=`w9_critic_frozen_12` · C01–C11 · C12=`INELIGIBLE_NOT_SCORED` · `frozen_by=suoyin_project_owner`。
+- **语义**：`E_B_FORMAL_READY_V2=YES`（authorized ready ∧ N/A 合法）· N/A ≠ PASS/100%/zero-denom · oracle isolation（raw≠candidate）· writer：`T2_T3_COMPANION_STATUS=NOT_APPLICABLE`。
+- **就绪**：`T1_FORMAL_READY=YES` · `MAY_ENTER_T1_FORMAL_MEASUREMENT=YES` · `FORMAL_OBSERVATION=NOT_STARTED`。
+- **结论**：`READY_FOR_T1_FORMAL_MEASUREMENT`（仍未执行 Formal Measurement；勿声称 T1=100%）。
+- **产物**：`docs/research/w10-eb43-formal-target-scope-v2/` · `backend/tests/w10_eb43_formal_target_scope_v2.py` · `test_w10_eb43_formal_target_scope_v2.py`。
+- **验收**：`pytest backend/tests/test_w10_eb43_formal_target_scope_v2.py -q`（14 passed）。
+- **下一动作**：独立窗执行 Formal T1 Measurement（仍勿扩 A4/S2/Local Model）。
+
 ## W10 E-B42 · T1 Formal Readiness Review（2026-08-25）✅ **AUDIT · BLOCKED · NO FORMAL**
 
 - **范围**：只读 Formal readiness 审计 — E-B41 已有真实 same-trajectory T1 input 时，既有 Formal contract 是否允许 **T1-only Formal Measurement**（T2/T3=`NOT_APPLICABLE`）。**不**跑 Formal scorer · **不**写 Formal result · **不** reacquisition · **不调** LLM · **不改** frozen baseline / `backend/app` / E-B21·E-B22。
