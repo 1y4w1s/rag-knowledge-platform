@@ -7,6 +7,27 @@
 
 ---
 
+## W10 E-B36 · Human Owner Stamp Issuance（2026-08-25）✅ **OWNER STAMP APPROVED · NO ACQUISITION / NO FORMAL**
+
+- **范围**：按 `suoyin_project_owner` 显式授权签发唯一 canonical `eb30_owner_stamp_v1` APPROVED Owner Stamp；仅翻转 E-B30 §3.1 APPROVED effects。**不** acquisition / After / Formal · **不调** LM Studio/API/LLM · **不改** `backend/app` · **不**改写 frozen `base_sha`。
+- **产物**：[`docs/research/w10-eb36-human-owner-stamp-issuance/`](../research/w10-eb36-human-owner-stamp-issuance/)（README + 01–05）· `backend/tests/test_w10_eb36_human_owner_stamp_issuance.py`。
+- **Canonical stamp**：`01-approved-owner-stamp.md` · `issued_at=2026-08-25T08:33:45Z` · `base_sha=3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6` · `source/after=suoyin_local_research_product_after_v1` · `capture_mode=product_stream` · `model_backend=none_no_llm` · `auto_derived=false`。
+- **门禁（本窗 YES）**：`MAY_ISSUE_APPROVED_OWNER_STAMP=YES` · **`OWNER_AUTHORIZATION_ISSUED=YES`** · **`SOURCE_APPROVED=YES`** · **`AFTER_SOURCE_APPROVED=YES`**（E-B30 §3.1 明文）。
+- **门禁（必须 NO）**：`ACQUISITION_EXECUTION_READY=NO` · `E-B_FORMAL_READY=NO` · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO` · `FORMAL_OBSERVATION=NOT_STARTED` · `DEPENDENCY_SNAPSHOT_PINNED=NO`（Showcase reproducibility limitation）。
+- **验收**：`pytest backend/tests/test_w10_eb36_human_owner_stamp_issuance.py -q`
+- **下一动作**：`WAITING_FOR_ACQUISITION_ENTRY_REVIEW` — **不要**自动开 acquisition / Formal。
+
+## W10 E-B35b · Human Showcase Freeze Execution（2026-08-25）✅ **HUMAN FROZEN · NO STAMP / NO APPROVAL / NO ACQUISITION / NO FORMAL**
+
+- **范围**：按 `suoyin_project_owner` 书面确认执行 Showcase Human Freeze — 物化 FROZEN source-identity / capture-mode / runtime 记录 · 勾选 human checklist · 评估 freeze predicates。**不**发 Owner Stamp · **不**翻 `MAY_ISSUE` / `SOURCE_APPROVED` / `AFTER_SOURCE_APPROVED` · **不** acquisition / After / Formal · **不调** LM Studio/API/LLM · **不改** `backend/app`。
+- **产物**：[`docs/research/w10-eb35b-human-showcase-freeze-execution/`](../research/w10-eb35b-human-showcase-freeze-execution/)（README + 01–07）· `backend/tests/test_w10_eb35b_human_showcase_freeze_execution.py`。
+- **冻结摘要**：`base_sha=3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6` · `source/after=suoyin_local_research_product_after_v1` · `capture_mode=product_stream` · `model_backend=none_no_llm` · `llm_called_expected=false` · `runtime=suoyin_backend_venv_cpython_3.11.9_win10_amd64` · `review_by=2026-09-30` · scope=Showcase·BP-A·C01–C11·C12 INELIGIBLE。
+- **门禁（允许 YES）**：`E-B35B_HUMAN_SHOWCASE_FREEZE_EXECUTED=YES` · **`SOURCE_IDENTITY_COMPLETE=YES`** · **`CAPTURE_MODE_FROZEN=YES`** · **`BASE_SHA_FROZEN=YES`** · **`HUMAN_CHECKLIST_COMPLETE=YES`** · `AUTHORIZATION_SCOPE_FROZEN=YES`。
+- **门禁（必须 NO）**：`MAY_ISSUE_APPROVED_OWNER_STAMP=NO` · `OWNER_AUTHORIZATION_ISSUED=NO` · `SOURCE_APPROVED=NO` · `AFTER_SOURCE_APPROVED=NO` · `ACQUISITION_EXECUTION_READY=NO` · `E-B_FORMAL_READY=NO` · `FORMAL_OBSERVATION=NOT_STARTED` · `DEPENDENCY_SNAPSHOT_PINNED=NO`。
+- **历史分离**：E-A4 historical parent artifact ≠ this freeze `base_sha` ≠ Formal Observation。
+- **验收**：`pytest backend/tests/test_w10_eb35b_human_showcase_freeze_execution.py -q`
+- **下一动作**：`WAITING_FOR_OWNER_STAMP_ISSUANCE_REVIEW` — **不要**自动签发 stamp / 开 acquisition。
+
 ## W10 E-B35a.3 · Reproducible Freeze Baseline Materialization（2026-08-25）✅ **BASELINE ONLY · NO FREEZE / NO STAMP / NO FORMAL**
 
 - **范围**：修复 `WORKING_TREE_CLEAN=NO` / `BASE_SHA_PROTOCOL_COVERAGE=INCOMPLETE` — 将正式 W10 research protocol + tests/fixtures/gold/schema 纳入 Git baseline；`.gitignore` 窄 allowlist 跟踪 `docs/research/w10-*`；**不** Human Freeze · **不** Owner Stamp · **不** Formal Observation · **不** 进入 E-B35b。
