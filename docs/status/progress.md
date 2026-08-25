@@ -7,6 +7,16 @@
 
 ---
 
+## W10 Closure · Final Evidence & Claim Freeze（2026-08-25）✅ **W10_CLOSED · NEXT = V1_0_CLOSURE**
+
+- **范围**：只汇总 W10 证据链与可声明结论；**不**新增 evaluation semantics / scorer / acquisition / protocol / capability / Agent feature。
+- **E-B44 commit**：`eb44_formal_commit=6bf35b6a1ac1cbb00a3358b3c231fa52e9f6c951`。
+- **Formal T1**：`EXECUTED=YES` · `VALID=YES` · `T1_FORMAL_STATUS=MEASURED` · eligible=11 · compliant=11 · violation=0 · excluded=1 · rate=100% — **仅** claim「T1 citation-scope compliance on the authorized Showcase T1-only Formal scope」；禁「W10/Agent/RAG accuracy=100%」。
+- **T2/T3**：`NOT_APPLICABLE`（E-B38 全 DEGRADED · E-B40 不计 claim-quality denom）· ≠ PASS/FAIL/100%。
+- **门禁**：`W10_CLOSED=YES` · `W10_RESEARCH_WINDOW_STATUS=CLOSED` · `NEXT_PHASE=V1_0_CLOSURE` · 研究能力进 `FUTURE_BACKLOG`。
+- **产物**：[`docs/research/w10-closure/`](../research/w10-closure/)（README + 01–06）。
+- **停手**：勿自动开 v1.0 实现 / E-B45 / Local Model / Research Benchmark。
+
 ## W10 E-B44 · T1 Formal Measurement Execution（2026-08-25）✅ **FORMAL T1 · MEASURED · STOP**
 
 - **范围**：在冻结 scope `w10_showcase_t1_only_v1` 下，从 E-B41 immutable raw records **重新计算** Formal T1（`final_citation_ids ⊆ gated_scope_ids`），写出唯一 canonical Formal result。**不**用 candidate oracle · **不**改 `backend/app` / raw input · **不**扩 T2/T3/A4/S2/Local Model。
