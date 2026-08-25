@@ -477,7 +477,7 @@ curl -sS -X POST http://127.0.0.1:8000/api/v1/auth/register \
   -d '{"email":"install-smoke@example.com","username":"installsmoke","password":"InstallSmoke123!","account_type":"personal"}'
 ```
 
-期望：`201`（或邮箱已存在时的业务错误，仍证明 API+DB 可达）。上传/对话/引用链路属后续 canonical demo（C4），不在安装验收内。
+期望：`201`（或邮箱已存在时的业务错误，仍证明 API+DB 可达）。上传/对话/引用链路见下方 **Canonical Demo**。
 
 ### 已验证环境 / 限制
 
@@ -492,6 +492,30 @@ curl -sS -X POST http://127.0.0.1:8000/api/v1/auth/register \
 ---
 
 ## 使用方法
+
+### Canonical Demo（V1.0 产品证明）
+
+**唯一发布演示入口**：仓库脚本 `.\scripts\demo.ps1`（公共 API 垂直切片）。浏览器手工路径可作辅证，**不是** release demo。
+
+**前置**（Canonical install 已起）：
+- `/health` 中 `database=ok`，且整体 `status=ok`（若 LLM 熔断降级为 `degraded`，先等待恢复，勿当 PASS）
+- `/health/ready` 为 ok：需配置 `DEEPSEEK_API_KEY`，或 `CHAT_PROVIDER=tongyi` + `TONGYI_API_KEY`
+- 嵌入默认本地 BGE（`EMBEDDING_PROVIDER=bge`），无需云 Key
+
+**已验证环境**：Windows 10/11 + Docker Desktop 29.x + Compose v5.x + PowerShell（与 C3 install 同路径）。
+
+```powershell
+.\scripts\demo.ps1
+```
+
+**冻结用例**：支持题「员工年假有几天？」→ 答案须含 `10`，引用须指向 `01-leave-policy.txt`；无关题「液氮的沸点是多少摄氏度？」→ 现网无依据拒答（`知识库中未找到相关内容`，citations=0）。
+
+**期望**：逐层 `SYSTEM_REACHABLE` … `CITATION_SOURCE_OK`（及 `UNSUPPORTED_CASE_OK`）均为 PASS，末行 `V1_0_C4_CANONICAL_DEMO_PASS`。
+
+**Provider 边界（诚实）**：本窗验证路径 = **本地 BGE 嵌入 + DeepSeek `deepseek-chat` 生成**。证明的是「在此配置下 V1.0 公开产品路径可跑通」，**不是** DeepSeek 为架构必需、**不是**本地生成能力评测、**不是**通用 RAG 准确率、**不是**供应商 SLA。短暂 DeepSeek 熔断属运维/供应商限制，与 demo 路径定义无关。
+
+**证明**：公开产品路径可跑通；入库/索引；有界有据问答；引用可回溯到演示语料。  
+**不证明**：通用 RAG/Agent 准确率、Critic/L3/L4、模型优劣、生产负载、多模态。
 
 ### 浏览器工作流
 
