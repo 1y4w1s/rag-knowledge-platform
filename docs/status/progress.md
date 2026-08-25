@@ -7,6 +7,18 @@
 
 ---
 
+## W10 E-B37 · Acquisition Entry Review & Frozen Baseline Execution Plan（2026-08-25）✅ **ENTRY READY · NO ACQUISITION EXECUTED / NO FORMAL**
+
+- **范围**：持久化 E-B35b/E-B36 authorization provenance → 重放 E-B29 原始 Acquisition Entry conjunction → 校验 authorization validity → 设计 frozen-baseline dedicated worktree 执行拓扑。**不**执行 Product After acquisition · **不** Formal Observation · **不调** LM Studio/API/LLM · **不改** `backend/app` · **不**改写 frozen `base_sha` · **不**重签 Owner Stamp。
+- **SHA 分离**：`frozen evaluation base_sha=3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6` · `authorization_record_commit=bd23448f561a541ba6bed7fa1308c3f7de3f6236`（`≠` frozen base_sha）。
+- **继承**：`MAY_ISSUE_APPROVED_OWNER_STAMP=YES` · `OWNER_AUTHORIZATION_ISSUED=YES` · `SOURCE_APPROVED=YES` · `AFTER_SOURCE_APPROVED=YES` · stamp `eb30_owner_stamp_v1` / `APPROVED` / `issued_at=2026-08-25T08:33:45Z` 未重签。
+- **有效性**：`AUTHORIZATION_STILL_VALID=YES`（无 source/capture/mode/baseline/runtime/scope 变更 · 未撤销 · `review_by=2026-09-30` 未超期）。
+- **门禁（本窗 YES）**：`ACQUISITION_EXECUTION_READY=YES` · `MAY_ENTER_PRODUCT_AFTER_ACQUISITION=YES` · `ACQUISITION_RECORD_CONTRACT_READY=YES` · `FROZEN_BASELINE_WORKTREE_FEASIBLE=YES`。
+- **门禁（必须 NO）**：`ACQUISITION_EXECUTED=NO` · `PRODUCT_AFTER_CAPTURED=NO` · `E-B_FORMAL_READY=NO` · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO` · `FORMAL_OBSERVATION=NOT_STARTED`。
+- **执行拓扑（设计 only）**：主工作区保留 authorization/docs；未来 acquisition 用 dedicated git worktree/detached checkout 钉在 frozen `base_sha`；执行前必验 `git rev-parse HEAD` + clean tree + E-B15 harness 存在。**本窗未创建 worktree**。
+- **验收**：`pytest backend/tests/test_w10_eb35b_human_showcase_freeze_execution.py backend/tests/test_w10_eb36_human_owner_stamp_issuance.py backend/tests/test_w10_eb15_product_after_capture.py::test_eb2_identity_preserved_and_formal_gates_locked -q`
+- **下一动作**：`READY_FOR_FROZEN_BASELINE_ACQUISITION` — **仍不要**在本记录所在窗执行 acquisition。
+
 ## W10 E-B36 · Human Owner Stamp Issuance（2026-08-25）✅ **OWNER STAMP APPROVED · NO ACQUISITION / NO FORMAL**
 
 - **范围**：按 `suoyin_project_owner` 显式授权签发唯一 canonical `eb30_owner_stamp_v1` APPROVED Owner Stamp；仅翻转 E-B30 §3.1 APPROVED effects。**不** acquisition / After / Formal · **不调** LM Studio/API/LLM · **不改** `backend/app` · **不**改写 frozen `base_sha`。
