@@ -29,6 +29,13 @@ Measurement on a bounded scope  ≠  general capability proof
 [`Feature Admission Constitution`](docs/project/feature-admission-constitution.md) ·
 [`V1.0 Release Cut Line`](docs/project/v1-0-release-cut-line.md)
 
+V1.0 释明文档（C6）：
+[`Architecture`](docs/architecture.md) ·
+[`Benchmark / evidence summary`](docs/benchmark-summary.md) ·
+[`Known Limitations`](docs/status/v1-known-limitations.md) ·
+[`Canonical Demo`](#使用方法) ·
+[`CI contract`](docs/project/v1-0-release-cut-line.md)
+
 ---
 
 ## Why Suoyin?
@@ -90,6 +97,8 @@ Naive RAG 把「检索一次 → 生成一次」当作完整产品。
 
 ## Core architecture / loop
 
+**Canonical:** [`docs/architecture.md`](docs/architecture.md)（边界 · 默认 RAG · Agentic · 引用 · 评测 · 治理 · maturity snapshot）。
+
 ```mermaid
 flowchart TD
 
@@ -124,53 +133,30 @@ flowchart TD
 LLM / Embedding Key 仅服务端。
 
 **默认生产路径**仍是 Stable Hybrid RAG，以及受控的 Legacy Agent（一次排出有限工具链再顺序执行）。
-L3 实验路径（全部 flag 默认关）才是 Observation 驱动的逐步决策：
-
-```text
-Question → AgentState → NextActionPlanner → AgentDecision
-        → Tool → Observation → EvidenceState → NextActionPlanner → …
-```
-
-动作空间（`AgentActionKind`）：`tool | finish | clarify | refuse`。
+L3 实验路径（全部 flag 默认关）才是 Observation 驱动的逐步决策。
 
 ---
 
 ## Current capability maturity
 
-状态词汇（与治理契约一致）：
+**Canonical snapshot:** [`docs/architecture.md`](docs/architecture.md#capability-maturity-snapshot-v10).
 
-| Label | Meaning |
-|-------|---------|
-| **DEFAULT ON** | 当前默认交付路径 |
-| **DEFAULT OFF** | 实现可开关，默认关闭 |
-| **IMPLEMENTED** | 代码存在并可调用 |
-| **PARTIAL** | 结构/路径不完整或未闭环 |
-| **EXPERIMENTAL** | 研究/灰度表面；勿当作生产默认 |
-| **MEASURED** | 有可复现、有范围的测量结果 |
-| **NOT_APPLICABLE** | 按授权协议不计入分母（≠ PASS/FAIL） |
-| **POST-V1.0** | 明确不在 v1.0 发布面 |
+状态词汇（与治理契约一致）：DEFAULT ON / OFF · IMPLEMENTED · PARTIAL · EXPERIMENTAL · MEASURED · NOT_APPLICABLE · POST-V1.0。
 
 | Layer | Capability | Maturity |
 |-------|------------|----------|
 | Retrieval | PG FTS + pgvector + RRF（`w_v=1.0 / w_f=1.5`） | **DEFAULT ON** · MEASURED（CI Hit@3） |
 | Retrieval | 中英嵌入双列（BGE-zh 512 / BGE-en 384） | **DEFAULT ON** · IMPLEMENTED |
-| Retrieval | Conditional rerank / query rewrite / HyDE | **IMPLEMENTED / PARTIAL** · **DEFAULT OFF** · 无 ablation 前不宣称质量提升 |
-| Retrieval | Graph recall | 代码保留 · **rolled back** · **DEFAULT OFF** · **NOT productized GraphRAG** |
-| Grounding | Citation alignment + confidence（normal / low / refuse） | **DEFAULT ON** · IMPLEMENTED |
-| Agent | ThoroughRead / LLM Planner + 11 tools + failure recovery + 写审批 | **DEFAULT ON** · IMPLEMENTED |
-| Agent | Observation-driven `NextActionPlanner`（L3） | **EXPERIMENTAL** · **DEFAULT OFF** |
-| Agent | Dynamic tools（`ToolResolver`） | **EXPERIMENTAL** · **DEFAULT OFF** |
-| Agent | `EvidenceState` + L3 stop/retrieve gate | **EXPERIMENTAL** · gate **DEFAULT OFF**；fact-level **PARTIAL** |
-| Agent | Trajectory evaluation（acceptable-set） | **EXPERIMENTAL** · suite 存在 · **非 PR CI 门禁** |
-| Agent | Critic → directed re-retrieval（W9） | **EXPERIMENTAL** · **DEFAULT OFF** · rollout **NO** |
-| Agent | L4 FactGoal / matcher / stop / reflection / … | **PARTIAL** · 全部 `agent_l4_*` **DEFAULT OFF** |
+| Retrieval | Conditional rerank / query rewrite / HyDE | **IMPLEMENTED / PARTIAL** · **DEFAULT OFF** |
+| Retrieval | Graph recall | **rolled back** · **DEFAULT OFF** · **NOT productized GraphRAG** |
+| Grounding | Citation + confidence（normal / low / refuse） | **DEFAULT ON** · IMPLEMENTED |
+| Agent | ThoroughRead / LLM Planner + tools | **DEFAULT ON** · IMPLEMENTED |
+| Agent | L3 / ToolResolver / EvidenceState gate / Critic / L4 | **EXPERIMENTAL / PARTIAL** · **DEFAULT OFF** |
 | Governance | RBAC / Approval / Audit / budget / breaker / rate limit | **DEFAULT ON** · IMPLEMENTED |
-| Memory | Working + long-term store · window · importance · summary | **IMPLEMENTED（infra）** · master **ON**；exposure/label **OFF**；**intelligence NOT proven** |
-| Local model | Product local-model profile | **STUB** · **POST-V1.0** 产品能力 |
-| Local model | LM Studio eval harness | **PARTIAL**（eval-only）· **POST-V1.0** 研究 |
+| Memory | Store / window / importance / summary | **IMPLEMENTED（infra）** · master **ON**；**intelligence NOT proven** |
+| Local model | Product profile / LM Studio harness | **STUB / PARTIAL** · **POST-V1.0** |
 
 **Agent autonomy is a capability, not a goal.**
-功能实现 ≠ 功能应该默认启用。
 
 ### Memory（honest positioning）
 
@@ -229,17 +215,18 @@ agent_l4_*                          = False
 
 ### What has been MEASURED（scoped）
 
+**Canonical table + provenance:** [`docs/benchmark-summary.md`](docs/benchmark-summary.md).
+
 | Surface | Result | Scope / class | Forbidden overclaim |
 |---------|--------|---------------|---------------------|
-| Retrieval Golden Hit@3 | **11/11** | **PR CI 强制**：`test_retrieval_golden.py`（mock emb；`GQ-1`…`GQ-12` 缺 `GQ-9`）+ `rag-golden`/`benchmark-gate`（local BGE vs baseline） | 通用问答准确率 |
-| Retrieval Golden 全量 | 109 cases · pytest 路径执行全量 parametrize | `golden_qa.json`；改检索/入库必过 CI | 当作全库质量证明 |
-| Enterprise QA | CI gate baseline **60%**（local BGE · `rag-enterprise`）/ **71.1%**（dated 观测，2026-08-09，n=90） | PR gate + 有日期快照 | 永久 Enterprise 分数 |
-| Advanced QA | **14/14** | CI baseline（`rag-advanced` · local BGE） | 通用 advanced 能力 |
-| Latency（本机 Docker，2026-07-22） | 检索 P95 ≈1285ms；对话首 token 等见历史记录 | **dated snapshot** · 本窗未重测 | 当前生产 SLO 已验证 |
-| Agent Golden | **168** cases | suite 存在；**非 PR CI 阻塞** | 「CI 已证明 Agent 质量」 |
-| ADV frozen panel | primary **2/4** · trials **10/20** | CHARACTERIZED / FROZEN · rollout **NO** | 通用对抗能力 |
-| W10 Formal **T1** | **11/11** citation-scope compliance（100%） | 仅授权 Showcase **T1-only** Formal scope `w10_showcase_t1_only_v1` · commit `6bf35b6` | Agent/RAG/答案准确率 100% |
-| W10 Formal **T2 / T3** | **NOT_APPLICABLE** | DEGRADED Product After 不计入 claim-quality 分母 | 把 N/A 写成 PASS/100% |
+| Retrieval Golden Hit@3 | **11/11** | **PR_CI**：classic gate（mock）+ local-BGE baseline **0.955** | 通用问答准确率 |
+| Retrieval Golden 全量 | **109** cases | fixture size；≠ 11/11 gate | 全库质量证明 |
+| Enterprise QA | CI **60%** / dated **71.1%**（2026-08-09，n=90） | PR_CI gate vs **HISTORICAL** snapshot | 永久 Enterprise 分数 |
+| Advanced QA | **14/14** | PR_CI baseline（local BGE） | 通用 advanced 能力 |
+| Agent Golden | **168** | **RELEASE_ONLY / MANUAL** | 「CI 已证明 Agent 质量」 |
+| ADV frozen panel | **2/4** · **10/20** | **RESEARCH_ARCHIVE** · rollout **NO** | 通用对抗能力 |
+| W10 Formal **T1** | **11/11** citation-scope | Showcase T1-only Formal · `6bf35b6` | Agent/RAG/答案准确率 100% |
+| W10 Formal **T2 / T3** | **NOT_APPLICABLE** | ≠ PASS/100% | 把 N/A 写成 PASS |
 
 ### What has NOT been proven
 
@@ -268,17 +255,19 @@ W10 研究窗已关闭（`W10_CLOSED=YES`）。**唯一**可声明的 Formal 质
 
 ---
 
-## Honest limitations
+## Known Limitations
 
-- **Runtime rollout = NO** for L3 / L4 / Critic / ADV capability experiments（flag 保持 OFF）。
-- Memory：**infra ≠ intelligence**；C2 NO_GO。
-- TOOL selection（GQ-131 冻结子集）：NO_MEASURABLE_GAIN（见 known limitations）。
-- ADV ANS/CON：冻结案上仍有 Agent 触发 / 终止策略失败。
-- Graph recall：质量回滚后默认关；**非**产品化 GraphRAG。
-- Rerank / HyDE / Query Rewrite：可用 ≠ 默认有价值；全量 rerank 曾伤害 FAQ Hit@3。
-- Canonical demo（C4）与 CI scope（C5）已闭合审计；剩余 closure 以 cut-line RELEASE BLOCKING 为准（安全默认 / 文档 / tag 完整性等）。**Install** 已 Compose-first。
+**Canonical:** [`docs/status/v1-known-limitations.md`](docs/status/v1-known-limitations.md)（含 severity：RELEASE_ACCEPTED / OPERATIONAL / EXPERIMENTAL / POST_V1_0 / RC_BLOCKER）。
 
-完整边界：[`docs/status/v1-known-limitations.md`](docs/status/v1-known-limitations.md) ·
+摘要：
+
+- Install 已在 **Windows + Docker Desktop** clean-room 验证；macOS/Linux **未**同等重验。
+- C4 demo 需 live chat provider；熔断时可能 `degraded`。
+- 入库 per-worker **串行化**（event-loop 隔离）。
+- L3 / Critic / L4 **DEFAULT OFF** · rollout **NO**；Memory **infra ≠ intelligence**。
+- Agent Golden / ADV / W9 / W10 **非** PR 门禁；Formal T1 **仅** citation-scope。
+- 无生产 SLA / 规模声明；本地生成 **非** v1.0 产品能力。
+
 盘点：[`docs/research/v1-0-closure-inventory/`](docs/research/v1-0-closure-inventory/)。
 
 ---
@@ -297,16 +286,16 @@ FEATURE_CONSTITUTION_FROZEN      = YES
 
 ### V1.0 release-blocking（文档层面摘要）
 
-1. README claim truthfulness（本窗）
-2. Coherent install path
-3. Canonical demo
-4. Core CI green / CI scope explicit
-5. Safe feature defaults
-6. Understandable architecture docs
-7. Accurate benchmark summary（scoped claims only）
-8. Known limitations documented
-9. W9 / W10 claim discipline
-10. Release / tag integrity
+1. README claim truthfulness — **DONE**（C2）
+2. Coherent install path — **DONE**（C3）
+3. Canonical demo — **DONE**（C4）
+4. Core CI green / CI scope explicit — **DONE**（C5）
+5. Safe feature defaults — **DONE**（locked）
+6. Understandable architecture docs — **DONE**（C6 · [`architecture.md`](docs/architecture.md)）
+7. Accurate benchmark summary — **DONE**（C6 · [`benchmark-summary.md`](docs/benchmark-summary.md)）
+8. Known limitations documented — **DONE**（C6）
+9. W9 / W10 claim discipline — **DONE**（preserved）
+10. Release / tag integrity — **RC_ONLY**（do not auto-start RC）
 
 ### In V1.0 delivery surface（keep）
 
@@ -347,7 +336,7 @@ FEATURE_CONSTITUTION_FROZEN      = YES
 | ADVERSARIAL（frozen 4-strata） | FROZEN · primary **2/4** · trials **10/20** |
 | W9 Critic | IMPLEMENTED · **DEFAULT OFF** · rollout **NO** |
 | W10 Formal | **CLOSED** · T1 MEASURED（citation-scope only）· T2/T3 **NOT_APPLICABLE** |
-| 下一阶段 | **V1_0_CLOSURE**（诚实性 / install / demo / CI scope）· **不是** Multimodal 交付主线 |
+| 下一阶段 | **RELEASE_CANDIDATE_FREEZE**（人工触发；C1–C6 释明面已闭合）· **不是** Multimodal / 新能力主线 |
 
 ---
 
@@ -653,7 +642,7 @@ python -m pytest tests/test_agent_golden.py -q
 
 改检索 / 入库 → 必须 CI Hit@3 绿。开启任何 `agent_l3_*` / Critic 默认前须双轨回归。
 
-更多架构与踩坑：[`AGENTS.md`](AGENTS.md) · [`docs/TECH.md`](docs/TECH.md) · [`docs/status/progress.md`](docs/status/progress.md)。
+更多架构与踩坑：[`docs/architecture.md`](docs/architecture.md) · [`AGENTS.md`](AGENTS.md) · [`docs/TECH.md`](docs/TECH.md) · [`docs/status/progress.md`](docs/status/progress.md)。
 
 ---
 

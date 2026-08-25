@@ -181,12 +181,15 @@ PAID_PROVIDER_REQUIRED_FOR_PR_CI = NO
 
 ## Next closure windows（human-triggered only）
 
-Suggested sequence after C1–C5 (do **not** auto-start):
+Suggested sequence after C1–C6 (do **not** auto-start):
 
 1. ~~V1.0-C2 — README / claim repair~~ **DONE**  
 2. ~~Install path coherence（C3）~~ **DONE**  
 3. ~~Canonical demo（C4）~~ **DONE**  
-4. ~~CI scope honesty（C5）~~ **DONE**（closure commit）  
-5. Safe-defaults / remaining RELEASE BLOCKING polish（C6 candidate）· **not** auto-start  
+4. ~~CI scope honesty（C5）~~ **DONE**  
+5. ~~Architecture / benchmark / known-limitations（C6）~~ **DONE**  
+6. **Release Candidate freeze** — tag / package integrity · **human-triggered only** · do not auto-start from C6  
 
 No C1.1 / C1.2 / E-B45 / W11 preparation chain.
+
+Canonical release docs: [`../architecture.md`](../architecture.md) · [`../benchmark-summary.md`](../benchmark-summary.md) · [`../status/v1-known-limitations.md`](../status/v1-known-limitations.md).

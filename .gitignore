@@ -113,6 +113,8 @@ backend/=*,
 
 # docs/ default private; narrow allowlist for formal W10 research + V1.0 closure inventory + project governance
 /docs/*
+!/docs/architecture.md
+!/docs/benchmark-summary.md
 !/docs/research/
 /docs/research/*
 !/docs/research/w10-*/
@@ -125,7 +127,7 @@ backend/=*,
 !/docs/status/
 /docs/status/*
 !/docs/status/progress.md
-
+!/docs/status/v1-known-limitations.md
 # Local env / temp artifacts - do NOT commit
 frontend/.env.development
 backend/collect_full.txt

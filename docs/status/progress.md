@@ -2,10 +2,22 @@
 
 > 这份驾驶舱汇总关键进展和基线数据。
 > **V1.0 权威状态** → [`v1-convergence-status-2026-08-23.md`](v1-convergence-status-2026-08-23.md) · **驾驶舱 HTML** → [`../cockpit.html`](../cockpit.html) · **Known limitations** → [`v1-known-limitations.md`](v1-known-limitations.md)
+> **Architecture** → [`../architecture.md`](../architecture.md) · **Benchmark summary** → [`../benchmark-summary.md`](../benchmark-summary.md)
 > 承载日志在 `docs/logs/`，踩坑在 `docs/status/pitfalls.md`。
 > 主计划 → [`../remaining-plan.md`](../remaining-plan.md)
 
 ---
+
+## V1.0-C6 · Architecture, Benchmark & Known-Limitations Closure（2026-08-25）✅ **RELEASE NARRATIVE · CLOSURE COMMIT**
+
+- **范围**：release-documentation closure only — 规范 architecture · benchmark/evidence · known limitations · maturity snapshot · README 链接；**不**加能力 · **不**开 Agent 研究 · **不**调检索/模型 · **不**改 fixture · **不**自动开 RC。
+- **基线**：`3289f65`（`ci(release): freeze v1.0 protection gates`）。
+- **产物**：[`docs/architecture.md`](../architecture.md) · [`docs/benchmark-summary.md`](../benchmark-summary.md) · 重写 [`v1-known-limitations.md`](v1-known-limitations.md) · README / Cut Line / 本文件指针。
+- **证据类**：Hit@3 11/11 + BGE 0.955 = PR_CI；Agent Golden 168 = RELEASE/MANUAL；ADV/W9/W10 = RESEARCH_ARCHIVE；C4 demo = MANUAL；71.1% = HISTORICAL。
+- **W10**：Formal T1 citation-scope 11/11 纪律保留；T2/T3 = NOT_APPLICABLE；禁译为 Agent/RAG accuracy 100%。
+- **RC blockers（文档面）**：`0` · Release/tag integrity = **RC_ONLY**。
+- **冻结候选**：`ARCHITECTURE_CANONICALIZED=YES` · `BENCHMARK_SUMMARY_CANONICALIZED=YES` · `KNOWN_LIMITATIONS_CANONICALIZED=YES` · `READY_FOR_RELEASE_CANDIDATE=YES` · `NEW_CAPABILITY_ADDED=NO`。
+- **停手**：C6 释明闭合；**勿自动开 RC**。下一推荐阶段 = `RELEASE_CANDIDATE_FREEZE`（人工触发）。
 
 ## V1.0-C5 · CI Scope & Release Gate Audit（2026-08-25）✅ **CI GATE AUDIT · CLOSURE COMMIT**
 
