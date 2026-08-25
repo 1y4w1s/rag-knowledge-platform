@@ -1,0 +1,62 @@
+{
+  "schema_ref": "eb26_narrow_formal_after_capture_record_v1",
+  "case_id": "C03-one-unsupported-among-supported",
+  "case_id_short": "C03",
+  "query": "基础版的存储和电话支持是什么？",
+  "source_identity": "suoyin_local_research_product_after_v1",
+  "after_source_id": "suoyin_local_research_product_after_v1",
+  "after_source": "suoyin_local_research_product_after_v1",
+  "run_identity": "w10_showcase_narrow_eb38_20260825T085526Z",
+  "base_sha": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "authorization_record_commit": "bd23448f561a541ba6bed7fa1308c3f7de3f6236",
+  "runtime_identity": "suoyin_backend_venv_cpython_3.11.9_win10_amd64",
+  "capture_mode": "product_stream",
+  "capture_path_identity": "eb15_harness_product_after_capture_path_a",
+  "capture_path_submode": "product_stream_degraded",
+  "model_backend_identity": "none_no_llm",
+  "model_identity": "none_no_llm",
+  "llm_called": false,
+  "llm_called_observed": false,
+  "generation_config": {
+    "chat_provider_keys": "forced_empty_via_eb15_force_zero_llm",
+    "rag_critic_enabled": false,
+    "agent_l3_critic_retrieval_enabled": false
+  },
+  "content": "AI 回答服务暂时不可用，以下是最相关的文档片段供您参考。请稍后再试以获得完整回答。\n[片段1] 《版本比较.md》 · 第1页 · 章节：基础版：基础版包含 5 GB 存储空间，支持渠道为电子邮件。",
+  "citations": [
+    {
+      "chunk_id": "95cacc0e-1b6f-5ba6-bceb-feea43ad8a38",
+      "document_id": "7c0cb373-7c45-5f7f-a4e8-4e9f104387fa",
+      "doc_name": "版本比较.md",
+      "page": 1,
+      "section_title": "基础版",
+      "excerpt": "基础版包含 5 GB 存储空间，支持渠道为电子邮件。",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main"
+    }
+  ],
+  "source_hash": "sha256:8eaec856caa93f191aef010539dd83a918f80c7722c5f797e0d9ef4f2f1b024f",
+  "observed_content_hash": "sha256:8eaec856caa93f191aef010539dd83a918f80c7722c5f797e0d9ef4f2f1b024f",
+  "harness_after_content_hash": "sha256:76a24ab3960a062896d7465858c79ee5af931433dfd357cf6b88cf7397636ee9",
+  "after_citations_hash": "sha256:d470d2471871cc5f483b8cdff069f333ee4a5918fd6661d5f72e74841cf9de7a",
+  "input_hash": "sha256:89e7f202ece20c95e9382fb938ac1005b45c3b20c59ffb55fae15b4f2fe06488",
+  "gen_plan_reference": "sha256:ce76a98db73d4b1c48ba0d3ee72505ae31241e122617ce6891d7f6c9cb008618",
+  "timestamp": "2026-08-25T08:55:30Z",
+  "suite_id": "w9_critic_frozen_12",
+  "binding_policy": "observed_after",
+  "formal_measurement": false,
+  "stream_phase_entered": true,
+  "plan_refusal": false,
+  "capture_provenance": {
+    "harness_id": "w10_eb15_product_after_capture",
+    "harness_entry": "capture_frozen_case_product_after",
+    "product_boundary": [
+      "prepare_agent_generation",
+      "_stream_generation_phase",
+      "state[content]",
+      "state[citations]"
+    ],
+    "worktree_head": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+    "authorization_stamp_schema": "eb30_owner_stamp_v1"
+  }
+}

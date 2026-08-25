@@ -1,0 +1,72 @@
+{
+  "schema_ref": "eb26_narrow_formal_after_capture_record_v1",
+  "case_id": "C05-known-conflict-overcertain",
+  "case_id_short": "C05",
+  "query": "生产备份统一保留多久？",
+  "source_identity": "suoyin_local_research_product_after_v1",
+  "after_source_id": "suoyin_local_research_product_after_v1",
+  "after_source": "suoyin_local_research_product_after_v1",
+  "run_identity": "w10_showcase_narrow_eb38_20260825T085526Z",
+  "base_sha": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "authorization_record_commit": "bd23448f561a541ba6bed7fa1308c3f7de3f6236",
+  "runtime_identity": "suoyin_backend_venv_cpython_3.11.9_win10_amd64",
+  "capture_mode": "product_stream",
+  "capture_path_identity": "eb15_harness_product_after_capture_path_a",
+  "capture_path_submode": "product_stream_degraded",
+  "model_backend_identity": "none_no_llm",
+  "model_identity": "none_no_llm",
+  "llm_called": false,
+  "llm_called_observed": false,
+  "generation_config": {
+    "chat_provider_keys": "forced_empty_via_eb15_force_zero_llm",
+    "rag_critic_enabled": false,
+    "agent_l3_critic_retrieval_enabled": false
+  },
+  "content": "AI 回答服务暂时不可用，以下是最相关的文档片段供您参考。请稍后再试以获得完整回答。\n[片段1] 《备份策略.md》 · 第1页 · 章节：第 2 节：生产环境备份保留 30 天。\n[片段2] 《灾备补充规定.md》 · 第2页 · 章节：第 3 条：生产环境备份保留 90 天。",
+  "citations": [
+    {
+      "chunk_id": "166476d7-8ebc-5abe-bfa5-c6d0129cbf9c",
+      "document_id": "71f3760d-4046-5c5b-8cf2-70a0620965b1",
+      "doc_name": "灾备补充规定.md",
+      "page": 2,
+      "section_title": "第 3 条",
+      "excerpt": "生产环境备份保留 90 天。",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main"
+    },
+    {
+      "chunk_id": "66301d42-201a-5fd7-b43b-2b63c5d03b02",
+      "document_id": "4983f7e6-2785-5bd3-b174-0867ebb32f00",
+      "doc_name": "备份策略.md",
+      "page": 1,
+      "section_title": "第 2 节",
+      "excerpt": "生产环境备份保留 30 天。",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main"
+    }
+  ],
+  "source_hash": "sha256:645f9b97095c4c84373268ffabadf8284ec11d6b6c628efc512c99cbc876878b",
+  "observed_content_hash": "sha256:645f9b97095c4c84373268ffabadf8284ec11d6b6c628efc512c99cbc876878b",
+  "harness_after_content_hash": "sha256:4db0b7c805ddb8b4a2aae90dc1424054fd863ab0092d0d2613bc3d5b9c8d3a2a",
+  "after_citations_hash": "sha256:6d0255af2ab46e15bb42f9e4c7db82dc2aeff2c96627ea3702b3cd1d0f0a5593",
+  "input_hash": "sha256:655f1172335b32060c571fd2bb1c8e689242febb3be1892fcb49ff4983793ae3",
+  "gen_plan_reference": "sha256:fe5e8b0f85297a521baa0ae549f79328d3d2b045b21f7dcadd916fb04d84da72",
+  "timestamp": "2026-08-25T08:55:30Z",
+  "suite_id": "w9_critic_frozen_12",
+  "binding_policy": "observed_after",
+  "formal_measurement": false,
+  "stream_phase_entered": true,
+  "plan_refusal": false,
+  "capture_provenance": {
+    "harness_id": "w10_eb15_product_after_capture",
+    "harness_entry": "capture_frozen_case_product_after",
+    "product_boundary": [
+      "prepare_agent_generation",
+      "_stream_generation_phase",
+      "state[content]",
+      "state[citations]"
+    ],
+    "worktree_head": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+    "authorization_stamp_schema": "eb30_owner_stamp_v1"
+  }
+}

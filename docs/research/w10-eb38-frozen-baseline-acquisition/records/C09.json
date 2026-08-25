@@ -1,0 +1,62 @@
+{
+  "schema_ref": "eb26_narrow_formal_after_capture_record_v1",
+  "case_id": "C09-supported-plus-unverifiable",
+  "case_id_short": "C09",
+  "query": "维护窗口是什么时候，未来会不会变？",
+  "source_identity": "suoyin_local_research_product_after_v1",
+  "after_source_id": "suoyin_local_research_product_after_v1",
+  "after_source": "suoyin_local_research_product_after_v1",
+  "run_identity": "w10_showcase_narrow_eb38_20260825T085526Z",
+  "base_sha": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "authorization_record_commit": "bd23448f561a541ba6bed7fa1308c3f7de3f6236",
+  "runtime_identity": "suoyin_backend_venv_cpython_3.11.9_win10_amd64",
+  "capture_mode": "product_stream",
+  "capture_path_identity": "eb15_harness_product_after_capture_path_a",
+  "capture_path_submode": "product_stream_degraded",
+  "model_backend_identity": "none_no_llm",
+  "model_identity": "none_no_llm",
+  "llm_called": false,
+  "llm_called_observed": false,
+  "generation_config": {
+    "chat_provider_keys": "forced_empty_via_eb15_force_zero_llm",
+    "rag_critic_enabled": false,
+    "agent_l3_critic_retrieval_enabled": false
+  },
+  "content": "AI 回答服务暂时不可用，以下是最相关的文档片段供您参考。请稍后再试以获得完整回答。\n[片段1] 《维护公告.md》 · 第1页 · 章节：固定窗口：当前固定维护窗口为每周日 02:00 至 04:00；后续安排以新公告为准。",
+  "citations": [
+    {
+      "chunk_id": "b5f27a25-417e-5669-8f0d-de0265204fca",
+      "document_id": "ed50e9f6-f088-57e8-8281-38913ae7365b",
+      "doc_name": "维护公告.md",
+      "page": 1,
+      "section_title": "固定窗口",
+      "excerpt": "当前固定维护窗口为每周日 02:00 至 04:00；后续安排以新公告为准。",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main"
+    }
+  ],
+  "source_hash": "sha256:25772ebeb2b072563ba6e1f9213a0e0cdfcdf8e0a932e0a08421072c7b77b4d1",
+  "observed_content_hash": "sha256:25772ebeb2b072563ba6e1f9213a0e0cdfcdf8e0a932e0a08421072c7b77b4d1",
+  "harness_after_content_hash": "sha256:26248d2e0a608b17c1cf1cec5819668e8e47a0e85ac37c02db3333336a38287f",
+  "after_citations_hash": "sha256:20f5a730423df8247b50a9eb56289559c7e6a8d2abbb02e695b8801ffb8a23e5",
+  "input_hash": "sha256:f0ce6b8252b3889defcf2d689d338c18dffdf63114fa84f735cdc78d11f6fd8e",
+  "gen_plan_reference": "sha256:7e355beaa031ec1781d0581a15f974769dc3d9064ec38b584daf0e61845e55ae",
+  "timestamp": "2026-08-25T08:55:30Z",
+  "suite_id": "w9_critic_frozen_12",
+  "binding_policy": "observed_after",
+  "formal_measurement": false,
+  "stream_phase_entered": true,
+  "plan_refusal": false,
+  "capture_provenance": {
+    "harness_id": "w10_eb15_product_after_capture",
+    "harness_entry": "capture_frozen_case_product_after",
+    "product_boundary": [
+      "prepare_agent_generation",
+      "_stream_generation_phase",
+      "state[content]",
+      "state[citations]"
+    ],
+    "worktree_head": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+    "authorization_stamp_schema": "eb30_owner_stamp_v1"
+  }
+}

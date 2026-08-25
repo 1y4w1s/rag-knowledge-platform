@@ -1,0 +1,62 @@
+{
+  "schema_ref": "eb26_narrow_formal_after_capture_record_v1",
+  "case_id": "C08-nonassertive-preface-supported-fact",
+  "case_id_short": "C08",
+  "query": "企业版 API 调用上限是多少？",
+  "source_identity": "suoyin_local_research_product_after_v1",
+  "after_source_id": "suoyin_local_research_product_after_v1",
+  "after_source": "suoyin_local_research_product_after_v1",
+  "run_identity": "w10_showcase_narrow_eb38_20260825T085526Z",
+  "base_sha": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "authorization_record_commit": "bd23448f561a541ba6bed7fa1308c3f7de3f6236",
+  "runtime_identity": "suoyin_backend_venv_cpython_3.11.9_win10_amd64",
+  "capture_mode": "product_stream",
+  "capture_path_identity": "eb15_harness_product_after_capture_path_a",
+  "capture_path_submode": "product_stream_degraded",
+  "model_backend_identity": "none_no_llm",
+  "model_identity": "none_no_llm",
+  "llm_called": false,
+  "llm_called_observed": false,
+  "generation_config": {
+    "chat_provider_keys": "forced_empty_via_eb15_force_zero_llm",
+    "rag_critic_enabled": false,
+    "agent_l3_critic_retrieval_enabled": false
+  },
+  "content": "AI 回答服务暂时不可用，以下是最相关的文档片段供您参考。请稍后再试以获得完整回答。\n[片段1] 《API 限额.md》 · 第1页 · 章节：企业版：企业版租户的 API 速率上限为每分钟 5000 次。",
+  "citations": [
+    {
+      "chunk_id": "931183dc-9ff1-59e5-a458-0bd86cd33142",
+      "document_id": "937a9f96-d72e-52b3-9679-8696220a0c56",
+      "doc_name": "API 限额.md",
+      "page": 1,
+      "section_title": "企业版",
+      "excerpt": "企业版租户的 API 速率上限为每分钟 5000 次。",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main"
+    }
+  ],
+  "source_hash": "sha256:9e38c5a97fb6d16309cab0f69ba15376898c86ceab99a2808d9f765174ac4b66",
+  "observed_content_hash": "sha256:9e38c5a97fb6d16309cab0f69ba15376898c86ceab99a2808d9f765174ac4b66",
+  "harness_after_content_hash": "sha256:4249b8db3c19587d0221fc9ae70d261ad9150c28e315ccce4c5ec5b74fb079cf",
+  "after_citations_hash": "sha256:b477741a1d2517349a1b2a81f8dd791a7decfed1bc66d940a04e5c85b4559713",
+  "input_hash": "sha256:f6ada439b2c300eea5340509cd8043c70bee3e1f430f238417cb4790ed23f902",
+  "gen_plan_reference": "sha256:a53703f8788d2fc5c403a2a6860a597a8a92104b327a22d76ece784b334ea628",
+  "timestamp": "2026-08-25T08:55:30Z",
+  "suite_id": "w9_critic_frozen_12",
+  "binding_policy": "observed_after",
+  "formal_measurement": false,
+  "stream_phase_entered": true,
+  "plan_refusal": false,
+  "capture_provenance": {
+    "harness_id": "w10_eb15_product_after_capture",
+    "harness_entry": "capture_frozen_case_product_after",
+    "product_boundary": [
+      "prepare_agent_generation",
+      "_stream_generation_phase",
+      "state[content]",
+      "state[citations]"
+    ],
+    "worktree_head": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+    "authorization_stamp_schema": "eb30_owner_stamp_v1"
+  }
+}

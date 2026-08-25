@@ -7,6 +7,18 @@
 
 ---
 
+## W10 E-B38 · Frozen Baseline Product After Acquisition（2026-08-25）✅ **ACQUISITION EXECUTED · NO FORMAL**
+
+- **范围**：在 Owner-APPROVED frozen baseline 上**首次真实执行** Product After acquisition（C01–C11）；C12 执行前排除。**不** Formal Observation · **不** Formal T2/T3 scoring · **不调** LM Studio/API/LLM · **不改** frozen worktree 实现代码 · **不**改写 stamp/`base_sha`。
+- **执行拓扑**：dedicated detached worktree `D:\MyPrograms\rag-knowledge-platform-eb38-frozen-3ce0e75` @ `base_sha=3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6`（clean preflight PASS）；产物写授权工作区 `docs/research/w10-eb38-frozen-baseline-acquisition/`。
+- **捕获路径**：复用 E-B15 `capture_frozen_case_product_after` → 真实 `_stream_generation_phase` → `state[content/citations]`；freeze `capture_mode=product_stream` · 观测 submode=`product_stream_degraded` · `model_backend=none_no_llm` · `llm_called_observed=false`。
+- **Run**：`run_identity=w10_showcase_narrow_eb38_20260825T085526Z` · `started_at/completed_at=2026-08-25T08:55:30Z`。
+- **计数**：eligible=11 · attempted=11 · captured=11 · failed=0 · excluded=1（C12）。
+- **门禁（本窗 YES）**：`ACQUISITION_EXECUTED=YES` · `PRODUCT_AFTER_CAPTURED=YES` · `ACQUISITION_VALID=YES` · `AUTHORIZATION_STILL_VALID=YES`。
+- **门禁（必须 NO）**：`E-B_FORMAL_READY=NO` · `MAY_ENTER_FORMAL_OBSERVATION_WINDOW=NO` · `FORMAL_OBSERVATION=NOT_STARTED`。
+- **验收**：binding validation 116/116 PASS；post-run frozen worktree clean · HEAD 未变。
+- **下一动作**：`WAITING_FOR_POST_ACQUISITION_BINDING_AND_FORMAL_READINESS` — **不要**本记录窗进入 Formal Observation。
+
 ## W10 E-B37 · Acquisition Entry Review & Frozen Baseline Execution Plan（2026-08-25）✅ **ENTRY READY · NO ACQUISITION EXECUTED / NO FORMAL**
 
 - **范围**：持久化 E-B35b/E-B36 authorization provenance → 重放 E-B29 原始 Acquisition Entry conjunction → 校验 authorization validity → 设计 frozen-baseline dedicated worktree 执行拓扑。**不**执行 Product After acquisition · **不** Formal Observation · **不调** LM Studio/API/LLM · **不改** `backend/app` · **不**改写 frozen `base_sha` · **不**重签 Owner Stamp。

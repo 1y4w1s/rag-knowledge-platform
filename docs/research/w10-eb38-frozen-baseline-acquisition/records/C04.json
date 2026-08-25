@@ -1,0 +1,62 @@
+{
+  "schema_ref": "eb26_narrow_formal_after_capture_record_v1",
+  "case_id": "C04-valid-citation-wrong-evidence",
+  "case_id_short": "C04",
+  "query": "管理员初始密码是什么？",
+  "source_identity": "suoyin_local_research_product_after_v1",
+  "after_source_id": "suoyin_local_research_product_after_v1",
+  "after_source": "suoyin_local_research_product_after_v1",
+  "run_identity": "w10_showcase_narrow_eb38_20260825T085526Z",
+  "base_sha": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "authorization_record_commit": "bd23448f561a541ba6bed7fa1308c3f7de3f6236",
+  "runtime_identity": "suoyin_backend_venv_cpython_3.11.9_win10_amd64",
+  "capture_mode": "product_stream",
+  "capture_path_identity": "eb15_harness_product_after_capture_path_a",
+  "capture_path_submode": "product_stream_degraded",
+  "model_backend_identity": "none_no_llm",
+  "model_identity": "none_no_llm",
+  "llm_called": false,
+  "llm_called_observed": false,
+  "generation_config": {
+    "chat_provider_keys": "forced_empty_via_eb15_force_zero_llm",
+    "rag_critic_enabled": false,
+    "agent_l3_critic_retrieval_enabled": false
+  },
+  "content": "AI 回答服务暂时不可用，以下是最相关的文档片段供您参考。请稍后再试以获得完整回答。\n[片段1] 《密码策略.md》 · 第1页 · 章节：第 1 节：系统不设置通用默认密码；管理员首次登录须通过一次性链接创建密码。",
+  "citations": [
+    {
+      "chunk_id": "16d0e4d1-3717-568f-a21c-5657e3330375",
+      "document_id": "8c9b72e0-5059-5257-81ff-5f378b4d5d52",
+      "doc_name": "密码策略.md",
+      "page": 1,
+      "section_title": "第 1 节",
+      "excerpt": "系统不设置通用默认密码；管理员首次登录须通过一次性链接创建密码。",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main"
+    }
+  ],
+  "source_hash": "sha256:3edb11b9cca66b9b756659489fa4bd17bb4e05bc9315ac0c8006a91d4b8ec4e1",
+  "observed_content_hash": "sha256:3edb11b9cca66b9b756659489fa4bd17bb4e05bc9315ac0c8006a91d4b8ec4e1",
+  "harness_after_content_hash": "sha256:94f51accee41611a06afb21862ece621093cf5349334dcb0be2527e09e55a3ef",
+  "after_citations_hash": "sha256:b8b80e780842f8589c0df1a65ede3e2bc4ced2f7a7919b637a704ed0c1282bbf",
+  "input_hash": "sha256:99203ce1020a6561e1e9842a9ec559a0341722c10264b719042965a855d404d1",
+  "gen_plan_reference": "sha256:57bae0c6cb32575488a03e9ff23d1308cb422ca29f1344e0c35305c36e584cce",
+  "timestamp": "2026-08-25T08:55:30Z",
+  "suite_id": "w9_critic_frozen_12",
+  "binding_policy": "observed_after",
+  "formal_measurement": false,
+  "stream_phase_entered": true,
+  "plan_refusal": false,
+  "capture_provenance": {
+    "harness_id": "w10_eb15_product_after_capture",
+    "harness_entry": "capture_frozen_case_product_after",
+    "product_boundary": [
+      "prepare_agent_generation",
+      "_stream_generation_phase",
+      "state[content]",
+      "state[citations]"
+    ],
+    "worktree_head": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+    "authorization_stamp_schema": "eb30_owner_stamp_v1"
+  }
+}

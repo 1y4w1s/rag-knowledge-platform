@@ -1,0 +1,62 @@
+{
+  "schema_ref": "eb26_narrow_formal_after_capture_record_v1",
+  "case_id": "C06-required-fact-missing",
+  "case_id_short": "C06",
+  "query": "企业版最多支持多少成员？",
+  "source_identity": "suoyin_local_research_product_after_v1",
+  "after_source_id": "suoyin_local_research_product_after_v1",
+  "after_source": "suoyin_local_research_product_after_v1",
+  "run_identity": "w10_showcase_narrow_eb38_20260825T085526Z",
+  "base_sha": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+  "authorization_record_commit": "bd23448f561a541ba6bed7fa1308c3f7de3f6236",
+  "runtime_identity": "suoyin_backend_venv_cpython_3.11.9_win10_amd64",
+  "capture_mode": "product_stream",
+  "capture_path_identity": "eb15_harness_product_after_capture_path_a",
+  "capture_path_submode": "product_stream_degraded",
+  "model_backend_identity": "none_no_llm",
+  "model_identity": "none_no_llm",
+  "llm_called": false,
+  "llm_called_observed": false,
+  "generation_config": {
+    "chat_provider_keys": "forced_empty_via_eb15_force_zero_llm",
+    "rag_critic_enabled": false,
+    "agent_l3_critic_retrieval_enabled": false
+  },
+  "content": "AI 回答服务暂时不可用，以下是最相关的文档片段供您参考。请稍后再试以获得完整回答。\n[片段1] 《企业版概览.md》 · 第1页 · 章节：成员管理：企业版的成员数量可由管理员配置。本文未列出数量上限。",
+  "citations": [
+    {
+      "chunk_id": "515f3b00-1615-50e4-b6c0-63a1ce2f3e67",
+      "document_id": "3afe2604-f652-5725-b8e7-ec0eda5dba16",
+      "doc_name": "企业版概览.md",
+      "page": 1,
+      "section_title": "成员管理",
+      "excerpt": "企业版的成员数量可由管理员配置。本文未列出数量上限。",
+      "kb_id": "700a17a6-dbc2-52cf-9b7f-0c38328f7d41",
+      "kb_name": "kb-main"
+    }
+  ],
+  "source_hash": "sha256:9916dd401fb718708388fb1c3cedcd6078f847ff413d1f8a66ac7f5a1aac9366",
+  "observed_content_hash": "sha256:9916dd401fb718708388fb1c3cedcd6078f847ff413d1f8a66ac7f5a1aac9366",
+  "harness_after_content_hash": "sha256:0ef0580f65869217cb5027ebeb4d15c7961335910e68ee30087793e5c007487e",
+  "after_citations_hash": "sha256:6ec4fc50e756b6795f403ed4ca4718d51f5752b10820b3eb62b7943e4e2f9e6f",
+  "input_hash": "sha256:87df641bbd6ebfa1c80767522839801f8304c705c0a27f11086a19c2a514b664",
+  "gen_plan_reference": "sha256:b991c1cc99f317c375ef08b9d826325ef9e9127f8c242688eefed303aa960b08",
+  "timestamp": "2026-08-25T08:55:30Z",
+  "suite_id": "w9_critic_frozen_12",
+  "binding_policy": "observed_after",
+  "formal_measurement": false,
+  "stream_phase_entered": true,
+  "plan_refusal": false,
+  "capture_provenance": {
+    "harness_id": "w10_eb15_product_after_capture",
+    "harness_entry": "capture_frozen_case_product_after",
+    "product_boundary": [
+      "prepare_agent_generation",
+      "_stream_generation_phase",
+      "state[content]",
+      "state[citations]"
+    ],
+    "worktree_head": "3ce0e75f06d35aecaaccd245dd3a234b1c6f79a6",
+    "authorization_stamp_schema": "eb30_owner_stamp_v1"
+  }
+}
